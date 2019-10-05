@@ -11,6 +11,8 @@ type Logger struct {
 	fields logrus.Fields
 }
 
+type StdLogger logrus.StdLogger
+
 const FieldName = "logger"
 
 func (logger *Logger) Fields() LogContext {
@@ -195,7 +197,7 @@ func (logger *Logger) Panicln(args ...interface{}) {
 	logger.newEntry().Panicln(args...)
 }
 
-func (logger *Logger) Level(level logrus.Level) logrus.StdLogger {
+func (logger *Logger) Level(level logrus.Level) StdLogger {
 	return NewLevelLogger(logger, level)
 }
 
