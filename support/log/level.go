@@ -7,8 +7,8 @@ import (
 const (
 	TraceLevel = logrus.TraceLevel
 	DebugLevel = logrus.DebugLevel
-	InfoLevel = logrus.InfoLevel
-	WarnLevel = logrus.WarnLevel
+	InfoLevel  = logrus.InfoLevel
+	WarnLevel  = logrus.WarnLevel
 	ErrorLevel = logrus.ErrorLevel
 	FatalLevel = logrus.FatalLevel
 	PanicLevel = logrus.PanicLevel

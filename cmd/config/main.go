@@ -3,15 +3,14 @@ package main
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/vault"
 )
 
 func main() {
 	var logger = log.StandardLogger()
 
-	logger.Info("Loading configuration")
 	config.SetStaticConfig(map[string]string{
 		"application.name": "config",
 	})

@@ -2,14 +2,12 @@ package main
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	_ "cto-github.cisco.com/NFV-BU/go-msx/support/consul"
-	_ "cto-github.cisco.com/NFV-BU/go-msx/support/vault"
 	"cto-github.cisco.com/NFV-BU/go-msx/lifecycle"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
 func init() {
-	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseBefore, func() {
+	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseAfter, func() {
 		config.SetStaticConfig(map[string]string{
 			"spring.app.name": "app",
 		})

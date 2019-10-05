@@ -44,4 +44,3 @@ func SetFormat(format string) {
 		})
 	}
 }
-

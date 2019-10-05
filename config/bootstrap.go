@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/lifecycle"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"time"
 )
 
@@ -15,8 +15,8 @@ var bootstrapSources *Sources
 var staticConfig = make(map[string]string)
 
 func init() {
-	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseDuring, createBootstrap)
-	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseAfter, mustLoadBootstrapConfig)
+	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseBefore, createBootstrap)
+	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseBefore, mustLoadBootstrapConfig)
 }
 
 func mustLoadBootstrapConfig() {

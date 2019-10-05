@@ -2,7 +2,7 @@ package config
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/magiconair/properties"

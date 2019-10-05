@@ -2,7 +2,7 @@ package lifecycle
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
 const (
@@ -13,14 +13,14 @@ const (
 	EventStop      = "stop"
 	EventFinal     = "finalize"
 
-	PhaseBefore    = ".before"
-	PhaseDuring    = ""
-	PhaseAfter     = ".after"
+	PhaseBefore = ".before"
+	PhaseDuring = ""
+	PhaseAfter  = ".after"
 )
 
 var (
 	application = newObservable()
-	logger = log.NewLogger("msx.lifecycle")
+	logger      = log.NewLogger("msx.lifecycle")
 )
 
 func OnEvent(event string, phase string, observer Observer) {

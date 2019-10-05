@@ -2,8 +2,8 @@ package vault
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"fmt"
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"

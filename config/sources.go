@@ -25,7 +25,7 @@ type Sources struct {
 	Profile         config.Provider
 	Environment     config.Provider
 	//CommandLine     config.Provider
-	Static          config.Provider
+	Static config.Provider
 }
 
 func (c Sources) Providers() []config.Provider {
@@ -65,7 +65,7 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 }
 
 func newDefaultsProvider() config.Provider {
-	return config.NewCachedLoader(config.NewStatic(map[string]string{
+	return config.NewCachedLoader(config.NewStatic("default", map[string]string{
 		"profile": "default",
 	}))
 }
@@ -84,7 +84,7 @@ func newEnvironmentProvider() config.Provider {
 }
 
 func newStaticProvider(static map[string]string) config.Provider {
-	return config.NewCachedLoader(config.NewStatic(static))
+	return config.NewCachedLoader(config.NewStatic("override", static))
 }
 
 func newApplicationProvider(*config.Config) config.Provider {

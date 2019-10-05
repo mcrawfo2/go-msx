@@ -6,17 +6,19 @@ import (
 )
 
 type Static struct {
+	name     string
 	settings map[string]string
 }
 
-func NewStatic(settings map[string]string) *Static {
+func NewStatic(name string, settings map[string]string) *Static {
 	return &Static{
+		name:     name,
 		settings: settings,
 	}
 }
 
 func (s *Static) Load(ctx context.Context) (map[string]string, error) {
-	logger.Info("Loading static config")
+	logger.Infof("Loading %s config", s.name)
 
 	settings := map[string]string{}
 
