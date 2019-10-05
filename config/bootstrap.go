@@ -35,6 +35,7 @@ func createBootstrap() {
 		Defaults:      newDefaultsProvider(),
 		BootstrapFile: newBootstrapProvider(),
 		Environment:   newEnvironmentProvider(),
+		CommandLine:   newProvider(SourceCommandLine, nil),
 		Static:        newStaticProvider(staticConfig),
 	}
 

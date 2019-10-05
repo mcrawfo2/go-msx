@@ -43,6 +43,10 @@ func mustLoadApplicationConfig() {
 func createApplicationConfig() {
 	if bootstrapConfig == nil {
 		createBootstrap()
+		mustLoadBootstrapConfig()
+		if lifecycle.Context().Err() != nil {
+			return
+		}
 	}
 
 	// Load full config
@@ -54,6 +58,7 @@ func createApplicationConfig() {
 		Vault:           newProvider(SourceVault, bootstrapConfig),
 		Profile:         newProvider(SourceProfile, bootstrapConfig),
 		Environment:     bootstrapSources.Environment,
+		CommandLine:     bootstrapSources.CommandLine,
 		Static:          bootstrapSources.Static,
 	}
 

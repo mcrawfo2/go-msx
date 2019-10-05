@@ -14,6 +14,7 @@ const (
 	SourceVault       = "Vault"
 	SourceApplication = "Application"
 	SourceProfile     = "Profile"
+	SourceCommandLine = "CommandLine"
 )
 
 type Sources struct {
@@ -24,8 +25,8 @@ type Sources struct {
 	Vault           config.Provider
 	Profile         config.Provider
 	Environment     config.Provider
-	//CommandLine     config.Provider
-	Static config.Provider
+	CommandLine     config.Provider
+	Static          config.Provider
 }
 
 func (c Sources) Providers() []config.Provider {
@@ -37,7 +38,7 @@ func (c Sources) Providers() []config.Provider {
 		c.Vault,
 		c.Profile,
 		c.Environment,
-		//c.CommandLine,
+		c.CommandLine,
 		c.Static,
 	}
 
@@ -54,6 +55,7 @@ func (c Sources) Providers() []config.Provider {
 type ProviderFactory func(*config.Config) config.Provider
 
 var providerFactories = map[string]ProviderFactory{
+	SourceCommandLine: nil,
 	SourceConsul:      nil,
 	SourceVault:       nil,
 	SourceApplication: newApplicationProvider,
