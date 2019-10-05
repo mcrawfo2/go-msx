@@ -48,12 +48,12 @@ func (c *Connection) ListSecrets(ctx context.Context, path string) (map[string]s
 	if secrets, err := c.read(ctx, path); err != nil {
 		return nil, errors.Wrap(err, "Failed to list vault secrets")
 	} else if secrets != nil {
-		logger.Info("Retrieved %d secrets from vault", len(secrets.Data))
+		logger.Infof("Retrieved %d configs from vault (%s): %s", len(secrets.Data), c.Host(), path)
 		for key, val := range secrets.Data {
 			results[key] = val.(string)
 		}
 	} else {
-		logger.Warning("No secrets retrieved from vault: ", path)
+		logger.Warningf("No secrets retrieved from vault (%s): %s", c.Host(), path)
 	}
 
 	return results, nil

@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/vault"
+	"time"
 )
 
 func main() {
@@ -15,21 +14,20 @@ func main() {
 		"application.name": "config",
 	})
 
-	if err := config.Bootstrap().Load(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 90 * time.Second)
+	defer cancel()
+
+	if err := config.Bootstrap().Load(ctx); err != nil {
 		logger.Fatal(err)
 	}
 
-	config.RegisterProviderFactory(config.SourceConsul, consul.NewConsulSource)
-	config.RegisterProviderFactory(config.SourceVault, vault.NewVaultSource)
-
-	cfg := config.Application()
-	if err := cfg.Load(context.Background()); err != nil {
+	config.RegisterRemoteConfigProviders()
+	if err := config.Application().Load(ctx); err != nil {
 		logger.Fatal(err)
 	}
 
 	logger.Info("Dumping application configuration")
-	settings := cfg.Settings()
-	for name, value := range settings {
+	config.Application().Each(func(name, value string) {
 		logger.Infof("%s: %s", name, value)
-	}
+	})
 }

@@ -6,25 +6,26 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
+var logger = log.NewLogger("app")
+
 func init() {
-	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseAfter, func() {
-		config.SetStaticConfig(map[string]string{
-			"spring.app.name": "app",
-		})
+	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseAfter, setStaticConfig)
+	lifecycle.OnEvent(lifecycle.EventStart, lifecycle.PhaseDuring, dumpConfiguration)
+}
+
+func setStaticConfig() {
+	config.SetStaticConfig(map[string]string{
+		"spring.app.name": "app",
+	})
+}
+
+func dumpConfiguration() {
+	logger.Info("Dumping application configuration")
+	config.Application().Each(func(name, value string) {
+		logger.Infof("%s: %s", name, value)
 	})
 }
 
 func main() {
-	var logger = log.NewLogger("app")
-
-	lifecycle.OnEvent(lifecycle.EventReady, lifecycle.PhaseDuring, func() {
-		logger.Info("Dumping application configuration")
-		cfg := config.Application()
-		settings := cfg.Settings()
-		for name, value := range settings {
-			logger.Infof("%s: %s", name, value)
-		}
-	})
-
 	lifecycle.Run()
 }

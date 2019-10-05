@@ -44,9 +44,9 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[st
 	if err != nil {
 		return nil, err
 	} else if entries == nil {
-		logger.Warningf("No config retrieved from consul: %s", path)
+		logger.Warningf("No config retrieved from consul (%s): %s", c.Host(), path)
 	} else {
-		logger.Infof("Retrieved %d configs from consul", len(entries))
+		logger.Infof("Retrieved %d configs from consul (%s): %s", len(entries), c.Host(), path)
 	}
 
 	prefix := path + "/"

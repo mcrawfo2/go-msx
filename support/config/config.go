@@ -310,6 +310,12 @@ func (c *Config) Settings() map[string]string {
 	return result
 }
 
+func (c *Config) Each(target func (string, string)) {
+	for name, value := range c.Settings() {
+		target(name, value)
+	}
+}
+
 func (c *Config) Populate(target interface{}, prefix string) error {
 	// Collect sub-keys into a properties object
 	root := properties.NewProperties()

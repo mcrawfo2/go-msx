@@ -13,13 +13,13 @@ var applicationConfig *config.Config
 var applicationSources *Sources
 
 func init() {
-	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseBefore, registerConfigProviders)
+	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseBefore, RegisterRemoteConfigProviders)
 	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseDuring, createApplicationConfig)
 	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseAfter, mustLoadApplicationConfig)
 	lifecycle.OnEvent(lifecycle.EventConfigure, lifecycle.PhaseAfter, watchApplicationConfig)
 }
 
-func registerConfigProviders() {
+func RegisterRemoteConfigProviders() {
 	RegisterProviderFactory(SourceConsul, consul.NewConsulSource)
 	RegisterProviderFactory(SourceVault, vault.NewVaultSource)
 }
