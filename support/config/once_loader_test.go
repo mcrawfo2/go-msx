@@ -1,14 +1,15 @@
 package config
 
 import (
+	"context"
 	"testing"
 )
 
 func TestOnceLoader(t *testing.T) {
-	static := NewStatic(map[string]string{"enabled": "true"})
+	static := NewStatic("once", map[string]string{"enabled": "true"})
 	loader := NewOnceLoader(static)
 
-	settings, err := loader.Load()
+	settings, err := loader.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
@@ -19,7 +20,7 @@ func TestOnceLoader(t *testing.T) {
 
 	static.Set("enabled", "false")
 
-	settings, err = loader.Load()
+	settings, err = loader.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

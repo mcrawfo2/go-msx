@@ -1,13 +1,14 @@
 package config
 
 import (
+	"context"
 	"testing"
 )
 
 func TestJSONLoad(t *testing.T) {
 	p := NewJSONFile("test/config.json")
 
-	actualSettings, err := p.Load()
+	actualSettings, err := p.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

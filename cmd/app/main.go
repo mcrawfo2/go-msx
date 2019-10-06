@@ -1,31 +1,29 @@
 package main
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/lifecycle"
+	"cto-github.cisco.com/NFV-BU/go-msx/app"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
-var logger = log.NewLogger("app")
+var logger = log.NewLogger("someservice")
 
 func init() {
-	lifecycle.OnEvent(lifecycle.EventInit, lifecycle.PhaseAfter, setStaticConfig)
-	lifecycle.OnEvent(lifecycle.EventStart, lifecycle.PhaseDuring, dumpConfiguration)
-}
-
-func setStaticConfig() {
-	config.SetStaticConfig(map[string]string{
-		"spring.app.name": "app",
-	})
+	app.OnEvent(app.EventStart, app.PhaseDuring, dumpConfiguration)
 }
 
 func dumpConfiguration() {
-	logger.Info("Dumping application configuration")
-	config.Application().Each(func(name, value string) {
-		logger.Infof("%s: %s", name, value)
-	})
+	cfg := app.Config()
+	quiet, _ := cfg.BoolOr("cli.flag.quiet", false)
+	if !quiet {
+		logger.Info("Dumping application configuration")
+		cfg.Each(func(name, value string) {
+			logger.Infof("%s: %s", name, value)
+		})
+	}
 }
 
 func main() {
-	lifecycle.Run()
+	rootCmd := app.FindCommand()
+	rootCmd.PersistentFlags().Bool("quiet", false, "Be quiet")
+	app.Run("someservice")
 }

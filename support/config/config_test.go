@@ -1,43 +1,48 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"testing"
 )
 
 func TestPrecedence(t *testing.T) {
 	low := map[string]string{
-		"without_override": "false",
-		"with_override":    "false",
+		"without.override": "false",
+		"with.override":    "false",
 	}
 
 	high := map[string]string{
-		"with_override": "true",
+		"with.override": "true",
 	}
 
 	c := NewConfig(
 		[]Provider{
-			NewStatic(low),
-			NewStatic(high),
+			NewStatic("low", low),
+			NewStatic("high", high),
 		}...,
 	)
 
-	without, err := c.Bool("without_override")
+	if err := c.Load(context.Background()); err != nil {
+		t.Error(err)
+	}
+
+	without, err := c.Bool("without.override")
 	if err != nil {
 		t.Error(err)
 	}
 
 	if without == true {
-		t.Errorf("Setting 'without_override' was true, expected false")
+		t.Errorf("Setting 'without.override' was true, expected false")
 	}
 
-	with, err := c.Bool("with_override")
+	with, err := c.Bool("with.override")
 	if err != nil {
 		t.Error(err)
 	}
 
 	if with == false {
-		t.Errorf("Setting 'with_override' was 'false', expected 'true'")
+		t.Errorf("Setting 'with.override' was 'false', expected 'true'")
 	}
 }
 
@@ -49,7 +54,11 @@ func TestTypeLookups(t *testing.T) {
 		"float":  "1.5",
 	}
 
-	c := NewConfig([]Provider{NewStatic(settings)}...)
+	c := NewConfig([]Provider{NewStatic("lookups", settings)}...)
+
+	if err := c.Load(context.Background()); err != nil {
+		t.Error(err)
+	}
 
 	s, err := c.String("string")
 	if err != nil {
@@ -90,6 +99,10 @@ func TestTypeLookups(t *testing.T) {
 
 func TestTypeOrLookups(t *testing.T) {
 	c := NewConfig()
+
+	if err := c.Load(context.Background()); err != nil {
+		t.Error(err)
+	}
 
 	s, err := c.StringOr("string", "some_string")
 	if err != nil {
@@ -134,7 +147,7 @@ func TestValidate(t *testing.T) {
 		return fmt.Errorf("some error")
 	}
 
-	if err := c.Load(); err == nil {
+	if err := c.Load(context.Background()); err == nil {
 		t.Errorf("Error was nil")
 	}
 }

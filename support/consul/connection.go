@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+const (
+	configRootConsulConnection = "spring.cloud.consul"
+)
+
 var (
 	ErrConsulDisabled = errors.New("Consul connection disabled")
 	logger            = log.NewLogger("msx.support.consul")
@@ -63,12 +67,7 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[st
 	return results, nil
 }
 
-func NewConnection(cfg *config.Config) (*Connection, error) {
-	connectionConfig := &ConnectionConfig{}
-	if err := cfg.Populate(connectionConfig, "spring.cloud.consul"); err != nil {
-		return nil, err
-	}
-
+func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
 		return nil, ErrConsulDisabled
 	}
@@ -87,4 +86,13 @@ func NewConnection(cfg *config.Config) (*Connection, error) {
 			client: client,
 		}, nil
 	}
+}
+
+func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
+	connectionConfig := &ConnectionConfig{}
+	if err := cfg.Populate(connectionConfig, configRootConsulConnection); err != nil {
+		return nil, err
+	}
+
+	return NewConnection(connectionConfig)
 }

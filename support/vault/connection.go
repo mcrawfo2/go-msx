@@ -10,6 +10,10 @@ import (
 	"io"
 )
 
+const (
+	configRootVaultConnection = "spring.cloud.vault"
+)
+
 var (
 	logger           = log.NewLogger("msx.support.vault")
 	ErrVaultDisabled = errors.New("Consul connection disabled")
@@ -88,12 +92,7 @@ func (c *Connection) read(ctx context.Context, path string) (*api.Secret, error)
 	return api.ParseSecret(resp.Body)
 }
 
-func NewConnection(cfg *config.Config) (*Connection, error) {
-	connectionConfig := &ConnectionConfig{}
-	if err := cfg.Populate(connectionConfig, "spring.cloud.vault"); err != nil {
-		return nil, err
-	}
-
+func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
 		return nil, ErrVaultDisabled
 	}
@@ -124,4 +123,13 @@ func NewConnection(cfg *config.Config) (*Connection, error) {
 		config: connectionConfig,
 		client: client,
 	}, nil
+}
+
+func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
+	connectionConfig := &ConnectionConfig{}
+	if err := cfg.Populate(connectionConfig, configRootVaultConnection); err != nil {
+		return nil, err
+	}
+
+	return NewConnection(connectionConfig)
 }

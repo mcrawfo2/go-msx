@@ -1,4 +1,4 @@
-package cobra
+package cobraprovider
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:                "root",
+	Use: "root",
 	Run: func(cmd *cobra.Command, args []string) {},
 }
 

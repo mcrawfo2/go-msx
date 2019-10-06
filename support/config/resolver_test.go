@@ -1,11 +1,12 @@
 package config
 
 import (
+	"context"
 	"testing"
 )
 
 func TestResolver(t *testing.T) {
-	static := NewStatic(map[string]string{"items.server.timeout": "30"})
+	static := NewStatic("resolver", map[string]string{"items.server.timeout": "30"})
 
 	mappings := map[string]string{
 		"items.server.timeout": "server.timeout",
@@ -13,7 +14,7 @@ func TestResolver(t *testing.T) {
 
 	resolver := NewResolver(static, mappings)
 
-	settings, err := resolver.Load()
+	settings, err := resolver.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

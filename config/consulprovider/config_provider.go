@@ -1,21 +1,31 @@
-package consul
+package consulprovider
 
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"fmt"
 	"github.com/pkg/errors"
 )
 
+const (
+	configRootConsulConfigProvider = "spring.cloud.consul.config"
+	configKeyAppName               = "spring.application.name"
+)
+
+var logger = log.NewLogger("msx.config.consulprovider")
+
 type ConfigProviderConfig struct {
+	Enabled        bool   `properties:"enabled,default=false"`
 	Prefix         string `properties:"prefix,default=userviceconfiguration"`
-	DefaultContext string `properties:"defaultContext,default=defaultapplication"`
+	DefaultContext string `properties:"defaultcontext,default=defaultapplication"`
 }
 
 type ConfigProvider struct {
 	sourceConfig *ConfigProviderConfig
 	appContext   string
-	connection   *Connection
+	connection   *consul.Connection
 }
 
 func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, err error) {
@@ -48,22 +58,27 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewConsulSource(cfg *config.Config) config.Provider {
+func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 	var sourceConfig = &ConfigProviderConfig{}
-	var err = cfg.Populate(sourceConfig, "spring.cloud.consul.config")
+	var err = cfg.Populate(sourceConfig, configRootConsulConfigProvider)
 	if err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
 
+	if !sourceConfig.Enabled {
+		logger.Warn("Consul configuration source disabled")
+		return nil
+	}
+
 	var appContext string
-	if appContext, err = cfg.String("spring.app.name"); err != nil {
+	if appContext, err = cfg.String(configKeyAppName); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
 
-	var conn *Connection
-	if conn, err = NewConnection(cfg); err != nil {
+	var conn *consul.Connection
+	if conn, err = consul.NewConnectionFromConfig(cfg); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}

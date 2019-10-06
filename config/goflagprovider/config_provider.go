@@ -1,9 +1,8 @@
-package flag
+package goflagprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cli/extract"
-	msxConfig "cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"flag"
@@ -24,7 +23,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	logger.Info("Loading command line config")
 
 	f.once.Do(func() {
-		f.extras = extract.Extras(func(name string) bool {
+		f.extras = args.Extras(func(name string) bool {
 			return f.flagSet.Lookup(name) != nil
 		})
 	})
@@ -53,15 +52,5 @@ func NewFlagSource(flagSet *flag.FlagSet, prefix string) *ConfigProvider {
 	return &ConfigProvider{
 		prefix:  prefix,
 		flagSet: flagSet,
-	}
-}
-
-func RegisterConfigProvider(flagSet *flag.FlagSet, prefix string) {
-	if flagSet == nil {
-		logger.Warning("Invalid CLI flag set.")
-	} else {
-		msxConfig.RegisterProviderFactory(msxConfig.SourceCommandLine, func(*config.Config) config.Provider {
-			return config.NewOnceLoader(NewFlagSource(flagSet, prefix))
-		})
 	}
 }

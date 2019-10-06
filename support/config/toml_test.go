@@ -1,12 +1,15 @@
 package config
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestTOMLFile(t *testing.T) {
 	configFile := "test/config.toml"
 
 	tomlProvider := NewTOMLFile(configFile)
-	actualSettings, err := tomlProvider.Load()
+	actualSettings, err := tomlProvider.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

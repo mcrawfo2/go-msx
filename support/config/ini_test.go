@@ -1,13 +1,14 @@
 package config
 
 import (
+	"context"
 	"testing"
 )
 
 func TestINILoad(t *testing.T) {
 	p := NewINIFile("test/config.ini")
 
-	actualSettings, err := p.Load()
+	actualSettings, err := p.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

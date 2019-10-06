@@ -1,8 +1,7 @@
-package lifecycle
+package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
 const (
@@ -20,7 +19,6 @@ const (
 
 var (
 	application = newObservable()
-	logger      = log.NewLogger("msx.lifecycle")
 )
 
 func OnEvent(event string, phase string, observer Observer) {
@@ -32,12 +30,10 @@ func ClearEvent(event string, phase string) {
 }
 
 func TriggerEvent(event string) {
-	logger.Infof("Event triggered: %s", event)
 	application.Trigger(event)
 }
 
 func Shutdown() {
-	logger.Info("Shutdown triggered")
 	application.Shutdown()
 }
 
@@ -45,7 +41,7 @@ func Context() context.Context {
 	return application.ctx
 }
 
-func Run() {
+func Lifecycle() {
 	TriggerEvent(EventInit)
 	TriggerEvent(EventConfigure)
 	TriggerEvent(EventStart)

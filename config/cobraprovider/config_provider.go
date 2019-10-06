@@ -1,20 +1,21 @@
-package pflag
+package cobraprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cli/extract"
-	msxConfig "cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"os"
 	"sync"
 )
 
-var logger = log.NewLogger("msx.cli.pflag")
+var logger = log.NewLogger("msx.cli.cobra")
 
 type ConfigProvider struct {
 	prefix  string
+	appName string
 	extras  map[string]string
 	flagset *pflag.FlagSet
 	once    sync.Once
@@ -24,7 +25,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	logger.Info("Loading command line config")
 
 	f.once.Do(func() {
-		f.extras = extract.Extras(func(name string) bool {
+		f.extras = args.Extras(func(name string) bool {
 			return f.flagset.Lookup(name) != nil
 		})
 	})
@@ -46,22 +47,32 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 		settings[k] = v
 	}
 
+	// Apply application name
+	settings["spring.application.name"] = f.appName
+
 	return settings, nil
 }
 
-func NewPflagSource(flagset *pflag.FlagSet, prefix string) *ConfigProvider {
-	return &ConfigProvider{
-		prefix:  prefix,
-		flagset: flagset,
-	}
+func ExtractFlagSet(command *cobra.Command) *pflag.FlagSet {
+	flagSet := pflag.NewFlagSet(command.Name(), pflag.ContinueOnError)
+	flagSet.ParseErrorsWhitelist.UnknownFlags = true
+
+	command.InheritedFlags().VisitAll(func(flag *pflag.Flag) {
+		flagSet.AddFlag(flag)
+	})
+
+	command.LocalFlags().VisitAll(func(flag *pflag.Flag) {
+		flagSet.AddFlag(flag)
+	})
+
+	return flagSet
 }
 
-func RegisterConfigProvider(flagset *pflag.FlagSet, prefix string) {
-	if flagset == nil {
-		logger.Warning("Invalid CLI flag set.")
-	} else {
-		msxConfig.RegisterProviderFactory(msxConfig.SourceCommandLine, func(*config.Config) config.Provider {
-			return config.NewOnceLoader(NewPflagSource(flagset, prefix))
-		})
+func NewCobraSource(command *cobra.Command, prefix string) *ConfigProvider {
+	flagSet := ExtractFlagSet(command)
+	return &ConfigProvider{
+		prefix:  prefix,
+		flagset: flagSet,
+		appName: command.Root().Name(),
 	}
 }

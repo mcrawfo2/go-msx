@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/types"
 	"fmt"
 	"github.com/magiconair/properties"
 	"github.com/pkg/errors"
@@ -71,7 +71,7 @@ func (c *Config) reload(ctx context.Context) (map[string]string, error) {
 	}
 
 	// Resolve variables in the config
-	if err := c.Resolve(result); err != nil {
+	if err := c.resolve(result); err != nil {
 		return nil, errors.Wrap(err, "Failed to resolve variables")
 	}
 
@@ -80,6 +80,58 @@ func (c *Config) reload(ctx context.Context) (map[string]string, error) {
 	}
 
 	return result, nil
+}
+
+// Expand all references to ${variables}
+func (c *Config) resolve(settings map[string]string) error {
+	variableRegex, _ := regexp.Compile(`\${([\w.]+)}`)
+	resolved := map[string]string{}
+
+	resolveVariable := func(name string) string {
+		stack := types.StringStack{name}
+		for len(stack) > 0 {
+			currentVariable := stack.Peek()
+			currentValue := ""
+			ok := false
+
+			if currentValue, ok = resolved[currentVariable]; ok {
+				// already resolved
+				return currentValue
+			} else if currentValue, ok = settings[currentVariable]; !ok {
+				logger.Errorf("Failed to resolve variable %s", currentVariable)
+				return currentValue
+			}
+
+			variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
+			unresolvedReferences := 0
+			for _, match := range variables {
+				referenceVariableName := c.alias(match[1])
+				if stack.Contains(referenceVariableName) {
+					logger.Errorf("Circular variable reference detected: %s", referenceVariableName)
+					resolved[referenceVariableName] = ""
+				}
+				if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
+					currentValue = strings.ReplaceAll(currentValue, fmt.Sprintf("${%s}", referenceVariableName), referenceVariableValue)
+				} else {
+					unresolvedReferences++
+					stack = stack.Push(referenceVariableName)
+				}
+			}
+
+			if unresolvedReferences == 0 {
+				resolved[currentVariable] = currentValue
+				stack = stack.Pop()
+			}
+		}
+
+		return resolved[name]
+	}
+
+	for k := range settings {
+		resolved[k] = resolveVariable(k)
+	}
+
+	return nil
 }
 
 func (c *Config) compareAndNotify(newSettings map[string]string) {
@@ -144,58 +196,6 @@ func (c *Config) Watch(ctx context.Context) {
 		}
 
 	}()
-}
-
-// Expand all references to ${variables}
-func (c *Config) Resolve(settings map[string]string) error {
-	variableRegex, _ := regexp.Compile(`\${([\w.]+)}`)
-	resolved := map[string]string{}
-
-	resolveVariable := func(name string) string {
-		stack := types.StringStack{name}
-		for ; len(stack) > 0; {
-			currentVariable := stack.Peek()
-			currentValue := ""
-			ok := false
-
-			if currentValue, ok = resolved[currentVariable]; ok {
-				// already resolved
-				return currentValue
-			} else if currentValue, ok = settings[currentVariable]; !ok {
-				logger.Errorf("Failed to resolve variable %s", currentVariable)
-				return currentValue
-			}
-
-			variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
-			unresolvedReferences := 0
-			for _, match := range variables {
-				referenceVariableName := c.alias(match[1])
-				if stack.Contains(referenceVariableName) {
-					logger.Errorf("Circular variable reference detected: %s", referenceVariableName)
-					resolved[referenceVariableName] = ""
-				}
-				if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
-					currentValue = strings.ReplaceAll(currentValue, fmt.Sprintf("${%s}", referenceVariableName), referenceVariableValue)
-				} else {
-					unresolvedReferences++
-					stack = stack.Push(referenceVariableName)
-				}
-			}
-
-			if unresolvedReferences == 0 {
-				resolved[currentVariable] = currentValue
-				stack = stack.Pop()
-			}
-		}
-
-		return resolved[name]
-	}
-
-	for k := range settings {
-		resolved[k] = resolveVariable(k)
-	}
-
-	return nil
 }
 
 func (c *Config) String(key string) (string, error) {
@@ -310,7 +310,7 @@ func (c *Config) Settings() map[string]string {
 	return result
 }
 
-func (c *Config) Each(target func (string, string)) {
+func (c *Config) Each(target func(string, string)) {
 	for name, value := range c.Settings() {
 		target(name, value)
 	}

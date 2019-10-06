@@ -1,4 +1,4 @@
-package lifecycle
+package app
 
 import (
 	"context"
@@ -48,6 +48,7 @@ func (o *observable) callbacks(event, phase string) ([]Observer, bool) {
 }
 
 func (o *observable) trigger(event, phase string) {
+	logger.Infof("Event triggered: %s%s", event, phase)
 	if observers, ok := o.callbacks(event, phase); ok {
 		for _, observer := range observers {
 			if o.isIgnored(event, phase) {
@@ -71,6 +72,8 @@ func (o *observable) Shutdown() {
 	if o.isCancelled() {
 		return
 	}
+
+	logger.Info("Shutdown requested")
 
 	o.Lock()
 	defer o.Unlock()

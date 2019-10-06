@@ -22,7 +22,7 @@ func (i *FileWatchInvalidator) Watch(n WatchNotifier, ctx context.Context) {
 		for {
 			select {
 			case event := <-w.Event:
-				logger.Debug("File event received for %s: %v", i.fileName, event)
+				logger.Debugf("File event received for %s: %v", i.fileName, event)
 				i.provider.Invalidate()
 				n.Notify()
 			case err := <-w.Error:

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"os"
 	"testing"
 )
@@ -20,7 +21,7 @@ func TestEnvironmentLoad(t *testing.T) {
 		"local.enabled":    "true",
 	}
 
-	actualSettings, err := p.Load()
+	actualSettings, err := p.Load(context.Background())
 	if err != nil {
 		t.Error(err)
 	}

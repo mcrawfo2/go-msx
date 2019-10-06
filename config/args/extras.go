@@ -1,4 +1,4 @@
-package extract
+package args
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
@@ -51,4 +51,3 @@ func Extras(exists func(name string) bool) (extras map[string]string) {
 
 	return extras
 }
-

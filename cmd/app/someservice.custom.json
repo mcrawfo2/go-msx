@@ -1,0 +1,18 @@
+{
+  "spring.cloud": {
+    "consul": {
+      "enabled": true,
+      "host": "172.18.18.70",
+      "config": {
+        "enabled": false
+      }
+    },
+    "vault": {
+      "enabled": true,
+      "host": "172.18.18.70",
+      "generic": {
+        "enabled": true
+      }
+    }
+  }
+}

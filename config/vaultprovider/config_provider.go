@@ -1,22 +1,32 @@
-package vault
+package vaultprovider
 
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/vault"
 	"fmt"
 	"github.com/pkg/errors"
 )
 
+const (
+	configRootVaultConfigProvider = "spring.cloud.vault.generic"
+	configKeyAppName              = "spring.application.name"
+)
+
+var logger = log.NewLogger("msx.config.vaultprovider")
+
 type ConfigProviderConfig struct {
+	Enabled          bool   `properties:"enabled,default=false"`
 	Backend          string `properties:"backend,default=secret"`
 	ProfileSeparator string `properties:"profileseparator,default=/"`
-	DefaultContext   string `properties:"defaultContext,default=defaultapplication"`
+	DefaultContext   string `properties:"defaultcontext,default=defaultapplication"`
 }
 
 type ConfigProvider struct {
 	sourceConfig *ConfigProviderConfig
 	appContext   string
-	connection   *Connection
+	connection   *vault.Connection
 }
 
 func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, err error) {
@@ -49,22 +59,27 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewVaultSource(cfg *config.Config) config.Provider {
+func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 	var sourceConfig = &ConfigProviderConfig{}
-	var err = cfg.Populate(sourceConfig, "spring.cloud.consul.config")
+	var err = cfg.Populate(sourceConfig, configRootVaultConfigProvider)
 	if err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
 
+	if !sourceConfig.Enabled {
+		logger.Warn("Vault configuration source disabled")
+		return nil
+	}
+
 	var appContext string
-	if appContext, err = cfg.String("spring.app.name"); err != nil {
+	if appContext, err = cfg.String(configKeyAppName); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
 
-	var conn *Connection
-	if conn, err = NewConnection(cfg); err != nil {
+	var conn *vault.Connection
+	if conn, err = vault.NewConnectionFromConfig(cfg); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
