@@ -17,9 +17,9 @@ const (
 var logger = log.NewLogger("msx.config.consulprovider")
 
 type ConfigProviderConfig struct {
-	Enabled        bool   `properties:"enabled,default=false"`
-	Prefix         string `properties:"prefix,default=userviceconfiguration"`
-	DefaultContext string `properties:"defaultcontext,default=defaultapplication"`
+	Enabled        bool   `config:"default=false"`
+	Prefix         string `config:"default=userviceconfiguration"`
+	DefaultContext string `config:"default=defaultapplication"`
 }
 
 type ConfigProvider struct {

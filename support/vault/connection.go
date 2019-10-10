@@ -20,17 +20,17 @@ var (
 )
 
 type ConnectionConfig struct {
-	Enabled bool   `properties:"enabled,default=true"`
-	Host    string `properties:"host,default=localhost"`
-	Port    int    `properties:"port,default=8200"`
-	Scheme  string `properties:"scheme,default=http"`
-	Token   string `properties:"token,default=replace_with_token_value"`
+	Enabled bool   `config:"default=true"`
+	Host    string `config:"default=localhost"`
+	Port    int    `config:"default=8200"`
+	Scheme  string `config:"default=http"`
+	Token   string `config:"default=replace_with_token_value"`
 	Ssl     struct {
-		Cacert     string `properties:"cacert,default="`
-		ClientCert string `properties:"clientCert,default="`
-		ClientKey  string `properties:"clientKey,default="`
-		Insecure   bool   `properties:"insecure,default=true"`
-	} `properties:"ssl" json:"ssl"`
+		Cacert     string `config:"default="`
+		ClientCert string `config:"default="`
+		ClientKey  string `config:"default="`
+		Insecure   bool   `config:"default=true"`
+	}
 }
 
 func (c ConnectionConfig) Address() string {

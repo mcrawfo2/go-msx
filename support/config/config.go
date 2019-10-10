@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/types"
 	"fmt"
-	"github.com/magiconair/properties"
 	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
@@ -317,17 +316,17 @@ func (c *Config) Each(target func(string, string)) {
 }
 
 func (c *Config) Populate(target interface{}, prefix string) error {
-	// Collect sub-keys into a properties object
-	root := properties.NewProperties()
+	// Collect sub-keys into a properties map
+	root := PartialConfig{}
 	prefix = NormalizeKey(prefix) + "."
 	for k, v := range c.settings {
 		if strings.HasPrefix(k, prefix) {
-			_, _, _ = root.Set(strings.TrimPrefix(k, prefix), v)
+			root.Set(strings.TrimPrefix(k, prefix), v)
 		}
 	}
 
-	// Populate the object from the properties
-	return root.Decode(target)
+	// Populate the object from the properties map
+	return root.Populate(target)
 }
 
 func (c *Config) alias(key string) string {

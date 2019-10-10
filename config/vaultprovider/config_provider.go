@@ -17,10 +17,10 @@ const (
 var logger = log.NewLogger("msx.config.vaultprovider")
 
 type ConfigProviderConfig struct {
-	Enabled          bool   `properties:"enabled,default=false"`
-	Backend          string `properties:"backend,default=secret"`
-	ProfileSeparator string `properties:"profileseparator,default=/"`
-	DefaultContext   string `properties:"defaultcontext,default=defaultapplication"`
+	Enabled          bool   `config:"default=false"`
+	Backend          string `config:"default=secret"`
+	ProfileSeparator string `config:"default=/"`
+	DefaultContext   string `config:"default=defaultapplication"`
 }
 
 type ConfigProvider struct {

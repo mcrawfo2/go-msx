@@ -20,13 +20,13 @@ var (
 )
 
 type ConnectionConfig struct {
-	Enabled bool   `properties:"enabled,default=true"`
-	Host    string `properties:"host,default=localhost"`
-	Port    int    `properties:"port,default=8500"`
-	Scheme  string `properties:"scheme,default=http"`
+	Enabled bool   `config:"default=true"`
+	Host    string `config:"default=localhost"`
+	Port    int    `config:"default=8500"`
+	Scheme  string `config:"default=http"`
 	Config  struct {
-		AclToken string `properties:"acltoken,default="`
-	} `properties:"config"`
+		AclToken string `config:"default="`
+	}
 }
 
 func (c ConnectionConfig) Address() string {
