@@ -2,6 +2,7 @@ package main
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
 )
 
@@ -9,6 +10,7 @@ var logger = log.NewLogger("someservice")
 
 func init() {
 	app.OnEvent(app.EventStart, app.PhaseDuring, dumpConfiguration)
+	app.OnEvent(app.EventReady, app.PhaseDuring, findUserManagement)
 }
 
 func dumpConfiguration() {
@@ -20,6 +22,18 @@ func dumpConfiguration() {
 			logger.Infof("%s: %s", name, value)
 		})
 	}
+}
+
+func findUserManagement() {
+	if instances, err := discovery.Discover("usermanagementservice", true); err != nil {
+		logger.Error(err)
+	} else if len(instances) == 0 {
+		logger.Error("No healthy instances of usermanagementservice found")
+	} else {
+		instance := instances.SelectRandom()
+		logger.Info(instance)
+	}
+
 }
 
 func main() {

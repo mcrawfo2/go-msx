@@ -16,6 +16,7 @@ const (
 
 var (
 	ErrConsulDisabled = errors.New("Consul connection disabled")
+	ErrNoInstances    = errors.New("No matching service instances found")
 	logger            = log.NewLogger("msx.support.consul")
 )
 
@@ -65,6 +66,22 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[st
 	}
 
 	return results, nil
+}
+
+func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags ...string) ([]*api.ServiceEntry, error) {
+	if serviceEntries, _, err := c.client.Health().ServiceMultipleTags(service, tags, passingOnly, nil); err != nil {
+		return nil, err
+	} else if len(serviceEntries) == 0 {
+		return nil, errors.Wrap(ErrNoInstances, service)
+	} else {
+		// Add a quick walk to fix results that have no address to deal with kube2consul entries
+		for _, v := range serviceEntries {
+			if v.Service.Address == "" {
+				v.Service.Address = v.Node.Address
+			}
+		}
+		return serviceEntries, nil
+	}
 }
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
