@@ -84,6 +84,14 @@ func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags 
 	}
 }
 
+func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	return c.client.Agent().ServiceRegister(registration)
+}
+
+func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	return c.client.Agent().ServiceDeregister(registration.ID)
+}
+
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
 		return nil, ErrConsulDisabled

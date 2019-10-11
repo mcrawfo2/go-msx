@@ -331,7 +331,7 @@ func (c *Config) Populate(target interface{}, prefix string) error {
 
 func (c *Config) alias(key string) string {
 	// Return the actual target key name mapping through aliases
-	return key
+	return NormalizeKey(key)
 }
 
 func (c *Config) reloadContext() context.Context {

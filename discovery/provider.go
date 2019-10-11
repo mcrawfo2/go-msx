@@ -1,9 +1,13 @@
 package discovery
 
-import "github.com/pkg/errors"
+import (
+	"context"
+	"github.com/pkg/errors"
+)
 
 type RegistrationProvider interface {
-	Register() error
+	Register(ctx context.Context) error
+	Deregister(ctx context.Context) error
 }
 
 type DiscoveryProvider interface {
@@ -19,7 +23,9 @@ var (
 )
 
 func RegisterDiscoveryProvider(provider DiscoveryProvider) {
-	discoveryProvider = provider
+	if provider != nil {
+		discoveryProvider = provider
+	}
 }
 
 func Discover(name string, healthyOnly bool, tags ...string) (ServiceInstances, error) {
@@ -31,16 +37,21 @@ func Discover(name string, healthyOnly bool, tags ...string) (ServiceInstances, 
 }
 
 func RegisterRegistrationProvider(provider RegistrationProvider) {
-	registrationProvider = provider
+	if provider != nil {
+		registrationProvider = provider
+	}
 }
 
-func Register() error {
+func Register(ctx context.Context) error {
 	if registrationProvider == nil {
 		return ErrRegistrationProviderNotDefined
 	}
-	return registrationProvider.Register()
+	return registrationProvider.Register(ctx)
 }
 
-func Deregister() error {
-	return nil
+func Deregister(ctx context.Context) error {
+	if registrationProvider == nil {
+		return ErrRegistrationProviderNotDefined
+	}
+	return registrationProvider.Deregister(ctx)
 }
