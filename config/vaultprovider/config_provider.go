@@ -2,9 +2,9 @@ package vaultprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/vault"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"fmt"
 	"github.com/pkg/errors"
 )

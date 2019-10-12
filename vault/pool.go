@@ -1,6 +1,6 @@
-package consul
+package vault
 
-import "cto-github.cisco.com/NFV-BU/go-msx/support/config"
+import "cto-github.cisco.com/NFV-BU/go-msx/config"
 
 var pool *ConnectionPool
 

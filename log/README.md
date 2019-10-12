@@ -10,7 +10,7 @@ MSX logging is an extension of the popular `logrus` logging library, to include:
 After importing the MSX log package, you can use the default named logger `msx` simply:
 
 ```
-import "cto-github.cisco.com/NFV-BU/go-msx/support/log"
+import "cto-github.cisco.com/NFV-BU/go-msx/log"
 
 var logger = log.StandardLogger()
 

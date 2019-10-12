@@ -3,8 +3,8 @@ package pflagprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/spf13/pflag"
 	"os"
 	"sync"

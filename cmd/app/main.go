@@ -4,7 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
 	"github.com/pkg/errors"
 )

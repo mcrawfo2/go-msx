@@ -2,9 +2,9 @@ package consul
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/stats"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"fmt"
 	"github.com/pkg/errors"
 	"os"

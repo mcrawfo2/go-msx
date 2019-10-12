@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/stats"
+	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 )
 
 func init() {

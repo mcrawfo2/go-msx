@@ -2,7 +2,7 @@ package app
 
 import (
 	cobraConfig "cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/spf13/cobra"
 	"strings"
 )

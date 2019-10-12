@@ -1,7 +1,7 @@
 package args
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"os"
 	"strings"
 )
