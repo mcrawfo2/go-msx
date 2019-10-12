@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
@@ -30,7 +31,7 @@ func dumpConfiguration(ctx context.Context) error {
 
 func findUserManagement(ctx context.Context) error {
 	serviceName := "usermanagementservice"
-	if instances, err := discovery.Discover(serviceName, true); err != nil {
+	if instances, err := discovery.Discover(ctx, serviceName, true); err != nil {
 		return err
 	} else if len(instances) == 0 {
 		return errors.New(fmt.Sprintf("No healthy instances of %s found", serviceName))
@@ -42,7 +43,6 @@ func findUserManagement(ctx context.Context) error {
 }
 
 func main() {
-	rootCmd := app.FindCommand()
-	rootCmd.PersistentFlags().Bool("quiet", false, "Be quiet")
+	cli.RootCmd().PersistentFlags().Bool("quiet", false, "Be quiet")
 	app.Run("someservice")
 }

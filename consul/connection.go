@@ -92,7 +92,7 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[st
 	return results, nil
 }
 
-func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags ...string) ([]*api.ServiceEntry, error) {
+func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) ([]*api.ServiceEntry, error) {
 	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsGetServiceInstances, service}, "."), 1)
 
 	start := time.Now()
@@ -102,7 +102,9 @@ func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags 
 			time.Since(start))
 	}()
 
-	if serviceEntries, _, err := c.client.Health().ServiceMultipleTags(service, tags, passingOnly, nil); err != nil {
+	queryOptions := &api.QueryOptions{}
+	queryOptions = queryOptions.WithContext(ctx)
+	if serviceEntries, _, err := c.client.Health().ServiceMultipleTags(service, tags, passingOnly, queryOptions); err != nil {
 		return nil, err
 	} else if len(serviceEntries) == 0 {
 		return nil, errors.Wrap(ErrNoInstances, service)

@@ -197,7 +197,7 @@ func watchConfig(ctx context.Context) error {
 		for _, k := range keys {
 			logger.Warnf("Configuration changed: %s", k)
 		}
-		if err := Refresh(); err != nil {
+		if err := application.Refresh(); err != nil {
 			logger.Errorf("Failed to refresh: ", err)
 		}
 	}

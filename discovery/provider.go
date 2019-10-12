@@ -11,7 +11,7 @@ type RegistrationProvider interface {
 }
 
 type DiscoveryProvider interface {
-	Discover(name string, healthyOnly bool, tags ...string) (ServiceInstances, error)
+	Discover(ctx context.Context, name string, healthyOnly bool, tags ...string) (ServiceInstances, error)
 }
 
 var (
@@ -28,12 +28,12 @@ func RegisterDiscoveryProvider(provider DiscoveryProvider) {
 	}
 }
 
-func Discover(name string, healthyOnly bool, tags ...string) (ServiceInstances, error) {
+func Discover(ctx context.Context, name string, healthyOnly bool, tags ...string) (ServiceInstances, error) {
 	if discoveryProvider == nil {
 		return nil, ErrDiscoveryProviderNotDefined
 	}
 
-	return discoveryProvider.Discover(name, healthyOnly, tags...)
+	return discoveryProvider.Discover(ctx, name, healthyOnly, tags...)
 }
 
 func RegisterRegistrationProvider(provider RegistrationProvider) {
