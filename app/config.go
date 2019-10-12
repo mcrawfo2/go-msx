@@ -190,35 +190,35 @@ func init() {
 	OnEvent(EventStart, PhaseAfter, watchConfig)
 }
 
-func registerRemoteConfigProviders() {
+func registerRemoteConfigProviders(ctx context.Context) error {
 	RegisterProviderFactory(SourceConsul, consulprovider.NewConfigProviderFromConfig)
 	RegisterProviderFactory(SourceVault, vaultprovider.NewConfigProviderFromConfig)
+	return nil
 }
 
-func watchConfig() {
+func watchConfig(ctx context.Context) error {
 	logger.Info("Watching configuration for changes")
 	cfg := Config()
 	cfg.Notify = func(keys []string) {
 		for _, k := range keys {
 			logger.Warnf("Configuration changed: %s", k)
 		}
+		if err := Refresh(); err != nil {
+			logger.Errorf("Failed to refresh: ", err)
+		}
 	}
-	cfg.Watch(Context())
+
+	return cfg.Watch(ctx)
 }
 
-func mustLoadConfig(cfg *config.Config) error {
-	ctx, cancel := context.WithTimeout(Context(), time.Second*15)
+func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
+	loadContext, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
 
-	var err error
-	if err = cfg.Load(ctx); err != nil {
-		Shutdown()
-	}
-
-	return err
+	return cfg.Load(loadContext)
 }
 
-func loadConfig() {
+func loadConfig(ctx context.Context) error {
 	sources := &Sources{
 		Defaults:      newDefaultsProvider(),
 		BootstrapFile: newBootstrapProvider(),
@@ -229,26 +229,25 @@ func loadConfig() {
 	}
 
 	config1 := config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(config1); err != nil {
-		logger.Error(err)
-		return
+	if err := mustLoadConfig(ctx, config1); err != nil {
+		return err
 	}
 
 	sources.ApplicationFile = newProvider(SourceApplication, config1)
 	sources.ProfileFile = newProvider(SourceProfile, config1)
 	config2 := config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(config2); err != nil {
-		logger.Error(err)
-		return
+	if err := mustLoadConfig(ctx, config2); err != nil {
+		return err
 	}
 
 	sources.Consul = newProvider(SourceConsul, config2)
 	sources.Vault = newProvider(SourceVault, config2)
 	applicationConfig = config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(applicationConfig); err != nil {
-		logger.Error(err)
-		return
+	if err := mustLoadConfig(ctx, applicationConfig); err != nil {
+		return err
 	}
+
+	return nil
 }
 
 func Config() *config.Config {

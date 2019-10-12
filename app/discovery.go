@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery/consulprovider"
 )
@@ -11,14 +12,13 @@ func init() {
 	OnEvent(EventStop, PhaseBefore, deregisterServiceInstance)
 }
 
-func registerDiscoveryProviders() {
+func registerDiscoveryProviders(ctx context.Context) error {
 	logger.Info("Registering consul registration provider")
 	registrationProvider, err := consulprovider.NewRegistrationProviderFromConfig(Config())
 	if err == consulprovider.ErrDisabled {
 		logger.Error(err)
 	} else if err != nil {
-		Shutdown()
-		logger.Error(err)
+		return err
 	} else if registrationProvider != nil {
 		discovery.RegisterRegistrationProvider(registrationProvider)
 	}
@@ -28,22 +28,24 @@ func registerDiscoveryProviders() {
 	if err == consulprovider.ErrDisabled {
 		logger.Error(err)
 	} else if err != nil {
-		Shutdown()
-		logger.Error(err)
+		return err
 	} else if discoveryProvider != nil {
 		discovery.RegisterDiscoveryProvider(discoveryProvider)
 	}
+
+	return nil
 }
 
-func registerServiceInstance() {
-	if err := discovery.Register(Context()); err != nil && err != discovery.ErrRegistrationProviderNotDefined {
-		Shutdown()
-		logger.Error(err)
+func registerServiceInstance(ctx context.Context) error {
+	if err := discovery.Register(ctx); err != nil && err != discovery.ErrRegistrationProviderNotDefined {
+		return err
 	}
+	return nil
 }
 
-func deregisterServiceInstance() {
-	if err := discovery.Deregister(Context()); err != nil && err != discovery.ErrRegistrationProviderNotDefined {
+func deregisterServiceInstance(ctx context.Context) error {
+	if err := discovery.Deregister(ctx); err != nil && err != discovery.ErrRegistrationProviderNotDefined {
 		logger.Error(err)
 	}
+	return nil
 }

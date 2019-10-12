@@ -78,8 +78,7 @@ func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 		return nil
 	}
 
-	var conn *vault.Connection
-	if conn, err = vault.NewConnectionFromConfig(cfg); err != nil {
+	if err = vault.ConfigurePool(cfg); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
@@ -87,6 +86,6 @@ func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 	return &ConfigProvider{
 		sourceConfig: sourceConfig,
 		appContext:   appContext,
-		connection:   conn,
+		connection:   vault.Pool().Connection(),
 	}
 }

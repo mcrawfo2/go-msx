@@ -77,8 +77,7 @@ func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 		return nil
 	}
 
-	var conn *consul.Connection
-	if conn, err = consul.NewConnectionFromConfig(cfg); err != nil {
+	if err = consul.ConfigurePool(cfg); err != nil {
 		logger.Warn(err.Error())
 		return nil
 	}
@@ -86,6 +85,6 @@ func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
 	return &ConfigProvider{
 		sourceConfig: sourceConfig,
 		appContext:   appContext,
-		connection:   conn,
+		connection:   consul.Pool().Connection(),
 	}
 }

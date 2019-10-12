@@ -1,14 +1,11 @@
 package app
 
-import (
-	"context"
-)
-
 const (
 	EventInit      = "initialize"
 	EventConfigure = "configure"
 	EventStart     = "start"
 	EventReady     = "ready"
+	EventRefresh   = "refresh"
 	EventStop      = "stop"
 	EventFinal     = "finalize"
 
@@ -18,7 +15,7 @@ const (
 )
 
 var (
-	application = newObservable()
+	application = NewMsxApplication()
 )
 
 func OnEvent(event string, phase string, observer Observer) {
@@ -29,23 +26,18 @@ func ClearEvent(event string, phase string) {
 	application.Clear(event, phase)
 }
 
-func TriggerEvent(event string) {
-	application.Trigger(event)
+// Startup: cancels further startup, moves to shutdown
+// Run: cancels running, moves to shutdown
+// Shutdown: cancels further shutdown
+func Stop() error {
+	return application.Stop()
 }
 
-func Shutdown() {
-	application.Shutdown()
+// Run: executes refresh events
+func Refresh() error {
+	return application.Refresh()
 }
 
-func Context() context.Context {
-	return application.ctx
-}
-
-func Lifecycle() {
-	TriggerEvent(EventInit)
-	TriggerEvent(EventConfigure)
-	TriggerEvent(EventStart)
-	TriggerEvent(EventReady)
-	TriggerEvent(EventStop)
-	TriggerEvent(EventFinal)
+func Lifecycle() error {
+	return application.Run()
 }

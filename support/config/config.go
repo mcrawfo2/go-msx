@@ -164,7 +164,11 @@ func (c *Config) compareAndNotify(newSettings map[string]string) {
 	}
 }
 
-func (c *Config) Watch(ctx context.Context) {
+func (c *Config) Watch(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	notifier := make(chan struct{}, 1)
 	go func() {
 		defer close(notifier)
@@ -195,6 +199,8 @@ func (c *Config) Watch(ctx context.Context) {
 		}
 
 	}()
+
+	return ctx.Err()
 }
 
 func (c *Config) String(key string) (string, error) {
