@@ -4,14 +4,27 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/support/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/support/stats"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"strings"
+	"time"
 )
 
 const (
 	configRootConsulConnection = "spring.cloud.consul"
+
+	statsCounterPrefixConsulCallRequests = "consul.calls"
+	statsCounterListKeyValuePairs = "list-kv-pairs"
+
+	statsGetServiceInstances = "get-service-instances"
+	statsRegisterService     = "register-service"
+	statsDeregisterService   = "deregister-service"
+
+	statsCounterConsulRegisteredServices = "consul.registration"
+
+	statsTimerPrefixConsulCallTimer = "consul.timer"
 )
 
 var (
@@ -44,6 +57,17 @@ func (c *Connection) Host() string {
 }
 
 func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[string]string, error) {
+	stats.Incr(
+		strings.Join([]string{statsCounterPrefixConsulCallRequests, statsCounterListKeyValuePairs, path}, "."),
+		1)
+
+	start := time.Now()
+	defer func() {
+		stats.PrecisionTiming(
+			strings.Join([]string{statsTimerPrefixConsulCallTimer, statsCounterListKeyValuePairs, path}, "."),
+			time.Since(start))
+	}()
+
 	queryOptions := &api.QueryOptions{}
 	entries, _, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
 	if err != nil {
@@ -69,6 +93,15 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[st
 }
 
 func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags ...string) ([]*api.ServiceEntry, error) {
+	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsGetServiceInstances, service}, "."), 1)
+
+	start := time.Now()
+	defer func() {
+		stats.PrecisionTiming(
+			strings.Join([]string{statsTimerPrefixConsulCallTimer, statsGetServiceInstances, service}, "."),
+			time.Since(start))
+	}()
+
 	if serviceEntries, _, err := c.client.Health().ServiceMultipleTags(service, tags, passingOnly, nil); err != nil {
 		return nil, err
 	} else if len(serviceEntries) == 0 {
@@ -85,10 +118,14 @@ func (c *Connection) GetServiceInstances(service string, passingOnly bool, tags 
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsRegisterService}, "."), 1)
+	stats.Incr(statsCounterConsulRegisteredServices, 1)
 	return c.client.Agent().ServiceRegister(registration)
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsDeregisterService}, "."), 1)
+	stats.Decr(statsCounterConsulRegisteredServices, 1)
 	return c.client.Agent().ServiceDeregister(registration.ID)
 }
 
