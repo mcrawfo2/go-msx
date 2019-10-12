@@ -3,6 +3,7 @@ package vaultprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"fmt"
@@ -21,6 +22,7 @@ type ConfigProviderConfig struct {
 	Backend          string `config:"default=secret"`
 	ProfileSeparator string `config:"default=/"`
 	DefaultContext   string `config:"default=defaultapplication"`
+	Pool             bool   `config:"default=false"`
 }
 
 type ConfigProvider struct {
@@ -59,33 +61,36 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
-	var sourceConfig = &ConfigProviderConfig{}
-	var err = cfg.Populate(sourceConfig, configRootVaultConfigProvider)
+func NewConfigProviderFromConfig(cfg *config.Config) (config.Provider, error) {
+	var providerConfig = &ConfigProviderConfig{}
+	var err = cfg.Populate(providerConfig, configRootVaultConfigProvider)
 	if err != nil {
-		logger.Warn(err.Error())
-		return nil
+		return nil, err
 	}
 
-	if !sourceConfig.Enabled {
+	if !providerConfig.Enabled {
 		logger.Warn("Vault configuration source disabled")
-		return nil
+		return nil, nil
 	}
 
 	var appContext string
 	if appContext, err = cfg.String(configKeyAppName); err != nil {
-		logger.Warn(err.Error())
-		return nil
+		return nil, err
 	}
 
-	if err = vault.ConfigurePool(cfg); err != nil {
-		logger.Warn(err.Error())
-		return nil
+	var conn *vault.Connection
+	if providerConfig.Pool {
+		if err = consul.ConfigurePool(cfg); err != nil {
+			return nil, err
+		}
+		conn = vault.Pool().Connection()
+	} else if conn, err = vault.NewConnectionFromConfig(cfg); err != nil {
+		return nil, err
 	}
 
 	return &ConfigProvider{
-		sourceConfig: sourceConfig,
+		sourceConfig: providerConfig,
 		appContext:   appContext,
-		connection:   vault.Pool().Connection(),
-	}
+		connection:   conn,
+	}, nil
 }

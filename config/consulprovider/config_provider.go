@@ -20,6 +20,7 @@ type ConfigProviderConfig struct {
 	Enabled        bool   `config:"default=false"`
 	Prefix         string `config:"default=userviceconfiguration"`
 	DefaultContext string `config:"default=defaultapplication"`
+	Pool           bool   `config:"default=false"`
 }
 
 type ConfigProvider struct {
@@ -58,33 +59,36 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewConfigProviderFromConfig(cfg *config.Config) config.Provider {
-	var sourceConfig = &ConfigProviderConfig{}
-	var err = cfg.Populate(sourceConfig, configRootConsulConfigProvider)
+func NewConfigProviderFromConfig(cfg *config.Config) (config.Provider, error) {
+	var providerConfig = &ConfigProviderConfig{}
+	var err = cfg.Populate(providerConfig, configRootConsulConfigProvider)
 	if err != nil {
-		logger.Warn(err.Error())
-		return nil
+		return nil, err
 	}
 
-	if !sourceConfig.Enabled {
+	if !providerConfig.Enabled {
 		logger.Warn("Consul configuration source disabled")
-		return nil
+		return nil, nil
 	}
 
 	var appContext string
 	if appContext, err = cfg.String(configKeyAppName); err != nil {
-		logger.Warn(err.Error())
-		return nil
+		return nil, err
 	}
 
-	if err = consul.ConfigurePool(cfg); err != nil {
-		logger.Warn(err.Error())
-		return nil
+	var conn *consul.Connection
+	if providerConfig.Pool {
+		if err = consul.ConfigurePool(cfg); err != nil {
+			return nil, err
+		}
+		conn = consul.Pool().Connection()
+	} else if conn, err = consul.NewConnectionFromConfig(cfg); err != nil {
+		return nil, err
 	}
 
 	return &ConfigProvider{
-		sourceConfig: sourceConfig,
+		sourceConfig: providerConfig,
 		appContext:   appContext,
-		connection:   consul.Pool().Connection(),
-	}
+		connection:   conn,
+	}, nil
 }

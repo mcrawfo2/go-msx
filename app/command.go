@@ -1,8 +1,8 @@
 package app
 
 import (
-	cobraConfig "cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -10,11 +10,11 @@ import (
 var rootCmd = &cobra.Command{
 	Use:                "app",
 	FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
-	Run: func(cmd *cobra.Command, args []string) {
-		RegisterProviderFactory(SourceCommandLine, func(cfg *config.Config) config.Provider {
-			return config.NewCachedLoader(cobraConfig.NewCobraSource(cmd, "cli.flag."))
+	RunE: func(cmd *cobra.Command, args []string) error {
+		RegisterProviderFactory(SourceCommandLine, func(cfg *config.Config) (config.Provider, error) {
+			return config.NewCachedLoader(cobraprovider.NewCobraSource(cmd, "cli.flag.")), nil
 		})
-		Lifecycle()
+		return Lifecycle()
 	},
 }
 

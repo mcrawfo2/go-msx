@@ -2,10 +2,9 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"path"
@@ -63,7 +62,7 @@ func (c Sources) Providers() []config.Provider {
 	return providers
 }
 
-type ProviderFactory func(*config.Config) config.Provider
+type ProviderFactory func(*config.Config) (config.Provider, error)
 
 var providerFactories = map[string]ProviderFactory{
 	SourceCommandLine: nil,
@@ -84,8 +83,7 @@ func newDefaultsProvider() config.Provider {
 }
 
 func newBootstrapProvider() config.Provider {
-	if configFile, err := findConfigFile("bootstrap"); err != nil {
-		logger.Warn("Failed to load bootstrap config file: ", err.Error())
+	if configFile := findConfigFile("bootstrap"); configFile == "" {
 		return nil
 	} else {
 		return newFileProvider(configFile)
@@ -100,53 +98,48 @@ func newOverrideProvider(static map[string]string) config.Provider {
 	return config.NewCachedLoader(config.NewStatic("override", static))
 }
 
-func newApplicationProvider(*config.Config) config.Provider {
-	if configFile, err := findConfigFile("application"); err != nil {
-		logger.Warn("Failed to load application config file: ", err.Error())
-		return nil
+func newApplicationProvider(*config.Config) (config.Provider, error) {
+	if configFile := findConfigFile("application"); configFile == "" {
+		return nil, nil
 	} else {
-		return newFileProvider(configFile)
+		return newFileProvider(configFile), nil
 	}
 }
 
 func newBuildProvider() config.Provider {
-	if configFile, err := findConfigFile("build"); err != nil {
-		logger.Warn("Failed to load build info file: ", err.Error())
+	if configFile := findConfigFile("build"); configFile == "" {
 		return nil
 	} else {
 		return newFileProvider(configFile)
 	}
 }
 
-func newProfileProvider(config *config.Config) config.Provider {
+func newProfileProvider(config *config.Config) (config.Provider, error) {
 	var parts []string
 	if appName, err := config.String("spring.application.name"); err != nil {
-		logger.Warn("Application name not found: ", err)
-		return nil
+		return nil, errors.Wrap(err, "Application name not defined")
 	} else {
 		parts = []string{appName}
 	}
 
 	if profile, err := config.StringOr("profile", "default"); err != nil {
-		logger.Warn(err)
-		return nil
+		return nil, err
 	} else if profile == "default" {
 		// don't add it
 	} else {
 		parts = append(parts, profile)
 	}
 
-	if configFile, err := findConfigFile(strings.Join(parts, ".")); err != nil {
-		logger.Warn("Failed to locate profile configuration: ", err.Error())
-		return nil
+	if configFile := findConfigFile(strings.Join(parts, ".")); configFile == "" {
+		return nil, nil
 	} else {
-		return newFileProvider(configFile)
+		return newFileProvider(configFile), nil
 	}
 }
 
-func newProvider(name string, cfg *config.Config) config.Provider {
+func newProvider(name string, cfg *config.Config) (config.Provider, error) {
 	if providerFactories[name] == nil {
-		return nil
+		return nil, nil
 	}
 	providerFactory := providerFactories[name]
 	return providerFactory(cfg)
@@ -169,7 +162,7 @@ func newFileProvider(fileName string) config.Provider {
 	}
 }
 
-func findConfigFile(baseName string) (string, error) {
+func findConfigFile(baseName string) string {
 	extensions := []string{".yaml", ".yml", ".ini", ".json", ".properties"}
 	for _, ext := range extensions {
 		fullName := baseName + ext
@@ -178,10 +171,11 @@ func findConfigFile(baseName string) (string, error) {
 			continue
 		}
 
-		return fullName, nil
+		return fullName
 	}
 
-	return "", errors.New(fmt.Sprintf("Could not find %s.{yaml,yml,ini,json,properties}", baseName))
+	logger.Warnf("Could not find %s.{yaml,yml,ini,json,properties}", baseName)
+	return ""
 }
 
 func init() {
@@ -218,34 +212,51 @@ func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
 	return cfg.Load(loadContext)
 }
 
-func loadConfig(ctx context.Context) error {
+func loadConfig(ctx context.Context) (err error) {
 	sources := &Sources{
 		Defaults:      newDefaultsProvider(),
 		BootstrapFile: newBootstrapProvider(),
 		BuildFile:     newBuildProvider(),
 		Environment:   newEnvironmentProvider(),
-		CommandLine:   newProvider(SourceCommandLine, nil),
 		Override:      newOverrideProvider(overrideConfig),
 	}
 
-	config1 := config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, config1); err != nil {
+	if sources.CommandLine, err = newProvider(SourceCommandLine, nil); err != nil {
 		return err
 	}
 
-	sources.ApplicationFile = newProvider(SourceApplication, config1)
-	sources.ProfileFile = newProvider(SourceProfile, config1)
-	config2 := config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, config2); err != nil {
+	var cfg = config.NewConfig(sources.Providers()...)
+	if err := mustLoadConfig(ctx, cfg); err != nil {
 		return err
 	}
 
-	sources.Consul = newProvider(SourceConsul, config2)
-	sources.Vault = newProvider(SourceVault, config2)
-	applicationConfig = config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, applicationConfig); err != nil {
+	if sources.ApplicationFile, err = newProvider(SourceApplication, cfg); err != nil {
 		return err
 	}
+
+	if sources.ProfileFile, err = newProvider(SourceProfile, cfg); err != nil {
+		return err
+	}
+
+	cfg = config.NewConfig(sources.Providers()...)
+	if err := mustLoadConfig(ctx, cfg); err != nil {
+		return err
+	}
+
+	if sources.Consul, err = newProvider(SourceConsul, cfg); err != nil {
+		return err
+	}
+
+	if sources.Vault, err = newProvider(SourceVault, cfg); err != nil {
+		return err
+	}
+
+	cfg = config.NewConfig(sources.Providers()...)
+	if err := mustLoadConfig(ctx, cfg); err != nil {
+		return err
+	}
+
+	applicationConfig = cfg
 
 	return nil
 }
