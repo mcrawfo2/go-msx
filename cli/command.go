@@ -92,3 +92,11 @@ func Run(appName string) {
 	}
 	Exit()
 }
+
+func Fatal(err error) {
+	if err != nil {
+		logger.Error(err)
+		SetExitCode(1)
+		Exit()
+	}
+}

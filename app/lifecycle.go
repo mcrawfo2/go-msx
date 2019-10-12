@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
@@ -62,7 +63,7 @@ func (a *MsxApplication) callbacks(event, phase string) ([]Observer, bool) {
 }
 
 func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) error {
-	logger.Infof("Event triggered: %s%s", event, phase)
+	logger.Debugf("Event triggered: %s%s", event, phase)
 	if observers, ok := a.callbacks(event, phase); ok {
 		for _, observer := range observers {
 			if ctx.Err() != nil {
@@ -82,11 +83,29 @@ func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {
 			return ctx.Err()
 		}
 
-		if err := a.triggerPhase(ctx, event, phase); err != nil {
+		// When configure.ready has completed, add the application config to the supplied context
+		phaseCtx := ctx
+		if isConfigured(event, phase) {
+			phaseCtx = config.ContextWithConfig(ctx, applicationConfig)
+		}
+
+		if err := a.triggerPhase(phaseCtx, event, phase); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Event %s failed", event))
 		}
+
 	}
 	return nil
+}
+
+func isConfigured(event, phase string) bool {
+	switch event {
+	case EventInit:
+		return false
+	case EventConfigure:
+		return phase == PhaseAfter
+	default:
+		return true
+	}
 }
 
 func (a *MsxApplication) Run() error {

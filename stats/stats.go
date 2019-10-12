@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
@@ -117,12 +118,24 @@ func NewCollectorFromConfig(cfg *config.Config) (*Collector, error) {
 	return NewCollector(collectorConfig)
 }
 
-func Configure(cfg *config.Config) {
+func Configure(ctx context.Context) error {
 	var err error
+	var cfg *config.Config
+
+	if cfg = config.FromContext(ctx); cfg == nil {
+		return errors.New("Failed to retrieve config from context")
+	}
+
 	if globalCollector, err = NewCollectorFromConfig(cfg); err != nil {
 		// no-op collector
 		globalCollector = &Collector{}
+
+		if err != ErrDisabled {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func Close() {

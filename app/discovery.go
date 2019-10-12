@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery/consulprovider"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -13,8 +15,13 @@ func init() {
 }
 
 func registerDiscoveryProviders(ctx context.Context) error {
+	var cfg *config.Config
+	if cfg = config.FromContext(ctx); cfg == nil {
+		return errors.New("Failed to retrieve config from context")
+	}
+
 	logger.Info("Registering consul registration provider")
-	registrationProvider, err := consulprovider.NewRegistrationProviderFromConfig(Config())
+	registrationProvider, err := consulprovider.NewRegistrationProviderFromConfig(cfg)
 	if err == consulprovider.ErrDisabled {
 		logger.Error(err)
 	} else if err != nil {
@@ -24,7 +31,7 @@ func registerDiscoveryProviders(ctx context.Context) error {
 	}
 
 	logger.Info("Registering consul discovery provider")
-	discoveryProvider, err := consulprovider.NewDiscoveryProviderFromConfig(Config())
+	discoveryProvider, err := consulprovider.NewDiscoveryProviderFromConfig(cfg)
 	if err == consulprovider.ErrDisabled {
 		logger.Error(err)
 	} else if err != nil {

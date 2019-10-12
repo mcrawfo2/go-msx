@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 )
 
@@ -11,8 +12,8 @@ func init() {
 }
 
 func createStatsCollector(ctx context.Context) error {
-	stats.Configure(Config())
-	return nil
+	statsContext := config.ContextWithConfig(ctx, applicationConfig)
+	return stats.Configure(statsContext)
 }
 
 func closeStatsCollector(ctx context.Context) error {

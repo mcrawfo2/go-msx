@@ -192,7 +192,7 @@ func registerRemoteConfigProviders(ctx context.Context) error {
 
 func watchConfig(ctx context.Context) error {
 	logger.Info("Watching configuration for changes")
-	cfg := Config()
+	cfg := applicationConfig
 	cfg.Notify = func(keys []string) {
 		for _, k := range keys {
 			logger.Warnf("Configuration changed: %s", k)
