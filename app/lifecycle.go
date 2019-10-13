@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
@@ -69,7 +68,11 @@ func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) 
 			if ctx.Err() != nil {
 				break
 			}
-			if err := observer(ctx); err != nil {
+
+			// Inject all of the registered values into the context
+			observerCtx := injectContextValues(ctx)
+
+			if err := observer(observerCtx); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Observer for event phase %s%s returned error", event, phase))
 			}
 		}
@@ -83,29 +86,12 @@ func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {
 			return ctx.Err()
 		}
 
-		// When configure.ready has completed, add the application config to the supplied context
-		phaseCtx := ctx
-		if isConfigured(event, phase) {
-			phaseCtx = config.ContextWithConfig(ctx, applicationConfig)
-		}
-
-		if err := a.triggerPhase(phaseCtx, event, phase); err != nil {
+		if err := a.triggerPhase(ctx, event, phase); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Event %s failed", event))
 		}
 
 	}
 	return nil
-}
-
-func isConfigured(event, phase string) bool {
-	switch event {
-	case EventInit:
-		return false
-	case EventConfigure:
-		return phase == PhaseAfter
-	default:
-		return true
-	}
 }
 
 func (a *MsxApplication) Run() error {

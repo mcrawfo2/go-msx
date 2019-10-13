@@ -36,9 +36,9 @@ func (p *DiscoveryProvider) Discover(ctx context.Context, service string, passin
 
 func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProvider, err error) {
 	var conn *consul.Connection
-	if conn, err = consul.NewConnectionFromConfig(cfg); err != nil && err != consul.ErrConsulDisabled {
+	if conn, err = consul.NewConnectionFromConfig(cfg); err != nil && err != consul.ErrDisabled {
 		return nil, err
-	} else if err == consul.ErrConsulDisabled {
+	} else if err == consul.ErrDisabled {
 		return nil, nil
 	} else if conn == nil {
 		return nil, nil

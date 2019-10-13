@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
+	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 )
 
@@ -19,6 +21,7 @@ var logger = log.NewLogger(AppName)
 func init() {
 	app.OnEvent(app.EventStart, app.PhaseDuring, dumpConfiguration)
 	app.OnEvent(app.EventReady, app.PhaseDuring, findUserManagement)
+	app.OnEvent(app.EventReady, app.PhaseDuring, listGauges)
 }
 
 func dumpConfiguration(ctx context.Context) error {
@@ -47,6 +50,28 @@ func findUserManagement(ctx context.Context) error {
 	} else {
 		instance := instances.SelectRandom()
 		logger.Info(instance)
+	}
+	return nil
+}
+
+func listGauges(ctx context.Context) error {
+	cassandraPool := cassandra.PoolFromContext(ctx)
+	if cassandraPool == nil {
+		return errors.New("Cassandra connection pool not found")
+	}
+
+	return cassandraPool.WithSession(listGaugesFromSession)
+}
+
+func listGaugesFromSession(session *gocql.Session) error {
+	var serviceType, deviceType, deviceSubType, beatType *string
+	if err := session.Query(`SELECT servicetype, devicetype, devicesubtype, beattype FROM gauges LIMIT 1 ALLOW FILTERING`).
+			Consistency(gocql.One).
+			Scan(&serviceType, &deviceType, &deviceSubType, &beatType); err != nil {
+		logger.Error(err)
+	} else {
+		logger.Infof("Found gauges: serviceType=%s deviceType=%s deviceSubType=%s beatType=%s",
+			*serviceType, *deviceType, *deviceSubType, *beatType)
 	}
 	return nil
 }

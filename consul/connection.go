@@ -28,9 +28,9 @@ const (
 )
 
 var (
-	ErrConsulDisabled = errors.New("Consul connection disabled")
-	ErrNoInstances    = errors.New("No matching service instances found")
-	logger            = log.NewLogger("msx.consul")
+	ErrDisabled    = errors.New("Consul connection disabled")
+	ErrNoInstances = errors.New("No matching service instances found")
+	logger         = log.NewLogger("msx.consul")
 )
 
 type ConnectionConfig struct {
@@ -133,7 +133,7 @@ func (c *Connection) DeregisterService(ctx context.Context, registration *api.Ag
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
-		return nil, ErrConsulDisabled
+		return nil, ErrDisabled
 	}
 
 	clientConfig := api.DefaultConfig()

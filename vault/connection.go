@@ -15,8 +15,8 @@ const (
 )
 
 var (
-	logger           = log.NewLogger("msx.vault")
-	ErrVaultDisabled = errors.New("Consul connection disabled")
+	ErrDisabled = errors.New("Vault connection disabled")
+	logger      = log.NewLogger("msx.vault")
 )
 
 type ConnectionConfig struct {
@@ -94,7 +94,7 @@ func (c *Connection) read(ctx context.Context, path string) (*api.Secret, error)
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
-		return nil, ErrVaultDisabled
+		return nil, ErrDisabled
 	}
 
 	clientConfig := api.DefaultConfig()

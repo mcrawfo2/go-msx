@@ -1,8 +1,9 @@
-package consul
+package cassandra
 
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"github.com/gocql/gocql"
 	"sync"
 )
 
@@ -10,15 +11,17 @@ var pool *ConnectionPool
 var poolMtx sync.Mutex
 
 type ConnectionPool struct {
-	conn *Connection
+	cluster *Cluster
 }
 
-func (p *ConnectionPool) WithConnection(action func(*Connection) error) error {
-	return action(p.conn)
-}
+func (p *ConnectionPool) WithSession(action func(*gocql.Session) error) error {
+	session, err := p.cluster.CreateSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
 
-func (p *ConnectionPool) Connection() *Connection {
-	return p.conn
+	return action(session)
 }
 
 func Pool() *ConnectionPool {
@@ -33,30 +36,30 @@ func ConfigurePool(cfg *config.Config) error {
 		return nil
 	}
 
-	if conn, err := NewConnectionFromConfig(cfg); err != nil {
+	if conn, err := NewClusterFromConfig(cfg); err != nil {
 		return err
 	} else {
 		pool = &ConnectionPool{
-			conn: conn,
+			cluster: conn,
 		}
 	}
 	return nil
 }
 
-type consulContextKey int
-const contextKeyConsulPool consulContextKey = iota
+type cassandraContextKey int
+const contextKeyCassandraPool cassandraContextKey = iota
 
 func ContextWithPool(ctx context.Context) context.Context {
-	return context.WithValue(ctx, contextKeyConsulPool, pool)
+	return context.WithValue(ctx, contextKeyCassandraPool, pool)
 }
 
 func PoolFromContext(ctx context.Context) *ConnectionPool {
-	connectionPoolInterface := ctx.Value(contextKeyConsulPool)
+	connectionPoolInterface := ctx.Value(contextKeyCassandraPool)
 	if connectionPoolInterface == nil {
 		return nil
 	}
 	if connectionPool, ok := connectionPoolInterface.(*ConnectionPool); !ok {
-		logger.Warn("Context consul connection pool value is the wrong type")
+		logger.Warn("Context cassandra connection pool value is the wrong type")
 		return nil
 	} else {
 		return connectionPool

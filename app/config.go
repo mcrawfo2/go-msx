@@ -258,6 +258,10 @@ func loadConfig(ctx context.Context) (err error) {
 
 	applicationConfig = cfg
 
+	RegisterInjector(func(ctx context.Context) context.Context {
+		return config.ContextWithConfig(ctx, applicationConfig)
+	})
+
 	return nil
 }
 
