@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var logger = log.NewLogger("msx.support.config")
+var logger = log.NewLogger("msx.config")
 
 var ErrNotLoaded = errors.New("Configuration not loaded")
 var ErrNotFound = errors.New("Missing required setting")

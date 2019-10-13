@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	logger           = log.NewLogger("msx.support.vault")
+	logger           = log.NewLogger("msx.vault")
 	ErrVaultDisabled = errors.New("Consul connection disabled")
 )
 

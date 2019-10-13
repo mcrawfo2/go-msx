@@ -17,7 +17,7 @@ const (
 var (
 	ErrDisabled     = errors.New("Stats collector disabled")
 	globalCollector *Collector
-	logger          = log.NewLogger("msx.support.stats")
+	logger          = log.NewLogger("msx.stats")
 )
 
 type CollectorConfig struct {

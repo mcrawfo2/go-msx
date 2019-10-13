@@ -30,7 +30,7 @@ const (
 var (
 	ErrConsulDisabled = errors.New("Consul connection disabled")
 	ErrNoInstances    = errors.New("No matching service instances found")
-	logger            = log.NewLogger("msx.support.consul")
+	logger            = log.NewLogger("msx.consul")
 )
 
 type ConnectionConfig struct {
