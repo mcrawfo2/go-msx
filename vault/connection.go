@@ -46,6 +46,10 @@ func (c *Connection) Host() string {
 	return c.config.Host
 }
 
+func (c *Connection) Client() *api.Client {
+	return c.client
+}
+
 func (c *Connection) ListSecrets(ctx context.Context, path string) (map[string]string, error) {
 	var results = make(map[string]string)
 

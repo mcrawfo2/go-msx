@@ -54,6 +54,7 @@ func (c *Cluster) CreateSession() (*gocql.Session, error) {
 
 func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {
 	if !clusterConfig.Enabled {
+		logger.Warn("Cassandra connection disabled")
 		return nil, ErrDisabled
 	}
 

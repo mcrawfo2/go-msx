@@ -5,6 +5,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/health"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/cassandracheck"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/consulcheck"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/redischeck"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/vaultcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"github.com/pkg/errors"
@@ -35,6 +40,7 @@ func configureConsulPool(cfg *config.Config) error {
 		return err
 	} else if err != consul.ErrDisabled {
 		RegisterInjector(consul.ContextWithPool)
+		health.RegisterCheck("consul", consulcheck.Check)
 	}
 
 	return nil
@@ -45,6 +51,7 @@ func configureVaultPool(cfg *config.Config) error {
 		return err
 	} else if err != vault.ErrDisabled {
 		RegisterInjector(vault.ContextWithPool)
+		health.RegisterCheck("vault", vaultcheck.Check)
 	}
 
 	return nil
@@ -55,6 +62,7 @@ func configureCassandraPool(cfg *config.Config) error {
 		return err
 	} else if err != cassandra.ErrDisabled {
 		RegisterInjector(cassandra.ContextWithPool)
+		health.RegisterCheck("cassandra", cassandracheck.Check)
 	}
 
 	return nil
@@ -65,6 +73,7 @@ func configureRedisPool(cfg *config.Config) error {
 		return err
 	} else if err != redis.ErrDisabled {
 		RegisterInjector(redis.ContextWithPool)
+		health.RegisterCheck("redis", redischeck.Check)
 	}
 
 	return nil

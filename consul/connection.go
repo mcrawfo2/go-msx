@@ -52,6 +52,10 @@ type Connection struct {
 	client *api.Client
 }
 
+func (c *Connection) Client() *api.Client {
+	return c.client
+}
+
 func (c *Connection) Host() string {
 	return c.config.Host
 }
