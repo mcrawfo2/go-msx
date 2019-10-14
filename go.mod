@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
+	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/hashicorp/consul/api v1.2.0
 	github.com/hashicorp/go-uuid v1.0.1

@@ -115,15 +115,17 @@ func (a *MsxApplication) Run() error {
 
 	if err := a.startupEvents(runtimeContext); err == nil {
 		// Main loop
-		select {
-		case <-a.refresh:
-			if err = a.refreshEvents(runtimeContext); err != nil {
-				logger.Error(errors.Wrap(err, "Refresh failed"))
+		for ; runtimeContext.Err() == nil ; {
+			select {
+			case <-a.refresh:
+				if err = a.refreshEvents(runtimeContext); err != nil {
+					logger.Error(errors.Wrap(err, "Refresh failed"))
+					break
+				}
+
+			case <-runtimeContext.Done():
 				break
 			}
-
-		case <-runtimeContext.Done():
-			break
 		}
 	} else {
 		logger.Error(errors.Wrap(err, "Startup failed"))

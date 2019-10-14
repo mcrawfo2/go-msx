@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/redis"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"github.com/pkg/errors"
 )
@@ -13,6 +14,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
+	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 }
 
 type configHandler func(cfg *config.Config) error
@@ -53,6 +55,16 @@ func configureCassandraPool(cfg *config.Config) error {
 		return err
 	} else if err != cassandra.ErrDisabled {
 		RegisterInjector(cassandra.ContextWithPool)
+	}
+
+	return nil
+}
+
+func configureRedisPool(cfg *config.Config) error {
+	if err := redis.ConfigurePool(cfg); err != nil && err != redis.ErrDisabled {
+		return err
+	} else if err != redis.ErrDisabled {
+		RegisterInjector(redis.ContextWithPool)
 	}
 
 	return nil

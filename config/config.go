@@ -181,21 +181,23 @@ func (c *Config) Watch(ctx context.Context) error {
 
 		var err error
 
-		select {
-		case <-notifier:
-			// Something was invalidated
-			err = func() error {
-				subctx, cancel := context.WithTimeout(c.ReloadContext, c.ReloadTimeout)
-				defer cancel()
-				return c.Load(subctx)
-			}()
+		for {
+			select {
+			case <-notifier:
+				// Something was invalidated
+				err = func() error {
+					subctx, cancel := context.WithTimeout(c.ReloadContext, c.ReloadTimeout)
+					defer cancel()
+					return c.Load(subctx)
+				}()
 
-			if err != nil {
-				logger.Error(errors.Wrap(err, "Failed to load configuration").Error())
+				if err != nil {
+					logger.Error(errors.Wrap(err, "Failed to load configuration").Error())
+				}
+
+			case <-ctx.Done():
+				return
 			}
-
-		case <-ctx.Done():
-			return
 		}
 
 	}()
