@@ -21,11 +21,18 @@ var (
 )
 
 type CollectorConfig struct {
-	Enabled       bool   `config:"default=false"`
-	Host          string `config:"default=localhost"`
-	Port          int    `config:"default=8125"`
-	MaxPacketSize int    `config:"default=1400"`
-	Prefix        string `config:"default=msx."`
+	Enabled       bool          `config:"default=false"`
+	Host          string        `config:"default=localhost"`
+	Port          int           `config:"default=8125"`
+	MaxPacketSize int           `config:"default=1400"`
+	Prefix        string        `config:"default=msx."`
+	FlushInterval time.Duration `config:"default=10s"`
+	Vm            VmStatsConfig
+}
+
+type VmStatsConfig struct {
+	Enabled   bool          `config:"default=true"`
+	Frequency time.Duration `config:"default=30s"`
 }
 
 func (c *CollectorConfig) Address() string {
@@ -35,6 +42,7 @@ func (c *CollectorConfig) Address() string {
 type Collector struct {
 	config *CollectorConfig
 	client *statsd.Client
+	vm     *VmStatsCollector
 }
 
 func (c *Collector) Incr(stat string, count int64) {
@@ -86,9 +94,15 @@ func (c *Collector) FGaugeDelta(stat string, value float64) {
 }
 
 func (c *Collector) Close() {
-	if c != nil && c.client != nil {
-		if err := c.client.Close(); err != nil {
-			logger.Error(err)
+	if c != nil {
+		if c.client != nil {
+			if err := c.client.Close(); err != nil {
+				logger.Error(err)
+			}
+		}
+
+		if c.vm != nil {
+			c.vm.Stop()
 		}
 	}
 }
@@ -104,8 +118,9 @@ func NewCollector(collectorConfig *CollectorConfig) (*Collector, error) {
 			collectorConfig.Address(),
 			statsd.MaxPacketSize(collectorConfig.MaxPacketSize),
 			statsd.MetricPrefix(collectorConfig.Prefix),
-			statsd.FlushInterval(10 * time.Second),
+			statsd.FlushInterval(collectorConfig.FlushInterval),
 		),
+		vm: NewVmStatsCollectorFromConfig(&collectorConfig.Vm),
 	}, nil
 }
 
@@ -133,6 +148,8 @@ func Configure(ctx context.Context) error {
 		if err != ErrDisabled {
 			return err
 		}
+	} else if globalCollector.vm != nil {
+		globalCollector.vm.Start(ctx)
 	}
 
 	return nil

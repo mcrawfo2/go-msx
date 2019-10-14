@@ -4,7 +4,6 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
-	"github.com/hashicorp/consul/api"
 )
 
 func Check(ctx context.Context) health.CheckResult {
@@ -18,21 +17,8 @@ func Check(ctx context.Context) health.CheckResult {
 		}
 	}
 
-	client := consulPool.Connection().Client()
-
-	nodeName, err := client.Agent().NodeName()
-	if err != nil {
-		return health.CheckResult{
-			Status: health.StatusDown,
-			Details: map[string]interface{}{
-				"error": err.Error(),
-			},
-		}
-	}
-
-	q := &api.QueryOptions{}
-	q = q.WithContext(ctx)
-	checks, _, err := client.Health().Node(nodeName, q)
+	conn := consulPool.Connection()
+	checks, err := conn.NodeHealth(ctx)
 	if err != nil {
 		return health.CheckResult{
 			Status: health.StatusDown,

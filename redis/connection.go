@@ -137,6 +137,8 @@ func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
 		}
 	}
 
+	client.AddHook(new(statsHook))
+
 	return &Connection{
 		config:  cfg,
 		client:  client,

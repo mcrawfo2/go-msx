@@ -4,27 +4,14 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"strings"
-	"time"
 )
 
 const (
 	configRootConsulConnection = "spring.cloud.consul"
-
-	statsCounterPrefixConsulCallRequests = "consul.calls"
-	statsCounterListKeyValuePairs = "list-kv-pairs"
-
-	statsGetServiceInstances = "get-service-instances"
-	statsRegisterService     = "register-service"
-	statsDeregisterService   = "deregister-service"
-
-	statsCounterConsulRegisteredServices = "consul.registration"
-
-	statsTimerPrefixConsulCallTimer = "consul.timer"
 )
 
 var (
@@ -50,6 +37,7 @@ func (c ConnectionConfig) Address() string {
 type Connection struct {
 	config *ConnectionConfig
 	client *api.Client
+	stats  *statsObserver
 }
 
 func (c *Connection) Client() *api.Client {
@@ -60,79 +48,96 @@ func (c *Connection) Host() string {
 	return c.config.Host
 }
 
-func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (map[string]string, error) {
-	stats.Incr(
-		strings.Join([]string{statsCounterPrefixConsulCallRequests, statsCounterListKeyValuePairs, path}, "."),
-		1)
-
-	start := time.Now()
-	defer func() {
-		stats.PrecisionTiming(
-			strings.Join([]string{statsTimerPrefixConsulCallTimer, statsCounterListKeyValuePairs, path}, "."),
-			time.Since(start))
-	}()
-
-	queryOptions := &api.QueryOptions{}
-	entries, _, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
-	if err != nil {
-		return nil, err
-	} else if entries == nil {
-		logger.Warningf("No config retrieved from consul (%s): %s", c.Host(), path)
-	} else {
-		logger.Infof("Retrieved %d configs from consul (%s): %s", len(entries), c.Host(), path)
-	}
-
-	prefix := path + "/"
-	results := make(map[string]string)
-	for _, entry := range entries {
-		if !strings.HasPrefix(entry.Key, prefix) {
-			continue
+func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (results map[string]string, err error) {
+	err = c.stats.Observe(statsApiListKeyValuePairs, path, func() error {
+		queryOptions := &api.QueryOptions{}
+		entries, _, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
+		if err != nil {
+			return err
+		} else if entries == nil {
+			logger.Warningf("No config retrieved from consul (%s): %s", c.Host(), path)
+		} else {
+			logger.Infof("Retrieved %d configs from consul (%s): %s", len(entries), c.Host(), path)
 		}
 
-		propName := strings.TrimPrefix(entry.Key, prefix)
-		results[propName] = string(entry.Value)
-	}
+		prefix := path + "/"
+		results = make(map[string]string)
+		for _, entry := range entries {
+			if !strings.HasPrefix(entry.Key, prefix) {
+				continue
+			}
 
+			propName := strings.TrimPrefix(entry.Key, prefix)
+			results[propName] = string(entry.Value)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
 	return results, nil
 }
 
-func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) ([]*api.ServiceEntry, error) {
-	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsGetServiceInstances, service}, "."), 1)
-
-	start := time.Now()
-	defer func() {
-		stats.PrecisionTiming(
-			strings.Join([]string{statsTimerPrefixConsulCallTimer, statsGetServiceInstances, service}, "."),
-			time.Since(start))
-	}()
-
-	queryOptions := &api.QueryOptions{}
-	queryOptions = queryOptions.WithContext(ctx)
-	if serviceEntries, _, err := c.client.Health().ServiceMultipleTags(service, tags, passingOnly, queryOptions); err != nil {
-		return nil, err
-	} else if len(serviceEntries) == 0 {
-		return nil, errors.Wrap(ErrNoInstances, service)
-	} else {
-		// Add a quick walk to fix results that have no address to deal with kube2consul entries
-		for _, v := range serviceEntries {
-			if v.Service.Address == "" {
-				v.Service.Address = v.Node.Address
+func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
+	err = c.stats.Observe(statsApiGetServiceInstances, service, func() error {
+		queryOptions := &api.QueryOptions{}
+		queryOptions = queryOptions.WithContext(ctx)
+		if serviceEntries, _, err = c.client.Health().ServiceMultipleTags(service, tags, passingOnly, queryOptions); err != nil {
+			return err
+		} else if len(serviceEntries) == 0 {
+			err = errors.Wrap(ErrNoInstances, service)
+			return err
+		} else {
+			// Add a quick walk to fix results that have no address to deal with kube2consul entries
+			for _, v := range serviceEntries {
+				if v.Service.Address == "" {
+					v.Service.Address = v.Node.Address
+				}
 			}
+			return nil
 		}
-		return serviceEntries, nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
+	return serviceEntries, nil
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsRegisterService}, "."), 1)
-	stats.Incr(statsCounterConsulRegisteredServices, 1)
-	return c.client.Agent().ServiceRegister(registration)
+	return c.stats.Observe(statsApiRegisterService, "", func() error {
+		return c.client.Agent().ServiceRegister(registration)
+	})
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	stats.Incr(strings.Join([]string{statsCounterPrefixConsulCallRequests, statsDeregisterService}, "."), 1)
-	stats.Decr(statsCounterConsulRegisteredServices, 1)
-	return c.client.Agent().ServiceDeregister(registration.ID)
+	return c.stats.Observe(statsApiDeregisterService, "", func() error {
+		return c.client.Agent().ServiceDeregister(registration.ID)
+	})
+}
+
+func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
+	err = c.stats.Observe(statsApiNodeHealth, "", func() error {
+		var nodeName string
+		nodeName, err = c.client.Agent().NodeName()
+		if err != nil {
+			return err
+		}
+
+		q := &api.QueryOptions{}
+		q = q.WithContext(ctx)
+		healthChecks, _, err = c.client.Health().Node(nodeName, q)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return healthChecks, nil
 }
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
@@ -152,6 +157,7 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 		return &Connection{
 			config: connectionConfig,
 			client: client,
+			stats:  &statsObserver{},
 		}, nil
 	}
 }

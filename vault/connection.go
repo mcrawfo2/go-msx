@@ -40,6 +40,7 @@ func (c ConnectionConfig) Address() string {
 type Connection struct {
 	config *ConnectionConfig
 	client *api.Client
+	stats  *statsObserver
 }
 
 func (c *Connection) Host() string {
@@ -50,20 +51,27 @@ func (c *Connection) Client() *api.Client {
 	return c.client
 }
 
-func (c *Connection) ListSecrets(ctx context.Context, path string) (map[string]string, error) {
-	var results = make(map[string]string)
+func (c *Connection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
+	err = c.stats.Observe(statsApiListSecrets, path, func() error {
+		results = make(map[string]string)
 
-	if secrets, err := c.read(ctx, path); err != nil {
-		return nil, errors.Wrap(err, "Failed to list vault secrets")
-	} else if secrets != nil {
-		logger.Infof("Retrieved %d configs from vault (%s): %s", len(secrets.Data), c.Host(), path)
-		for key, val := range secrets.Data {
-			results[key] = val.(string)
+		if secrets, err := c.read(ctx, path); err != nil {
+			return errors.Wrap(err, "Failed to list vault secrets")
+		} else if secrets != nil {
+			logger.Infof("Retrieved %d configs from vault (%s): %s", len(secrets.Data), c.Host(), path)
+			for key, val := range secrets.Data {
+				results[key] = val.(string)
+			}
+		} else {
+			logger.Warningf("No secrets retrieved from vault (%s): %s", c.Host(), path)
 		}
-	} else {
-		logger.Warningf("No secrets retrieved from vault (%s): %s", c.Host(), path)
-	}
 
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
 	return results, nil
 }
 
@@ -126,6 +134,7 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	return &Connection{
 		config: connectionConfig,
 		client: client,
+		stats:  new(statsObserver),
 	}, nil
 }
 

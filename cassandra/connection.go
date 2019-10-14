@@ -58,10 +58,15 @@ func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {
 		return nil, ErrDisabled
 	}
 
+
 	cluster := gocql.NewCluster(clusterConfig.Hosts()...)
 	cluster.Timeout = clusterConfig.Timeout
 	cluster.Keyspace = clusterConfig.KeyspaceName
 	cluster.Consistency = gocql.ParseConsistency(clusterConfig.Consistency)
+
+	statsObserver := &StatsObserver{}
+	cluster.ConnectObserver = statsObserver
+	cluster.QueryObserver = statsObserver
 
 	//Configure authentication options if credentials available
 	if clusterConfig.Username != "" && clusterConfig.Password != "" {
