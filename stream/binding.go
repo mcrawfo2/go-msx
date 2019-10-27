@@ -16,7 +16,7 @@ type BindingConfiguration struct {
 	Destination string `config:"default="`                 // Topic if different from binding key
 	Group       string `config:"default="`                 // Consumer group id
 	ContentType string `config:"default=application/json"` // Content-Type Header
-	Binder      string `config:"default=kafka"`			   // Stream Provider
+	Binder      string `config:"default=kafka"`            // Stream Provider
 	Retry       types.Retry
 }
 

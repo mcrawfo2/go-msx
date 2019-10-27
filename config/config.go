@@ -4,7 +4,6 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"fmt"
 	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
@@ -81,55 +80,70 @@ func (c *Config) reload(ctx context.Context) (map[string]string, error) {
 	return result, nil
 }
 
-// Expand all references to ${variables}
-func (c *Config) resolve(settings map[string]string) error {
-	variableRegex, _ := regexp.Compile(`\${([\w.]+)}`)
-	resolved := map[string]string{}
+// Expand all references to ${variables} inside value
+func (c *Config) resolveValue(resolved map[string]string, value string) string {
+	variableRegex, _ := regexp.Compile(`\${([\w.]+)(:([^}]*))?}`)
+	stack := types.StringStack{"_"}
+	defaults := make(map[string]string)
+	for len(stack) > 0 {
+		currentVariable := stack.Peek()
+		currentValue := ""
+		ok := false
 
-	resolveVariable := func(name string) string {
-		stack := types.StringStack{name}
-		for len(stack) > 0 {
-			currentVariable := stack.Peek()
-			currentValue := ""
-			ok := false
-
-			if currentValue, ok = resolved[currentVariable]; ok {
-				// already resolved
-				return currentValue
-			} else if currentValue, ok = settings[currentVariable]; !ok {
+		if currentValue, ok = resolved[currentVariable]; ok {
+			// already resolved
+			return currentValue
+		} else if currentVariable == "_" {
+			// passed-in value
+			currentValue = value
+		} else if currentValue, ok = c.settings[currentVariable]; !ok {
+			var defaultValue string
+			if defaultValue, ok = defaults[currentVariable]; ok {
+				currentValue = defaultValue
+			} else {
 				logger.Errorf("Failed to resolve variable %s", currentVariable)
 				return currentValue
 			}
+		}
 
-			variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
-			unresolvedReferences := 0
-			for _, match := range variables {
-				referenceVariableName := c.alias(match[1])
-				if stack.Contains(referenceVariableName) {
-					logger.Errorf("Circular variable reference detected: %s", referenceVariableName)
-					resolved[referenceVariableName] = ""
-				}
-				if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
-					currentValue = strings.ReplaceAll(currentValue, fmt.Sprintf("${%s}", referenceVariableName), referenceVariableValue)
-				} else {
-					unresolvedReferences++
-					stack = stack.Push(referenceVariableName)
-				}
+		variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
+		unresolvedReferences := 0
+		for _, match := range variables {
+			referenceVariableName := c.alias(match[1])
+			if stack.Contains(referenceVariableName) {
+				logger.Errorf("Circular variable reference detected: %s", referenceVariableName)
+				resolved[referenceVariableName] = ""
 			}
-
-			if unresolvedReferences == 0 {
-				resolved[currentVariable] = currentValue
-				stack = stack.Pop()
+			if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
+				referenceRegex, _ := regexp.Compile(`\${` + strings.ReplaceAll(referenceVariableName, ".", "\\.") + `(:([^}]*))?}`)
+				currentValue = referenceRegex.ReplaceAllLiteralString(currentValue, referenceVariableValue)
+			} else {
+				unresolvedReferences++
+				stack = stack.Push(referenceVariableName)
+				if len(match) == 4 && len(match[2]) > 0 {
+					defaults[referenceVariableName] = match[3]
+				}
 			}
 		}
 
-		return resolved[name]
+		if unresolvedReferences == 0 {
+			resolved[currentVariable] = currentValue
+			stack = stack.Pop()
+		}
 	}
 
-	for k := range settings {
-		resolved[k] = resolveVariable(k)
+	return resolved["_"]
+}
+
+// Expand all references to ${variables}
+func (c *Config) resolve(settings map[string]string) error {
+	resolved := map[string]string{}
+
+	for k,v := range settings {
+		resolved[k] = c.resolveValue(resolved, v)
 	}
 
+	delete(resolved, "_")
 	return nil
 }
 
@@ -324,17 +338,14 @@ func (c *Config) Each(target func(string, string)) {
 }
 
 func (c *Config) Populate(target interface{}, prefix string) error {
-	// Collect sub-keys into a properties map
-	root := PartialConfig{}
-	prefix = NormalizeKey(prefix) + "."
-	for k, v := range c.settings {
-		if strings.HasPrefix(k, prefix) {
-			root.Set(strings.TrimPrefix(k, prefix), v)
-		}
-	}
+	// Wrap the properties map in a partial config
+	partialConfig := NewPartialConfig(c.settings, c)
+
+	// Filter by prefix
+	partialConfig = partialConfig.FilterStripPrefix(NormalizeKey(prefix) + ".")
 
 	// Populate the object from the properties map
-	return root.Populate(target)
+	return partialConfig.Populate(target)
 }
 
 func (c *Config) alias(key string) string {

@@ -13,36 +13,40 @@ import (
 	"time"
 )
 
-
-type PartialConfig map[string]string
+type PartialConfig struct {
+	local  map[string]string
+	config *Config
+}
 
 func (p PartialConfig) Get(key string) (string, bool) {
 	normalizedKey := NormalizeKey(key)
-	value, ok := p[normalizedKey]
+	value, ok := p.local[normalizedKey]
 	return value, ok
 }
 
 func (p PartialConfig) Set(key, value string) {
 	normalizedKey := NormalizeKey(key)
-	p[normalizedKey] = value
+	p.local[normalizedKey] = value
 }
 
 // FilterStripPrefix returns a new properties object with a subset of all keys
 // with the given prefix and the prefix removed from the keys.
 func (p PartialConfig) FilterStripPrefix(prefix string) PartialConfig {
-	pp := PartialConfig{}
+	pp := PartialConfig{
+		local:make(map[string]string),
+		config:p.config,
+	}
 	n := len(prefix)
-	for k := range p {
+	for k := range p.local {
 		if len(k) > len(prefix) && strings.HasPrefix(k, prefix) {
 			// TODO(fs): we are ignoring the error which flags a circular reference.
 			// TODO(fs): since we are modifying keys I am not entirely sure whether we can create a circular reference
 			// TODO(fs): this function should probably return an error but the signature is fixed
-			pp.Set(k[n:], p[k])
+			pp.Set(k[n:], p.local[k])
 		}
 	}
 	return pp
 }
-
 
 // Populate assigns property values to exported fields of a struct.
 //
@@ -134,6 +138,13 @@ func (p PartialConfig) Populate(x interface{}) error {
 	return nil
 }
 
+func NewPartialConfig(local map[string]string, config *Config) PartialConfig {
+	return PartialConfig{
+		local:  local,
+		config: config,
+	}
+}
+
 func dec(p PartialConfig, key string, def *string, opts map[string]string, v reflect.Value) error {
 	t := v.Type()
 	key = NormalizeKey(key)
@@ -144,7 +155,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 			return val, nil
 		}
 		if def != nil {
-			return *def, nil
+			return p.config.resolveValue(make(map[string]string), *def), nil
 		}
 		return "", fmt.Errorf("missing required key %s", key)
 	}
@@ -164,7 +175,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 
 		keyPattern := strings.ReplaceAll(key, ".", "\\.") + `\[(\d+)\]`
 		keyRegex, _ := regexp.Compile(keyPattern)
-		for k, v := range p {
+		for k, v := range p.local {
 			// Parse the key for a "key[index]" match
 			matches := keyRegex.FindStringSubmatch(k)
 			if len(matches) != 2 {
@@ -197,7 +208,8 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 
 		if len(result) == 0 {
 			if def != nil {
-				return strings.Split(*def, ";"), nil
+				defResolved := p.config.resolveValue(make(map[string]string), *def)
+				return strings.Split(defResolved, ";"), nil
 			}
 			return nil, fmt.Errorf("missing required key %s", key)
 		}
@@ -311,7 +323,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 	case isMap(t):
 		valT := t.Elem()
 		m := reflect.MakeMap(t)
-		for postfix := range p.FilterStripPrefix(key + ".") {
+		for postfix := range p.FilterStripPrefix(key + ".").local {
 			pp := strings.SplitN(postfix, ".", 2)
 			mk, mv := pp[0], reflect.New(valT)
 			if err := dec(p, key+"."+mk, nil, nil, mv); err != nil {
