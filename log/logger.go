@@ -8,6 +8,7 @@ import (
 
 type Logger struct {
 	ParentLogger
+	level  logrus.Level
 	fields logrus.Fields
 }
 
@@ -76,129 +77,195 @@ func (logger *Logger) WithExtendedLogContext(fields ...LogContext) *Logger {
 }
 
 func (logger *Logger) Logf(level logrus.Level, format string, args ...interface{}) {
-	if logger.ParentLogger.IsLevelEnabled(level) {
+	if logger.IsLevelEnabled(level) {
 		logger.newEntry().Logf(level, format, args...)
 	}
 }
 
 func (logger *Logger) Tracef(format string, args ...interface{}) {
-	logger.newEntry().Tracef(format, args...)
+	if logger.IsLevelEnabled(logrus.TraceLevel) {
+		logger.newEntry().Tracef(format, args...)
+	}
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {
-	logger.newEntry().Debugf(format, args...)
+	if logger.IsLevelEnabled(logrus.DebugLevel) {
+		logger.newEntry().Debugf(format, args...)
+	}
 }
 
 func (logger *Logger) Infof(format string, args ...interface{}) {
-	logger.newEntry().Infof(format, args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Infof(format, args...)
+	}
 }
 
 func (logger *Logger) Printf(format string, args ...interface{}) {
-	logger.newEntry().Printf(format, args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Printf(format, args...)
+	}
 }
 
 func (logger *Logger) Warnf(format string, args ...interface{}) {
-	logger.newEntry().Warnf(format, args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warnf(format, args...)
+	}
 }
 
 func (logger *Logger) Warningf(format string, args ...interface{}) {
-	logger.newEntry().Warningf(format, args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warningf(format, args...)
+	}
 }
 
 func (logger *Logger) Errorf(format string, args ...interface{}) {
-	logger.newEntry().Errorf(format, args...)
+	if logger.IsLevelEnabled(logrus.ErrorLevel) {
+		logger.newEntry().Errorf(format, args...)
+	}
 }
 
 func (logger *Logger) Fatalf(format string, args ...interface{}) {
-	logger.newEntry().Fatalf(format, args...)
+	if logger.IsLevelEnabled(logrus.FatalLevel) {
+		logger.newEntry().Fatalf(format, args...)
+	}
 }
 
 func (logger *Logger) Panicf(format string, args ...interface{}) {
-	logger.newEntry().Panicf(format, args...)
+	if logger.IsLevelEnabled(logrus.PanicLevel) {
+		logger.newEntry().Panicf(format, args...)
+	}
 }
 
 func (logger *Logger) Log(level logrus.Level, args ...interface{}) {
-	logger.newEntry().Log(level, args...)
+	if logger.IsLevelEnabled(level) {
+		logger.newEntry().Log(level, args...)
+	}
 }
 
 func (logger *Logger) Trace(args ...interface{}) {
-	logger.newEntry().Trace(args...)
+	if logger.IsLevelEnabled(logrus.TraceLevel) {
+		logger.newEntry().Trace(args...)
+	}
 }
 
 func (logger *Logger) Debug(args ...interface{}) {
-	logger.newEntry().Debug(args...)
+	if logger.IsLevelEnabled(logrus.DebugLevel) {
+		logger.newEntry().Debug(args...)
+	}
 }
 
 func (logger *Logger) Info(args ...interface{}) {
-	logger.newEntry().Info(args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Info(args...)
+	}
 }
 
 func (logger *Logger) Print(args ...interface{}) {
-	logger.newEntry().Print(args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Print(args...)
+	}
 }
 
 func (logger *Logger) Warn(args ...interface{}) {
-	logger.newEntry().Warn(args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warn(args...)
+	}
 }
 
 func (logger *Logger) Warning(args ...interface{}) {
-	logger.newEntry().Warning(args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warning(args...)
+	}
 }
 
 func (logger *Logger) Error(args ...interface{}) {
-	logger.newEntry().Error(args...)
+	if logger.IsLevelEnabled(logrus.ErrorLevel) {
+		logger.newEntry().Error(args...)
+	}
 }
 
 func (logger *Logger) Fatal(args ...interface{}) {
-	logger.newEntry().Fatal(args...)
+	if logger.IsLevelEnabled(logrus.FatalLevel) {
+		logger.newEntry().Fatal(args...)
+	}
 }
 
 func (logger *Logger) Panic(args ...interface{}) {
-	logger.newEntry().Panic(args...)
+	if logger.IsLevelEnabled(logrus.PanicLevel) {
+		logger.newEntry().Panic(args...)
+	}
 }
 
 func (logger *Logger) Logln(level logrus.Level, args ...interface{}) {
-	logger.newEntry().Logln(level, args...)
+	if logger.IsLevelEnabled(level) {
+		logger.newEntry().Logln(level, args...)
+	}
 }
 
 func (logger *Logger) Traceln(args ...interface{}) {
-	logger.newEntry().Traceln(args...)
+	if logger.IsLevelEnabled(logrus.TraceLevel) {
+		logger.newEntry().Traceln(args...)
+	}
 }
 
 func (logger *Logger) Debugln(args ...interface{}) {
-	logger.newEntry().Debugln(args...)
+	if logger.IsLevelEnabled(logrus.DebugLevel) {
+		logger.newEntry().Debugln(args...)
+	}
 }
 
 func (logger *Logger) Infoln(args ...interface{}) {
-	logger.newEntry().Infoln(args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Infoln(args...)
+	}
 }
 
 func (logger *Logger) Println(args ...interface{}) {
-	logger.newEntry().Println(args...)
+	if logger.IsLevelEnabled(logrus.InfoLevel) {
+		logger.newEntry().Println(args...)
+	}
 }
 
 func (logger *Logger) Warnln(args ...interface{}) {
-	logger.newEntry().Warnln(args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warnln(args...)
+	}
 }
 
 func (logger *Logger) Warningln(args ...interface{}) {
-	logger.newEntry().Warningln(args...)
+	if logger.IsLevelEnabled(logrus.WarnLevel) {
+		logger.newEntry().Warningln(args...)
+	}
 }
 
 func (logger *Logger) Errorln(args ...interface{}) {
-	logger.newEntry().Errorln(args...)
+	if logger.IsLevelEnabled(logrus.ErrorLevel) {
+		logger.newEntry().Errorln(args...)
+	}
 }
 
 func (logger *Logger) Fatalln(args ...interface{}) {
-	logger.newEntry().Fatalln(args...)
+	if logger.IsLevelEnabled(logrus.FatalLevel) {
+		logger.newEntry().Fatalln(args...)
+	}
 }
 
 func (logger *Logger) Panicln(args ...interface{}) {
-	logger.newEntry().Panicln(args...)
+	if logger.IsLevelEnabled(logrus.PanicLevel) {
+		logger.newEntry().Panicln(args...)
+	}
 }
 
 func (logger *Logger) Level(level logrus.Level) StdLogger {
 	return NewLevelLogger(logger, level)
+}
+
+func (logger *Logger) SetLevel(level logrus.Level) {
+	logger.level = level
+}
+
+func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
+	return logger.level >= level
 }
 
 func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
@@ -211,6 +278,7 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 
 	return &Logger{
 		ParentLogger: logger,
+		level:        logrus.DebugLevel,
 		fields:       allFields,
 	}
 }
