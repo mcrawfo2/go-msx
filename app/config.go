@@ -152,7 +152,7 @@ func newFileProvider(fileName string) config.Provider {
 		return config.NewCachedLoader(config.NewYAMLFile(fileName))
 	case ".ini":
 		return config.NewCachedLoader(config.NewINIFile(fileName))
-	case ".json":
+	case ".json", ".json5":
 		return config.NewCachedLoader(config.NewJSONFile(fileName))
 	case ".properties":
 		return config.NewCachedLoader(config.NewPropertiesFile(fileName))
@@ -163,7 +163,7 @@ func newFileProvider(fileName string) config.Provider {
 }
 
 func findConfigFile(baseName string) string {
-	extensions := []string{".yaml", ".yml", ".ini", ".json", ".properties"}
+	extensions := []string{".yaml", ".yml", ".ini", ".json", ".json5", ".properties"}
 	for _, ext := range extensions {
 		fullName := baseName + ext
 		info, err := os.Stat(fullName)
@@ -174,7 +174,7 @@ func findConfigFile(baseName string) string {
 		return fullName
 	}
 
-	logger.Warnf("Could not find %s.{yaml,yml,ini,json,properties}", baseName)
+	logger.Warnf("Could not find %s.{yaml,yml,ini,json,json5,properties}", baseName)
 	return ""
 }
 

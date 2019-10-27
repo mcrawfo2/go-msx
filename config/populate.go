@@ -151,6 +151,17 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 
 	arrayValue := func() ([]string, error) {
 		values := []*string{}
+
+		// Check the single setting first
+		if flattenedValue, ok := p.Get(key); ok {
+			// Comma-separated values from spring
+			splitValues := split(flattenedValue, ",")
+			for _, v := range splitValues {
+				value := v
+				values = append(values, &value)
+			}
+		}
+
 		keyPattern := strings.ReplaceAll(key, ".", "\\.") + `\[(\d+)\]`
 		keyRegex, _ := regexp.Compile(keyPattern)
 		for k, v := range p {

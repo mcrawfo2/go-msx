@@ -12,6 +12,36 @@ type Report struct {
 	Details map[string]CheckResult `json:"details"`
 }
 
+func (r *Report) Down() int {
+	count := 0
+	for _, v := range r.Details {
+		if v.Status == StatusDown {
+			count++
+		}
+	}
+	return count
+}
+
+func (r *Report) Up() int {
+	count := 0
+	for _, v := range r.Details {
+		if v.Status == StatusUp {
+			count++
+		}
+	}
+	return count
+}
+
+func (r *Report) Unknown() int {
+	count := 0
+	for _, v := range r.Details {
+		if v.Status == StatusUnknown {
+			count++
+		}
+	}
+	return count
+}
+
 func GenerateReport(ctx context.Context) *Report {
 	report := &Report{
 		Status:  StatusUp,
@@ -23,6 +53,8 @@ func GenerateReport(ctx context.Context) *Report {
 		report.Details[name] = result
 		report.Status = report.Status.Aggregate(result.Status)
 	}
+
+	sendReportStats(report)
 
 	return report
 }

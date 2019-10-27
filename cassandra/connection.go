@@ -23,7 +23,7 @@ type ClusterConfig struct {
 	Enabled           bool          `config:"default=true"`
 	KeyspaceName      string        // No default
 	ContactPoints     string        `config:"default=localhost"` // comma separated
-	Port              int           `config:"default=8500"`
+	Port              int           `config:"default=9042"`
 	Username          string        `config:"default=cassandra"`
 	Password          string        `config:"default=cassandra"`
 	Timeout           time.Duration `config:"default=15s"`

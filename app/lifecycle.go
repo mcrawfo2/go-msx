@@ -27,12 +27,12 @@ const (
 type Observer func(ctx context.Context) error
 
 type MsxApplication struct {
-	Callbacks  map[string][]Observer
-	stage      string
-	appContext context.Context    // top-level context
-	cancel     context.CancelFunc // cancels Startup/Runtime or Shutdown
-	refresh    chan struct{}
-	exitCode   int
+	Callbacks map[string][]Observer
+	stage     string
+	ctx       context.Context    // background context
+	cancel    context.CancelFunc // cancels Startup/Runtime or Shutdown
+	refresh   chan struct{}
+	exitCode  int
 	sync.Mutex
 }
 
@@ -70,7 +70,7 @@ func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) 
 			}
 
 			// Inject all of the registered values into the context
-			observerCtx := injectContextValues(ctx)
+			observerCtx := a.newContext()
 
 			if err := observer(observerCtx); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Observer for event phase %s%s returned error", event, phase))
@@ -78,6 +78,10 @@ func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) 
 		}
 	}
 	return nil
+}
+
+func (a *MsxApplication) newContext() context.Context {
+	return injectContextValues(a.ctx)
 }
 
 func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {
@@ -96,8 +100,7 @@ func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {
 
 func (a *MsxApplication) Run() error {
 	// Create a new context for startup
-	var runtimeContext context.Context
-	runtimeContext, a.cancel = context.WithCancel(a.appContext)
+	a.ctx, a.cancel = context.WithCancel(context.Background())
 	defer a.cancel()
 
 	// Listen for process cancellation during startup and runtime
@@ -113,17 +116,17 @@ func (a *MsxApplication) Run() error {
 		}
 	}()
 
-	if err := a.startupEvents(runtimeContext); err == nil {
+	if err := a.startupEvents(a.ctx); err == nil {
 		// Main loop
-		for ; runtimeContext.Err() == nil ; {
+		for ; a.ctx.Err() == nil ; {
 			select {
 			case <-a.refresh:
-				if err = a.refreshEvents(runtimeContext); err != nil {
+				if err = a.refreshEvents(a.ctx); err != nil {
 					logger.Error(errors.Wrap(err, "Refresh failed"))
 					break
 				}
 
-			case <-runtimeContext.Done():
+			case <-a.ctx.Done():
 				break
 			}
 		}
@@ -183,12 +186,11 @@ func (a *MsxApplication) refreshEvents(runtimeContext context.Context) error {
 }
 
 func (a *MsxApplication) shutdownEvents() error {
-	// Create a new context for bring-up
-	var shutdownContext context.Context
-	shutdownContext, a.cancel = context.WithCancel(a.appContext)
+	// Create a new context for shutdown
+	a.ctx, a.cancel = context.WithCancel(context.Background())
 	defer a.cancel()
 
-	// Listen for process cancellation during bring-up and runtime
+	// Listen for process cancellation during shutdown
 	die := make(chan os.Signal, 1)
 	signal.Notify(die, syscall.SIGINT, syscall.SIGTERM)
 	defer func() {
@@ -210,14 +212,14 @@ func (a *MsxApplication) shutdownEvents() error {
 	}
 
 	for _, event := range events {
-		if shutdownContext.Err() != nil {
-			return shutdownContext.Err()
+		if a.ctx.Err() != nil {
+			return a.ctx.Err()
 		}
 
 		// Set to the latest stage we even attempted
 		a.stage = event
 
-		if err := a.triggerEvent(shutdownContext, event); err != nil {
+		if err := a.triggerEvent(a.ctx, event); err != nil {
 			return errors.Wrap(err, "Shutdown failed")
 		}
 	}
@@ -237,7 +239,6 @@ func NewMsxApplication() *MsxApplication {
 	return &MsxApplication{
 		Callbacks:  make(map[string][]Observer),
 		Mutex:      sync.Mutex{},
-		appContext: context.Background(),
 		refresh:    make(chan struct{}, 1),
 	}
 }

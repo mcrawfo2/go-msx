@@ -9,19 +9,26 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 )
 
-const AppName = "someservice"
+const (
+	appName = "someservice"
+	kafkaTopicExample = "EXAMPLE_TOPIC"
+)
 
-var logger = log.NewLogger(AppName)
+var logger = log.NewLogger(appName)
 
 func init() {
 	app.OnEvent(app.EventStart, app.PhaseDuring, dumpConfiguration)
+	app.OnEvent(app.EventStart, app.PhaseDuring, subscribeExampleTopic)
 	app.OnEvent(app.EventReady, app.PhaseDuring, findUserManagement)
 	app.OnEvent(app.EventReady, app.PhaseDuring, listGauges)
+	app.OnEvent(app.EventReady, app.PhaseDuring, sendExampleTopicMessage)
 }
 
 func dumpConfiguration(ctx context.Context) error {
@@ -37,6 +44,13 @@ func dumpConfiguration(ctx context.Context) error {
 		})
 	}
 	return nil
+}
+
+func subscribeExampleTopic(ctx context.Context) error {
+	return stream.AddListener(kafkaTopicExample, func(msg *message.Message) error {
+		logger.WithContext(msg.Context()).WithField("messageId", msg.UUID).Infof("received message payload: %s", string(msg.Payload))
+		return errors.New("some error occurred")
+	})
 }
 
 func findUserManagement(ctx context.Context) error {
@@ -86,6 +100,13 @@ func populate(ctx context.Context) error {
 	return errors.New("Population failed")
 }
 
+func sendExampleTopicMessage(ctx context.Context) error {
+	if err := stream.Publish(ctx, kafkaTopicExample, []byte("Test Message"), nil); err != nil {
+		logger.Error(err)
+	}
+	return nil
+}
+
 func main() {
 	cli.RootCmd().PersistentFlags().Bool("quiet", false, "Be quiet")
 	if _, err := app.AddCommand("migrate", "Migrate database schema", migrate); err != nil {
@@ -94,5 +115,5 @@ func main() {
 	if _, err := app.AddCommand("populate", "Populate remote microservices", populate); err != nil {
 		cli.Fatal(err)
 	}
-	app.Run(AppName)
+	app.Run(appName)
 }

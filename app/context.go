@@ -8,8 +8,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/cassandracheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/consulcheck"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/kafkacheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/redischeck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/vaultcheck"
+	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"github.com/pkg/errors"
@@ -20,6 +22,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
+	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 }
 
 type configHandler func(cfg *config.Config) error
@@ -74,6 +77,17 @@ func configureRedisPool(cfg *config.Config) error {
 	} else if err != redis.ErrDisabled {
 		RegisterInjector(redis.ContextWithPool)
 		health.RegisterCheck("redis", redischeck.Check)
+	}
+
+	return nil
+}
+
+func configureKafkaPool(cfg *config.Config) error {
+	if err := kafka.ConfigurePool(cfg); err != nil && err != kafka.ErrDisabled {
+		return err
+	} else if err != kafka.ErrDisabled {
+		RegisterInjector(kafka.ContextWithPool)
+		health.RegisterCheck("kafka", kafkacheck.Check)
 	}
 
 	return nil

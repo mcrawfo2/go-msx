@@ -46,13 +46,13 @@ func (l *HealthLogger) Run() {
 		select {
 		case <-ticker.C:
 			if l.ctx.Err() != nil {
-				l.Stop()
+				return
 			} else {
 				l.LogHealth()
 			}
 
 		case <-l.done:
-			break
+			return
 		}
 	}
 }

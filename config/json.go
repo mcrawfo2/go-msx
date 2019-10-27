@@ -2,9 +2,9 @@ package config
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	json "github.com/yosuke-furukawa/json5/encoding/json5"
 	"io/ioutil"
 )
 

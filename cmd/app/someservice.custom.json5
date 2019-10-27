@@ -16,6 +16,9 @@
       "generic": {
         "enabled": true
       }
+    },
+    "stream.kafka.binder": {
+      "enabled": true,
     }
   },
   "stats": {

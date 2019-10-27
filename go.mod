@@ -4,13 +4,17 @@ go 1.12
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/Shopify/sarama v1.24.0
+	github.com/ThreeDotsLabs/watermill v1.0.0
+	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
-	github.com/hashicorp/consul/api v1.2.0
+	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/vault/api v1.0.4
+	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/pkg/errors v0.8.1
 	github.com/radovskyb/watcher v1.0.7
@@ -19,7 +23,9 @@ require (
 	github.com/smira/go-statsd v1.3.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.3.0
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	github.com/stretchr/testify v1.4.0
+	github.com/yosuke-furukawa/json5 v0.1.1
+	go.uber.org/atomic v1.4.0
 	gopkg.in/ini.v1 v1.48.0 // indirect
+	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
