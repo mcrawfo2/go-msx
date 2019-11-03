@@ -7,10 +7,15 @@ require (
 	github.com/Shopify/sarama v1.24.0
 	github.com/ThreeDotsLabs/watermill v1.0.0
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
+	github.com/auth0/go-jwt-middleware v0.0.0-20190805220309-36081240882b
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/emicklei/go-restful v2.11.1+incompatible
+	github.com/emicklei/go-restful-swagger12 v0.0.0-20170926063155-7524189396c6
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
+	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/vault/api v1.0.4
@@ -24,6 +29,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
+	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1
 	go.uber.org/atomic v1.4.0
 	gopkg.in/ini.v1 v1.48.0 // indirect

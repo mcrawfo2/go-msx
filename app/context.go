@@ -14,6 +14,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +24,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
+	OnEvent(EventConfigure, PhaseAfter, configureWebService)
 }
 
 type configHandler func(cfg *config.Config) error
@@ -91,6 +93,19 @@ func configureKafkaPool(cfg *config.Config) error {
 	}
 
 	return nil
+}
+
+func configureWebService(ctx context.Context) error {
+	return withConfig(func(cfg *config.Config) error {
+		if err := webservice.ConfigureWebServer(cfg, ctx); err != nil && err != webservice.ErrDisabled {
+			return err
+		} else if err != webservice.ErrDisabled {
+			RegisterInjector(webservice.ContextWithWebServer)
+			// TODO: health check?
+		}
+
+		return nil
+	})(ctx)
 }
 
 type ContextInjector func(ctx context.Context) context.Context

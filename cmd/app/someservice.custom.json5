@@ -25,5 +25,11 @@
     "enabled": true,
     "host": "10.98.85.185",
     "port": 8125
+  },
+  "server": {
+    "enabled": true,
+    "swagger": {
+      "enabled": true,
+    }
   }
 }

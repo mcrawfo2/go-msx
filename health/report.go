@@ -4,12 +4,12 @@ import "context"
 
 type CheckResult struct {
 	Status  Status                 `json:"status"`
-	Details map[string]interface{} `json:"details"`
+	Details map[string]interface{} `json:"details,omitempty"`
 }
 
 type Report struct {
 	Status  Status                 `json:"status"`
-	Details map[string]CheckResult `json:"details"`
+	Details map[string]CheckResult `json:"details,omitempty"`
 }
 
 func (r *Report) Down() int {

@@ -1,6 +1,9 @@
 package config
 
-import "context"
+import (
+	"context"
+	"github.com/pkg/errors"
+)
 
 type configContextKey int
 
@@ -21,4 +24,12 @@ func FromContext(ctx context.Context) *Config {
 	} else {
 		return cfg
 	}
+}
+
+func MustFromContext(ctx context.Context) *Config {
+	cfg := FromContext(ctx)
+	if cfg == nil {
+		panic(errors.New("Config missing from context"))
+	}
+	return cfg
 }
