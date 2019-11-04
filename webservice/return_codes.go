@@ -1,11 +1,12 @@
 package webservice
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"github.com/emicklei/go-restful"
 	"net/http"
 )
 
-var DefaultSuccessEnvelope = ResponseEnvelope{}
+var DefaultSuccessEnvelope = integration.MsxEnvelope{}
 
 type RouteBuilderFunc func(*restful.RouteBuilder)
 

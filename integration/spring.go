@@ -1,4 +1,4 @@
-package webservice
+package integration
 
 import "net/http"
 
@@ -96,10 +96,10 @@ func setSpringHttpStatusMaps(code int, name string) {
 	springHttpStatusByName[name] = springHttpStatus
 }
 
-func getSpringStatusNameForCode(code int) string {
+func GetSpringStatusNameForCode(code int) string {
 	return springHttpStatusByCode[code].Name()
 }
 
-func getSpringStatusCodeForName(name string) int {
+func GetSpringStatusCodeForName(name string) int {
 	return springHttpStatusByName[name].Code()
 }

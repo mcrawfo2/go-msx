@@ -31,22 +31,22 @@ func ConfigureWebServer(cfg *config.Config, ctx context.Context) (err error) {
 }
 
 func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer, error) {
-	var webServiceConfig WebServerConfig
-	if err := cfg.Populate(&webServiceConfig, configRootWebServer); err != nil {
+	var webServerConfig WebServerConfig
+	if err := cfg.Populate(&webServerConfig, configRootWebServer); err != nil {
 		return nil, err
 	}
 
-	if !webServiceConfig.Enabled {
+	if !webServerConfig.Enabled {
 		return nil, ErrDisabled
 	}
 
-	return NewWebServer(&webServiceConfig, ctx), nil
+	return NewWebServer(&webServerConfig, ctx), nil
 }
 
-type webServiceContextKey int
+type webServerContextKey int
 
 const (
-	contextKeyWebServer webServiceContextKey = iota
+	contextKeyWebServer webServerContextKey = iota
 	contextKeyContainer
 	contextKeyRouter
 	contextKeyService
