@@ -6,7 +6,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-const FmtUserDoesNotHavePermissions = "User does not have permissions to use this api: %v"
+const (
+	PermissionIsApiAdmin = "IS_API_ADMIN"
+)
+
+var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
 
 func HasPermission(ctx context.Context, required []string) error {
 	usermanagementIntegration, err := usermanagement.NewIntegration(ctx)
@@ -32,5 +36,5 @@ func HasPermission(ctx context.Context, required []string) error {
 		}
 	}
 
-	return errors.Errorf(FmtUserDoesNotHavePermissions, required)
+	return ErrUserDosNotHavePermission
 }

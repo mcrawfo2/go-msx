@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	logger = log.NewLogger("webservice.jwtprovider")
+	logger = log.NewLogger("msx.webservice.jwtprovider")
 )
 
 type JwtSecurityProviderConfig struct {

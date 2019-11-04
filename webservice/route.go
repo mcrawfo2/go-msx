@@ -15,7 +15,7 @@ const (
 
 var (
 	HeaderAuthorization *restful.Parameter
-	logger              = log.NewLogger("webservice")
+	logger              = log.NewLogger("msx.webservice")
 )
 
 func init() {
@@ -56,6 +56,7 @@ func PermissionsFilter(anyOf ...string) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		var ctx = req.Request.Context()
 		if err := rbac.HasPermission(ctx, anyOf); err != nil {
+			logger.WithError(err).WithField("perms", anyOf).Error("Permission denied")
 			WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
 			return
 		}
@@ -93,6 +94,7 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 
 		ctx := req.Request.Context()
 		if err := rbac.HasTenant(ctx, tenantId); err != nil {
+			logger.WithError(err).WithField("tenant", tenantId).Error("Permission denied")
 			WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
 			return
 		}

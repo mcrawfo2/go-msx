@@ -152,9 +152,6 @@ func (s *WebServer) contextInjectorFilter(container *restful.Container, router r
 		// Inject security provider
 		ctx = ContextWithSecurityProvider(ctx, securityProvider)
 
-		// Inject anything from the registered injectors
-		ctx = injectContextValues(ctx)
-
 		// Add the context into the request
 		req.Request = req.Request.WithContext(ctx)
 

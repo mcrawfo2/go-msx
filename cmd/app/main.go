@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
@@ -57,22 +58,22 @@ func addWebService(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	svc := server.NewService()
 
-	svc.Route(svc.GET("/test").
-		Operation("retrieveTest").
+	svc.Route(svc.GET("/tests").
+		Operation("queryTests").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
 		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
 		Produces(webservice.MIME_JSON).
-		Filter(webservice.PermissionsFilter(security.PermissionIsApiAdmin)))
+		Filter(webservice.PermissionsFilter(rbac.PermissionIsApiAdmin)))
 
 	tenantIdParameter := svc.PathParameter("tenantId", "Tenant Id")
 
-	svc.Route(svc.GET("/test/{tenantId}").
-		Operation("retrieveTest").
+	svc.Route(svc.GET("/tests/{tenantId}").
+		Operation("queryTestsWithTenant").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
 		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
 		Produces(webservice.MIME_JSON).
 		Param(tenantIdParameter).
-		Filter(webservice.PermissionsFilter(security.PermissionIsApiAdmin)).
+		Filter(webservice.PermissionsFilter(rbac.PermissionIsApiAdmin)).
 		Filter(webservice.TenantFilter(tenantIdParameter)))
 
 	return nil

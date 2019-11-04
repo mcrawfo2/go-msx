@@ -44,18 +44,3 @@ func RegisterSecurityProvider(provider SecurityProvider) {
 		securityProvider = provider
 	}
 }
-
-type ContextInjector func(ctx context.Context) context.Context
-
-var contextInjectors []ContextInjector
-
-func RegisterInjector(injector ContextInjector) {
-	contextInjectors = append(contextInjectors, injector)
-}
-
-func injectContextValues(ctx context.Context) context.Context {
-	for _, contextInjector := range contextInjectors {
-		ctx = contextInjector(ctx)
-	}
-	return ctx
-}
