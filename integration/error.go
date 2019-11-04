@@ -23,7 +23,7 @@ func (se StatusError) Error() string {
 	return se.Err.Error()
 }
 
-func (se StatusError) Status() int {
+func (se StatusError) StatusCode() int {
 	return se.Code
 }
 

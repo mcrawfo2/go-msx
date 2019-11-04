@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-type StatusProvider interface {
-	Status() int
+type StatusCodeProvider interface {
+	StatusCode() int
 }
 
 type StatusError struct {
@@ -29,7 +29,7 @@ func (e *StatusError) Error() string {
 	return e.cause.Error()
 }
 
-func (e *StatusError) Status() int {
+func (e *StatusError) StatusCode() int {
 	return e.status
 }
 

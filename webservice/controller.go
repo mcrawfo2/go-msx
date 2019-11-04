@@ -12,8 +12,8 @@ type ContextFunction func(ctx context.Context) (body interface{}, err error)
 func rawResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
 	if err != nil {
 		status := http.StatusBadRequest
-		if statusErr, ok := err.(StatusProvider); ok {
-			status = statusErr.Status()
+		if statusErr, ok := err.(StatusCodeProvider); ok {
+			status = statusErr.StatusCode()
 		}
 		if err = WriteErrorEnvelope(req, resp, status, err); err != nil {
 			logger.WithError(err).Error("Failed to write error envelope")
@@ -22,8 +22,8 @@ func rawResponse(req *restful.Request, resp *restful.Response, body interface{},
 	}
 
 	status := http.StatusOK
-	if statusProvider, ok := body.(StatusProvider); ok {
-		status = statusProvider.Status()
+	if statusProvider, ok := body.(StatusCodeProvider); ok {
+		status = statusProvider.StatusCode()
 	}
 
 	err = resp.WriteHeaderAndJson(status, body, MIME_JSON)
@@ -53,8 +53,8 @@ func RawContextController(fn ContextFunction) restful.RouteFunction {
 func envelopeResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
 	if err != nil {
 		status := http.StatusBadRequest
-		if statusErr, ok := err.(StatusProvider); ok {
-			status = statusErr.Status()
+		if statusErr, ok := err.(StatusCodeProvider); ok {
+			status = statusErr.StatusCode()
 		}
 		err = WriteErrorEnvelope(req, resp, status, err)
 		if err != nil {
@@ -64,8 +64,8 @@ func envelopeResponse(req *restful.Request, resp *restful.Response, body interfa
 	}
 
 	status := http.StatusOK
-	if statusProvider, ok := body.(StatusProvider); ok {
-		status = statusProvider.Status()
+	if statusProvider, ok := body.(StatusCodeProvider); ok {
+		status = statusProvider.StatusCode()
 	}
 
 	if err = WriteJsonEnvelope(req, resp, status, body); err != nil {

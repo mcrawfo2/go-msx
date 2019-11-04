@@ -1,9 +1,14 @@
-package webservice
+package swaggerprovider
 
 import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful-swagger12"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -11,35 +16,15 @@ const (
 	clientSecret = "nfv-service-secret"
 )
 
-func newSwaggerService(contextPath string) *restful.WebService {
-	var swaggerService = new(restful.WebService)
-	swaggerService.Path(contextPath + "/swagger")
+var (
+	ErrDisabled = errors.New("Swagger disabled")
+)
 
-	swaggerService.Route(swaggerService.GET("/configuration/security").
-		To(RawController(GetSecurity)).
-		Do(Returns(200, 401)))
-
-	swaggerService.Route(swaggerService.GET("/configuration/ui").
-		To(RawController(GetUi)).
-		Do(Returns(200, 401)))
-
-	swaggerService.Route(swaggerService.GET("/configuration/swagger-resources").
-		To(RawController(GetSwaggerResources)).
-		Do(Returns(200, 401)))
-
-	swaggerService.Route(swaggerService.GET("/configuration/user-security").
-		To(RawController(GetUserSecurity)).
-		Do(Returns(200, 401)))
-
-	swaggerService.Route(swaggerService.POST("/user/login").
-		To(RawController(UserLogin)).
-		Reads(LoginRequest{}).
-		Do(StandardReturns))
-
-	return swaggerService
+type SwaggerProvider struct {
+	cfg *DocumentationConfig
 }
 
-func GetSecurity(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
 	return struct {
 		ApiKeyVehicle  string `json:"apiKeyVehicle"`
 		ScopeSeparator string `json:"scopeSeparator"`
@@ -51,7 +36,7 @@ func GetSecurity(req *restful.Request) (body interface{}, err error) {
 	}, nil
 }
 
-func GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
 	return []struct {
 		Name           string `json:"name"`
 		Location       string `json:"location"`
@@ -65,7 +50,7 @@ func GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
 	}, nil
 }
 
-func GetUi(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) GetUi(req *restful.Request) (body interface{}, err error) {
 	return struct {
 		ValidatorUrl           *string  `json:"validatorUrl"`
 		DocExpansion           string   `json:"docExpansion"`
@@ -87,7 +72,7 @@ func GetUi(req *restful.Request) (body interface{}, err error) {
 	}, nil
 }
 
-func GetUserSecurity(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) GetUserSecurity(req *restful.Request) (body interface{}, err error) {
 	return struct {
 		Enabled                  bool   `json:"enabled"`
 		AuthenticationUrl        string `json:"authenticationUrl"`
@@ -123,7 +108,7 @@ type LoginResponse struct {
 	Oauth2 LoginResponseOauth2 `json:"oauth2"`
 }
 
-func UserLogin(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) UserLogin(req *restful.Request) (body interface{}, err error) {
 	var dto LoginRequest
 	err = req.ReadEntity(&dto)
 	if err != nil {
@@ -153,4 +138,57 @@ func UserLogin(req *restful.Request) (body interface{}, err error) {
 	}
 
 	return response, nil
+}
+
+func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
+	swaggerConfig := swagger.Config{
+		WebServices:     container.RegisteredWebServices(),
+		WebServicesUrl:  p.cfg.WebServicesUrl,
+		ApiPath:         p.cfg.ApiPath,
+		SwaggerPath:     p.cfg.SwaggerPath,
+		SwaggerFilePath: p.cfg.Path,
+	}
+
+	swagger.RegisterSwaggerService(swaggerConfig, container)
+
+	swaggerService.Consumes(restful.MIME_JSON)
+	swaggerService.Produces(restful.MIME_JSON)
+	swaggerService.Path(swaggerService.RootPath() + "/swagger")
+
+	swaggerService.Route(swaggerService.GET("/configuration/security").
+		To(webservice.RawController(p.GetSecurity)).
+		Do(webservice.Returns(200, 401)))
+
+	swaggerService.Route(swaggerService.GET("/configuration/ui").
+		To(webservice.RawController(p.GetUi)).
+		Do(webservice.Returns(200, 401)))
+
+	swaggerService.Route(swaggerService.GET("/configuration/swagger-resources").
+		To(webservice.RawController(p.GetSwaggerResources)).
+		Do(webservice.Returns(200, 401)))
+
+	swaggerService.Route(swaggerService.GET("/configuration/user-security").
+		To(webservice.RawController(p.GetUserSecurity)).
+		Do(webservice.Returns(200, 401)))
+
+	swaggerService.Route(swaggerService.POST("/user/login").
+		To(webservice.RawController(p.UserLogin)).
+		Reads(LoginRequest{}).
+		Do(webservice.StandardReturns))
+
+	return nil
+}
+
+func RegisterSwaggerProvider(ctx context.Context) error {
+	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	if !cfg.Enabled {
+		return ErrDisabled
+	}
+
+	webservice.RegisterDocumentationProvider(&SwaggerProvider{cfg:cfg})
+	return nil
 }

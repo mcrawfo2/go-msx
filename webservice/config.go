@@ -1,5 +1,7 @@
 package webservice
 
+import "strconv"
+
 type WebServerConfig struct {
 	Enabled     bool   `config:"default=false"`
 	Host        string `config:"default=0.0.0.0"`
@@ -9,14 +11,9 @@ type WebServerConfig struct {
 	KeyFile     string `config:"default=server.key"`
 	Cors        bool   `config:"default=true"`
 	ContextPath string `config:"default=/app"`
-	Swagger     SwaggerConfig
 	JWT         UserContextFilterConfig
 }
 
-type SwaggerConfig struct {
-	Enabled        bool   `config:"default=false"`
-	Path           string `config:"default=thirdparty/swagger-ui/dist"`
-	WebServicesUrl string
-	ApiPath        string
-	SwaggerPath    string
+func (c WebServerConfig) Address() string {
+	return c.Host + ":" + strconv.Itoa(c.Port)
 }

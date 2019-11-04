@@ -4,9 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/emicklei/go-restful"
-	swagger "github.com/emicklei/go-restful-swagger12"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -56,25 +54,36 @@ func (s *WebServer) Handler() http.Handler {
 	s.container.Router(s.router)
 	s.container.Filter(s.contextInjectorFilter(s.container, s.router))
 
+	// Add all web services
 	for _, service := range s.services {
 		s.container.Add(service)
 	}
 
-	if s.cfg.Swagger.Enabled {
-		swaggerConfig := swagger.Config{
-			WebServices:     s.services,
-			WebServicesUrl:  s.cfg.Swagger.WebServicesUrl,
-			ApiPath:         s.cfg.Swagger.ApiPath,
-			SwaggerPath:     s.cfg.Swagger.SwaggerPath,
-			SwaggerFilePath: s.cfg.Swagger.Path,
+	// Add documentation provider
+	if documentationProvider != nil {
+		documentationService := new(restful.WebService)
+		documentationService.Path(s.cfg.ContextPath)
+		if err := documentationProvider.Actuate(s.container, documentationService); err != nil {
+			logger.WithError(err).Errorf("Failed to register actuator")
+		} else {
+			s.container.Add(documentationService)
 		}
-
-		swagger.RegisterSwaggerService(swaggerConfig, s.container)
-
-		s.container.Add(newSwaggerService(s.cfg.ContextPath))
 	}
 
-	s.container.Add(newAdminService(s.cfg.ContextPath))
+	// Add actuators
+	for _, actuatorProvider := range actuators {
+		if actuatorProvider == nil {
+			continue
+		}
+
+		actuatorService := new(restful.WebService)
+		actuatorService.Path(s.cfg.ContextPath)
+		if err := actuatorProvider.Actuate(actuatorService); err != nil {
+			logger.WithError(err).Errorf("Failed to register actuator")
+		} else {
+			s.container.Add(actuatorService)
+		}
+	}
 
 	return s.container
 }
@@ -83,7 +92,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	s.ctx = ctx
 
 	s.server = &http.Server{
-		Addr:    ":" + strconv.Itoa(s.cfg.Port),
+		Addr:    s.cfg.Address(),
 		Handler: s.Handler(),
 	}
 
@@ -91,7 +100,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	go func() {
 		var err error
 		if s.cfg.Tls {
-			logger.Infof("Serving HTTPS on %s", s.server.Addr)
+			logger.Infof("Serving on https://%s%s", s.cfg.Address(), s.cfg.ContextPath)
 
 			tlsConfig := &tls.Config{
 				ClientAuth: tls.VerifyClientCertIfGiven,
@@ -99,13 +108,15 @@ func (s *WebServer) Serve(ctx context.Context) error {
 			tlsConfig.BuildNameToCertificate()
 			err = s.server.ListenAndServeTLS(s.cfg.CertFile, s.cfg.KeyFile)
 		} else {
-			logger.Infof("Serving HTTP on %s", s.server.Addr)
+			logger.Infof("Serving on http://%s%s", s.cfg.Address(), s.cfg.ContextPath)
 
 			err = s.server.ListenAndServe()
 		}
 
-		if err != nil {
+		if err != nil && err.Error() != "http: Server closed" {
 			logger.WithError(err).Error("Web Server exited")
+		} else {
+			logger.WithError(err).Info("Web server exited")
 		}
 	}()
 

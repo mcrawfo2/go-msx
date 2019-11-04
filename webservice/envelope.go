@@ -17,7 +17,7 @@ type ResponseEnvelope struct {
 	Throwable  interface{}            `json:"throwable"`
 }
 
-func (r ResponseEnvelope) Status() int {
+func (r ResponseEnvelope) StatusCode() int {
 	return getSpringStatusCodeForName(r.HttpStatus)
 }
 
