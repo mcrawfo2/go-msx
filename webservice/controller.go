@@ -6,37 +6,15 @@ import (
 	"net/http"
 )
 
+type ValidatorFunction func(req *restful.Request) (err error)
 type ControllerFunction func(req *restful.Request) (body interface{}, err error)
 type ContextFunction func(ctx context.Context) (body interface{}, err error)
-
-func rawResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
-	if err != nil {
-		status := http.StatusBadRequest
-		if statusErr, ok := err.(StatusCodeProvider); ok {
-			status = statusErr.StatusCode()
-		}
-		if err = WriteErrorEnvelope(req, resp, status, err); err != nil {
-			logger.WithError(err).Error("Failed to write error envelope")
-		}
-		return
-	}
-
-	status := http.StatusOK
-	if statusProvider, ok := body.(StatusCodeProvider); ok {
-		status = statusProvider.StatusCode()
-	}
-
-	err = resp.WriteHeaderAndJson(status, body, MIME_JSON)
-	if err != nil {
-		logger.WithError(err).Error("Failed to write body")
-	}
-}
 
 // Force only error into an envelope
 func RawController(fn ControllerFunction) restful.RouteFunction {
 	return func(req *restful.Request, resp *restful.Response) {
 		body, err := fn(req)
-		rawResponse(req, resp, body, err)
+		RawResponse(req, resp, body, err)
 	}
 }
 
@@ -45,38 +23,14 @@ func RawContextController(fn ContextFunction) restful.RouteFunction {
 		ctx := req.Request.Context()
 
 		body, err := fn(ctx)
-		rawResponse(req, resp, body, err)
-	}
-}
-
-// Force response body or error into an envelope
-func envelopeResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
-	if err != nil {
-		status := http.StatusBadRequest
-		if statusErr, ok := err.(StatusCodeProvider); ok {
-			status = statusErr.StatusCode()
-		}
-		err = WriteErrorEnvelope(req, resp, status, err)
-		if err != nil {
-			logger.WithError(err).Error("Failed to write error envelope")
-		}
-		return
-	}
-
-	status := http.StatusOK
-	if statusProvider, ok := body.(StatusCodeProvider); ok {
-		status = statusProvider.StatusCode()
-	}
-
-	if err = WriteJsonEnvelope(req, resp, status, body); err != nil {
-		logger.WithError(err).Error("Failed to write body")
+		RawResponse(req, resp, body, err)
 	}
 }
 
 func Controller(fn ControllerFunction) restful.RouteFunction {
 	return func(req *restful.Request, resp *restful.Response) {
 		body, err := fn(req)
-		envelopeResponse(req, resp, body, err)
+		EnvelopeResponse(req, resp, body, err)
 	}
 }
 
@@ -85,7 +39,7 @@ func ContextController(fn ContextFunction) restful.RouteFunction {
 		ctx := req.Request.Context()
 
 		body, err := fn(ctx)
-		envelopeResponse(req, resp, body, err)
+		EnvelopeResponse(req, resp, body, err)
 	}
 }
 

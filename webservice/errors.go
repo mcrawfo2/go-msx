@@ -45,6 +45,10 @@ func NewUnauthorizedError(cause error) error {
 	return NewStatusError(cause, http.StatusUnauthorized)
 }
 
+func NewForbiddenError(cause error) error {
+	return NewStatusError(cause, http.StatusForbidden)
+}
+
 func NewNotFoundError(cause error) error {
 	return NewStatusError(cause, http.StatusNotFound)
 }

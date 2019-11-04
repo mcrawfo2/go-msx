@@ -5,15 +5,22 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/jwtprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 )
 
 func init() {
+	OnEvent(EventStart, PhaseBefore, registerJwtSecurityProvider)
 	OnEvent(EventStart, PhaseBefore, registerHealthWebService)
 	OnEvent(EventStart, PhaseBefore, registerInfoWebService)
 	OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 	OnEvent(EventStart, PhaseAfter, webservice.Start)
 	OnEvent(EventStop, PhaseBefore, webservice.Stop)
+}
+
+func registerJwtSecurityProvider(ctx context.Context) error {
+	logger.Info("Registering JWT web security provider")
+	return jwtprovider.RegisterSecurityProvider(ctx)
 }
 
 func registerHealthWebService(context.Context) error {

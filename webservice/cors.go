@@ -1,10 +1,13 @@
 package webservice
 
-import "github.com/emicklei/go-restful"
+import (
+	"github.com/emicklei/go-restful"
+	"net/http"
+)
 
 const (
-	MIME_XML  = "application/xml"  // Accept or Content-Type used in Consumes() and/or Produces()
-	MIME_JSON = "application/json" // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_XML  = restful.MIME_XML  // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_JSON = restful.MIME_JSON // Accept or Content-Type used in Consumes() and/or Produces()
 
 	HEADER_ContentEncoding             = "Content-Encoding"
 	HEADER_AccessControlRequestHeaders = "Access-Control-Request-Headers"
@@ -20,17 +23,9 @@ const (
 	HEADER_XCsrfToken     = "X-CSRF-Token"
 	HEADER_ApiKey         = "api_key"
 	HEADER_XRequestedWith = "x-requested-with"
-
-	METHOD_GET     = "GET"
-	METHOD_POST    = "POST"
-	METHOD_PUT     = "PUT"
-	METHOD_DELETE  = "DELETE"
-	METHOD_HEAD    = "HEAD"
-	METHOD_OPTIONS = "OPTIONS"
-	METHOD_PATCH   = "PATCH"
 )
 
-func ActivateCORS(container *restful.Container) {
+func ActivateCors(container *restful.Container) {
 	cors := restful.CrossOriginResourceSharing{
 		ExposeHeaders: []string{"X-CFI-Header"},
 		AllowedHeaders: []string{"Access-Control-Allow-Origin: *",
@@ -44,20 +39,28 @@ func ActivateCORS(container *restful.Container) {
 			HEADER_XCsrfToken,
 			HEADER_Authorization,
 			"Access-Control-Allow-Credentials: true"},
-		AllowedMethods: []string{METHOD_GET, METHOD_POST, METHOD_PUT, METHOD_DELETE, METHOD_OPTIONS, METHOD_HEAD, METHOD_PATCH},
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodOptions,
+			http.MethodPatch,
+		},
 		AllowedDomains: []string{"*"},
 		CookiesAllowed: false,
 		Container:      container}
 
 	container.Filter(cors.Filter)
-	container.Filter(OPTIONSFilter)
+	container.Filter(corsOptionsFilter)
 }
 
-// OPTIONSFilter is a filter function that inspects the Http Request for the OPTIONS method
+// corsOptionsFilter is a filter function that inspects the Http Request for the OPTIONS method
 // and provides the response with a set of allowed methods for the request URL Path.
 // As for any filter, you can also install it for a particular WebService within a Container.
 // Note: this filter is not needed when using CrossOriginResourceSharing (for CORS).
-func OPTIONSFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+func corsOptionsFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	if "OPTIONS" != req.Request.Method {
 		chain.ProcessFilter(req, resp)
 		return

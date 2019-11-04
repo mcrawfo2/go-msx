@@ -144,10 +144,10 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 	})
 }
 
-func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
+func (i *Integration) GetMyTenantIds() (result *integration.MsxResponse, err error) {
 	result, err = i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameGetMyTenants,
-		Payload:      new(Pojo),
+		Payload:      new(TenantIdList),
 		ErrorPayload: &ErrorDTO{},
 	})
 
@@ -160,9 +160,7 @@ func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: map[string]interface{}{
-					"tenants": []struct{}{},
-				},
+				Payload: new(TenantIdList),
 			},
 		}
 		result.Payload = result.Envelope.Payload

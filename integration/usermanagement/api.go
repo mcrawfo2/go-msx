@@ -36,7 +36,7 @@ type Api interface {
 	GetMyCapabilities() (*integration.MsxResponse, error)
 	GetUserCapabilities(userId string) (*integration.MsxResponse, error)
 
-	GetMyTenants() (*integration.MsxResponse, error)
+	GetMyTenantIds() (*integration.MsxResponse, error)
 	GetUserTenants(userId string) (*integration.MsxResponse, error)
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)

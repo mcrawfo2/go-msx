@@ -11,7 +11,6 @@ type WebServerConfig struct {
 	KeyFile     string `config:"default=server.key"`
 	Cors        bool   `config:"default=true"`
 	ContextPath string `config:"default=/app"`
-	JWT         UserContextFilterConfig
 }
 
 func (c WebServerConfig) Address() string {

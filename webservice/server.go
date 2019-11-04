@@ -145,12 +145,15 @@ func (s *WebServer) contextInjectorFilter(container *restful.Container, router r
 			ctx = ContextWithRouteOperation(ctx, "unknown")
 		}
 
-		// Inject the user context filter config
-		ctx = ContextWithUserContextFilterConfig(ctx, &s.cfg.JWT)
-
 		// Inject the request variables
 		ctx = ContextWithHttpRequest(ctx, req.Request)
 		ctx = ContextWithPathParameters(ctx, req.PathParameters())
+
+		// Inject security provider
+		ctx = ContextWithSecurityProvider(ctx, securityProvider)
+
+		// Inject anything from the registered injectors
+		ctx = injectContextValues(ctx)
 
 		// Add the context into the request
 		req.Request = req.Request.WithContext(ctx)

@@ -1,30 +1,12 @@
-package webservice
+package rbac
 
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
-	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
-const (
-	FmtUserDoesNotHavePermissions = "User does not have permissions to use this api: %v"
-)
-
-func PermissionsFilter(anyOf ...string) restful.FilterFunction {
-	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-		var ctx = req.Request.Context()
-		if err := HasPermission(ctx, anyOf); err != nil {
-			if err = WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err); err != nil {
-				logger.WithError(err).Error("Failed to write error envelope")
-			}
-			return
-		}
-
-		chain.ProcessFilter(req, resp)
-	}
-}
+const FmtUserDoesNotHavePermissions = "User does not have permissions to use this api: %v"
 
 func HasPermission(ctx context.Context, required []string) error {
 	usermanagementIntegration, err := usermanagement.NewIntegration(ctx)

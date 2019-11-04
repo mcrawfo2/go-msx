@@ -1,14 +1,16 @@
-package webservice
+package jwtprovider
 
 import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"encoding/base64"
-	jwtmiddleware "github.com/auth0/go-jwt-middleware"
+	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
@@ -21,24 +23,27 @@ const (
 	jwtClaimTenantId = "tenantId"
 	jwtClaimRoles    = "roles"
 
-	configRootUserContextFilter = "server.jwt"
+	configRootJwtSecurityProvider = "server.jwt"
 )
 
-type UserContextFilterConfig struct {
+var (
+	logger = log.NewLogger("webservice.jwtprovider")
+)
+
+type JwtSecurityProviderConfig struct {
 	KeyPath string `config:"default=secret/phi_pnp"`
 	KeyName string `config:"default=key"`
 }
 
-type UserContextFilter struct {
-	cfg *UserContextFilterConfig
+type JwtSecurityProvider struct {
+	cfg *JwtSecurityProviderConfig
 }
 
-func (f *UserContextFilter) Filter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+func (f *JwtSecurityProvider) Authentication(req *restful.Request) error {
 	// 0. Retrieve the context
 	ctx := req.Request.Context()
 	if ctx == nil {
-		logger.Error("Failed to retrieve context from request")
-		return
+		return errors.New("Failed to retrieve context from request")
 	}
 
 	middleware := jwtmiddleware.New(jwtmiddleware.Options{
@@ -50,19 +55,13 @@ func (f *UserContextFilter) Filter(req *restful.Request, resp *restful.Response,
 	// 1. Validate the token signature
 	recorder := httptest.NewRecorder()
 	if err := middleware.CheckJWT(recorder, req.Request); err != nil {
-		logger.WithError(err).Error("JWT validation failed")
-		err := WriteErrorEnvelope(req, resp, 401, errors.Wrap(err, "JWT validation failed"))
-		if err != nil {
-			logger.WithError(err).Error("Failed to write error to response")
-		}
-		return
+		return errors.Wrap(err, "JWT validation failed")
 	}
 
 	// 2. Validate the session
 	tokenString, err := jwtmiddleware.FromAuthHeader(req.Request)
 	if err != nil {
-		logger.WithError(err).Error("Failed to retrieve token from request")
-		return
+		return errors.Wrap(err, "Failed to retrieve token from request")
 	}
 
 	// TODO: Validate the session
@@ -76,7 +75,7 @@ func (f *UserContextFilter) Filter(req *restful.Request, resp *restful.Response,
 	jwtClaims := jwt.MapClaims{}
 	_, _, err = jwtParser.ParseUnverified(tokenString, jwtClaims)
 	if err != nil {
-		logger.WithError(err).Error("Failed to parse JWT")
+		return errors.Wrap(err, "Failed to parse JWT")
 	}
 
 	userContext := &security.UserContext{
@@ -91,10 +90,10 @@ func (f *UserContextFilter) Filter(req *restful.Request, resp *restful.Response,
 	req.Request = req.Request.WithContext(ctx)
 
 	// 4. Continue with the filter chain
-	chain.ProcessFilter(req, resp)
+	return nil
 }
 
-func (f *UserContextFilter) jwtSigningKey(ctx context.Context) jwt.Keyfunc {
+func (f *JwtSecurityProvider) jwtSigningKey(ctx context.Context) jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
 		vaultPool := vault.PoolFromContext(ctx)
 
@@ -129,33 +128,26 @@ func (f *UserContextFilter) jwtSigningKey(ctx context.Context) jwt.Keyfunc {
 	}
 }
 
-func NewUserContextFilter(cfg *UserContextFilterConfig) *UserContextFilter {
-	return &UserContextFilter{cfg: cfg}
+func NewJwtSecurityProvider(cfg *JwtSecurityProviderConfig) *JwtSecurityProvider {
+	return &JwtSecurityProvider{cfg: cfg}
 }
 
-func NewUserContextFilterFromConfig(cfg *config.Config) (*UserContextFilter, error) {
-	userContextFilterConfig := new(UserContextFilterConfig)
-	if err := cfg.Populate(userContextFilterConfig, configRootUserContextFilter); err != nil {
+func NewJwtSecurityProviderFromConfig(cfg *config.Config) (*JwtSecurityProvider, error) {
+	jwtSecurityProviderConfig := new(JwtSecurityProviderConfig)
+	if err := cfg.Populate(jwtSecurityProviderConfig, configRootJwtSecurityProvider); err != nil {
 		return nil, err
 	}
 
-	return NewUserContextFilter(userContextFilterConfig), nil
+	return NewJwtSecurityProvider(jwtSecurityProviderConfig), nil
 }
 
-func RequireAuthorizedFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-	cfg := UserContextFilterConfigFromContext(req.Request.Context())
-	userContextFilter := NewUserContextFilter(cfg)
-	userContextFilter.Filter(req, resp, chain)
-}
+func RegisterSecurityProvider(ctx context.Context) error {
+	cfg := config.MustFromContext(ctx)
+	jwtSecurityProvider, err := NewJwtSecurityProviderFromConfig(cfg)
+	if err != nil {
+		return errors.Wrap(err, "Failed to create JWT web security provider")
+	}
 
-type userContextContextKey int
-
-const contextKeyUserContextFilterConfig userContextContextKey = iota
-
-func ContextWithUserContextFilterConfig(ctx context.Context, cfg *UserContextFilterConfig) context.Context {
-	return context.WithValue(ctx, contextKeyUserContextFilterConfig, cfg)
-}
-
-func UserContextFilterConfigFromContext(ctx context.Context) *UserContextFilterConfig {
-	return ctx.Value(contextKeyUserContextFilterConfig).(*UserContextFilterConfig)
+	webservice.RegisterSecurityProvider(jwtSecurityProvider)
+	return nil
 }

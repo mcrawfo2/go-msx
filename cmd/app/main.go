@@ -64,6 +64,17 @@ func addWebService(ctx context.Context) error {
 		Produces(webservice.MIME_JSON).
 		Filter(webservice.PermissionsFilter(security.PermissionIsApiAdmin)))
 
+	tenantIdParameter := svc.PathParameter("tenantId", "Tenant Id")
+
+	svc.Route(svc.GET("/test/{tenantId}").
+		Operation("retrieveTest").
+		To(webservice.HttpHandlerController(myTestEndpoint)).
+		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
+		Produces(webservice.MIME_JSON).
+		Param(tenantIdParameter).
+		Filter(webservice.PermissionsFilter(security.PermissionIsApiAdmin)).
+		Filter(webservice.TenantFilter(tenantIdParameter)))
+
 	return nil
 }
 

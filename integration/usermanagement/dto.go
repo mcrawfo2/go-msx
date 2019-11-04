@@ -7,3 +7,5 @@ type UserCapabilityListDTO struct {
 type UserCapabilityDTO struct {
 	Name string `json:"name"`
 }
+
+type TenantIdList []string
