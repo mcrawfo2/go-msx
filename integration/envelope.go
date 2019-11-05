@@ -79,7 +79,12 @@ func NewThrowable(err error) *Throwable {
 	// Recurse
 	if errWithCause, ok := err.(causer); ok {
 		if cause := errWithCause.Cause(); cause != nil {
-			throwable.Cause = NewThrowable(cause)
+			throwableCause := NewThrowable(cause)
+			// Skip over errors.Wrap artifacts
+			if throwableCause.Message == throwable.Message && throwableCause.StackTrace == nil {
+				throwableCause = throwableCause.Cause
+			}
+			throwable.Cause = throwableCause
 		}
 	}
 
