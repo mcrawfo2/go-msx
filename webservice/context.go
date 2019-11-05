@@ -53,8 +53,9 @@ const (
 	contextKeyRoute
 	contextKeyOperation
 	contextKeyPathParameters
-	contextKeyHttpRequest
+	contextKeyHttpRequest   // *http.Request
 	contextKeySecurityProvider
+	contextKeyRequest		// *restful.Request
 )
 
 func ContextWithWebServer(ctx context.Context) context.Context {
@@ -135,4 +136,12 @@ func SecurityProviderFromContext(ctx context.Context) SecurityProvider {
 		return providerInterface.(SecurityProvider)
 	}
 	return nil
+}
+
+func ContextWithRequest(ctx context.Context, request *restful.Request) context.Context {
+	return context.WithValue(ctx, contextKeyRequest, request)
+}
+
+func RequestFromContext(ctx context.Context) *restful.Request {
+	return ctx.Value(contextKeyRequest).(*restful.Request)
 }

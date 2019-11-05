@@ -4,7 +4,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"github.com/emicklei/go-restful"
 	"net/http"
-	"strings"
 )
 
 // Force response body or error into an envelope
@@ -48,27 +47,20 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 }
 
 func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int, err error) {
-	message := func(err error) string {
-		errMessage := err.Error()
-		lines := strings.Split(errMessage, "\n")
-		parts := strings.Split(lines[0], ": ")
-		return parts[0]
-	}(err)
-
 	envelope := integration.MsxEnvelope{
 		Success:    false,
 		Command:    RouteOperationFromContext(req.Request.Context()),
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
-		Message:    message,
-		Throwable:  err.Error(), // TODO: stack trace
+		Throwable:  integration.NewThrowable(err),
 	}
+	envelope.Message = envelope.Throwable.Message
 
-	logger.WithError(err).Error("Request failed")
+	logger.WithContext(req.Request.Context()).WithError(err).Error("Request failed")
 
 	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
 	if err2 != nil {
-		logger.WithError(err2).Error("Failed to write error envelope")
+		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error envelope")
 	}
 }
 

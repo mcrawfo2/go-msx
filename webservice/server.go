@@ -58,7 +58,12 @@ func (s *WebServer) Handler() http.Handler {
 
 	s.container = restful.NewContainer()
 	s.container.Router(s.router)
-	s.container.Filter(s.contextInjectorFilter(s.container, s.router))
+	s.container.Filter(requestContextInjectorFilter(
+		s.ctx,
+		s.container,
+		s.router,
+		s.security,
+		s.injectors.Clone()))
 
 	// Add all web services
 	for _, service := range s.services {
@@ -167,11 +172,17 @@ func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
 	s.injectors.Register(injector)
 }
 
-func (s *WebServer) contextInjectorFilter(container *restful.Container, router restful.RouteSelector) restful.FilterFunction {
+func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security SecurityProvider, injectors *types.ContextInjectors) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-		// Inject the container and router
-		ctx := ContextWithContainer(s.ctx, container)
+		// Inject the container, router, security provider, request
+		ctx := ContextWithContainer(ctx, container)
 		ctx = ContextWithRouter(ctx, router)
+		ctx = ContextWithSecurityProvider(ctx, security)
+		ctx = ContextWithRequest(ctx, req)
+
+		// Inject the request variables
+		ctx = ContextWithHttpRequest(ctx, req.Request)
+		ctx = ContextWithPathParameters(ctx, req.PathParameters())
 
 		// Inject the webservice and route
 		service, route, _ := router.SelectRoute(container.RegisteredWebServices(), req.Request)
@@ -183,17 +194,9 @@ func (s *WebServer) contextInjectorFilter(container *restful.Container, router r
 			ctx = ContextWithRouteOperation(ctx, "unknown")
 		}
 
-		// Inject the request variables
-		ctx = ContextWithHttpRequest(ctx, req.Request)
-		ctx = ContextWithPathParameters(ctx, req.PathParameters())
+		// Execute external injectors
+		ctx = injectors.Inject(ctx)
 
-		// Inject security provider
-		ctx = ContextWithSecurityProvider(ctx, s.security)
-
-		// Execute registered injectors
-		ctx = s.injectors.Inject(ctx)
-
-		// Add the context into the request
 		req.Request = req.Request.WithContext(ctx)
 
 		chain.ProcessFilter(req, resp)

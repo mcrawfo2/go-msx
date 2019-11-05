@@ -15,3 +15,9 @@ func (i *ContextInjectors) Inject(ctx context.Context) context.Context {
 	}
 	return ctx
 }
+
+func (i *ContextInjectors) Clone() *ContextInjectors {
+	slice := *i
+	clone := slice[:]
+	return &clone
+}

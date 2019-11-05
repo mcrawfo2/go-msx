@@ -94,7 +94,10 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 
 		ctx := req.Request.Context()
 		if err := rbac.HasTenant(ctx, tenantId); err != nil {
-			logger.WithError(err).WithField("tenant", tenantId).Error("Permission denied")
+			ctx = log.ExtendContext(ctx, log.LogContext{
+				"tenant": tenantId,
+			})
+			req.Request = req.Request.WithContext(ctx)
 			WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
 			return
 		}
