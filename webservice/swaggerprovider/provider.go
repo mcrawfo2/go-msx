@@ -180,6 +180,11 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 }
 
 func RegisterSwaggerProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server == nil {
+		return nil
+	}
+
 	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
 	if err != nil {
 		return err
@@ -189,6 +194,6 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		return ErrDisabled
 	}
 
-	webservice.RegisterDocumentationProvider(&SwaggerProvider{cfg:cfg})
+	server.SetDocumentationProvider(&SwaggerProvider{cfg:cfg})
 	return nil
 }

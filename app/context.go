@@ -13,10 +13,13 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/health/vaultcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/pkg/errors"
 )
+
+var contextInjectors = new(types.ContextInjectors)
 
 func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
@@ -44,7 +47,7 @@ func configureConsulPool(cfg *config.Config) error {
 	if err := consul.ConfigurePool(cfg); err != nil && err != consul.ErrDisabled {
 		return err
 	} else if err != consul.ErrDisabled {
-		RegisterInjector(consul.ContextWithPool)
+		contextInjectors.Register(consul.ContextWithPool)
 		health.RegisterCheck("consul", consulcheck.Check)
 	}
 
@@ -55,7 +58,7 @@ func configureVaultPool(cfg *config.Config) error {
 	if err := vault.ConfigurePool(cfg); err != nil && err != vault.ErrDisabled {
 		return err
 	} else if err != vault.ErrDisabled {
-		RegisterInjector(vault.ContextWithPool)
+		contextInjectors.Register(vault.ContextWithPool)
 		health.RegisterCheck("vault", vaultcheck.Check)
 	}
 
@@ -66,7 +69,7 @@ func configureCassandraPool(cfg *config.Config) error {
 	if err := cassandra.ConfigurePool(cfg); err != nil && err != cassandra.ErrDisabled {
 		return err
 	} else if err != cassandra.ErrDisabled {
-		RegisterInjector(cassandra.ContextWithPool)
+		contextInjectors.Register(cassandra.ContextWithPool)
 		health.RegisterCheck("cassandra", cassandracheck.Check)
 	}
 
@@ -77,7 +80,7 @@ func configureRedisPool(cfg *config.Config) error {
 	if err := redis.ConfigurePool(cfg); err != nil && err != redis.ErrDisabled {
 		return err
 	} else if err != redis.ErrDisabled {
-		RegisterInjector(redis.ContextWithPool)
+		contextInjectors.Register(redis.ContextWithPool)
 		health.RegisterCheck("redis", redischeck.Check)
 	}
 
@@ -88,7 +91,7 @@ func configureKafkaPool(cfg *config.Config) error {
 	if err := kafka.ConfigurePool(cfg); err != nil && err != kafka.ErrDisabled {
 		return err
 	} else if err != kafka.ErrDisabled {
-		RegisterInjector(kafka.ContextWithPool)
+		contextInjectors.Register(kafka.ContextWithPool)
 		health.RegisterCheck("kafka", kafkacheck.Check)
 	}
 
@@ -100,25 +103,9 @@ func configureWebService(ctx context.Context) error {
 		if err := webservice.ConfigureWebServer(cfg, ctx); err != nil && err != webservice.ErrDisabled {
 			return err
 		} else if err != webservice.ErrDisabled {
-			RegisterInjector(webservice.ContextWithWebServer)
-			// TODO: health check?
+			contextInjectors.Register(webservice.ContextWithWebServer)
 		}
 
 		return nil
 	})(ctx)
-}
-
-type ContextInjector func(ctx context.Context) context.Context
-
-var contextInjectors []ContextInjector
-
-func RegisterInjector(injector ContextInjector) {
-	contextInjectors = append(contextInjectors, injector)
-}
-
-func injectContextValues(ctx context.Context) context.Context {
-	for _, contextInjector := range contextInjectors {
-		ctx = contextInjector(ctx)
-	}
-	return ctx
 }

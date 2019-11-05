@@ -3,6 +3,7 @@ package webservice
 import (
 	"context"
 	"crypto/tls"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"sync"
@@ -10,20 +11,25 @@ import (
 )
 
 type WebServer struct {
-	ctx          context.Context
-	cfg          *WebServerConfig
-	container    *restful.Container
-	containerMtx sync.Mutex
-	router       *restful.CurlyRouter
-	services     []*restful.WebService
-	server       *http.Server
+	ctx           context.Context
+	cfg           *WebServerConfig
+	container     *restful.Container
+	containerMtx  sync.Mutex
+	router        *restful.CurlyRouter
+	services      []*restful.WebService
+	documentation DocumentationProvider
+	security      SecurityProvider
+	actuators     []ServiceProvider
+	server        *http.Server
+	injectors     *types.ContextInjectors
 }
 
 func NewWebServer(cfg *WebServerConfig, ctx context.Context) *WebServer {
 	return &WebServer{
-		ctx:    ctx,
-		cfg:    cfg,
-		router: &restful.CurlyRouter{},
+		ctx:       ctx,
+		cfg:       cfg,
+		router:    &restful.CurlyRouter{},
+		injectors: new(types.ContextInjectors),
 	}
 }
 
@@ -60,32 +66,42 @@ func (s *WebServer) Handler() http.Handler {
 	}
 
 	// Add documentation provider
-	if documentationProvider != nil {
-		documentationService := new(restful.WebService)
-		documentationService.Path(s.cfg.ContextPath)
-		if err := documentationProvider.Actuate(s.container, documentationService); err != nil {
-			logger.WithError(err).Errorf("Failed to register actuator")
-		} else {
-			s.container.Add(documentationService)
-		}
-	}
+	s.actuateDocumentation(s.documentation)
 
 	// Add actuators
-	for _, actuatorProvider := range actuators {
-		if actuatorProvider == nil {
-			continue
-		}
-
-		actuatorService := new(restful.WebService)
-		actuatorService.Path(s.cfg.ContextPath)
-		if err := actuatorProvider.Actuate(actuatorService); err != nil {
-			logger.WithError(err).Errorf("Failed to register actuator")
-		} else {
-			s.container.Add(actuatorService)
-		}
+	for _, provider := range s.actuators {
+		s.actuateService(provider)
 	}
 
 	return s.container
+}
+
+func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
+	if provider == nil {
+		return
+	}
+
+	documentationService := new(restful.WebService)
+	documentationService.Path(s.cfg.ContextPath)
+	if err := s.documentation.Actuate(s.container, documentationService); err != nil {
+		logger.WithError(err).Errorf("Failed to register actuator")
+	} else {
+		s.container.Add(documentationService)
+	}
+}
+
+func (s *WebServer) actuateService(provider ServiceProvider) {
+	if provider == nil {
+		return
+	}
+
+	actuatorService := new(restful.WebService)
+	actuatorService.Path(s.cfg.ContextPath)
+	if err := provider.Actuate(actuatorService); err != nil {
+		logger.WithError(err).Errorf("Failed to register actuator")
+	} else {
+		s.container.Add(actuatorService)
+	}
 }
 
 func (s *WebServer) Serve(ctx context.Context) error {
@@ -129,6 +145,28 @@ func (s *WebServer) StopServing(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
+func (s *WebServer) SetDocumentationProvider(provider DocumentationProvider) {
+	if provider != nil {
+		s.documentation = provider
+	}
+}
+
+func (s *WebServer) RegisterActuator(provider ServiceProvider) {
+	if provider != nil {
+		s.actuators = append(s.actuators, provider)
+	}
+}
+
+func (s *WebServer) SetSecurityProvider(provider SecurityProvider) {
+	if provider != nil {
+		s.security = provider
+	}
+}
+
+func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
+	s.injectors.Register(injector)
+}
+
 func (s *WebServer) contextInjectorFilter(container *restful.Container, router restful.RouteSelector) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		// Inject the container and router
@@ -150,7 +188,10 @@ func (s *WebServer) contextInjectorFilter(container *restful.Container, router r
 		ctx = ContextWithPathParameters(ctx, req.PathParameters())
 
 		// Inject security provider
-		ctx = ContextWithSecurityProvider(ctx, securityProvider)
+		ctx = ContextWithSecurityProvider(ctx, s.security)
+
+		// Execute registered injectors
+		ctx = s.injectors.Inject(ctx)
 
 		// Add the context into the request
 		req.Request = req.Request.WithContext(ctx)

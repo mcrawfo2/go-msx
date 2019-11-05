@@ -67,6 +67,10 @@ func (h InfoProvider) Actuate(infoService *restful.WebService) error {
 	return nil
 }
 
-func RegisterInfoProvider() {
-	webservice.RegisterActuator(new(InfoProvider))
+func RegisterInfoProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server != nil {
+		server.RegisterActuator(new(InfoProvider))
+	}
+	return nil
 }

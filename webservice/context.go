@@ -62,7 +62,11 @@ func ContextWithWebServer(ctx context.Context) context.Context {
 }
 
 func WebServerFromContext(ctx context.Context) *WebServer {
-	return ctx.Value(contextKeyWebServer).(*WebServer)
+	webServerInterface := ctx.Value(contextKeyWebServer)
+	if webServerInterface != nil {
+		return webServerInterface.(*WebServer)
+	}
+	return nil
 }
 
 func ContextWithContainer(ctx context.Context, container *restful.Container) context.Context {
@@ -127,9 +131,8 @@ func ContextWithSecurityProvider(ctx context.Context, provider SecurityProvider)
 
 func SecurityProviderFromContext(ctx context.Context) SecurityProvider {
 	providerInterface := ctx.Value(contextKeySecurityProvider)
-	if providerInterface == nil {
-		return nil
-	} else {
+	if providerInterface != nil {
 		return providerInterface.(SecurityProvider)
 	}
+	return nil
 }

@@ -142,12 +142,18 @@ func NewJwtSecurityProviderFromConfig(cfg *config.Config) (*JwtSecurityProvider,
 }
 
 func RegisterSecurityProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server == nil {
+		// Server disabled
+		return nil
+	}
+
 	cfg := config.MustFromContext(ctx)
 	jwtSecurityProvider, err := NewJwtSecurityProviderFromConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create JWT web security provider")
 	}
 
-	webservice.RegisterSecurityProvider(jwtSecurityProvider)
+	server.SetSecurityProvider(jwtSecurityProvider)
 	return nil
 }

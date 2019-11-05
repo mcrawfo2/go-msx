@@ -81,7 +81,7 @@ func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) 
 }
 
 func (a *MsxApplication) newContext() context.Context {
-	return injectContextValues(a.ctx)
+	return contextInjectors.Inject(a.ctx)
 }
 
 func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {

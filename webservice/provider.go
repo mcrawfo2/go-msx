@@ -1,7 +1,6 @@
 package webservice
 
 import (
-	"context"
 	"github.com/emicklei/go-restful"
 )
 
@@ -16,31 +15,4 @@ type DocumentationProvider interface {
 type SecurityProvider interface {
 	// Ensures user is logged in
 	Authentication(request *restful.Request) error
-}
-
-type InjectorFunction func(ctx context.Context) context.Context
-
-var (
-	documentationProvider DocumentationProvider
-	actuators             []ServiceProvider
-	securityProvider      SecurityProvider
-)
-
-
-func RegisterDocumentationProvider(provider DocumentationProvider) {
-	if provider != nil {
-		documentationProvider = provider
-	}
-}
-
-func RegisterActuator(provider ServiceProvider) {
-	if provider != nil {
-		actuators = append(actuators, provider)
-	}
-}
-
-func RegisterSecurityProvider(provider SecurityProvider) {
-	if provider != nil {
-		securityProvider = provider
-	}
 }

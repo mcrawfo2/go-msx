@@ -35,6 +35,10 @@ func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 	return nil
 }
 
-func RegisterHealthProvider() {
-	webservice.RegisterActuator(new(HealthProvider))
+func RegisterHealthProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server != nil {
+		server.RegisterActuator(new(HealthProvider))
+	}
+	return nil
 }

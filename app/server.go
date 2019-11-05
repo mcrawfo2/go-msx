@@ -23,17 +23,14 @@ func registerJwtSecurityProvider(ctx context.Context) error {
 	return jwtprovider.RegisterSecurityProvider(ctx)
 }
 
-func registerHealthWebService(context.Context) error {
+func registerHealthWebService(ctx context.Context) error {
 	logger.Info("Registering health web service")
-	healthprovider.RegisterHealthProvider()
-	return nil
+	return healthprovider.RegisterHealthProvider(ctx)
 }
 
-
-func registerInfoWebService(context.Context) error {
+func registerInfoWebService(ctx context.Context) error {
 	logger.Info("Registering info web service")
-	infoprovider.RegisterInfoProvider()
-	return nil
+	return infoprovider.RegisterInfoProvider(ctx)
 }
 
 func registerSwaggerWebService(ctx context.Context) error {
