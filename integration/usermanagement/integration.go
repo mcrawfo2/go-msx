@@ -20,6 +20,7 @@ const (
 	endpointNameGetMyCapabilities   = "getMyCapabilities"
 	endpointNameGetUserCapabilities = "getUserCapabilities"
 
+	endpointNameGetTenantIds   = "getTenantIds"
 	endpointNameGetMyTenants   = "getMyTenants"
 	endpointNameGetUserTenants = "getUserTenants"
 
@@ -55,6 +56,7 @@ var (
 		endpointNameGetMyCapabilities:   {Method: "GET", Path: "/api/v1/users/capabilities"},
 		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
 
+		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantIds"},
 		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},
 		endpointNameGetUserTenants: {Method: "GET", Path: "/api/v1/users/{{.userId}}/tenants"},
 
@@ -144,10 +146,10 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 	})
 }
 
-func (i *Integration) GetMyTenantIds() (result *integration.MsxResponse, err error) {
+func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
 	result, err = i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameGetMyTenants,
-		Payload:      new(TenantIdList),
+		Payload:      new(TenantListDTO),
 		ErrorPayload: &ErrorDTO{},
 	})
 
@@ -160,7 +162,7 @@ func (i *Integration) GetMyTenantIds() (result *integration.MsxResponse, err err
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: new(TenantIdList),
+				Payload: new(TenantListDTO),
 			},
 		}
 		result.Payload = result.Envelope.Payload
@@ -172,13 +174,23 @@ func (i *Integration) GetMyTenantIds() (result *integration.MsxResponse, err err
 	return result, err
 }
 
+func (i *Integration) GetTenantIds() (result *integration.MsxResponse, err error) {
+	result, err = i.Execute(&integration.MsxRequest{
+		EndpointName: endpointNameGetTenantIds,
+		Payload:      new(TenantIdList),
+		ErrorPayload: &ErrorDTO2{},
+	})
+
+	return result, err
+}
+
 func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResponse, err error) {
 	result, err = i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameGetUserTenants,
 		EndpointParameters: map[string]string{
 			"userId": userId,
 		},
-		Payload:      new(Pojo),
+		Payload:      new(TenantListDTO),
 		ErrorPayload: &ErrorDTO{},
 	})
 
@@ -191,9 +203,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: map[string]interface{}{
-					"tenants": []struct{}{},
-				},
+				Payload: new(TenantListDTO),
 			},
 		}
 		result.Payload = result.Envelope.Payload

@@ -8,6 +8,7 @@ type Pojo integration.Pojo
 type PojoArray integration.PojoArray
 type HealthResult integration.HealthResult
 type ErrorDTO integration.ErrorDTO
+type ErrorDTO2 integration.ErrorDTO2
 
 type EncryptSecretsDTO struct {
 	Scope       map[string]string `json:"scope"`
@@ -36,7 +37,8 @@ type Api interface {
 	GetMyCapabilities() (*integration.MsxResponse, error)
 	GetUserCapabilities(userId string) (*integration.MsxResponse, error)
 
-	GetMyTenantIds() (*integration.MsxResponse, error)
+	GetTenantIds() (*integration.MsxResponse, error)
+	GetMyTenants() (*integration.MsxResponse, error)
 	GetUserTenants(userId string) (*integration.MsxResponse, error)
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)

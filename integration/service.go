@@ -228,6 +228,11 @@ func (v *MsxService) UnmarshalError(request *MsxRequest, response *MsxResponse) 
 		if err = json.Unmarshal(response.Body, errorDtoPayload); err == nil && errorDtoPayload.IsError() {
 			return errorDtoPayload.Error()
 		}
+
+		errorDto2Payload := &ErrorDTO2{}
+		if err = json.Unmarshal(response.Body, errorDto2Payload); err == nil && errorDto2Payload.IsError() {
+			return errorDtoPayload.Error()
+		}
 	}
 
 	// Return a generic HTTP status error

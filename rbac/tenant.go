@@ -36,18 +36,18 @@ func HasTenant(ctx context.Context, tenantId string) error {
 		return err
 	}
 
-	s, err := usermanagementIntegration.GetMyTenantIds()
+	s, err := usermanagementIntegration.GetMyTenants()
 	if err != nil {
 		return err
 	}
 
-	payload, ok := s.Payload.(*usermanagement.TenantIdList)
+	payload, ok := s.Payload.(*usermanagement.TenantListDTO)
 	if !ok {
 		return errors.New("Failed to convert response payload")
 	}
 
-	for _, t := range *payload {
-		if tenantId == t {
+	for _, t := range payload.Tenants {
+		if tenantId == t.TenantId {
 			return nil
 		}
 	}
