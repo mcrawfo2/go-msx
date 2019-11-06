@@ -21,6 +21,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1
+	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/radovskyb/watcher v1.0.7
 	github.com/sirupsen/logrus v1.4.2
@@ -29,6 +30,8 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
+	github.com/uber/jaeger-client-go v2.19.0+incompatible
+	github.com/uber/jaeger-lib v2.0.0+incompatible
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.1
 	go.uber.org/atomic v1.4.0
