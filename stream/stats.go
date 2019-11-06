@@ -25,15 +25,15 @@ type StatsPublisher struct {
 	cfg       *BindingConfiguration
 }
 
-func (s *StatsPublisher) Publish(messages ...*message.Message) error {
+func (s *StatsPublisher) Publish(message *message.Message) error {
 	now := time.Now()
-	count := int64(len(messages))
+	count := int64(1)
 	stats.Incr(fmt.Sprintf(statsCounterPublisherMessages, s.cfg.Binder), count)
 	defer func() {
 		stats.PrecisionTiming(stats.Name(fmt.Sprintf(statsTimerPublisher, s.cfg.Binder), s.cfg.Destination, ""), time.Since(now))
 	}()
 
-	err := s.publisher.Publish(messages...)
+	err := s.publisher.Publish(message)
 	if err != nil {
 		stats.Incr(fmt.Sprintf(statsCounterPublisherMessageErrors, s.cfg.Binder), count)
 	}
@@ -99,7 +99,7 @@ func (a *StatsSubscriberAction) Call(msg *message.Message) (err error) {
 	return err
 }
 
-func DecorateSubscriberAction(action ListenerAction, cfg *BindingConfiguration) ListenerAction {
+func StatsActionDecorator(action ListenerAction, cfg *BindingConfiguration) ListenerAction {
 	statsAction := &StatsSubscriberAction{
 		action: action,
 		cfg:    cfg,

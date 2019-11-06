@@ -3,13 +3,14 @@ package stream
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 )
 
 type Publisher interface {
-	Publish(messages ...*message.Message) error
+	Publish(messages *message.Message) error
 	Close() error
 }
 
@@ -18,8 +19,16 @@ type TopicPublisher struct {
 	publisher message.Publisher
 }
 
-func (p *TopicPublisher) Publish (messages ...*message.Message) error {
-	return p.publisher.Publish(p.cfg.Destination, messages...)
+func (p *TopicPublisher) Publish (message *message.Message) error {
+	if message == nil {
+		return nil
+	}
+
+	ctx, span := trace.NewSpan(message.Context(), "kafka send " + p.cfg.Destination)
+	defer span.Finish()
+	message.SetContext(ctx)
+
+	return p.publisher.Publish(p.cfg.Destination, message)
 }
 
 func (p *TopicPublisher) Close() error {

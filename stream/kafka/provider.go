@@ -40,7 +40,7 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	publisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
 			Brokers:               connectionConfig.BrokerAddresses(),
-			Marshaler:             kafka.DefaultMarshaler{},
+			Marshaler:             TraceMarshaler{},
 			OverwriteSaramaConfig: saramaConfig,
 		},
 		stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.kafka")),
@@ -67,7 +67,7 @@ func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding 
 	subscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
 			Brokers:               connectionConfig.BrokerAddresses(),
-			Unmarshaler:           kafka.DefaultMarshaler{},
+			Unmarshaler:           TraceMarshaler{},
 			OverwriteSaramaConfig: saramaConfig,
 			ConsumerGroup:         streamBinding.Group,
 			InitializeTopicDetails: &sarama.TopicDetail{

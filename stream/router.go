@@ -125,7 +125,7 @@ func AddListener(topic string, action ListenerAction) error {
 }
 
 func listenerHandler(action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
-	action = DecorateSubscriberAction(action, cfg)
+	action = TraceActionDecorator(cfg, StatsActionDecorator(action, cfg))
 
 	return func(msg *message.Message) error {
 		retryableAction := func() error {
@@ -133,7 +133,7 @@ func listenerHandler(action ListenerAction, cfg *BindingConfiguration) message.N
 		}
 
 		if err := cfg.Retry.Retry(retryableAction); err != nil {
-			logger.WithError(err).Error("Failed to process message")
+			logger.WithContext(msg.Context()).WithError(err).Error("Failed to process message")
 		}
 
 		msg.Ack()
