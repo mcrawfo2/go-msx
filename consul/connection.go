@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
@@ -49,6 +50,9 @@ func (c *Connection) Host() string {
 }
 
 func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (results map[string]string, err error) {
+	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiListKeyValuePairs)
+	defer span.Finish()
+
 	err = c.stats.Observe(statsApiListKeyValuePairs, path, func() error {
 		queryOptions := &api.QueryOptions{}
 		entries, _, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
@@ -81,6 +85,9 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 }
 
 func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
+	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiGetServiceInstances)
+	defer span.Finish()
+
 	err = c.stats.Observe(statsApiGetServiceInstances, service, func() error {
 		queryOptions := &api.QueryOptions{}
 		queryOptions = queryOptions.WithContext(ctx)
@@ -107,18 +114,27 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiRegisterService)
+	defer span.Finish()
+
 	return c.stats.Observe(statsApiRegisterService, "", func() error {
 		return c.client.Agent().ServiceRegister(registration)
 	})
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiDeregisterService)
+	defer span.Finish()
+
 	return c.stats.Observe(statsApiDeregisterService, "", func() error {
 		return c.client.Agent().ServiceDeregister(registration.ID)
 	})
 }
 
 func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
+	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiNodeHealth)
+	defer span.Finish()
+
 	err = c.stats.Observe(statsApiNodeHealth, "", func() error {
 		var nodeName string
 		nodeName, err = c.client.Agent().NodeName()
