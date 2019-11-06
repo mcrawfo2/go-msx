@@ -64,6 +64,7 @@ func (s *WebServer) Handler() http.Handler {
 		s.router,
 		s.security,
 		s.injectors.Clone()))
+	s.container.Filter(tracingFilter)
 
 	// Add all web services
 	for _, service := range s.services {
@@ -178,11 +179,6 @@ func requestContextInjectorFilter(ctx context.Context, container *restful.Contai
 		ctx := ContextWithContainer(ctx, container)
 		ctx = ContextWithRouter(ctx, router)
 		ctx = ContextWithSecurityProvider(ctx, security)
-		ctx = ContextWithRequest(ctx, req)
-
-		// Inject the request variables
-		ctx = ContextWithHttpRequest(ctx, req.Request)
-		ctx = ContextWithPathParameters(ctx, req.PathParameters())
 
 		// Inject the webservice and route
 		service, route, _ := router.SelectRoute(container.RegisteredWebServices(), req.Request)

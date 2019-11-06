@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
@@ -24,10 +23,6 @@ const (
 	jwtClaimRoles    = "roles"
 
 	configRootJwtSecurityProvider = "server.jwt"
-)
-
-var (
-	logger = log.NewLogger("msx.webservice.jwtprovider")
 )
 
 type JwtSecurityProviderConfig struct {

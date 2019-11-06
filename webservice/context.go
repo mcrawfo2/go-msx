@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 const (
@@ -52,10 +51,7 @@ const (
 	contextKeyService
 	contextKeyRoute
 	contextKeyOperation
-	contextKeyPathParameters
-	contextKeyHttpRequest   // *http.Request
 	contextKeySecurityProvider
-	contextKeyRequest		// *restful.Request
 )
 
 func ContextWithWebServer(ctx context.Context) context.Context {
@@ -102,28 +98,12 @@ func RouteFromContext(ctx context.Context) *restful.Route {
 	return ctx.Value(contextKeyRoute).(*restful.Route)
 }
 
-func ContextWithPathParameters(ctx context.Context, pathParameters map[string]string) context.Context {
-	return context.WithValue(ctx, contextKeyPathParameters, pathParameters)
-}
-
-func PathParametersFromContext(ctx context.Context) map[string]string {
-	return ctx.Value(contextKeyPathParameters).(map[string]string)
-}
-
 func ContextWithRouteOperation(ctx context.Context, operation string) context.Context {
 	return context.WithValue(ctx, contextKeyOperation, operation)
 }
 
 func RouteOperationFromContext(ctx context.Context) string {
 	return ctx.Value(contextKeyOperation).(string)
-}
-
-func ContextWithHttpRequest(ctx context.Context, req *http.Request) context.Context {
-	return context.WithValue(ctx, contextKeyHttpRequest, req)
-}
-
-func HttpRequestFromContext(ctx context.Context) *http.Request {
-	return ctx.Value(contextKeyHttpRequest).(*http.Request)
 }
 
 func ContextWithSecurityProvider(ctx context.Context, provider SecurityProvider) context.Context {
@@ -136,12 +116,4 @@ func SecurityProviderFromContext(ctx context.Context) SecurityProvider {
 		return providerInterface.(SecurityProvider)
 	}
 	return nil
-}
-
-func ContextWithRequest(ctx context.Context, request *restful.Request) context.Context {
-	return context.WithValue(ctx, contextKeyRequest, request)
-}
-
-func RequestFromContext(ctx context.Context) *restful.Request {
-	return ctx.Value(contextKeyRequest).(*restful.Request)
 }
