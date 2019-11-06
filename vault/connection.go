@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
@@ -52,6 +53,9 @@ func (c *Connection) Client() *api.Client {
 }
 
 func (c *Connection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
+	ctx, span := trace.NewSpan(ctx, "vaultConnection." + statsApiListSecrets)
+	defer span.Finish()
+
 	err = c.stats.Observe(statsApiListSecrets, path, func() error {
 		results = make(map[string]string)
 
