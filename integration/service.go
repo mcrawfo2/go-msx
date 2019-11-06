@@ -6,8 +6,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"encoding/json"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -33,7 +35,7 @@ type MsxService struct {
 	ctx         context.Context
 }
 
-func (v *MsxService) NewHttpRequest(r *MsxRequest) (*http.Request, error) {
+func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	var req *http.Request
 	var err error
 	var buf io.Reader
@@ -138,9 +140,23 @@ func (v *MsxService) newHttpClient() (*http.Client, error) {
 }
 
 func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err error) {
-	httpRequest, err := v.NewHttpRequest(request)
+	httpRequest, err := v.newHttpRequest(request)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create request")
+	}
+
+	ctx, span := trace.NewSpan(v.ctx, v.Operation(request))
+	defer span.Finish()
+	httpRequest = httpRequest.WithContext(ctx)
+
+	// Transmit the span's TraceContext as HTTP headers on our
+	// outbound request.
+	err = opentracing.GlobalTracer().Inject(
+		span.Context(),
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(httpRequest.Header))
+	if err != nil {
+		logger.WithContext(httpRequest.Context()).WithError(err).Error("Failed to inject tracing into request")
 	}
 
 	httpClient, err := v.newHttpClient()
@@ -167,24 +183,24 @@ func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err er
 
 	if response.StatusCode > 399 {
 		// Fully log the response
-		logger.Errorf("%s : %s", response.Status, httpRequest.URL.String())
+		logger.WithContext(httpRequest.Context()).Errorf("%s : %s", response.Status, httpRequest.URL.String())
 		var responseBytes []byte
 		responseBytes, _ = json.Marshal(response)
-		logger.Error(string(responseBytes))
+		logger.WithContext(httpRequest.Context()).Error(string(responseBytes))
 
-		return response, v.UnmarshalError(request, response)
+		return response, v.UnmarshalError(ctx, request, response)
 	} else {
-		logger.Infof("%s : %s", response.Status, httpRequest.URL.String())
+		logger.WithContext(httpRequest.Context()).Infof("%s : %s", response.Status, httpRequest.URL.String())
 
-		err = v.UnmarshalSuccess(request, response)
+		err = v.UnmarshalSuccess(ctx, request, response)
 		return
 	}
 }
 
-func (v *MsxService) UnmarshalError(request *MsxRequest, response *MsxResponse) (err error) {
+func (v *MsxService) UnmarshalError(ctx context.Context, request *MsxRequest, response *MsxResponse) (err error) {
 	switch {
 	case response.Body == nil:
-		logger.Debug("No body to unmarshal")
+		logger.WithContext(ctx).Debug("No body to unmarshal")
 
 	case request.ExpectEnvelope:
 		response.Envelope = &MsxEnvelope{}
@@ -198,7 +214,7 @@ func (v *MsxService) UnmarshalError(request *MsxRequest, response *MsxResponse) 
 		}
 
 	case request.ErrorPayload == nil && request.Payload == nil:
-		logger.Debug("No payload defined")
+		logger.WithContext(ctx).Debug("No payload defined")
 
 	case !request.ExpectEnvelope:
 		if request.ErrorPayload == nil {
@@ -231,7 +247,7 @@ func (v *MsxService) UnmarshalError(request *MsxRequest, response *MsxResponse) 
 
 		errorDto2Payload := &ErrorDTO2{}
 		if err = json.Unmarshal(response.Body, errorDto2Payload); err == nil && errorDto2Payload.IsError() {
-			return errorDtoPayload.Error()
+			return errorDto2Payload.Error()
 		}
 	}
 
@@ -239,10 +255,10 @@ func (v *MsxService) UnmarshalError(request *MsxRequest, response *MsxResponse) 
 	return NewStatusError(response.StatusCode, response.Body)
 }
 
-func (v *MsxService) UnmarshalSuccess(request *MsxRequest, response *MsxResponse) (err error) {
+func (v *MsxService) UnmarshalSuccess(ctx context.Context, request *MsxRequest, response *MsxResponse) (err error) {
 	switch {
 	case response.Body == nil:
-		logger.Debug("No body to unmarshal")
+		logger.WithContext(ctx).Debug("No body to unmarshal")
 
 	case request.ExpectEnvelope:
 		// Unmarshal the envelope and payload
@@ -253,7 +269,7 @@ func (v *MsxService) UnmarshalSuccess(request *MsxRequest, response *MsxResponse
 		}
 
 	case request.Payload == nil:
-		logger.Debug("No payload defined")
+		logger.WithContext(ctx).Debug("No payload defined")
 
 	case !request.ExpectEnvelope:
 		// Unmarshal the raw payload
@@ -264,6 +280,10 @@ func (v *MsxService) UnmarshalSuccess(request *MsxRequest, response *MsxResponse
 	}
 
 	return
+}
+
+func (v *MsxService) Operation(request *MsxRequest) string {
+	return fmt.Sprintf("%s.%s", v.serviceName, request.EndpointName)
 }
 
 func NewMsxService(ctx context.Context, serviceName, contextPath string, endpoints map[string]MsxServiceEndpoint) *MsxService {

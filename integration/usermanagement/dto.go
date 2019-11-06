@@ -14,8 +14,8 @@ type TenantDTO struct {
 	ProviderName string `json:"providerName"`
 	TenantName   string `json:"tenantName"`
 	DisplayName  string `json:"displayName"`
-	CreatedOn    int32  `json:"createdOn"`
-	ModifiedOn   int32  `json:"lastUpdated"`
+	CreatedOn    int64  `json:"createdOn"`
+	ModifiedOn   int64  `json:"lastUpdated"`
 	Suspended    bool   `json:"suspended"`
 }
 
