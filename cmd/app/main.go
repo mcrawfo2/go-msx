@@ -80,7 +80,10 @@ func addWebService(ctx context.Context) error {
 }
 
 func myTestEndpoint(writer http.ResponseWriter, req *http.Request) {
+	sendExampleTopicMessage(req.Context())
+
 	userContext := security.UserContextFromContext(req.Context())
+
 	writer.WriteHeader(200)
 	if _, err := writer.Write([]byte(`{"user":"` + userContext.UserName + `"}`)); err != nil {
 		logger.WithError(err).Error("Failed to write result body")

@@ -1,0 +1,21 @@
+info.app:
+  name: someservice
+  description: Does Something
+  version: 3.7.0-SNAPSHOT
+  attributes:
+    displayName: Some Microservice
+    parent: platform
+    type: platform
+
+server:
+  port: 9293
+  contextPath: /someservice
+  swagger:
+    apiPath: /apidocs.json
+    swaggerPath: /apidocs/
+    webServicesUrl: http://localhost:9293
+
+trace:
+  enabled: true
+  reporter:
+    port: 32650
