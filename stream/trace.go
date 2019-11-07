@@ -5,6 +5,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/opentracing/opentracing-go/log"
 )
 
 type TraceSubscriberAction struct {
@@ -25,10 +26,18 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 	defer span.Finish()
 	msg.SetContext(ctx)
 
-	return a.action(msg)
+	span.SetTag(trace.FieldDirection, "receive")
+	span.SetTag(trace.FieldTopic, a.cfg.Destination)
+
+	err = a.action(msg)
+	if err != nil {
+		span.LogFields(log.Error(err))
+	}
+
+	return err
 }
 
-func TraceActionDecorator(cfg *BindingConfiguration, action ListenerAction) ListenerAction {
+func TraceActionInterceptor(cfg *BindingConfiguration, action ListenerAction) ListenerAction {
 	traceAction := &TraceSubscriberAction{
 		action: action,
 		cfg:    cfg,

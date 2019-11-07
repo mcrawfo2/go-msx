@@ -49,12 +49,12 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int, err error) {
 	envelope := integration.MsxEnvelope{
 		Success:    false,
+		Message:    err.Error(),
 		Command:    RouteOperationFromContext(req.Request.Context()),
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
 		Throwable:  integration.NewThrowable(err),
 	}
-	envelope.Message = envelope.Throwable.Message
 
 	logger.WithContext(req.Request.Context()).WithError(err).Error("Request failed")
 

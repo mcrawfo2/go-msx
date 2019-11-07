@@ -99,7 +99,7 @@ func (a *StatsSubscriberAction) Call(msg *message.Message) (err error) {
 	return err
 }
 
-func StatsActionDecorator(action ListenerAction, cfg *BindingConfiguration) ListenerAction {
+func StatsActionInterceptor(cfg *BindingConfiguration, action ListenerAction) ListenerAction {
 	statsAction := &StatsSubscriberAction{
 		action: action,
 		cfg:    cfg,

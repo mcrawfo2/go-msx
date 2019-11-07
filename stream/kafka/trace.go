@@ -21,6 +21,8 @@ func (t TraceMarshaler) Marshal(topic string, msg *message.Message) (*sarama.Pro
 	producerMessage, err := t.upstream.Marshal(topic, msg)
 
 	span := trace.SpanFromContext(msg.Context())
+	span.SetTag(trace.FieldDirection, "send")
+	span.SetTag(trace.FieldTopic, topic)
 
 	err = opentracing.GlobalTracer().Inject(
 		span.Context(),

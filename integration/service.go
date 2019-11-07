@@ -3,19 +3,19 @@ package integration
 import (
 	"bytes"
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
-	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"encoding/json"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"text/template"
 )
 
@@ -82,18 +82,7 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 		}
 	}
 
-	return req, nil
-}
-
-func (v *MsxService) discoverService() (*discovery.ServiceInstance, error) {
-	logger.Debugf("Discovering %s", v.serviceName)
-	if instances, err := discovery.Discover(v.ctx, v.serviceName, true); err != nil {
-		return nil, err
-	} else if len(instances) == 0 {
-		return nil, errors.New(fmt.Sprintf("No healthy instances of %s found", v.serviceName))
-	} else {
-		return instances.SelectRandom(), nil
-	}
+	return req.WithContext(v.ctx), nil
 }
 
 func (v *MsxService) endpointUrl(endpointName string, variables map[string]string, queryParameters url.Values) (string, error) {
@@ -109,15 +98,7 @@ func (v *MsxService) endpointUrl(endpointName string, variables map[string]strin
 
 	var pathBuffer bytes.Buffer
 	pathBuffer.WriteString("http://")
-
-	if serviceInstance, err := v.discoverService(); err != nil {
-		return "", errors.Wrap(err, "Failed to discover service instance")
-	} else {
-		pathBuffer.WriteString(serviceInstance.Host)
-		pathBuffer.WriteString(":")
-		pathBuffer.WriteString(strconv.Itoa(serviceInstance.Port))
-	}
-
+	pathBuffer.WriteString(v.serviceName)
 	pathBuffer.WriteString(v.contextPath)
 
 	err = subPathTemplate.Execute(&pathBuffer, variables)
@@ -134,9 +115,18 @@ func (v *MsxService) endpointUrl(endpointName string, variables map[string]strin
 	return result, nil
 }
 
-func (v *MsxService) newHttpClient() (*http.Client, error) {
-	// TODO: context http client factory
-	return http.DefaultClient, nil
+func (v *MsxService) newHttpClientDo() (httpclient.DoFunc, error) {
+	factory := httpclient.FactoryFromContext(v.ctx)
+	if factory == nil {
+		return nil, errors.New("Failed to retrieve http client factory from context")
+	}
+
+	httpClient := factory.NewHttpClient()
+	httpClientDo := loginterceptor.NewInterceptor(httpClient.Do)
+	httpClientDo = discoveryinterceptor.NewInterceptor(httpClientDo)
+	httpClientDo = traceinterceptor.NewInterceptor(httpClientDo)
+
+	return httpClientDo, nil
 }
 
 func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err error) {
@@ -145,33 +135,24 @@ func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err er
 		return nil, errors.Wrap(err, "Failed to create request")
 	}
 
-	ctx, span := trace.NewSpan(v.ctx, v.Operation(request))
-	defer span.Finish()
-	httpRequest = httpRequest.WithContext(ctx)
+	httpRequest = httpRequest.WithContext(httpclient.ContextWithOperationName(
+		httpRequest.Context(),
+		request.EndpointName))
 
-	// Transmit the span's TraceContext as HTTP headers on our
-	// outbound request.
-	err = opentracing.GlobalTracer().Inject(
-		span.Context(),
-		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(httpRequest.Header))
-	if err != nil {
-		logger.WithContext(httpRequest.Context()).WithError(err).Error("Failed to inject tracing into request")
-	}
-
-	httpClient, err := v.newHttpClient()
+	httpClientDo, err := v.newHttpClientDo()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create http client")
 	}
 
-	response = &MsxResponse{}
-
 	var resp *http.Response
-	if resp, err = httpClient.Do(httpRequest); err != nil {
+	if resp, err = httpClientDo(httpRequest); err != nil {
 		return nil, errors.Wrap(err, "Failed to execute request")
 	}
-
 	defer resp.Body.Close()
+
+	ctx := httpRequest.Context()
+
+	response = &MsxResponse{}
 	if response.Body, err = ioutil.ReadAll(resp.Body); err != nil {
 		return nil, errors.Wrap(err, "Failed to read response body")
 	}
@@ -182,19 +163,11 @@ func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err er
 	response.Headers = resp.Header
 
 	if response.StatusCode > 399 {
-		// Fully log the response
-		logger.WithContext(httpRequest.Context()).Errorf("%s : %s", response.Status, httpRequest.URL.String())
-		var responseBytes []byte
-		responseBytes, _ = json.Marshal(response)
-		logger.WithContext(httpRequest.Context()).Error(string(responseBytes))
-
-		return response, v.UnmarshalError(ctx, request, response)
+		err = v.UnmarshalError(ctx, request, response)
 	} else {
-		logger.WithContext(httpRequest.Context()).Infof("%s : %s", response.Status, httpRequest.URL.String())
-
 		err = v.UnmarshalSuccess(ctx, request, response)
-		return
 	}
+	return
 }
 
 func (v *MsxService) UnmarshalError(ctx context.Context, request *MsxRequest, response *MsxResponse) (err error) {

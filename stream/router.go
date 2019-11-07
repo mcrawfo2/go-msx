@@ -125,7 +125,7 @@ func AddListener(topic string, action ListenerAction) error {
 }
 
 func listenerHandler(action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
-	action = TraceActionDecorator(cfg, StatsActionDecorator(action, cfg))
+	action = TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, action))
 
 	return func(msg *message.Message) error {
 		retryableAction := func() error {

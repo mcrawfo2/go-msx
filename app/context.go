@@ -11,6 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/health/kafkacheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/redischeck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/vaultcheck"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -22,6 +23,7 @@ import (
 var contextInjectors = new(types.ContextInjectors)
 
 func init() {
+	OnEvent(EventConfigure, PhaseAfter, configureHttpClientFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
@@ -41,6 +43,14 @@ func withConfig(handler configHandler) Observer {
 
 		return handler(cfg)
 	}
+}
+
+func configureHttpClientFactory(context.Context) error {
+	httpClientFactory := httpclient.NewProductionHttpClientFactory()
+	contextInjectors.Register(func(ctx context.Context) context.Context {
+		return httpclient.ContextWithFactory(ctx, httpClientFactory)
+	})
+	return nil
 }
 
 func configureConsulPool(cfg *config.Config) error {
