@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
@@ -56,7 +57,7 @@ func StartRouter(ctx context.Context) error {
 	var exited = make(chan struct{})
 	var finished = false
 	go func() {
-		err = router.Run(ctx)
+		err = router.Run(trace.ContextWithUntracedContext(ctx))
 		close(exited)
 		if finished && err != nil {
 			routerLogger.WithError(err).Error("Router exited abnormally")

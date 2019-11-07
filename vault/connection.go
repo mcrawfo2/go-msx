@@ -53,7 +53,7 @@ func (c *Connection) Client() *api.Client {
 }
 
 func (c *Connection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
-	ctx, span := trace.NewSpan(ctx, "vaultConnection." + statsApiListSecrets)
+	ctx, span := trace.NewSpan(ctx, "vault." + statsApiListSecrets)
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiListSecrets, path, func() error {

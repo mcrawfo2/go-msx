@@ -28,6 +28,33 @@ type MsxServiceEndpoint struct {
 	Path   string
 }
 
+
+func (e MsxServiceEndpoint) Url(endpointName, serviceName, contextPath string, variables map[string]string, queryParameters url.Values) (string, error) {
+	subPathTemplate, err := template.New(endpointName).Parse(e.Path)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to parse e url template")
+	}
+
+	var pathBuffer bytes.Buffer
+	pathBuffer.WriteString("http://")
+	pathBuffer.WriteString(serviceName)
+	pathBuffer.WriteString(contextPath)
+
+	err = subPathTemplate.Execute(&pathBuffer, variables)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to fill url template")
+	}
+
+	if len(queryParameters) > 0 {
+		pathBuffer.WriteString("?")
+		pathBuffer.WriteString(queryParameters.Encode())
+	}
+
+	result := pathBuffer.String()
+	return result, nil
+}
+
+
 type MsxService struct {
 	serviceName string
 	contextPath string
@@ -45,7 +72,12 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 		return nil, errors.New("No endpoint defined: " + r.EndpointName)
 	}
 
-	fullUrl, err := v.endpointUrl(r.EndpointName, r.EndpointParameters, r.QueryParameters)
+	fullUrl, err := endpoint.Url(
+		r.EndpointName,
+		v.serviceName,
+		v.contextPath,
+		r.EndpointParameters,
+		r.QueryParameters)
 	if err != nil {
 		return nil, err
 	}
@@ -85,36 +117,6 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	return req.WithContext(v.ctx), nil
 }
 
-func (v *MsxService) endpointUrl(endpointName string, variables map[string]string, queryParameters url.Values) (string, error) {
-	endpoint, ok := v.endpoints[endpointName]
-	if !ok {
-		return "", errors.New("No endpoint defined: " + endpointName)
-	}
-
-	subPathTemplate, err := template.New(endpointName).Parse(endpoint.Path)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to parse endpoint url template: "+endpointName)
-	}
-
-	var pathBuffer bytes.Buffer
-	pathBuffer.WriteString("http://")
-	pathBuffer.WriteString(v.serviceName)
-	pathBuffer.WriteString(v.contextPath)
-
-	err = subPathTemplate.Execute(&pathBuffer, variables)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to fill url template: "+endpointName)
-	}
-
-	if len(queryParameters) > 0 {
-		pathBuffer.WriteString("?")
-		pathBuffer.WriteString(queryParameters.Encode())
-	}
-
-	result := pathBuffer.String()
-	return result, nil
-}
-
 func (v *MsxService) newHttpClientDo() (httpclient.DoFunc, error) {
 	factory := httpclient.FactoryFromContext(v.ctx)
 	if factory == nil {
@@ -137,7 +139,7 @@ func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err er
 
 	httpRequest = httpRequest.WithContext(httpclient.ContextWithOperationName(
 		httpRequest.Context(),
-		request.EndpointName))
+		v.serviceName + "." + request.EndpointName))
 
 	httpClientDo, err := v.newHttpClientDo()
 	if err != nil {

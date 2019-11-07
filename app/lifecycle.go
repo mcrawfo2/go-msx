@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
+	"github.com/opentracing/opentracing-go/log"
 	"github.com/pkg/errors"
 	"os"
 	"os/signal"
@@ -61,6 +63,28 @@ func (a *MsxApplication) callbacks(event, phase string) ([]Observer, bool) {
 	return observers, ok
 }
 
+func (a *MsxApplication) triggerObserver(event, phase string, observer Observer) error {
+	// Inject all of the registered values into the context
+	untracedContext := contextInjectors.Inject(a.ctx)
+
+	// Store the context without the trace so observers can
+	// have a context for asynchronous operations
+	ctx := trace.ContextWithUntracedContext(untracedContext)
+
+	// Start a new trace span
+	operationName := nameOfFunction(observer)
+	ctx, span := trace.NewSpan(ctx, event + phase + "." + operationName)
+	defer span.Finish()
+	span.SetTag(trace.FieldOperation, operationName)
+
+	err := observer(ctx)
+	if err != nil {
+		span.LogFields(log.Error(err))
+	}
+
+	return err
+}
+
 func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) error {
 	logger.Debugf("Event triggered: %s%s", event, phase)
 	if observers, ok := a.callbacks(event, phase); ok {
@@ -69,19 +93,12 @@ func (a *MsxApplication) triggerPhase(ctx context.Context, event, phase string) 
 				break
 			}
 
-			// Inject all of the registered values into the context
-			observerCtx := a.newContext()
-
-			if err := observer(observerCtx); err != nil {
+			if err := a.triggerObserver(event, phase, observer); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Observer for event phase %s%s returned error", event, phase))
 			}
 		}
 	}
 	return nil
-}
-
-func (a *MsxApplication) newContext() context.Context {
-	return contextInjectors.Inject(a.ctx)
 }
 
 func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {

@@ -47,3 +47,17 @@ func SpanContextFromContext(ctx context.Context) *jaeger.SpanContext {
 func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
+
+
+type contextTraceKey int
+const (
+	contextKeyUntracedContext contextTraceKey = iota
+)
+
+func ContextWithUntracedContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, contextKeyUntracedContext, ctx)
+}
+
+func UntracedContextFromContext(ctx context.Context) context.Context {
+	return ctx.Value(contextKeyUntracedContext).(context.Context)
+}

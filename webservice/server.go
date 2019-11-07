@@ -3,6 +3,7 @@ package webservice
 import (
 	"context"
 	"crypto/tls"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"net/http"
@@ -111,7 +112,7 @@ func (s *WebServer) actuateService(provider ServiceProvider) {
 }
 
 func (s *WebServer) Serve(ctx context.Context) error {
-	s.ctx = ctx
+	s.ctx = trace.UntracedContextFromContext(ctx)
 
 	s.server = &http.Server{
 		Addr:    s.cfg.Address(),

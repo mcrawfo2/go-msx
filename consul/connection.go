@@ -50,7 +50,7 @@ func (c *Connection) Host() string {
 }
 
 func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (results map[string]string, err error) {
-	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiListKeyValuePairs)
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiListKeyValuePairs)
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiListKeyValuePairs, path, func() error {
@@ -85,7 +85,7 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 }
 
 func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
-	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiGetServiceInstances)
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiGetServiceInstances)
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiGetServiceInstances, service, func() error {
@@ -114,7 +114,7 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiRegisterService)
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiRegisterService)
 	defer span.Finish()
 
 	return c.stats.Observe(statsApiRegisterService, "", func() error {
@@ -123,7 +123,7 @@ func (c *Connection) RegisterService(ctx context.Context, registration *api.Agen
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiDeregisterService)
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiDeregisterService)
 	defer span.Finish()
 
 	return c.stats.Observe(statsApiDeregisterService, "", func() error {
@@ -132,7 +132,7 @@ func (c *Connection) DeregisterService(ctx context.Context, registration *api.Ag
 }
 
 func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
-	ctx, span := trace.NewSpan(ctx, "consulConnection." + statsApiNodeHealth)
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiNodeHealth)
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiNodeHealth, "", func() error {

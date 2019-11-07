@@ -65,8 +65,13 @@ func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {
 	cluster.Consistency = gocql.ParseConsistency(clusterConfig.Consistency)
 
 	statsObserver := &StatsObserver{}
+	traceObserver := &TraceObserver{}
+	compositeQueryObserver := NewCompositeQueryObserver(statsObserver, traceObserver)
+	compositeBatchObserver := NewCompositeBatchObserver(statsObserver, traceObserver)
+
 	cluster.ConnectObserver = statsObserver
-	cluster.QueryObserver = statsObserver
+	cluster.QueryObserver = compositeQueryObserver
+	cluster.BatchObserver = compositeBatchObserver
 
 	//Configure authentication options if credentials available
 	if clusterConfig.Username != "" && clusterConfig.Password != "" {

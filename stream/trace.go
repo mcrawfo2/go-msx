@@ -21,7 +21,7 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 		return nil
 	}
 
-	operationName := "kafka receive " + a.cfg.Destination
+	operationName := "kafka.receive." + a.cfg.Destination
 	ctx, span := trace.NewSpan(msg.Context(), operationName, ext.RPCServerOption(incomingContext))
 	defer span.Finish()
 	msg.SetContext(ctx)

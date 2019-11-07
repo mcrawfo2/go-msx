@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"time"
@@ -63,7 +64,7 @@ func (l *HealthLogger) Stop() {
 
 func NewHealthLogger(ctx context.Context, cfg *HealthLoggerConfig) *HealthLogger {
 	return &HealthLogger{
-		ctx:  ctx,
+		ctx:  trace.UntracedContextFromContext(ctx),
 		cfg:  cfg,
 		done: make(chan struct{}),
 	}
