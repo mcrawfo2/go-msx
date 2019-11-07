@@ -53,30 +53,26 @@ func (c *Connection) Client() *api.Client {
 }
 
 func (c *Connection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
-	ctx, span := trace.NewSpan(ctx, "vault." + statsApiListSecrets)
-	defer span.Finish()
+	err = trace.Operation(ctx, "vault."+statsApiListSecrets, func() error {
+		return c.stats.Observe(statsApiListSecrets, path, func() error {
+			results = make(map[string]string)
 
-	err = c.stats.Observe(statsApiListSecrets, path, func() error {
-		results = make(map[string]string)
-
-		if secrets, err := c.read(ctx, path); err != nil {
-			return errors.Wrap(err, "Failed to list vault secrets")
-		} else if secrets != nil {
-			logger.Infof("Retrieved %d configs from vault (%s): %s", len(secrets.Data), c.Host(), path)
-			for key, val := range secrets.Data {
-				results[key] = val.(string)
+			if secrets, err := c.read(ctx, path); err != nil {
+				return errors.Wrap(err, "Failed to list vault secrets")
+			} else if secrets != nil {
+				logger.Infof("Retrieved %d configs from vault (%s): %s", len(secrets.Data), c.Host(), path)
+				for key, val := range secrets.Data {
+					results[key] = val.(string)
+				}
+			} else {
+				logger.Warningf("No secrets retrieved from vault (%s): %s", c.Host(), path)
 			}
-		} else {
-			logger.Warningf("No secrets retrieved from vault (%s): %s", c.Host(), path)
-		}
 
-		return nil
+			return nil
+		})
 	})
 
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
+	return
 }
 
 // Copied from vault/logical to allow custom context
@@ -106,6 +102,37 @@ func (c *Connection) read(ctx context.Context, path string) (*api.Secret, error)
 	}
 
 	return api.ParseSecret(resp.Body)
+}
+
+// Copied from vault/api to allow custom context
+func (c *Connection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
+	err = trace.Operation(ctx, "vault."+statsApiHealth, func() error {
+		return c.stats.Observe(statsApiHealth, "", func() error {
+			r := c.client.NewRequest("GET", "/v1/sys/health")
+			// If the code is 400 or above it will automatically turn into an error,
+			// but the sys/health API defaults to returning 5xx when not sealed or
+			// inited, so we force this code to be something else so we parse correctly
+			r.Params.Add("uninitcode", "299")
+			r.Params.Add("sealedcode", "299")
+			r.Params.Add("standbycode", "299")
+			r.Params.Add("drsecondarycode", "299")
+			r.Params.Add("performancestandbycode", "299")
+
+			ctx, cancelFunc := context.WithCancel(ctx)
+			defer cancelFunc()
+			resp, err := c.client.RawRequestWithContext(ctx, r)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+
+			var result api.HealthResponse
+			err = resp.DecodeJSON(&result)
+			response = &result
+			return err
+		})
+	})
+	return
 }
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {

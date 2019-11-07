@@ -11,6 +11,7 @@ const (
 	statsTimerVaultCallTime     = "vault.timer"
 
 	statsApiListSecrets = "list-secrets"
+	statsApiHealth = "health"
 )
 
 type queryFunc func() error

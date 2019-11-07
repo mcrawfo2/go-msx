@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/opentracing/opentracing-go"
+	tracelog "github.com/opentracing/opentracing-go/log"
 	"github.com/uber/jaeger-client-go"
 )
 
@@ -48,6 +49,30 @@ func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
 
+func Operation(ctx context.Context, operationName string, operation func() error) (err error) {
+	ctx, span := NewSpan(ctx, operationName)
+	defer span.Finish()
+
+	err = operation()
+
+	if err != nil {
+		span.LogFields(Error(err))
+	}
+
+	return err
+}
+
+var Error = tracelog.Error
+var Int = tracelog.Int
+var String = tracelog.String
+
+func HttpCode(code int) tracelog.Field {
+	return Int(FieldHttpCode, code)
+}
+
+func Status(status string) tracelog.Field {
+	return String(FieldStatus, status)
+}
 
 type contextTraceKey int
 const (

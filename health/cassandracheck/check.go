@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/gocql/gocql"
 )
 
@@ -18,29 +19,32 @@ func Check(ctx context.Context) health.CheckResult {
 		}
 	}
 
-	result := health.CheckResult{Details:make(map[string]interface{})}
+	healthResult := health.CheckResult{Details: make(map[string]interface{})}
 
-	err := cassandraPool.WithSession(func(session *gocql.Session) error {
-		var version *string
+	err := trace.Operation(ctx, "kafka.healthCheck", func() error {
+		return cassandraPool.WithSession(func(session *gocql.Session) error {
+			var version *string
 
-		if err := session.Query("SELECT release_version FROM system.local").
-			Consistency(gocql.One).Scan(&version); err != nil {
-			return err
-		}
+			if err := session.Query("SELECT release_version FROM system.local").
+				WithContext(ctx).
+				Consistency(gocql.One).Scan(&version); err != nil {
+				return err
+			}
 
-		result.Details["version"] = *version
-		result.Status = health.StatusUp
-		return nil
+			healthResult.Details["version"] = *version
+			healthResult.Status = health.StatusUp
+			return nil
+		})
 	})
 
-	if err == nil {
-		return result
+	if err != nil {
+		healthResult = health.CheckResult{
+			Status: health.StatusDown,
+			Details: map[string]interface{}{
+				"error": err.Error(),
+			},
+		}
 	}
 
-	return health.CheckResult{
-		Status: health.StatusDown,
-		Details: map[string]interface{}{
-			"error": err.Error(),
-		},
-	}
+	return healthResult
 }

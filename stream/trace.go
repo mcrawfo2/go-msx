@@ -5,7 +5,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/opentracing/opentracing-go/log"
 )
 
 type TraceSubscriberAction struct {
@@ -31,7 +30,7 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 
 	err = a.action(msg)
 	if err != nil {
-		span.LogFields(log.Error(err))
+		span.LogFields(trace.Error(err))
 	}
 
 	return err

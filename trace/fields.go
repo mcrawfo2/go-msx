@@ -5,9 +5,10 @@ const (
 	FieldHttpUrl    = "http.url"
 	FieldHttpMethod = "http.method"
 	FieldOperation  = "operation"
-	FieldKeyspace  = "keyspace"
+	FieldKeyspace   = "keyspace"
 	FieldError      = "error"
 	FieldTopic      = "stream.topic"
 	FieldDirection  = "stream.direction"
 	FieldSpanKind   = "span.kind"
+	FieldStatus     = "status"
 )

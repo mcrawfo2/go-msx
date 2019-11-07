@@ -114,46 +114,45 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	ctx, span := trace.NewSpan(ctx, "consul." + statsApiRegisterService)
-	defer span.Finish()
-
-	return c.stats.Observe(statsApiRegisterService, "", func() error {
-		return c.client.Agent().ServiceRegister(registration)
+	return trace.Operation(ctx, "consul." + statsApiRegisterService, func() error {
+		return c.stats.Observe(statsApiRegisterService, "", func() error {
+			return c.client.Agent().ServiceRegister(registration)
+		})
 	})
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	ctx, span := trace.NewSpan(ctx, "consul." + statsApiDeregisterService)
-	defer span.Finish()
-
-	return c.stats.Observe(statsApiDeregisterService, "", func() error {
-		return c.client.Agent().ServiceDeregister(registration.ID)
+	return trace.Operation(ctx, "consul." + statsApiDeregisterService, func() error {
+		return c.stats.Observe(statsApiDeregisterService, "", func() error {
+			return c.client.Agent().ServiceDeregister(registration.ID)
+		})
 	})
 }
 
 func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul." + statsApiNodeHealth)
-	defer span.Finish()
+	err = trace.Operation(ctx, "consul." + statsApiNodeHealth, func() error {
+		err = c.stats.Observe(statsApiNodeHealth, "", func() error {
+			var nodeName string
+			nodeName, err = c.client.Agent().NodeName()
+			if err != nil {
+				return err
+			}
 
-	err = c.stats.Observe(statsApiNodeHealth, "", func() error {
-		var nodeName string
-		nodeName, err = c.client.Agent().NodeName()
+			q := &api.QueryOptions{}
+			q = q.WithContext(ctx)
+			healthChecks, _, err = c.client.Health().Node(nodeName, q)
+
+			return nil
+		})
+
 		if err != nil {
-			return err
+			healthChecks = nil
 		}
 
-		q := &api.QueryOptions{}
-		q = q.WithContext(ctx)
-		healthChecks, _, err = c.client.Health().Node(nodeName, q)
-
-		return nil
+		return err
 	})
 
-	if err != nil {
-		return nil, err
-	}
-
-	return healthChecks, nil
+	return
 }
 
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {

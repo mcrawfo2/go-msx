@@ -5,7 +5,6 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/opentracing/opentracing-go/log"
 )
 
 func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
@@ -32,8 +31,8 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 
 	chain.ProcessFilter(req, resp)
 
-	span.LogFields(log.Int(trace.FieldHttpCode, resp.StatusCode()))
+	span.LogFields(trace.Int(trace.FieldHttpCode, resp.StatusCode()))
 	if resp.Error() != nil {
-		span.LogFields(log.String(trace.FieldError, resp.Error().Error()))
+		span.LogFields(trace.Error(resp.Error()))
 	}
 }

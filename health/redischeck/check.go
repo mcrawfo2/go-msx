@@ -4,6 +4,8 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"github.com/pkg/errors"
 )
 
 func Check(ctx context.Context) health.CheckResult {
@@ -17,32 +19,30 @@ func Check(ctx context.Context) health.CheckResult {
 		}
 	}
 
-	conn := redisPool.Connection()
-	pingCmd := conn.Client(ctx).Ping()
-	pingResult, err := pingCmd.Result()
-	if err != nil {
-		return health.CheckResult{
-			Status:  health.StatusDown,
-			Details: map[string]interface{}{
-				"error": err.Error(),
-				"version": conn.Version(),
-			},
-		}
-	} else if pingResult != "PONG" {
-		return health.CheckResult{
-			Status:  health.StatusDown,
-			Details: map[string]interface{}{
-				"error": "Redis returned invalid PING response: " + pingResult,
-				"version": conn.Version(),
-			},
-		}
-	} else {
-		return health.CheckResult{
+	var healthResult health.CheckResult
+	err := trace.Operation(ctx, "redis.healthCheck", func() error {
+		conn := redisPool.Connection()
+		pingCmd := conn.Client(ctx).Ping()
+		pingResult, err := pingCmd.Result()
+		healthResult = health.CheckResult{
 			Status:  health.StatusUp,
 			Details: map[string]interface{}{
 				"version": conn.Version(),
 			},
 		}
-	}
-}
 
+		if err != nil {
+			return err
+		} else if pingResult != "PONG" {
+			return errors.New("Redis returned invalid PING response: " + pingResult)
+		}
+		return nil
+	})
+
+	if err != nil {
+		healthResult.Details["error"] = err.Error()
+		healthResult.Status = health.StatusDown
+	}
+
+	return healthResult
+}

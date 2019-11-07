@@ -30,9 +30,14 @@ type HealthLogger struct {
 }
 
 func (l *HealthLogger) LogHealth() {
-	healthReport := health.GenerateReport(l.ctx)
+	ctx, span := trace.NewSpan(l.ctx, "healthLogger.LogHealth")
+	defer span.Finish()
+
+	healthReport := health.GenerateReport(ctx)
+	span.LogFields(trace.Status(healthReport.Status.String()))
 
 	if bytes, err := json.Marshal(&healthReport); err != nil {
+		span.LogFields(trace.Error(err))
 		logger.Error(err)
 	} else {
 		logger.Info("Health report: ", string(bytes))

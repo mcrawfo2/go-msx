@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/opentracing/opentracing-go"
-	tracelog "github.com/opentracing/opentracing-go/log"
 	"net/http"
 )
 
@@ -35,10 +34,10 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 
 		response, err := fn(req)
 		if response != nil {
-			span.LogFields(tracelog.Int(trace.FieldHttpCode, response.StatusCode))
+			span.LogFields(trace.HttpCode(response.StatusCode))
 		}
 		if err != nil {
-			span.LogFields(tracelog.Error(err))
+			span.LogFields(trace.Error(err))
 		}
 
 		return response, err

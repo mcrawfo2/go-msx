@@ -4,7 +4,6 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
-	"github.com/opentracing/opentracing-go/log"
 	"github.com/pkg/errors"
 	"os"
 	"os/signal"
@@ -73,13 +72,13 @@ func (a *MsxApplication) triggerObserver(event, phase string, observer Observer)
 
 	// Start a new trace span
 	operationName := nameOfFunction(observer)
-	ctx, span := trace.NewSpan(ctx, event + phase + "." + operationName)
+	ctx, span := trace.NewSpan(ctx, event+phase+"."+operationName)
 	defer span.Finish()
 	span.SetTag(trace.FieldOperation, operationName)
 
 	err := observer(ctx)
 	if err != nil {
-		span.LogFields(log.Error(err))
+		span.LogFields(trace.Error(err))
 	}
 
 	return err
@@ -135,7 +134,7 @@ func (a *MsxApplication) Run() error {
 
 	if err := a.startupEvents(a.ctx); err == nil {
 		// Main loop
-		for ; a.ctx.Err() == nil ; {
+		for ; a.ctx.Err() == nil; {
 			select {
 			case <-a.refresh:
 				if err = a.refreshEvents(a.ctx); err != nil {
@@ -254,9 +253,9 @@ func (a *MsxApplication) SetExitCode(exitCode int) {
 
 func NewMsxApplication() *MsxApplication {
 	return &MsxApplication{
-		Callbacks:  make(map[string][]Observer),
-		Mutex:      sync.Mutex{},
-		refresh:    make(chan struct{}, 1),
+		Callbacks: make(map[string][]Observer),
+		Mutex:     sync.Mutex{},
+		refresh:   make(chan struct{}, 1),
 	}
 }
 
