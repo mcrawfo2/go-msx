@@ -6,8 +6,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
+	"github.com/pkg/errors"
 	"github.com/uber/jaeger-client-go"
 	jaegerconfig "github.com/uber/jaeger-client-go/config"
+	jaegerzipkin "github.com/uber/jaeger-client-go/transport/zipkin"
 	"github.com/uber/jaeger-client-go/zipkin"
 	"github.com/uber/jaeger-lib/metrics"
 	"io"
@@ -38,8 +40,10 @@ func (c TracingConfig) ToJaegerConfig() *jaegerconfig.Configuration {
 }
 
 type TracingReporterConfig struct {
+	Name string `config:"default=jaeger"`
 	Host string `config:"default=localhost"`
 	Port int    `config:"default=6831"`
+	Url string  `config:"default=http://localhost:9411/api/v1/spans"`
 }
 
 func (c TracingReporterConfig) Address() string {
@@ -73,6 +77,17 @@ func NewTracingConfig(cfg *config.Config) (*TracingConfig, error) {
 	return &tracingConfig, nil
 }
 
+func newTransport(reporterConfig TracingReporterConfig) (jaeger.Transport, error) {
+	switch reporterConfig.Name {
+	case "zipkin":
+		return jaegerzipkin.NewHTTPTransport(reporterConfig.Url, jaegerzipkin.HTTPBatchSize(1))
+	case "jaeger":
+		return jaeger.NewUDPTransport(reporterConfig.Address(), 0)
+	}
+
+	return nil, errors.New("Unknown transport: " + reporterConfig.Name)
+}
+
 func ConfigureTracer(ctx context.Context) error {
 	cfg := config.FromContext(ctx)
 
@@ -84,7 +99,7 @@ func ConfigureTracer(ctx context.Context) error {
 	jaegerConfig := tracingConfig.ToJaegerConfig()
 	jaegerSampler := jaeger.NewConstSampler(true)
 	jaegerLogger := &JaegerLoggerAdapter{logger: jaegerLogger}
-	jaegerTransport, err := jaeger.NewUDPTransport(tracingConfig.Reporter.Address(), 0)
+	jaegerTransport, err := newTransport(tracingConfig.Reporter)
 	if err != nil {
 		return err
 	}
