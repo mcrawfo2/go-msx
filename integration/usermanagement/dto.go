@@ -1,14 +1,14 @@
 package usermanagement
 
-type UserCapabilityListDTO struct {
-	Capabilities []UserCapabilityDTO `json:"capabilities"`
+type UserCapabilityListResponse struct {
+	Capabilities []UserCapabilityResponse `json:"capabilities"`
 }
 
-type UserCapabilityDTO struct {
+type UserCapabilityResponse struct {
 	Name string `json:"name"`
 }
 
-type TenantDTO struct {
+type TenantResponse struct {
 	TenantId     string `json:"tenantId"`
 	ProviderId   string `json:"providerId"`
 	ProviderName string `json:"providerName"`
@@ -19,8 +19,8 @@ type TenantDTO struct {
 	Suspended    bool   `json:"suspended"`
 }
 
-type TenantListDTO struct {
-	Tenants []TenantDTO `json:"tenants"`
+type TenantListResponse struct {
+	Tenants []TenantResponse `json:"tenants"`
 }
 
 type TenantIdList []string

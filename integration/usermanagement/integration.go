@@ -130,7 +130,7 @@ func (i *Integration) Logout() (result *integration.MsxResponse, err error) {
 func (i *Integration) GetMyCapabilities() (result *integration.MsxResponse, err error) {
 	return i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameGetMyCapabilities,
-		Payload:      &UserCapabilityListDTO{},
+		Payload:      &UserCapabilityListResponse{},
 		ErrorPayload: &ErrorDTO{},
 	})
 }
@@ -141,7 +141,7 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 		EndpointParameters: map[string]string{
 			"userId": userId,
 		},
-		Payload:      &UserCapabilityListDTO{},
+		Payload:      &UserCapabilityListResponse{},
 		ErrorPayload: &ErrorDTO{},
 	})
 }
@@ -149,7 +149,7 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
 	result, err = i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameGetMyTenants,
-		Payload:      new(TenantListDTO),
+		Payload:      new(TenantListResponse),
 		ErrorPayload: &ErrorDTO{},
 	})
 
@@ -162,7 +162,7 @@ func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: new(TenantListDTO),
+				Payload: new(TenantListResponse),
 			},
 		}
 		result.Payload = result.Envelope.Payload
@@ -190,7 +190,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 		EndpointParameters: map[string]string{
 			"userId": userId,
 		},
-		Payload:      new(TenantListDTO),
+		Payload:      new(TenantListResponse),
 		ErrorPayload: &ErrorDTO{},
 	})
 
@@ -203,7 +203,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: new(TenantListDTO),
+				Payload: new(TenantListResponse),
 			},
 		}
 		result.Payload = result.Envelope.Payload

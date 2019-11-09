@@ -23,7 +23,7 @@ func HasPermission(ctx context.Context, required []string) error {
 		return err
 	}
 
-	payload, ok := s.Payload.(*usermanagement.UserCapabilityListDTO)
+	payload, ok := s.Payload.(*usermanagement.UserCapabilityListResponse)
 	if !ok {
 		return errors.New("Failed to convert response payload")
 	}

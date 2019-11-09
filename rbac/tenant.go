@@ -41,7 +41,7 @@ func HasTenant(ctx context.Context, tenantId string) error {
 		return err
 	}
 
-	payload, ok := s.Payload.(*usermanagement.TenantListDTO)
+	payload, ok := s.Payload.(*usermanagement.TenantListResponse)
 	if !ok {
 		return errors.New("Failed to convert response payload")
 	}
