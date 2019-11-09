@@ -269,8 +269,8 @@ func Config() *config.Config {
 	return applicationConfig
 }
 
-func SetOverrideConfig(override map[string]string) {
-	if override != nil {
-		overrideConfig = override
+func OverrideConfig(override map[string]string) {
+	for k, v := range override {
+		overrideConfig[k] = v
 	}
 }

@@ -30,6 +30,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
+	OnEvent(EventConfigure, PhaseAfter, createCassandraKeyspace)
 }
 
 type configHandler func(cfg *config.Config) error
@@ -118,4 +119,8 @@ func configureWebService(ctx context.Context) error {
 
 		return nil
 	})(ctx)
+}
+
+func createCassandraKeyspace(ctx context.Context) error {
+	return cassandra.CreateKeyspaceForPool(ctx)
 }

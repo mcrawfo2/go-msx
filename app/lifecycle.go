@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
@@ -12,6 +14,7 @@ import (
 )
 
 const (
+	EventCommand   = "command"
 	EventInit      = "initialize"
 	EventConfigure = "configure"
 	EventStart     = "start"
@@ -70,11 +73,17 @@ func (a *MsxApplication) triggerObserver(event, phase string, observer Observer)
 	// have a context for asynchronous operations
 	ctx := trace.ContextWithUntracedContext(untracedContext)
 
+	observerName := types.ShortFunctionName(observer)
+	ctx = log.NewContextWithLogContext(ctx, log.LogContext{
+		"event":    event,
+		"phase":    phase,
+		"observer": observerName,
+	})
+
 	// Start a new trace span
-	operationName := nameOfFunction(observer)
-	ctx, span := trace.NewSpan(ctx, event+phase+"."+operationName)
+	ctx, span := trace.NewSpan(ctx, event+phase+"."+observerName)
 	defer span.Finish()
-	span.SetTag(trace.FieldOperation, operationName)
+	span.SetTag(trace.FieldOperation, observerName)
 
 	err := observer(ctx)
 	if err != nil {
@@ -114,7 +123,7 @@ func (a *MsxApplication) triggerEvent(ctx context.Context, event string) error {
 	return nil
 }
 
-func (a *MsxApplication) Run() error {
+func (a *MsxApplication) Run(command string) error {
 	// Create a new context for startup
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	defer a.cancel()
@@ -132,6 +141,11 @@ func (a *MsxApplication) Run() error {
 		}
 	}()
 
+	logger.WithContext(a.ctx).Infof("Command selected: %s", command)
+	if err := a.triggerPhase(a.ctx, EventCommand, command); err != nil {
+		logger.WithContext(a.ctx).WithError(err).Error("Command initialization failed")
+	}
+
 	if err := a.startupEvents(a.ctx); err == nil {
 		// Main loop
 		for ; a.ctx.Err() == nil; {
@@ -147,7 +161,7 @@ func (a *MsxApplication) Run() error {
 			}
 		}
 	} else {
-		logger.Error(errors.Wrap(err, "Startup failed"))
+		logger.WithContext(a.ctx).WithError(err).Error("Startup failed")
 	}
 
 	// Shutdown gracefully

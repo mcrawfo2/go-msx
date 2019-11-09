@@ -32,6 +32,8 @@ func StartRouter(ctx context.Context) error {
 		return errors.New("Failed to retrieve config from context")
 	}
 
+	ctx = trace.UntracedContextFromContext(ctx)
+
 	routerConfig := message.RouterConfig{}
 
 	var err error
@@ -44,20 +46,30 @@ func StartRouter(ctx context.Context) error {
 	router.AddMiddleware(middleware.Recoverer)
 
 	listenerMux.Lock()
+	registered := 0
 	for topic, topicListeners := range listeners {
 		for _, topicListener := range topicListeners {
-			if err = addListener(cfg, topic, topicListener); err != nil {
+			if err = addListener(cfg, topic, topicListener); err != nil && err != ErrBinderNotEnabled {
 				return err
+			} else if err != ErrBinderNotEnabled {
+				registered++
 			}
 		}
 	}
+
+	if registered == 0 {
+		logger.WithContext(ctx).Warn("No listeners registered.  Router disabled.")
+		router = nil
+		return nil
+	}
+
 	listeners = nil
 	defer listenerMux.Unlock()
 
 	var exited = make(chan struct{})
 	var finished = false
 	go func() {
-		err = router.Run(trace.ContextWithUntracedContext(ctx))
+		err = router.Run(ctx)
 		close(exited)
 		if finished && err != nil {
 			routerLogger.WithError(err).Error("Router exited abnormally")

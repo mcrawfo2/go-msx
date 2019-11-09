@@ -2,7 +2,6 @@ package stream
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 )
@@ -12,7 +11,10 @@ type Provider interface {
 	NewSubscriber(cfg *config.Config, name string, configuration *BindingConfiguration) (Subscriber, error)
 }
 
-var providers = make(map[string]Provider)
+var (
+	providers           = make(map[string]Provider)
+	ErrBinderNotEnabled = errors.New("Binder not enabled")
+)
 
 func RegisterProvider(name string, provider Provider) {
 	providers[name] = provider
@@ -26,7 +28,7 @@ func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
 
 	provider, ok := providers[bindingConfig.Binder]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Binder not found: %s", bindingConfig.Binder))
+		return nil, ErrBinderNotEnabled
 	}
 
 	publisher, err := provider.NewPublisher(cfg, name, bindingConfig)
@@ -45,7 +47,7 @@ func NewSubscriber(cfg *config.Config, name string) (message.Subscriber, error) 
 
 	provider, ok := providers[bindingConfig.Binder]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("Binder not found: %s", bindingConfig.Binder))
+		return nil, ErrBinderNotEnabled
 	}
 
 	subscriber, err := provider.NewSubscriber(cfg, name, bindingConfig)

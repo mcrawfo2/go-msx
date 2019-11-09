@@ -9,19 +9,26 @@ import (
 )
 
 func Check(ctx context.Context) health.CheckResult {
-	cassandraPool := cassandra.PoolFromContext(ctx)
-	if cassandraPool == nil {
+	cassandraPool, err := cassandra.PoolFromContext(ctx)
+	if err != nil && err != cassandra.ErrDisabled {
 		return health.CheckResult{
 			Status: health.StatusDown,
 			Details: map[string]interface{}{
 				"error": "Cassandra pool not found in context",
 			},
 		}
+	} else if err == cassandra.ErrDisabled {
+		return health.CheckResult{
+			Status: health.StatusDown,
+			Details: map[string]interface{}{
+				"error": err.Error(),
+			},
+		}
 	}
 
 	healthResult := health.CheckResult{Details: make(map[string]interface{})}
 
-	err := trace.Operation(ctx, "kafka.healthCheck", func() error {
+	err = trace.Operation(ctx, "kafka.healthCheck", func() error {
 		return cassandraPool.WithSession(func(session *gocql.Session) error {
 			var version *string
 

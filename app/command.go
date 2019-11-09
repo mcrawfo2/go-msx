@@ -2,10 +2,22 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/migrate"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"github.com/spf13/cobra"
+)
+
+const (
+	configKeyRedisEnable = "spring.redis.enable"
+	configKeyKafkaEnable = "spring.cloud.stream.kafka.binder.enabled"
+	configKeyConsulDiscoveryEnable = "spring.cloud.consul.discovery.enabled"
+	configKeyServerEnable = "server.enabled"
+
+	CommandRoot = ""
+	CommandMigrate = "migrate"
+	CommandPopulate = "populate"
 )
 
 func init() {
@@ -19,28 +31,47 @@ func init() {
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-		return application.Run()
+		return application.Run(CommandRoot)
 	}
+
+	if _, err := AddCommand(CommandMigrate, "Migrate database schema", migrate.Migrate, commandMigrate); err != nil {
+		cli.Fatal(err)
+	}
+
+	// TODO: Populate
 }
 
-type CommandFunc func(ctx context.Context) error
-
-func AddCommand(path, brief string, simpleFunc CommandFunc) (cmd *cobra.Command, err error) {
+func AddCommand(path, brief string, command Observer, init Observer) (cmd *cobra.Command, err error) {
 	cmd, err = cli.AddCommand(path, brief, func(args []string) error {
+		OnEvent(EventCommand, path, init)
 		OnEvent(EventReady, PhaseAfter, func(ctx context.Context) error {
 			logger.Infof("Executing command: %s", cmd.Use)
-			if err := simpleFunc(ctx); err != nil {
+			if err := command(ctx); err != nil {
 				logger.Errorf("Command %s returned error: %v", cmd.Use, err)
 				cli.SetExitCode(1)
 			}
 			return application.Stop()
 		})
 
-		return application.Run()
+		return application.Run(path)
 	})
 	return cmd, err
 }
 
 func Run(appName string) {
 	cli.Run(appName)
+}
+
+func Noop(context.Context) error {
+	return nil
+}
+
+func commandMigrate(context.Context) error {
+	OverrideConfig(map[string]string{
+		configKeyRedisEnable: "false",
+		configKeyKafkaEnable: "false",
+		configKeyConsulDiscoveryEnable: "false",
+		configKeyServerEnable: "false",
+	})
+	return nil
 }

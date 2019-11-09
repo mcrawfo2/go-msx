@@ -55,8 +55,10 @@ func Publish(ctx context.Context, topic string, payload []byte, metadata map[str
 	}
 
 	var publisher Publisher
-	if publisher, err = NewPublisher(cfg, topic); err != nil {
+	if publisher, err = NewPublisher(cfg, topic); err != nil && err != ErrBinderNotEnabled {
 		return errors.Wrap(err, "Failed to create stream publisher")
+	} else if err == ErrBinderNotEnabled {
+		return err
 	}
 	defer publisher.Close()
 
