@@ -30,9 +30,11 @@ const (
 	ConfigKeyInfoAppAttributesParent      = "info.app.attributes.parent"
 	ConfigKeyInfoAppAttributesType        = "info.app.attributes.type"
 	ConfigKeyServerContextPath            = "server.contextPath"
+	ConfigKeyServerSwaggerPath            = "server.swagger.swaggerPath"
+	ConfigKeyServerPort                   = "server.port"
 
-	ConfigKeyInfoBuildVersion = "info.build.version"
-	ConfigKeyInfoBuildBuildNumber = "info.build.buildNumber"
+	ConfigKeyInfoBuildVersion       = "info.build.version"
+	ConfigKeyInfoBuildBuildNumber   = "info.build.buildNumber"
 	ConfigKeyInfoBuildBuildDateTime = "info.build.buildDateTime"
 )
 
@@ -59,6 +61,7 @@ type AppRegistrationDetails struct {
 	InstanceUuid   string
 	InstanceId     string
 	ContextPath    string
+	SwaggerPath    string
 	Name           string
 	DisplayName    string
 	Description    string
@@ -77,6 +80,7 @@ func (d AppRegistrationDetails) Tags() []string {
 	return []string{
 		"managedMicroservice",
 		"contextPath=" + d.ContextPath,
+		"swaggerPath=" + d.SwaggerPath,
 		"instanceUuid=" + d.InstanceUuid,
 		"name=" + d.DisplayName,
 		"version=" + d.BuildVersion,
@@ -178,7 +182,15 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 		result.ServiceAddress = rpConfig.Address
 	}
 
-	result.ServicePort = strconv.Itoa(rpConfig.Port)
+	if rpConfig.Port == 0 {
+		if result.ServicePort, err = cfg.StringOr(ConfigKeyServerPort, strconv.Itoa(rpConfig.Port)); err != nil {
+			return nil, err
+		} else {
+			rpConfig.Port, _ = strconv.Atoi(result.ServicePort)
+		}
+	} else {
+		result.ServicePort = strconv.Itoa(rpConfig.Port)
+	}
 
 	if result.InstanceUuid, err = uuid.GenerateUUID(); err != nil {
 		return nil, err
@@ -198,6 +210,10 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 	}
 
 	if result.ContextPath, err = cfg.String(ConfigKeyServerContextPath); err != nil {
+		return nil, err
+	}
+
+	if result.SwaggerPath, err = cfg.String(ConfigKeyServerSwaggerPath); err != nil {
 		return nil, err
 	}
 
