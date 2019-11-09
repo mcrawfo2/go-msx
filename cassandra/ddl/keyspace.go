@@ -16,7 +16,9 @@ type Keyspace struct {
 	DurableWrites      bool
 }
 
-type KeyspaceQueryBuilder struct{}
+type KeyspaceQueryBuilder struct{
+	options OptionsQueryPartBuilder
+}
 
 func (b *KeyspaceQueryBuilder) CreateKeyspace(keyspace Keyspace, ifNotExists bool) string {
 	sb := new(strings.Builder)
@@ -26,21 +28,8 @@ func (b *KeyspaceQueryBuilder) CreateKeyspace(keyspace Keyspace, ifNotExists boo
 	}
 	sb.WriteString(keyspace.Name)
 
-	sb.WriteString(" WITH replication = {")
-	n := 0
-	for k, v := range keyspace.ReplicationOptions {
-		if n > 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString("'")
-		sb.WriteString(k)
-		sb.WriteString("': '")
-		sb.WriteString(v)
-		sb.WriteString("'")
-		n++
-	}
-	sb.WriteString("}")
-
+	sb.WriteString(" WITH replication = ")
+	sb.WriteString(b.options.Options(keyspace.ReplicationOptions))
 	if keyspace.DurableWrites {
 		sb.WriteString(" AND durable_writes = true")
 	}
