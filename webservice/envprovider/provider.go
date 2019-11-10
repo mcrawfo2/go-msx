@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
-	"encoding/json"
 	"github.com/emicklei/go-restful"
 )
 
@@ -42,13 +41,13 @@ func (h Provider) Actuate(webService *restful.WebService) error {
 	// Unsecured routes for info
 	webService.Route(webService.GET("").
 		Operation("admin.env").
-		To(h.report).
+		To(adminprovider.RawAdminController(h.report)).
 		Do(webservice.Returns200))
 
 	return nil
 }
 
-func (h Provider) report(req *restful.Request, resp *restful.Response) {
+func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 	profile, err := config.FromContext(req.Request.Context()).StringOr("profile", "")
 	profiles := []string{}
 	if err != nil && profile != "" {
@@ -75,19 +74,7 @@ func (h Provider) report(req *restful.Request, resp *restful.Response) {
 		report.PropertySources = append(report.PropertySources, propertySource)
 	}
 
-	bodyBytes, _ := json.Marshal(report)
-
-	resp.Header().Set("Expires", "0")
-	resp.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	resp.Header().Set("Pragma", "no-cache")
-	resp.Header().Set("X-Content-Type-Options", "nosniff")
-	resp.Header().Set("X-XSS-Protection", "1; mode=block")
-	resp.Header().Set("Content-Type", "application/vnd.spring-boot.actuator.v2+json")
-	resp.Header().Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
-
-	resp.WriteHeader(200)
-
-	_, _ = resp.Write(bodyBytes)
+	return report, nil
 }
 
 func RegisterProvider(ctx context.Context) error {

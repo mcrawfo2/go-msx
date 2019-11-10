@@ -3,6 +3,7 @@ package adminprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"encoding/json"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"net/http"
@@ -23,22 +24,21 @@ type Report struct {
 type AdminProvider struct {}
 
 func (h AdminProvider) Actuate(infoService *restful.WebService) error {
-	infoService.Consumes(restful.MIME_JSON, restful.MIME_XML)
-	infoService.Produces(restful.MIME_JSON, restful.MIME_XML)
+	infoService.Consumes(restful.MIME_JSON)
+	infoService.Produces(restful.MIME_JSON)
 
 	infoService.Path(infoService.RootPath() + "/admin")
-	infoService.Filter(webservice.RequireAuthenticatedFilter)
 
 	// Unsecured routes for admin
 	infoService.Route(infoService.GET("").
 		Operation("admin").
-		To(webservice.RawController(h.adminReport)).
+		To(RawAdminController(h.adminReport)).
 		Doc("Get System info").
 		Do(webservice.Returns200))
 
 	infoService.Route(infoService.GET("/alive").
 		Operation("admin.alive").
-		To(webservice.RawController(h.emptyReport)).
+		To(RawAdminController(h.emptyReport)).
 		Do(webservice.Returns200))
 
 	return nil
@@ -102,5 +102,26 @@ func RegisterLink(name, href string, templated bool) {
 	links[name] = Link{
 		Href:      href,
 		Templated: templated,
+	}
+}
+
+func RawAdminController(fn webservice.ControllerFunction) restful.RouteFunction {
+	return func(req *restful.Request, resp *restful.Response) {
+		body, err := fn(req)
+		if err != nil {
+			webservice.RawResponse(req, resp, nil, err)
+			return
+		}
+
+		bodyBytes, _ := json.Marshal(body)
+
+		resp.Header().Set("Expires", "0")
+		resp.Header().Set("Pragma", "no-cache")
+		resp.Header().Set("Content-Type", "application/vnd.spring-boot.actuator.v2+json")
+		resp.Header().Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
+
+		resp.WriteHeader(200)
+
+		_, _ = resp.Write(bodyBytes)
 	}
 }

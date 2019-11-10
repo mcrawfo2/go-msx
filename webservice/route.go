@@ -25,22 +25,11 @@ func init() {
 		Required(false)
 }
 
-func StandardRoute(b *restful.RouteBuilder) {
-	StandardAuthenticationRequired(b)
-	StandardReturns(b)
-}
-
-func StandardAuthenticationRequired(b *restful.RouteBuilder) {
-	b.Filter(RequireAuthenticatedFilter).
-		Notes("This endpoint is secured").
-		Param(HeaderAuthorization)
-}
-
 func StandardReturns(b *restful.RouteBuilder) {
 	b.Do(Returns(200, 400, 401, 403))
 }
 
-func RequireAuthenticatedFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+func securityFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	securityProvider := SecurityProviderFromContext(req.Request.Context())
 	if securityProvider != nil {
 		err := securityProvider.Authentication(req)

@@ -77,11 +77,12 @@ func (s *WebServer) Handler() http.Handler {
 		s.router,
 		s.security,
 		s.injectors.Clone()))
+	s.container.Filter(tracingFilter)
 	s.container.Filter(optionsFilter)
+	s.container.Filter(securityFilter)
 	if s.cfg.Cors {
 		ActivateCors(s.container)
 	}
-	s.container.Filter(tracingFilter)
 
 	// Add all web services
 	for _, service := range s.services {
@@ -91,11 +92,12 @@ func (s *WebServer) Handler() http.Handler {
 	// Add documentation provider
 	s.actuateDocumentation(s.documentation)
 
-	// Add actuators
+	// Add services
 	for _, provider := range s.actuators {
 		s.actuateService(provider)
 	}
 
+	// Add static file server
 	s.actuateStatic(s.aliases)
 
 	return s.container
@@ -249,6 +251,10 @@ func (s *WebServer) StaticFolder() string {
 
 func (s *WebServer) Url() string {
 	return s.cfg.Url()
+}
+
+func (s *WebServer) ContextPath() string {
+	return s.cfg.ContextPath
 }
 
 func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security SecurityProvider, injectors *types.ContextInjectors) restful.FilterFunction {

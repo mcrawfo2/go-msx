@@ -99,7 +99,7 @@ func addWebService(ctx context.Context) error {
 	svc.Route(svc.GET("").
 		Operation("queryTests").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
-		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
+		Do(webservice.StandardReturns). // Returns 200/400/401/403
 		Produces(webservice.MIME_JSON).
 		Filter(webservice.PermissionsFilter(rbac.PermissionIsApiAdmin)))
 
@@ -108,7 +108,7 @@ func addWebService(ctx context.Context) error {
 	svc.Route(svc.GET("/{tenantId}").
 		Operation("queryTestsWithTenant").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
-		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
+		Do(webservice.StandardReturns). // Returns 200/400/401/403
 		Produces(webservice.MIME_JSON).
 		Param(tenantIdParameter).
 		Filter(webservice.PermissionsFilter(rbac.PermissionIsApiAdmin)).

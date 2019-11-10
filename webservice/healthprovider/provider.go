@@ -14,7 +14,8 @@ import (
 type HealthProvider struct{}
 
 
-func (h HealthProvider) healthReport(ctx context.Context) (interface{}, error) {
+func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) {
+	ctx := req.Request.Context()
 	userContext := security.UserContextFromContext(ctx)
 	if userContext != nil {
 		return health.GenerateReport(ctx), nil
@@ -43,13 +44,13 @@ func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 
 	healthService.Route(healthService.GET("").
 		Operation("admin.health").
-		To(webservice.RawContextController(h.healthReport)).
+		To(adminprovider.RawAdminController(h.healthReport)).
 		Doc("Get System health").
 		Do(webservice.Returns200))
 
 	healthService.Route(healthService.GET("/{component}").
 		Operation("admin.health-component").
-		To(webservice.RawController(h.healthComponentReport)).
+		To(adminprovider.RawAdminController(h.healthComponentReport)).
 		Param(healthService.PathParameter("component", "Name of component to probe")).
 		Doc("Get component health").
 		Do(webservice.Returns(200, 404)))

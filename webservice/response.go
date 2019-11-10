@@ -56,7 +56,10 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		Throwable:  integration.NewThrowable(err),
 	}
 
-	logger.WithContext(req.Request.Context()).WithError(err).Error("Request failed")
+	logger.
+		WithContext(req.Request.Context()).
+		WithError(err).
+		Error("Request failed")
 
 	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
 	if err2 != nil {

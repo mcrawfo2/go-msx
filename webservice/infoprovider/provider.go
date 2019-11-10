@@ -16,7 +16,7 @@ const (
 
 type InfoProvider struct{}
 
-func (h InfoProvider) infoReport(ctx context.Context) (interface{}, error) {
+func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	type Info struct {
 		App struct {
 			Name        string `json:"name"`
@@ -40,7 +40,7 @@ func (h InfoProvider) infoReport(ctx context.Context) (interface{}, error) {
 	}
 
 	i := Info{}
-	if err := config.MustFromContext(ctx).Populate(&i, configKeyInfo); err != nil {
+	if err := config.MustFromContext(req.Request.Context()).Populate(&i, configKeyInfo); err != nil {
 		return nil, webservice.NewStatusError(err, 500)
 	}
 
@@ -62,7 +62,7 @@ func (h InfoProvider) Actuate(infoService *restful.WebService) error {
 	// Unsecured routes for info
 	infoService.Route(infoService.GET("").
 		Operation("admin.info").
-		To(webservice.RawContextController(h.infoReport)).
+		To(adminprovider.RawAdminController(h.infoReport)).
 		Doc("Get System info").
 		Do(webservice.Returns200))
 

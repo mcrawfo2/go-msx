@@ -24,15 +24,15 @@ func (h Provider) Report(req *restful.Request) (interface{}, error) {
 }
 
 func (h Provider) Actuate(webService *restful.WebService) error {
-	webService.Consumes(restful.MIME_JSON, restful.MIME_XML)
-	webService.Produces(restful.MIME_JSON, restful.MIME_XML)
+	webService.Consumes(restful.MIME_JSON)
+	webService.Produces(restful.MIME_JSON)
 
 	webService.Path(webService.RootPath() + "/admin/" + endpointName)
 
 	// Unsecured routes for info
 	webService.Route(webService.GET("").
 		Operation("admin.metrics").
-		To(webservice.RawController(h.Report)).
+		To(adminprovider.RawAdminController(h.Report)).
 		Do(webservice.Returns200))
 
 	return nil

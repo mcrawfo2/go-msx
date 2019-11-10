@@ -8,6 +8,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.0.0
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
 	github.com/auth0/go-jwt-middleware v0.0.0-20190805220309-36081240882b
+	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/go-restful v2.11.1+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
