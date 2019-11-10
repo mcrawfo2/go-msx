@@ -45,9 +45,10 @@ var (
 
 type RegistrationProviderConfig struct {
 	Enabled             bool          `config:"default=false"`
+	Register            bool          `config:"default=true"`
 	Address             string        `config:"default="`
 	Port                int           `config:"default=0"`
-	HealthCheckEnabled  bool          `config:"default=false"`
+	RegisterHealthCheck bool          `config:"default=true"`
 	HealthCheckPath     string        `config:"default=/admin/health"`
 	HealthCheckInterval time.Duration `config:"default=10s"`
 	HealthCheckTimeout  time.Duration `config:"default=2s"`
@@ -117,7 +118,7 @@ func (c *RegistrationProvider) tags() []string {
 }
 
 func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
-	if c.config.HealthCheckEnabled == false {
+	if c.config.RegisterHealthCheck == false {
 		return nil
 	}
 
@@ -130,14 +131,19 @@ func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
 }
 
 func (c *RegistrationProvider) serviceRegistration() *api.AgentServiceRegistration {
-	return &api.AgentServiceRegistration{
+	registration := &api.AgentServiceRegistration{
 		ID:      c.details.InstanceId,
 		Name:    c.details.Name,
 		Address: c.details.ServiceAddress,
 		Port:    c.config.Port,
-		Check:   c.healthCheck(),
 		Tags:    c.tags(),
 	}
+
+	if c.config.RegisterHealthCheck {
+		registration.Check = c.healthCheck()
+	}
+
+	return registration
 }
 
 func (c *RegistrationProvider) Register(ctx context.Context) error {
@@ -298,7 +304,7 @@ func NewRegistrationProviderFromConfig(cfg *config.Config) (*RegistrationProvide
 		return nil, err
 	}
 
-	if !providerConfig.Enabled {
+	if !providerConfig.Enabled || !providerConfig.Register {
 		logger.Warn(ErrDisabled)
 		return nil, nil
 	}
