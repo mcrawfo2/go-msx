@@ -25,8 +25,8 @@ func init() {
 	cmd := cli.RootCmd()
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		RegisterProviderFactory(SourceCommandLine, func(cfg *config.Config) (config.Provider, error) {
-			return config.NewCachedLoader(cobraprovider.NewCobraSource(cmd, "cli.flag.")), nil
+		RegisterProviderFactory(SourceCommandLine, func(name string, cfg *config.Config) (config.Provider, error) {
+			return config.NewCachedLoader(cobraprovider.NewCobraSource(name, cmd, "cli.flag.")), nil
 		})
 	}
 

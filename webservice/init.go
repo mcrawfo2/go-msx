@@ -2,12 +2,13 @@ package webservice
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	restfulLog "github.com/emicklei/go-restful/log"
+	"github.com/emicklei/go-restful"
 )
 
 var restfulLogger = log.NewLogger("restful")
 
 func init() {
 	// Reconfigure the restful logging
-	restfulLog.SetLogger(restfulLogger)
+	restful.TraceLogger(restfulLogger)
+	restful.SetLogger(restfulLogger)
 }

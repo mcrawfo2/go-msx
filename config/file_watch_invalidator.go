@@ -11,6 +11,10 @@ type FileWatchInvalidator struct {
 	fileName string
 }
 
+func (i *FileWatchInvalidator) Description() string {
+	return i.provider.Description()
+}
+
 func (i *FileWatchInvalidator) Load(ctx context.Context) (map[string]string, error) {
 	return i.provider.Load(ctx)
 }

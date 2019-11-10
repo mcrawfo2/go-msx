@@ -1,4 +1,4 @@
-info.build.version: "3.7.0-SNAPSHOT"
+info.build.version: "3.8.0-SNAPSHOT"
 info.build.buildNumber: "1000"
 info.build.buildDateTime: "2019-11-01T00:00:00.000000Z"
 info.build.artifact: "someservice"

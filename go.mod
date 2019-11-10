@@ -10,9 +10,10 @@ require (
 	github.com/auth0/go-jwt-middleware v0.0.0-20190805220309-36081240882b
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/go-restful v2.11.1+incompatible
-	github.com/emicklei/go-restful-swagger12 v0.0.0-20170926063155-7524189396c6
+	github.com/emicklei/go-restful-openapi v1.2.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
+	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/gorilla/mux v1.7.3 // indirect

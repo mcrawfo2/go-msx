@@ -30,7 +30,7 @@ const (
 	ConfigKeyInfoAppAttributesParent      = "info.app.attributes.parent"
 	ConfigKeyInfoAppAttributesType        = "info.app.attributes.type"
 	ConfigKeyServerContextPath            = "server.contextPath"
-	ConfigKeyServerSwaggerPath            = "server.swagger.swaggerPath"
+	ConfigKeyServerSwaggerPath            = "swagger.ui.endpoint"
 	ConfigKeyServerPort                   = "server.port"
 
 	ConfigKeyInfoBuildVersion       = "info.build.version"
@@ -86,6 +86,7 @@ func (d AppRegistrationDetails) Tags() []string {
 		"version=" + d.BuildVersion,
 		"buildDateTime=" + d.BuildDateTime,
 		"buildNumber=" + d.BuildNumber,
+		"secure=false",
 		"componentAttributes=" + marshalComponentAttributes(map[string]string{
 			"serviceName": d.Name,
 			"context":     strings.TrimPrefix(d.ContextPath, "/"),
@@ -130,7 +131,7 @@ func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
 
 func (c *RegistrationProvider) serviceRegistration() *api.AgentServiceRegistration {
 	return &api.AgentServiceRegistration{
-		ID:      c.details.Name + "-" + c.details.InstanceId,
+		ID:      c.details.InstanceId,
 		Name:    c.details.Name,
 		Address: c.details.ServiceAddress,
 		Port:    c.config.Port,
@@ -213,7 +214,7 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 		return nil, err
 	}
 
-	if result.SwaggerPath, err = cfg.String(ConfigKeyServerSwaggerPath); err != nil {
+	if result.SwaggerPath, err = cfg.StringOr(ConfigKeyServerSwaggerPath, "/swagger"); err != nil {
 		return nil, err
 	}
 

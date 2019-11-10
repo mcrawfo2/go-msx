@@ -12,7 +12,7 @@ func TestEnvironmentLoad(t *testing.T) {
 	os.Setenv("LOCAL_TIME_ZONE", "PST")
 	os.Setenv("LOCAL_ENABLED", "true")
 
-	p := NewEnvironment()
+	p := NewEnvironment("env")
 
 	expectedSettings := map[string]string{
 		"global.timeout":   "30",

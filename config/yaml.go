@@ -3,19 +3,19 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"io/ioutil"
 )
 
 type YAMLFile struct {
+	name string
 	path string
 }
 
-func NewYAMLFile(path string) *YAMLFile {
-	return &YAMLFile{
-		path: path,
-	}
+func (f *YAMLFile) Description() string {
+	return fmt.Sprintf("%s: [%s]", f.name, f.path)
 }
 
 func (f *YAMLFile) Load(ctx context.Context) (map[string]string, error) {
@@ -41,4 +41,11 @@ func (f *YAMLFile) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return FlattenJSON(decodedJSON, "")
+}
+
+func NewYAMLFile(name string, path string) *YAMLFile {
+	return &YAMLFile{
+		name: name,
+		path: path,
+	}
 }

@@ -2,19 +2,19 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
 	"io/ioutil"
 )
 
 type TOMLFile struct {
+	name string
 	path string
 }
 
-func NewTOMLFile(path string) *TOMLFile {
-	return &TOMLFile{
-		path: path,
-	}
+func (f *TOMLFile) Description() string {
+	return fmt.Sprintf("%s: [%s]", f.name, f.path)
 }
 
 func (f *TOMLFile) Load(ctx context.Context) (map[string]string, error) {
@@ -35,4 +35,11 @@ func (f *TOMLFile) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return FlattenJSON(out, "")
+}
+
+func NewTOMLFile(name, path string) *TOMLFile {
+	return &TOMLFile{
+		name: name,
+		path: path,
+	}
 }

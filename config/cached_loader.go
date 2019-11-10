@@ -8,11 +8,12 @@ type CachedLoader struct {
 	settings map[string]string
 }
 
-func NewCachedLoader(provider Provider) *CachedLoader {
-	return &CachedLoader{
-		provider: provider,
-		settings: map[string]string{},
-	}
+func (f *CachedLoader) Cache() map[string]string {
+	return f.settings
+}
+
+func (f *CachedLoader) Description() string {
+	return f.provider.Description()
 }
 
 func (f *CachedLoader) Load(ctx context.Context) (map[string]string, error) {
@@ -51,4 +52,11 @@ func (f *CachedLoader) clone() map[string]string {
 
 func (f *CachedLoader) Invalidate() {
 	f.valid = false
+}
+
+func NewCachedLoader(provider Provider) *CachedLoader {
+	return &CachedLoader{
+		provider: provider,
+		settings: map[string]string{},
+	}
 }

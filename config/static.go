@@ -10,11 +10,8 @@ type Static struct {
 	settings map[string]string
 }
 
-func NewStatic(name string, settings map[string]string) *Static {
-	return &Static{
-		name:     name,
-		settings: settings,
-	}
+func (s *Static) Description() string {
+	return s.name
 }
 
 func (s *Static) Load(ctx context.Context) (map[string]string, error) {
@@ -35,4 +32,11 @@ func (s *Static) Load(ctx context.Context) (map[string]string, error) {
 
 func (s *Static) Set(key, val string) {
 	s.settings[key] = val
+}
+
+func NewStatic(name string, settings map[string]string) *Static {
+	return &Static{
+		name:     name,
+		settings: settings,
+	}
 }

@@ -40,7 +40,7 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 		status = statusProvider.StatusCode()
 	}
 
-	err = resp.WriteHeaderAndJson(status, body, MIME_JSON)
+	err = resp.WriteHeaderAndJson(status, body, "application/json;charset=utf-8")
 	if err != nil {
 		logger.WithError(err).Error("Failed to write body")
 	}

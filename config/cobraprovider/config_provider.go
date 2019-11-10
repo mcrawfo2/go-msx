@@ -2,9 +2,10 @@ package cobraprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"os"
@@ -14,11 +15,16 @@ import (
 var logger = log.NewLogger("msx.cli.cobra")
 
 type ConfigProvider struct {
+	name    string
 	prefix  string
 	appName string
 	extras  map[string]string
 	flagset *pflag.FlagSet
 	once    sync.Once
+}
+
+func (f *ConfigProvider) Description() string {
+	return fmt.Sprintf("%s: cobra", f.name)
 }
 
 func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, err error) {
@@ -68,9 +74,10 @@ func ExtractFlagSet(command *cobra.Command) *pflag.FlagSet {
 	return flagSet
 }
 
-func NewCobraSource(command *cobra.Command, prefix string) *ConfigProvider {
+func NewCobraSource(name string, command *cobra.Command, prefix string) *ConfigProvider {
 	flagSet := ExtractFlagSet(command)
 	return &ConfigProvider{
+		name:    name,
 		prefix:  prefix,
 		flagset: flagSet,
 		appName: command.Root().Name(),

@@ -18,6 +18,11 @@ const (
 	SourceApplication = "Application"
 	SourceProfile     = "Profile"
 	SourceCommandLine = "CommandLine"
+	SourceBuild       = "Build"
+	SourceBootStrap   = "Bootstrap"
+	SourceEnvironment = "Environment"
+	SourceOverride    = "Override"
+	SourceDefault     = "Default"
 )
 
 var (
@@ -62,7 +67,7 @@ func (c Sources) Providers() []config.Provider {
 	return providers
 }
 
-type ProviderFactory func(*config.Config) (config.Provider, error)
+type ProviderFactory func(string, *config.Config) (config.Provider, error)
 
 var providerFactories = map[string]ProviderFactory{
 	SourceCommandLine: nil,
@@ -77,7 +82,7 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 }
 
 func newDefaultsProvider() config.Provider {
-	return config.NewCachedLoader(config.NewStatic("default", map[string]string{
+	return config.NewCachedLoader(config.NewStatic(SourceDefault, map[string]string{
 		"profile": "default",
 	}))
 }
@@ -86,23 +91,23 @@ func newBootstrapProvider() config.Provider {
 	if configFile := findConfigFile("bootstrap"); configFile == "" {
 		return nil
 	} else {
-		return newFileProvider(configFile)
+		return newFileProvider(SourceBootStrap, configFile)
 	}
 }
 
 func newEnvironmentProvider() config.Provider {
-	return config.NewCachedLoader(config.NewEnvironment())
+	return config.NewCachedLoader(config.NewEnvironment(SourceEnvironment))
 }
 
 func newOverrideProvider(static map[string]string) config.Provider {
-	return config.NewCachedLoader(config.NewStatic("override", static))
+	return config.NewCachedLoader(config.NewStatic(SourceOverride, static))
 }
 
-func newApplicationProvider(*config.Config) (config.Provider, error) {
+func newApplicationProvider(string, *config.Config) (config.Provider, error) {
 	if configFile := findConfigFile("application"); configFile == "" {
 		return nil, nil
 	} else {
-		return newFileProvider(configFile), nil
+		return newFileProvider(SourceApplication, configFile), nil
 	}
 }
 
@@ -110,11 +115,11 @@ func newBuildProvider() config.Provider {
 	if configFile := findConfigFile("build"); configFile == "" {
 		return nil
 	} else {
-		return newFileProvider(configFile)
+		return newFileProvider(SourceBuild, configFile)
 	}
 }
 
-func newProfileProvider(config *config.Config) (config.Provider, error) {
+func newProfileProvider(name string, config *config.Config) (config.Provider, error) {
 	var parts []string
 	if appName, err := config.String("spring.application.name"); err != nil {
 		return nil, errors.Wrap(err, "Application name not defined")
@@ -133,7 +138,7 @@ func newProfileProvider(config *config.Config) (config.Provider, error) {
 	if configFile := findConfigFile(strings.Join(parts, ".")); configFile == "" {
 		return nil, nil
 	} else {
-		return newFileProvider(configFile), nil
+		return newFileProvider(name, configFile), nil
 	}
 }
 
@@ -142,20 +147,20 @@ func newProvider(name string, cfg *config.Config) (config.Provider, error) {
 		return nil, nil
 	}
 	providerFactory := providerFactories[name]
-	return providerFactory(cfg)
+	return providerFactory(name, cfg)
 }
 
-func newFileProvider(fileName string) config.Provider {
+func newFileProvider(name, fileName string) config.Provider {
 	fileExt := strings.ToLower(path.Ext(fileName))
 	switch fileExt {
 	case ".yml", ".yaml":
-		return config.NewCachedLoader(config.NewYAMLFile(fileName))
+		return config.NewCachedLoader(config.NewYAMLFile(name, fileName))
 	case ".ini":
-		return config.NewCachedLoader(config.NewINIFile(fileName))
+		return config.NewCachedLoader(config.NewINIFile(name, fileName))
 	case ".json", ".json5":
-		return config.NewCachedLoader(config.NewJSONFile(fileName))
+		return config.NewCachedLoader(config.NewJSONFile(name, fileName))
 	case ".properties":
-		return config.NewCachedLoader(config.NewPropertiesFile(fileName))
+		return config.NewCachedLoader(config.NewPropertiesFile(name, fileName))
 	default:
 		logger.Error("Unknown config file extension: ", fileExt)
 		return nil
@@ -185,8 +190,22 @@ func init() {
 }
 
 func registerRemoteConfigProviders(ctx context.Context) error {
-	RegisterProviderFactory(SourceConsul, consulprovider.NewConfigProviderFromConfig)
-	RegisterProviderFactory(SourceVault, vaultprovider.NewConfigProviderFromConfig)
+	RegisterProviderFactory(SourceConsul, func(name string, cfg *config.Config) (provider config.Provider, err error) {
+		provider, err = consulprovider.NewConfigProviderFromConfig(name, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return config.NewCachedLoader(provider), nil
+	})
+
+	RegisterProviderFactory(SourceVault, func(name string, cfg *config.Config) (provider config.Provider, err error) {
+		provider, err = vaultprovider.NewConfigProviderFromConfig(name, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return config.NewCachedLoader(provider), nil
+	})
+
 	return nil
 }
 

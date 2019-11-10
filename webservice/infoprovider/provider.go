@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"github.com/emicklei/go-restful"
 	"time"
 )
@@ -67,10 +68,11 @@ func (h InfoProvider) Actuate(infoService *restful.WebService) error {
 	return nil
 }
 
-func RegisterInfoProvider(ctx context.Context) error {
+func RegisterProvider(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	if server != nil {
 		server.RegisterActuator(new(InfoProvider))
+		adminprovider.RegisterLink("info", "info", false)
 	}
 	return nil
 }

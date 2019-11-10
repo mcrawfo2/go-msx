@@ -8,17 +8,16 @@ import (
 )
 
 type INIFile struct {
+	name string
 	path string
 }
 
-func NewINIFile(path string) *INIFile {
-	return &INIFile{
-		path: path,
-	}
+func (f *INIFile) Description() string {
+	return fmt.Sprintf("%s: [%s]", f.name, f.path)
 }
 
 func (f *INIFile) Load(ctx context.Context) (map[string]string, error) {
-	logger.Infof("Loading INI config: %s", f.path)
+	logger.Infof("Loading %s INI config: %s", f.name, f.path)
 
 	settings := map[string]string{}
 
@@ -39,4 +38,11 @@ func (f *INIFile) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return settings, nil
+}
+
+func NewINIFile(name, path string) *INIFile {
+	return &INIFile{
+		name: name,
+		path: path,
+	}
 }

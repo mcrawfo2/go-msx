@@ -3,48 +3,40 @@ package swaggerprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful-swagger12"
+	"github.com/emicklei/go-restful-openapi"
+	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
-)
-
-const (
-	clientId = "nfv-service"
-	clientSecret = "nfv-service-secret"
 )
 
 var (
 	ErrDisabled = errors.New("Swagger disabled")
+	logger      = log.NewLogger("msx.webservice.swaggerprovider")
 )
 
 type SwaggerProvider struct {
-	cfg *DocumentationConfig
+	ctx  context.Context
+	cfg  *DocumentationConfig
+	spec *spec.Swagger
 }
 
 func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
-	return struct {
-		ApiKeyVehicle  string `json:"apiKeyVehicle"`
-		ScopeSeparator string `json:"scopeSeparator"`
-		ApiKeyName     string `json:"apiKeyName"`
-	}{
-		ApiKeyVehicle:  "header",
-		ScopeSeparator: ",",
-		ApiKeyName:     "api_key",
-	}, nil
+	return struct{}{}, nil
 }
 
 func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
 	return []struct {
 		Name           string `json:"name"`
 		Location       string `json:"location"`
+		Url            string `json:"url"`
 		SwaggerVersion string `json:"swaggerVersion"`
 	}{
 		{
-			Name:           "alertservice",
-			Location:       "/apidocs.json",
+			Name:           "platform",
+			Location:       p.cfg.SwaggerPath + p.cfg.ApiPath,
+			Url:            p.cfg.SwaggerPath + p.cfg.ApiPath,
 			SwaggerVersion: "2.0",
 		},
 	}, nil
@@ -52,129 +44,103 @@ func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interfa
 
 func (p SwaggerProvider) GetUi(req *restful.Request) (body interface{}, err error) {
 	return struct {
-		ValidatorUrl           *string  `json:"validatorUrl"`
-		DocExpansion           string   `json:"docExpansion"`
-		ApisSorter             string   `json:"apisSorter"`
-		DefaultModelRendering  string   `json:"defaultModelRendering"`
-		SupportedSubmitMethods []string `json:"supportedSubmitMethods"`
-		JsonEditor             bool     `json:"jsonEditor"`
-		ShowRequestHeaders     bool     `json:"showRequestHeaders"`
+		ApisSorter               string   `json:"apisSorter"`
+		DeepLinking              bool     `json:"deepLinking"`
+		DefaultModelExpandDepth  int      `json:"defaultModelExpandDepth"`
+		DefaultModelRendering    string   `json:"defaultModelRendering"`
+		DefaultModelsExpandDepth int      `json:"defaultModelsExpandDepth"`
+		DisplayOperationId       bool     `json:"displayOperationId"`
+		DisplayRequestDuration   bool     `json:"displayRequestDuration"`
+		DocExpansion             string   `json:"docExpansion"`
+		Filter                   bool     `json:"filter"`
+		JsonEditor               bool     `json:"jsonEditor"`
+		OperationsSorter         string   `json:"operationsSorter"`
+		ShowExtensions           bool     `json:"showExtensions"`
+		ShowRequestHeaders       bool     `json:"showRequestHeaders"`
+		SupportedSubmitMethods   []string `json:"supportedSubmitMethods"`
+		TagsSorter               string   `json:"tagsSorter"`
+		ValidatorUrl             string   `json:"validatorUrl"`
 	}{
-		ValidatorUrl:          nil,
-		DocExpansion:          "none",
-		ApisSorter:            "alpha",
-		DefaultModelRendering: "schema",
-		SupportedSubmitMethods: []string{
-			"get", "post", "put", "delete", "patch",
-		},
-		JsonEditor:         false,
-		ShowRequestHeaders: true,
+		ApisSorter:               "alpha",
+		DeepLinking:              true,
+		DefaultModelExpandDepth:  1,
+		DefaultModelRendering:    "example",
+		DefaultModelsExpandDepth: 1,
+		DisplayOperationId:       false,
+		DisplayRequestDuration:   false,
+		DocExpansion:             "none",
+		Filter:                   false,
+		JsonEditor:               false,
+		OperationsSorter:         "alpha",
+		ShowExtensions:           false,
+		ShowRequestHeaders:       false,
+		SupportedSubmitMethods:   []string{"get", "post", "put", "delete", "patch", "head", "options", "trace"},
+		TagsSorter:               "alpha",
+		ValidatorUrl:             "",
 	}, nil
 }
 
-func (p SwaggerProvider) GetUserSecurity(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{}, err error) {
+	sso := p.cfg.Security.Sso
 	return struct {
-		Enabled                  bool   `json:"enabled"`
-		AuthenticationUrl        string `json:"authenticationUrl"`
-		AuthServerBaseUrl        string `json:"authServerBaseUrl"`
-		AuthServerLoginEndpoint  string `json:"authServerLoginEndpoint"`
-		AuthServerLogoutEndpoint string `json:"authServerLogoutEndpoint"`
-		TokenHeader              string `json:"tokenHeader"`
-		TokenPrefix              string `json:"tokenPrefix"`
+		AuthorizeUrl string `json:"authorizeUrl"`
+		ClientId     string `json:"clientId"`
+		ClientSecret string `json:"clientSecret"`
+		TokenUrl     string `json:"tokenUrl"`
 	}{
-		Enabled:                  true,
-		AuthenticationUrl:        "",
-		AuthServerBaseUrl:        "http://usermanagementservice/idm",
-		AuthServerLoginEndpoint:  "/api/v1/accesstoken",
-		AuthServerLogoutEndpoint: "/api/v1/users/logout",
-		TokenHeader:              "Authorization",
-		TokenPrefix:              "Bearer ",
+		AuthorizeUrl: sso.BaseUrl + sso.AuthorizePath,
+		ClientId: sso.ClientId,
+		ClientSecret: sso.ClientSecret,
+		TokenUrl: sso.BaseUrl + sso.TokenPath,
 	}, nil
 }
 
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type LoginResponseOauth2 struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	Scope       string `json:"scope"`
-	ExpiresIn   int    `json:"expires_in"`
-}
-
-type LoginResponse struct {
-	Oauth2 LoginResponseOauth2 `json:"oauth2"`
-}
-
-func (p SwaggerProvider) UserLogin(req *restful.Request) (body interface{}, err error) {
-	var dto LoginRequest
-	err = req.ReadEntity(&dto)
-	if err != nil {
-		return
-	}
-
-	usermanagementIntegration, err := usermanagement.NewIntegration(req.Request.Context())
-	if err != nil {
-		return nil, err
-	}
-
-	msxResponse, err := usermanagementIntegration.Login(clientId, clientSecret, dto.Username, dto.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	payload := msxResponse.Payload.(integration.Pojo)
-
-
-	var response = LoginResponse{
-		Oauth2: LoginResponseOauth2{
-			AccessToken: payload["Token"].(string),
-			TokenType:   "bearer",
-			Scope:       "read,write",
-			ExpiresIn:   int(payload["Expires"].(float64)),
-		},
-	}
-
-	return response, nil
+func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err error) {
+	return p.spec, nil
 }
 
 func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
-	swaggerConfig := swagger.Config{
-		WebServices:     container.RegisteredWebServices(),
-		WebServicesUrl:  p.cfg.WebServicesUrl,
-		ApiPath:         p.cfg.ApiPath,
-		SwaggerPath:     p.cfg.SwaggerPath,
-		SwaggerFilePath: p.cfg.Path,
+	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
+
+	openapiConfig := restfulspec.Config{
+		WebServices:    container.RegisteredWebServices(),
+		APIPath:        swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
 	}
 
-	swagger.RegisterSwaggerService(swaggerConfig, container)
-
-	swaggerService.Consumes(restful.MIME_JSON)
-	swaggerService.Produces(restful.MIME_JSON)
-	swaggerService.Path(swaggerService.RootPath() + "/swagger")
+	p.spec = restfulspec.BuildSwagger(openapiConfig)
+	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
+		To(webservice.RawController(p.GetSpec)).
+		Produces(webservice.MIME_JSON).
+		Do(webservice.Returns(200, 401)))
 
 	swaggerService.Route(swaggerService.GET("/configuration/security").
+		Operation("swagger.configuration.security").
 		To(webservice.RawController(p.GetSecurity)).
+		Produces(webservice.MIME_JSON).
 		Do(webservice.Returns(200, 401)))
 
 	swaggerService.Route(swaggerService.GET("/configuration/ui").
+		Operation("swagger.configuration.ui").
 		To(webservice.RawController(p.GetUi)).
+		Produces(webservice.MIME_JSON).
 		Do(webservice.Returns(200, 401)))
 
-	swaggerService.Route(swaggerService.GET("/configuration/swagger-resources").
+	swaggerService.Route(swaggerService.GET("").
+		Operation("swagger.configuration.swagger-resources").
 		To(webservice.RawController(p.GetSwaggerResources)).
+		Produces(webservice.MIME_JSON).
 		Do(webservice.Returns(200, 401)))
 
-	swaggerService.Route(swaggerService.GET("/configuration/user-security").
-		To(webservice.RawController(p.GetUserSecurity)).
+	swaggerService.Route(swaggerService.GET("/configuration/security/sso").
+		Operation("swagger.configuration.security.sso").
+		To(webservice.RawController(p.GetSsoSecurity)).
+		Produces(webservice.MIME_JSON).
 		Do(webservice.Returns(200, 401)))
 
-	swaggerService.Route(swaggerService.POST("/user/login").
-		To(webservice.RawController(p.UserLogin)).
-		Reads(LoginRequest{}).
-		Do(webservice.StandardReturns))
+	if p.cfg.Ui.Enabled {
+		webServer := webservice.WebServerFromContext(p.ctx)
+		webServer.RegisterAlias(p.cfg.Ui.Endpoint, p.cfg.Ui.View)
+	}
 
 	return nil
 }
@@ -194,6 +160,9 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		return ErrDisabled
 	}
 
-	server.SetDocumentationProvider(&SwaggerProvider{cfg:cfg})
+	server.SetDocumentationProvider(&SwaggerProvider{
+		ctx: ctx,
+		cfg: cfg,
+	})
 	return nil
 }

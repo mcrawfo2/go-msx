@@ -6,7 +6,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
+	"github.com/pkg/errors"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -21,6 +24,7 @@ type WebServer struct {
 	documentation DocumentationProvider
 	security      SecurityProvider
 	actuators     []ServiceProvider
+	aliases       []StaticAlias
 	server        *http.Server
 	injectors     *types.ContextInjectors
 }
@@ -34,12 +38,20 @@ func NewWebServer(cfg *WebServerConfig, ctx context.Context) *WebServer {
 	}
 }
 
-func (s *WebServer) NewService() *restful.WebService {
+func (s *WebServer) NewService(path string) (*restful.WebService, error) {
+	if path == "" {
+		return nil, errors.New("Web service path must be specified")
+	}
+
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
 	s.resetContainer()
 	webService := new(restful.WebService)
-	webService.Path(s.cfg.ContextPath)
+	webService.Path(s.cfg.ContextPath + path)
 	s.services = append(s.services, webService)
-	return webService
+	return webService, nil
 }
 
 func (s *WebServer) resetContainer() {
@@ -65,6 +77,10 @@ func (s *WebServer) Handler() http.Handler {
 		s.router,
 		s.security,
 		s.injectors.Clone()))
+	s.container.Filter(optionsFilter)
+	if s.cfg.Cors {
+		ActivateCors(s.container)
+	}
 	s.container.Filter(tracingFilter)
 
 	// Add all web services
@@ -80,7 +96,47 @@ func (s *WebServer) Handler() http.Handler {
 		s.actuateService(provider)
 	}
 
+	s.actuateStatic(s.aliases)
+
 	return s.container
+}
+
+func (s *WebServer) actuateStatic(aliases []StaticAlias) {
+	staticService := new(restful.WebService)
+	staticService.Path(s.cfg.ContextPath)
+
+	logger.Infof("Serving static files at %s", s.cfg.Url())
+
+	// Add NOT FOUND for unclaimed paths of other services
+	for _, webService := range s.container.RegisteredWebServices() {
+		webServiceRoot := webService.RootPath()
+		staticService.Route(staticService.
+			GET(webServiceRoot + "/{subPath:*}").
+			To(HttpHandlerController(http.NotFound)))
+	}
+
+	staticUiHandler := http.StripPrefix(
+		staticService.RootPath(),
+		http.FileServer(http.Dir(s.cfg.StaticPath))).ServeHTTP
+
+	for _, alias := range aliases {
+		staticService.Route(staticService.
+			GET(alias.Path).
+			Operation("static-alias").
+			To(StaticFile(alias.File)))
+	}
+
+	staticService.Route(staticService.
+		GET("").
+		Operation("static-root").
+		To(EnsureSlash(staticUiHandler)))
+
+	staticService.Route(staticService.
+		GET("/{subPath:*}").
+		Operation("static-file").
+		To(HttpHandlerController(staticUiHandler)))
+
+	s.container.Add(staticService)
 }
 
 func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
@@ -118,6 +174,8 @@ func (s *WebServer) Serve(ctx context.Context) error {
 		Addr:    s.cfg.Address(),
 		Handler: s.Handler(),
 	}
+
+	restful.EnableTracing(s.cfg.TraceEnabled)
 
 	// Start the server
 	go func() {
@@ -174,27 +232,46 @@ func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
 	s.injectors.Register(injector)
 }
 
+func (s *WebServer) RegisterAlias(path, file string) {
+	s.aliases = append(s.aliases, StaticAlias{
+		Path: path,
+		File: file,
+	})
+}
+
+func (s *WebServer) StaticFolder() string {
+	folder, err := filepath.Abs(s.cfg.StaticPath)
+	if err != nil {
+		return s.cfg.StaticPath
+	}
+	return folder
+}
+
+func (s *WebServer) Url() string {
+	return s.cfg.Url()
+}
+
 func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security SecurityProvider, injectors *types.ContextInjectors) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		// Inject the container, router, security provider, request
-		ctx := ContextWithContainer(ctx, container)
-		ctx = ContextWithRouter(ctx, router)
-		ctx = ContextWithSecurityProvider(ctx, security)
+		ctx2 := ContextWithContainer(ctx, container)
+		ctx2 = ContextWithRouter(ctx2, router)
+		ctx2 = ContextWithSecurityProvider(ctx2, security)
 
 		// Inject the webservice and route
 		service, route, _ := router.SelectRoute(container.RegisteredWebServices(), req.Request)
-		ctx = ContextWithService(ctx, service)
-		ctx = ContextWithRoute(ctx, route)
+		ctx2 = ContextWithService(ctx2, service)
+		ctx2 = ContextWithRoute(ctx2, route)
 		if route != nil {
-			ctx = ContextWithRouteOperation(ctx, route.Operation)
+			ctx2 = ContextWithRouteOperation(ctx2, route.Operation)
 		} else {
-			ctx = ContextWithRouteOperation(ctx, "unknown")
+			ctx2 = ContextWithRouteOperation(ctx2, "unknown")
 		}
 
 		// Execute external injectors
-		ctx = injectors.Inject(ctx)
+		ctx2 = injectors.Inject(ctx2)
 
-		req.Request = req.Request.WithContext(ctx)
+		req.Request = req.Request.WithContext(ctx2)
 
 		chain.ProcessFilter(req, resp)
 	}

@@ -1,17 +1,16 @@
 package config
 
-import "context"
+import (
+	"context"
+)
 
 type Resolver struct {
 	provider Provider
 	mappings map[string]string
 }
 
-func NewResolver(provider Provider, mappings map[string]string) *Resolver {
-	return &Resolver{
-		provider: provider,
-		mappings: mappings,
-	}
+func (f *Resolver) Description() string {
+	return f.provider.Description()
 }
 
 func (f *Resolver) Load(ctx context.Context) (map[string]string, error) {
@@ -34,4 +33,11 @@ func (f *Resolver) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return resolved, nil
+}
+
+func NewResolver(provider Provider, mappings map[string]string) *Resolver {
+	return &Resolver{
+		provider: provider,
+		mappings: mappings,
+	}
 }

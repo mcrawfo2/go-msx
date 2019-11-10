@@ -7,10 +7,12 @@ import (
 	"strings"
 )
 
-type Environment struct{}
+type Environment struct{
+	name string
+}
 
-func NewEnvironment() *Environment {
-	return &Environment{}
+func (e *Environment) Description() string {
+	return e.name
 }
 
 func (e *Environment) Load(ctx context.Context) (map[string]string, error) {
@@ -35,4 +37,10 @@ func (e *Environment) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return settings, nil
+}
+
+func NewEnvironment(name string) *Environment {
+	return &Environment{
+		name: name,
+	}
 }

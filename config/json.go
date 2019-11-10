@@ -9,13 +9,12 @@ import (
 )
 
 type JSONFile struct {
+	name string
 	path string
 }
 
-func NewJSONFile(path string) *JSONFile {
-	return &JSONFile{
-		path: path,
-	}
+func (f *JSONFile) Description() string {
+	return fmt.Sprintf("%s: [%s]", f.name, f.path)
 }
 
 func (f *JSONFile) Load(ctx context.Context) (map[string]string, error) {
@@ -70,4 +69,11 @@ func FlattenJSON(input map[string]interface{}, namespace string) (map[string]str
 	}
 
 	return flattened, nil
+}
+
+func NewJSONFile(name, path string) *JSONFile {
+	return &JSONFile{
+		name: name,
+		path: path,
+	}
 }

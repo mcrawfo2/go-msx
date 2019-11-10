@@ -2,18 +2,18 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"github.com/magiconair/properties"
 	"github.com/pkg/errors"
 )
 
 type PropertiesFile struct {
+	name string
 	path string
 }
 
-func NewPropertiesFile(path string) *PropertiesFile {
-	return &PropertiesFile{
-		path: path,
-	}
+func (f *PropertiesFile) Description() string {
+	return fmt.Sprintf("%s: [%s]", f.name, f.path)
 }
 
 func (f *PropertiesFile) Load(ctx context.Context) (map[string]string, error) {
@@ -34,4 +34,11 @@ func (f *PropertiesFile) Load(ctx context.Context) (map[string]string, error) {
 	}
 
 	return settings, nil
+}
+
+func NewPropertiesFile(name, path string) *PropertiesFile {
+	return &PropertiesFile{
+		name: name,
+		path: path,
+	}
 }

@@ -67,7 +67,7 @@ func corsOptionsFilter(req *restful.Request, resp *restful.Response, chain *rest
 	}
 
 	resp.AddHeader(HEADER_AccessControlAllowOrigin, "*")
-	resp.AddHeader(HEADER_AccessControlAllowMethods, "PATCH, POST, GET, OPTIONS, PUT, DELETE")
+	resp.AddHeader(HEADER_AccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")
 	resp.AddHeader(HEADER_AccessControlRequestHeaders, "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 	resp.AddHeader(HEADER_AccessControlAllowHeaders, "Authorization, access_token, cache-control, currency, if-modified-since, locale, pragma, content-type, content-length")
 	resp.AddHeader(HEADER_ContentEncoding, "application/json")

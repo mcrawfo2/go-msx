@@ -3,10 +3,14 @@ package app
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/jwtprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/metricsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 )
 
@@ -22,8 +26,7 @@ func registerRegistrations(cfg *config.Config) error {
 
 	if serverEnabled {
 		OnEvent(EventStart, PhaseBefore, registerJwtSecurityProvider)
-		OnEvent(EventStart, PhaseBefore, registerHealthWebService)
-		OnEvent(EventStart, PhaseBefore, registerInfoWebService)
+		OnEvent(EventStart, PhaseBefore, registerAdminWebServices)
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
 		OnEvent(EventStop, PhaseBefore, webservice.Stop)
@@ -37,14 +40,16 @@ func registerJwtSecurityProvider(ctx context.Context) error {
 	return jwtprovider.RegisterSecurityProvider(ctx)
 }
 
-func registerHealthWebService(ctx context.Context) error {
-	logger.Info("Registering health web service")
-	return healthprovider.RegisterHealthProvider(ctx)
-}
-
-func registerInfoWebService(ctx context.Context) error {
-	logger.Info("Registering info web service")
-	return infoprovider.RegisterInfoProvider(ctx)
+func registerAdminWebServices(ctx context.Context) error {
+	logger.Info("Registering admin endpoints")
+	err := types.ErrorList{
+		adminprovider.RegisterProvider(ctx),
+		healthprovider.RegisterProvider(ctx),
+		infoprovider.RegisterProvider(ctx),
+		metricsprovider.RegisterProvider(ctx),
+		envprovider.RegisterProvider(ctx),
+	}
+	return err.Filter()
 }
 
 func registerSwaggerWebService(ctx context.Context) error {

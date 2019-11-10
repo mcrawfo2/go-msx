@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -104,6 +105,39 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 
 		chain.ProcessFilter(req, resp)
 	}
+}
+
+func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	if "OPTIONS" != req.Request.Method {
+		chain.ProcessFilter(req, resp)
+		return
+	}
+
+	var container = ContainerFromContext(req.Request.Context())
+	var router = RouterFromContext(req.Request.Context())
+	var newHttpRequest = *req.Request
+	var allowedMethods = make(map[string]struct{})
+	for _, method := range []string{"PATCH", "POST", "GET", "PUT", "DELETE", "HEAD", "TRACE"} {
+		newHttpRequest.Method = method
+		_, route, err := router.SelectRoute(container.RegisteredWebServices(), &newHttpRequest)
+		if err != nil || route == nil {
+			continue
+		}
+		allowedMethods[route.Method] = struct{}{}
+	}
+
+	if len(allowedMethods) == 0 {
+		http.NotFound(resp, req.Request)
+		return
+	}
+
+	allowedMethods["OPTIONS"] = struct{}{}
+	var allowMethods []string
+	for k := range allowedMethods {
+		allowMethods = append(allowMethods, k)
+	}
+
+	resp.AddHeader("Allow", strings.Join(allowMethods, ","))
 }
 
 var DefaultSuccessEnvelope = integration.MsxEnvelope{}

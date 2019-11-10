@@ -91,9 +91,12 @@ func subscribeExampleTopic(ctx context.Context) error {
 
 func addWebService(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
-	svc := server.NewService()
+	svc, err := server.NewService("/api/v1/tests")
+	if err != nil {
+		return err
+	}
 
-	svc.Route(svc.GET("/tests").
+	svc.Route(svc.GET("").
 		Operation("queryTests").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
 		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403
@@ -102,7 +105,7 @@ func addWebService(ctx context.Context) error {
 
 	tenantIdParameter := svc.PathParameter("tenantId", "Tenant Id")
 
-	svc.Route(svc.GET("/tests/{tenantId}").
+	svc.Route(svc.GET("/{tenantId}").
 		Operation("queryTestsWithTenant").
 		To(webservice.HttpHandlerController(myTestEndpoint)).
 		Do(webservice.StandardRoute). // Authenticated, Returns 200/400/401/403

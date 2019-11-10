@@ -26,16 +26,29 @@ type ConfigProviderConfig struct {
 }
 
 type ConfigProvider struct {
+	name         string
 	sourceConfig *ConfigProviderConfig
 	appContext   string
 	connection   *vault.Connection
+}
+
+func (f *ConfigProvider) Description() string {
+	return fmt.Sprintf("%s: [%s, %s]", f.name, f.defaultContextPath(), f.applicationContextPath())
+}
+
+func (f *ConfigProvider) defaultContextPath() string {
+	return fmt.Sprintf("%s%s%s", f.sourceConfig.Backend, f.sourceConfig.ProfileSeparator, f.sourceConfig.DefaultContext)
+}
+
+func (f *ConfigProvider) applicationContextPath() string {
+	return fmt.Sprintf("%s%s%s", f.sourceConfig.Backend, f.sourceConfig.ProfileSeparator, f.appContext)
 }
 
 func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, err error) {
 	settings = make(map[string]string)
 
 	// load keys from default context
-	var vaultPath = fmt.Sprintf("%s%s%s", f.sourceConfig.Backend, f.sourceConfig.ProfileSeparator, f.sourceConfig.DefaultContext)
+	var vaultPath = f.defaultContextPath()
 	logger.Infof("Loading configuration from vault (%s): %s)", f.connection.Host(), vaultPath)
 	var defaultSettings map[string]string
 	if defaultSettings, err = f.connection.ListSecrets(ctx, vaultPath); err != nil {
@@ -47,7 +60,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	}
 
 	// load keys from application context
-	vaultPath = fmt.Sprintf("%s%s%s", f.sourceConfig.Backend, f.sourceConfig.ProfileSeparator, f.appContext)
+	vaultPath = f.applicationContextPath()
 	logger.Infof("Loading configuration from vault (%s): %s", f.connection.Host(), vaultPath)
 	var appSettings map[string]string
 	if appSettings, err = f.connection.ListSecrets(ctx, vaultPath); err != nil {
@@ -61,7 +74,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewConfigProviderFromConfig(cfg *config.Config) (config.Provider, error) {
+func NewConfigProviderFromConfig(name string, cfg *config.Config) (config.Provider, error) {
 	var providerConfig = &ConfigProviderConfig{}
 	var err = cfg.Populate(providerConfig, configRootVaultConfigProvider)
 	if err != nil {
@@ -89,6 +102,7 @@ func NewConfigProviderFromConfig(cfg *config.Config) (config.Provider, error) {
 	}
 
 	return &ConfigProvider{
+		name:         name,
 		sourceConfig: providerConfig,
 		appContext:   appContext,
 		connection:   conn,
