@@ -102,12 +102,11 @@ func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err er
 func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
 	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
 
-	openapiConfig := restfulspec.Config{
+	p.spec = restfulspec.BuildSwagger(restfulspec.Config{
 		WebServices:    container.RegisteredWebServices(),
 		APIPath:        swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
-	}
+	})
 
-	p.spec = restfulspec.BuildSwagger(openapiConfig)
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
 		To(webservice.RawController(p.GetSpec)).
 		Produces(webservice.MIME_JSON).

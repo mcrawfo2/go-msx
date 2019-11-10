@@ -42,11 +42,13 @@ func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 	healthService.Path(healthService.RootPath() + "/admin/health")
 
 	healthService.Route(healthService.GET("").
+		Operation("admin.health").
 		To(webservice.RawContextController(h.healthReport)).
 		Doc("Get System health").
 		Do(webservice.Returns200))
 
 	healthService.Route(healthService.GET("/{component}").
+		Operation("admin.health-component").
 		To(webservice.RawController(h.healthComponentReport)).
 		Param(healthService.PathParameter("component", "Name of component to probe")).
 		Doc("Get component health").

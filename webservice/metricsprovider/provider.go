@@ -31,6 +31,7 @@ func (h Provider) Actuate(webService *restful.WebService) error {
 
 	// Unsecured routes for info
 	webService.Route(webService.GET("").
+		Operation("admin.metrics").
 		To(webservice.RawController(h.Report)).
 		Do(webservice.Returns200))
 

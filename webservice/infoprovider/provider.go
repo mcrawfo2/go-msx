@@ -61,6 +61,7 @@ func (h InfoProvider) Actuate(infoService *restful.WebService) error {
 
 	// Unsecured routes for info
 	infoService.Route(infoService.GET("").
+		Operation("admin.info").
 		To(webservice.RawContextController(h.infoReport)).
 		Doc("Get System info").
 		Do(webservice.Returns200))

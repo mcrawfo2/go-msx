@@ -31,11 +31,13 @@ func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 
 	// Unsecured routes for admin
 	infoService.Route(infoService.GET("").
+		Operation("admin").
 		To(webservice.RawController(h.adminReport)).
 		Doc("Get System info").
 		Do(webservice.Returns200))
 
 	infoService.Route(infoService.GET("/alive").
+		Operation("admin.alive").
 		To(webservice.RawController(h.emptyReport)).
 		Do(webservice.Returns200))
 
