@@ -3,21 +3,35 @@ package stream
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/stats"
-	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"time"
 )
 
 const (
-	statsGaugeConnections               = "%s.connections"
-	statsGaugePublishers                = "%s.publishers.%s"
-	statsTimerPublisher                 = "%s.publisher.timer"
-	statsCounterPublisherMessages       = "%s.publisherMessages"
-	statsCounterPublisherMessageErrors  = "%s.publisherMessageErrors"
-	statsGaugeSubscribers               = "%s.subscribers.%s"
-	statsTimerSubscriber                = "%s.subscriber.timer"
-	statsCounterSubscriberMessages      = "%s.subscriberMessages"
-	statsCounterSubscriberMessageErrors = "%s.subscriberMessageErrors"
+	statsSubsystemKafka                 = "stream"
+	statsGaugeConnections               = "connections"
+	statsGaugePublisherCount            = "publisher_count"
+	statsCounterPublisherSends          = "publisher_sends"
+	statsCounterPublisherSendErrors     = "publisher_send_errors"
+	statsHistogramPublisherSendTime     = "publisher_send_time"
+	statsGaugeSubscriberCount           = "subscriber_count"
+	statsCounterSubscriberReceives      = "subscriber_receives"
+	statsCounterSubscriberReceiveErrors = "subscriber_receive_errors"
+	statsHistogramSubscriberReceiveTime = "subscriber_receive_time"
+)
+
+var (
+	gaugeConnections = stats.NewGauge(statsSubsystemKafka, statsGaugeConnections)
+
+	gaugeVecPublishers            = stats.NewGaugeVec(statsSubsystemKafka, statsGaugePublisherCount, "binder", "topic")
+	counterVecPublisherSends      = stats.NewGaugeVec(statsSubsystemKafka, statsCounterPublisherSends, "binder", "topic")
+	counterVecPublisherSendErrors = stats.NewGaugeVec(statsSubsystemKafka, statsCounterPublisherSendErrors, "binder", "topic")
+	histVecPublisherSendTime      = stats.NewHistogramVec(statsSubsystemKafka, statsHistogramPublisherSendTime, nil, "binder", "topic")
+
+	gaugeVecSubscribers               = stats.NewGaugeVec(statsSubsystemKafka, statsGaugeSubscriberCount, "binder", "topic")
+	counterVecSubscriberReceives      = stats.NewGaugeVec(statsSubsystemKafka, statsCounterSubscriberReceives, "binder", "topic")
+	counterVecSubscriberReceiveErrors = stats.NewGaugeVec(statsSubsystemKafka, statsCounterSubscriberReceiveErrors, "binder", "topic")
+	histVecSubscriberReceiveTime      = stats.NewHistogramVec(statsSubsystemKafka, statsHistogramSubscriberReceiveTime, nil, "binder", "topic")
 )
 
 type StatsPublisher struct {
@@ -27,28 +41,28 @@ type StatsPublisher struct {
 
 func (s *StatsPublisher) Publish(message *message.Message) error {
 	now := time.Now()
-	count := int64(1)
-	stats.Incr(fmt.Sprintf(statsCounterPublisherMessages, s.cfg.Binder), count)
+	count := float64(1)
+	counterVecPublisherSends.WithLabelValues(s.cfg.Binder, s.cfg.Destination).Add(count)
 	defer func() {
-		stats.PrecisionTiming(stats.Name(fmt.Sprintf(statsTimerPublisher, s.cfg.Binder), s.cfg.Destination, ""), time.Since(now))
+		histVecPublisherSendTime.WithLabelValues(s.cfg.Binder, s.cfg.Destination).Observe(float64(time.Since(now)) / float64(time.Millisecond))
 	}()
 
 	err := s.publisher.Publish(message)
 	if err != nil {
-		stats.Incr(fmt.Sprintf(statsCounterPublisherMessageErrors, s.cfg.Binder), count)
+		counterVecPublisherSendErrors.WithLabelValues(s.cfg.Binder, s.cfg.Destination).Add(count)
 	}
 	return err
 }
 
 func (s *StatsPublisher) Close() error {
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeConnections, s.cfg.Binder), -1)
-	stats.GaugeDelta(fmt.Sprintf(statsGaugePublishers, s.cfg.Binder, s.cfg.Destination), -1)
+	gaugeConnections.Dec()
+	gaugeVecPublishers.WithLabelValues(s.cfg.Binder, s.cfg.Destination).Dec()
 	return s.publisher.Close()
 }
 
 func NewStatsPublisher(publisher Publisher, cfg *BindingConfiguration) *StatsPublisher {
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeConnections, cfg.Binder), 1)
-	stats.GaugeDelta(fmt.Sprintf(statsGaugePublishers, cfg.Binder, cfg.Destination), 1)
+	gaugeConnections.Inc()
+	gaugeVecPublishers.WithLabelValues(cfg.Binder, cfg.Destination).Inc()
 	return &StatsPublisher{
 		publisher: publisher,
 		cfg:       cfg,
@@ -66,14 +80,14 @@ func (s *StatsSubscriber) Subscribe(ctx context.Context, topic string) (<-chan *
 }
 
 func (s *StatsSubscriber) Close() error {
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeConnections, s.cfg.Binder), -1)
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeSubscribers, s.cfg.Binder, s.cfg.Destination), -1)
+	gaugeConnections.Dec()
+	gaugeVecSubscribers.WithLabelValues(s.cfg.Binder, s.cfg.Destination).Dec()
 	return s.subscriber.Close()
 }
 
 func NewStatsSubscriber(subscriber message.Subscriber, cfg *BindingConfiguration) *StatsSubscriber {
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeConnections, cfg.Binder), 1)
-	stats.GaugeDelta(fmt.Sprintf(statsGaugeSubscribers, cfg.Binder, cfg.Destination), 1)
+	gaugeConnections.Inc()
+	gaugeVecSubscribers.WithLabelValues(cfg.Binder, cfg.Destination).Inc()
 	return &StatsSubscriber{
 		subscriber: subscriber,
 		cfg:        cfg,
@@ -87,13 +101,13 @@ type StatsSubscriberAction struct {
 
 func (a *StatsSubscriberAction) Call(msg *message.Message) (err error) {
 	now := time.Now()
-	stats.Incr(fmt.Sprintf(statsCounterSubscriberMessages, a.cfg.Binder), 1)
+	counterVecSubscriberReceives.WithLabelValues(a.cfg.Binder, a.cfg.Destination).Inc()
 	defer func() {
-		stats.PrecisionTiming(stats.Name(fmt.Sprintf(statsTimerSubscriber, a.cfg.Binder), a.cfg.Destination, ""), time.Since(now))
+		histVecSubscriberReceiveTime.WithLabelValues(a.cfg.Binder, a.cfg.Destination).Observe(float64(time.Since(now)) / float64(time.Millisecond))
 	}()
 
 	if err = a.action(msg); err != nil {
-		stats.Incr(fmt.Sprintf(statsCounterSubscriberMessageErrors, a.cfg.Binder), 1)
+		counterVecSubscriberReceiveErrors.WithLabelValues(a.cfg.Binder, a.cfg.Destination).Inc()
 	}
 
 	return err

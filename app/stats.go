@@ -3,18 +3,34 @@ package app
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/stats"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/prometheusprovider"
 )
 
 func init() {
-	OnEvent(EventStart, PhaseBefore, createStatsCollector)
-	OnEvent(EventStop, PhaseAfter, closeStatsCollector)
+	OnEvent(EventStart, PhaseBefore, registerPrometheusWebService)
+	OnEvent(EventStart, PhaseBefore, startStatsPusher)
+	OnEvent(EventStop, PhaseAfter, stopStatsPusher)
 }
 
-func createStatsCollector(ctx context.Context) error {
-	return stats.Configure(ctx)
+func registerPrometheusWebService(ctx context.Context) error {
+	logger.Info("Registering prometheus metrics endpoint")
+	return prometheusprovider.RegisterProvider(ctx)
 }
 
-func closeStatsCollector(ctx context.Context) error {
-	stats.Close()
-	return nil
+func startStatsPusher(ctx context.Context) error {
+	logger.Info("Configuring stats pusher")
+	if err := stats.Configure(ctx); err != nil && err != stats.ErrDisabled {
+		return err
+	} else if err == stats.ErrDisabled {
+		logger.WithContext(ctx).Info("Stats pusher disabled.")
+		return nil
+	}
+
+	logger.Info("Starting stats pusher")
+	return stats.Start(ctx)
+}
+
+func stopStatsPusher(ctx context.Context) error {
+	logger.Info("Stopping stats pusher")
+	return stats.Stop(ctx)
 }

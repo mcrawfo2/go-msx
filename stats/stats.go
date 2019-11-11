@@ -4,189 +4,127 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"fmt"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/pkg/errors"
-	"github.com/smira/go-statsd"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/push"
 	"time"
 )
 
 const (
-	ConfigKeyStats = "stats"
+	ConfigKeyStatsPush = "stats.push"
 )
 
 var (
-	ErrDisabled     = errors.New("Stats collector disabled")
-	globalCollector *Collector
-	logger          = log.NewLogger("msx.stats")
+	ErrDisabled  = errors.New("Stats collector disabled")
+	globalPusher *Pusher
+	logger       = log.NewLogger("msx.stats")
 )
 
-type CollectorConfig struct {
-	Enabled       bool          `config:"default=false"`
-	Host          string        `config:"default=localhost"`
-	Port          int           `config:"default=8125"`
-	MaxPacketSize int           `config:"default=1400"`
-	Prefix        string        `config:"default=msx."`
-	FlushInterval time.Duration `config:"default=10s"`
-	Vm            VmStatsConfig
+type PushConfig struct {
+	Enabled   bool          `config:"default=false"`
+	Url       string        `config:"default="`        // no default
+	JobName   string        `config:"default=go_msx"`
+	Frequency time.Duration `config:"default=15s"`
 }
 
-type VmStatsConfig struct {
-	Enabled   bool          `config:"default=true"`
-	Frequency time.Duration `config:"default=30s"`
-}
-
-func (c *CollectorConfig) Address() string {
-	return fmt.Sprintf("%s:%d", c.Host, c.Port)
-}
-
-type Collector struct {
-	config *CollectorConfig
-	client *statsd.Client
-	vm     *VmStatsCollector
-}
-
-func (c *Collector) Incr(stat string, count int64) {
-	if c != nil && c.client != nil {
-		c.client.Incr(stat, count)
-	}
-}
-
-func (c *Collector) Decr(stat string, count int64) {
-	if c != nil && c.client != nil {
-		c.client.Decr(stat, count)
-	}
-}
-
-func (c *Collector) Timing(stat string, delta int64) {
-	if c != nil && c.client != nil {
-		c.client.Timing(stat, delta)
-	}
-}
-
-func (c *Collector) PrecisionTiming(stat string, delta time.Duration) {
-	if c != nil && c.client != nil {
-		c.client.PrecisionTiming(stat, delta)
-	}
-}
-
-func (c *Collector) Gauge(stat string, value int64) {
-	if c != nil && c.client != nil {
-		c.client.Gauge(stat, value)
-	}
-}
-
-func (c *Collector) GaugeDelta(stat string, value int64) {
-	if c != nil && c.client != nil {
-		c.client.GaugeDelta(stat, value)
-	}
-}
-
-func (c *Collector) FGauge(stat string, value float64) {
-	if c != nil && c.client != nil {
-		c.client.FGauge(stat, value)
-	}
-}
-
-func (c *Collector) FGaugeDelta(stat string, value float64) {
-	if c != nil && c.client != nil {
-		c.client.FGaugeDelta(stat, value)
-	}
-}
-
-func (c *Collector) Close() {
-	if c != nil {
-		if c.client != nil {
-			if err := c.client.Close(); err != nil {
-				logger.Error(err)
-			}
-		}
-
-		if c.vm != nil {
-			c.vm.Stop()
-		}
-	}
-}
-
-func NewCollector(collectorConfig *CollectorConfig) (*Collector, error) {
-	if !collectorConfig.Enabled {
-		return nil, ErrDisabled
-	}
-
-	return &Collector{
-		config: collectorConfig,
-		client: statsd.NewClient(
-			collectorConfig.Address(),
-			statsd.MaxPacketSize(collectorConfig.MaxPacketSize),
-			statsd.MetricPrefix(collectorConfig.Prefix),
-			statsd.FlushInterval(collectorConfig.FlushInterval),
-		),
-		vm: NewVmStatsCollectorFromConfig(&collectorConfig.Vm),
-	}, nil
-}
-
-func NewCollectorFromConfig(cfg *config.Config) (*Collector, error) {
-	collectorConfig := &CollectorConfig{}
-	if err := cfg.Populate(collectorConfig, ConfigKeyStats); err != nil {
+func NewPushConfigFromConfig(cfg *config.Config) (*PushConfig, error) {
+	pushConfig := &PushConfig{}
+	if err := cfg.Populate(pushConfig, ConfigKeyStatsPush); err != nil {
 		return nil, err
 	}
 
-	return NewCollector(collectorConfig)
+	return pushConfig, nil
 }
 
-func Configure(ctx context.Context) error {
-	var err error
-	var cfg *config.Config
+type Pusher struct {
+	ctx  context.Context
+	cfg  *PushConfig
+	done chan struct{}
+}
 
-	if cfg = config.FromContext(ctx); cfg == nil {
-		return errors.New("Failed to retrieve config from context")
-	}
-
-	if globalCollector, err = NewCollectorFromConfig(cfg); err != nil {
-		// no-op collector
-		globalCollector = &Collector{}
-
-		if err != ErrDisabled {
-			return err
-		}
-	} else if globalCollector.vm != nil {
-		globalCollector.vm.Start(ctx)
-	}
-
+func (p *Pusher) Start() error {
+	go p.run()
 	return nil
 }
 
-func Close() {
-	globalCollector.Close()
+func (p *Pusher) run() {
+	ctx := trace.UntracedContextFromContext(p.ctx)
+	ticker := time.NewTicker(p.cfg.Frequency)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if ctx.Err() != nil {
+				return
+			}
+
+			if err := p.push(); err != nil {
+				logger.WithContext(ctx).WithError(err).Error("Push metrics failed")
+			}
+
+		case <-p.done:
+			return
+		}
+	}
 }
 
-func Incr(stat string, count int64) {
-	globalCollector.Incr(stat, count)
+func (p *Pusher) push() error {
+	return push.
+		New(p.cfg.Url, p.cfg.JobName).
+		Gatherer(prometheus.DefaultGatherer).
+		Push()
 }
 
-func Decr(stat string, count int64) {
-	globalCollector.Decr(stat, count)
+func (p *Pusher) Stop() error {
+	close(p.done)
+	return nil
 }
 
-func Timing(stat string, delta int64) {
-	globalCollector.Timing(stat, delta)
+func NewPusher(ctx context.Context, cfg *PushConfig) (*Pusher, error) {
+	if !cfg.Enabled {
+		return nil, ErrDisabled
+	}
+
+	return &Pusher{
+		ctx:  ctx,
+		cfg:  cfg,
+		done: make(chan struct{}),
+	}, nil
 }
 
-func PrecisionTiming(stat string, delta time.Duration) {
-	globalCollector.PrecisionTiming(stat, delta)
+func NewPusherFromConfig(ctx context.Context, cfg *config.Config) (*Pusher, error) {
+	pushConfig, err := NewPushConfigFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewPusher(ctx, pushConfig)
 }
 
-func Gauge(stat string, value int64) {
-	globalCollector.Gauge(stat, value)
+func Configure(ctx context.Context) (err error) {
+	var cfg *config.Config
+
+	if cfg = config.FromContext(ctx); cfg == nil {
+		return errors.New("Failed to retrieve cfg from context")
+	}
+
+	globalPusher, err = NewPusherFromConfig(ctx, cfg)
+	return err
 }
 
-func GaugeDelta(stat string, value int64) {
-	globalCollector.GaugeDelta(stat, value)
+func Start(context.Context) error {
+	if globalPusher == nil {
+		return ErrDisabled
+	}
+	return globalPusher.Start()
 }
 
-func FGauge(stat string, value float64) {
-	globalCollector.FGauge(stat, value)
-}
+func Stop(context.Context) error {
+	if globalPusher == nil {
+		return ErrDisabled
+	}
 
-func FGaugeDelta(stat string, value float64) {
-	globalCollector.FGaugeDelta(stat, value)
+	return globalPusher.Stop()
 }

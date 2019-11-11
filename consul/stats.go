@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	statsCounterConsulCalls            = "consul.calls"
-	statsCounterConsulCallErrors       = "consul.callErrors"
-	statsTimerConsulCallTime           = "consul.timer"
-	statsGaugeConsulRegisteredServices = "consul.registration"
+	statsSubsystemConsul               = "consul"
+	statsHistogramConsulCallTime       = "call_time"
+	statsGaugeConsulCalls              = "calls"
+	statsCounterConsulCallErrors       = "call_errors"
+	statsGaugeConsulRegisteredServices = "registrations"
 
 	statsApiListKeyValuePairs   = "list-kv-pairs"
 	statsApiGetServiceInstances = "get-service-instances"
@@ -18,25 +19,34 @@ const (
 	statsApiNodeHealth          = "node-health"
 )
 
+var (
+	histVecConsulCallTime    = stats.NewHistogramVec(statsSubsystemConsul, statsHistogramConsulCallTime, nil, "api", "param")
+	gaugeVecConsulCalls      = stats.NewGaugeVec(statsSubsystemConsul, statsGaugeConsulCalls, "api", "param")
+	countVecConsulCallErrors = stats.NewCounterVec(statsSubsystemConsul, statsCounterConsulCallErrors, "api", "param")
+	gaugeConsulRegistrations = stats.NewGauge(statsSubsystemConsul, statsGaugeConsulRegisteredServices)
+)
+
 type queryFunc func() error
 
 type statsObserver struct{}
 
 func (o *statsObserver) Observe(api, param string, queryFunc queryFunc) (err error) {
 	start := time.Now()
+	gaugeVecConsulCalls.WithLabelValues(api, param).Inc()
+
 	defer func() {
-		stats.Incr(stats.Name(statsCounterConsulCalls, api, param), 1)
-		stats.PrecisionTiming(stats.Name(statsTimerConsulCallTime, api, param), time.Since(start))
+		gaugeVecConsulCalls.WithLabelValues(api, param).Dec()
+		histVecConsulCallTime.WithLabelValues(api, param).Observe(float64(time.Since(start)) / float64(time.Millisecond))
 		if err != nil {
-			stats.Incr(statsCounterConsulCallErrors, 1)
+			countVecConsulCallErrors.WithLabelValues(api, param).Inc()
 		}
 
 		switch api {
 		case statsApiRegisterService:
-			stats.GaugeDelta(statsGaugeConsulRegisteredServices, 1)
+			gaugeConsulRegistrations.Inc()
 
 		case statsApiDeregisterService:
-			stats.GaugeDelta(statsGaugeConsulRegisteredServices, -1)
+			gaugeConsulRegistrations.Dec()
 		}
 	}()
 
