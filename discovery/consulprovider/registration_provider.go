@@ -126,7 +126,7 @@ func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
 		Interval:      c.config.HealthCheckInterval.String(),
 		Timeout:       c.config.HealthCheckTimeout.String(),
 		TLSSkipVerify: true,
-		HTTP:          fmt.Sprintf("%s://%s%s", "http", c.details.SocketAddress(), c.config.HealthCheckPath),
+		HTTP:          fmt.Sprintf("%s://%s%s%s", "http", c.details.SocketAddress(), c.details.ContextPath, c.config.HealthCheckPath),
 	}
 }
 
