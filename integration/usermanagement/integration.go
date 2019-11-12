@@ -115,7 +115,7 @@ func (i *Integration) Login(clientId, clientSecret, user, password string) (resu
 			"username":   {user},
 			"password":   {password},
 		}).Encode()),
-		Payload:      new(Pojo),
+		Payload:      new(LoginResponse),
 		ErrorPayload: new(integration.OAuthErrorDTO),
 		NoToken:      true,
 	})

@@ -24,3 +24,17 @@ type TenantListResponse struct {
 }
 
 type TenantIdList []string
+
+type LoginResponse struct {
+	AccessToken string   `json:"access_token"`
+	TokenType   string   `json:"token_type"`
+	ExpiresIn   int      `json:"expires_in"`
+	Scope       string   `json:"scope"`
+	FirstName   string   `json:"firstName"`
+	LastName    string   `json:"lastName"`
+	Roles       []string `json:"roles"`
+	IdToken     string   `json:"id_token"`
+	TenantId    string   `json:"tenantId"`
+	Email       string   `json:"email"`
+	Username    string   `json:"username"`
+}
