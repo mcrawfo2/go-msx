@@ -13,10 +13,17 @@ func (f *CachedLoader) Cache() map[string]string {
 }
 
 func (f *CachedLoader) Description() string {
+	if f.provider == nil {
+		return ""
+	}
 	return f.provider.Description()
 }
 
 func (f *CachedLoader) Load(ctx context.Context) (map[string]string, error) {
+	if f.provider == nil {
+		return nil, nil
+	}
+
 	if !f.valid {
 		if err := f.reload(ctx); err != nil {
 			return nil, err
