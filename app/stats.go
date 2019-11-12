@@ -32,5 +32,8 @@ func startStatsPusher(ctx context.Context) error {
 
 func stopStatsPusher(ctx context.Context) error {
 	logger.Info("Stopping stats pusher")
-	return stats.Stop(ctx)
+	if err := stats.Stop(ctx); err != nil && err != stats.ErrDisabled {
+		return err
+	}
+	return nil
 }
