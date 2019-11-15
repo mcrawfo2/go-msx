@@ -56,7 +56,7 @@ func setMigrationManifest(ctx context.Context) error {
 		manifest.AddCqlStringMigration("3.8.0.1", "Create first table", "CREATE TABLE first (value text PRIMARY KEY)"),
 		manifest.AddCqlStringMigration("3.8.0.2", "Create second table", "CREATE TABLE second (value text PRIMARY KEY)"),
 		manifest.AddCqlStringMigration("3.8.0.3", "Drop first table", "DROP TABLE first"),
-		manifest.AddCqlFileMigration("3.8.0.4", "Create third table", "3.8.0/V3_8_0_4_CREATE_THIRD_TABLE.cql"),
+		manifest.AddCqlFileMigration("3.8.0.4", "Create third table", "3.8.0/V3_8_0_4__CREATE_THIRD_TABLE.cql"),
 	}.Filter()
 
 	if err != nil {
