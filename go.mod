@@ -24,6 +24,7 @@ require (
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/opentracing/opentracing-go v1.1.0
+	github.com/otiai10/copy v1.0.2
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
@@ -39,5 +40,6 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1
 	go.uber.org/atomic v1.4.0
 	gopkg.in/ini.v1 v1.48.0 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )

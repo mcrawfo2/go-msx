@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	cliConfig "cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	cliConfig "cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/spf13/pflag"
 	"os"
@@ -31,8 +31,8 @@ func options() *pflag.FlagSet {
 func main() {
 	flagSet := options()
 
-	iniProvider := config.NewINIFile("config.ini")
-	cliProvider := cliConfig.NewPflagSource(flagSet, "cli.flag.")
+	iniProvider := config.NewINIFile("config", "config.ini")
+	cliProvider := cliConfig.NewPflagSource("CommandLine", flagSet, "cli.flag.")
 
 	cfg := config.NewConfig(iniProvider, cliProvider)
 

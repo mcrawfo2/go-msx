@@ -2,21 +2,27 @@ package pflagprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"fmt"
 	"github.com/spf13/pflag"
 	"os"
 	"sync"
 )
 
-var logger = log.NewLogger("msx.cli.pflag")
+var logger = log.NewLogger("msx.config.pflagprovider")
 
 type ConfigProvider struct {
+	name    string
 	prefix  string
 	extras  map[string]string
 	flagset *pflag.FlagSet
 	once    sync.Once
+}
+
+func (f *ConfigProvider) Description() string {
+	return fmt.Sprintf("%s: pflag", f.name)
 }
 
 func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, err error) {
@@ -48,8 +54,9 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	return settings, nil
 }
 
-func NewPflagSource(flagset *pflag.FlagSet, prefix string) *ConfigProvider {
+func NewPflagSource(name string, flagset *pflag.FlagSet, prefix string) *ConfigProvider {
 	return &ConfigProvider{
+		name:    name,
 		prefix:  prefix,
 		flagset: flagset,
 	}

@@ -19,7 +19,10 @@ func (f *PropertiesFile) Description() string {
 func (f *PropertiesFile) Load(ctx context.Context) (map[string]string, error) {
 	logger.Infof("Loading properties config: %s", f.path)
 
-	props, err := properties.LoadFile(f.path, properties.UTF8)
+	l := &properties.Loader{
+		Encoding: properties.UTF8,
+		DisableExpansion: true}
+	props, err := l.LoadAll([]string{f.path})
 	if err != nil {
 		return nil, err
 	}

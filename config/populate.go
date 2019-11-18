@@ -155,7 +155,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 			return val, nil
 		}
 		if def != nil {
-			return p.config.resolveValue(make(map[string]string), *def), nil
+			return p.config.resolveValue(make(map[string]string), p.config.settings, *def), nil
 		}
 		return "", fmt.Errorf("missing required key %s", key)
 	}
@@ -208,7 +208,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 
 		if len(result) == 0 {
 			if def != nil {
-				defResolved := p.config.resolveValue(make(map[string]string), *def)
+				defResolved := p.config.resolveValue(make(map[string]string), p.config.settings, *def)
 				return strings.Split(defResolved, ";"), nil
 			}
 			return nil, fmt.Errorf("missing required key %s", key)

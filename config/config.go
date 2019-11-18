@@ -81,8 +81,13 @@ func (c *Config) reload(ctx context.Context) (map[string]string, error) {
 }
 
 // Expand all references to ${variables} inside value
-func (c *Config) resolveValue(resolved map[string]string, value string) string {
-	variableRegex, _ := regexp.Compile(`\${([\w.]+)(:([^}]*))?}`)
+func (c *Config) resolveValue(resolved, settings map[string]string, value string) string {
+	variableRegex, _ := regexp.Compile(`\${([\w._\-]+)(:([^}]*))?}`)
+
+	if !strings.Contains(value, "${") {
+		return value
+	}
+
 	stack := types.StringStack{"_"}
 	defaults := make(map[string]string)
 	for len(stack) > 0 {
@@ -92,22 +97,21 @@ func (c *Config) resolveValue(resolved map[string]string, value string) string {
 
 		if currentValue, ok = resolved[currentVariable]; ok {
 			// already resolved
-			return currentValue
 		} else if currentVariable == "_" {
 			// passed-in value
 			currentValue = value
-		} else if currentValue, ok = c.settings[currentVariable]; !ok {
+		} else if currentValue, ok = settings[currentVariable]; !ok {
 			var defaultValue string
 			if defaultValue, ok = defaults[currentVariable]; ok {
 				currentValue = defaultValue
 			} else {
 				logger.Errorf("Failed to resolve variable %s", currentVariable)
-				return currentValue
+				currentValue = ""
 			}
 		}
 
-		variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
 		unresolvedReferences := 0
+		variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
 		for _, match := range variables {
 			referenceVariableName := c.alias(match[1])
 			if stack.Contains(referenceVariableName) {
@@ -115,7 +119,7 @@ func (c *Config) resolveValue(resolved map[string]string, value string) string {
 				resolved[referenceVariableName] = ""
 			}
 			if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
-				referenceRegex, _ := regexp.Compile(`\${` + strings.ReplaceAll(referenceVariableName, ".", "\\.") + `(:([^}]*))?}`)
+				referenceRegex, _ := regexp.Compile(`\${` + strings.ReplaceAll(match[1], ".", "\\.") + `(:([^}]*))?}`)
 				currentValue = referenceRegex.ReplaceAllLiteralString(currentValue, referenceVariableValue)
 			} else {
 				unresolvedReferences++
@@ -132,7 +136,9 @@ func (c *Config) resolveValue(resolved map[string]string, value string) string {
 		}
 	}
 
-	return resolved["_"]
+	value = resolved["_"]
+	delete(resolved, "_")
+	return value
 }
 
 // Expand all references to ${variables}
@@ -140,10 +146,13 @@ func (c *Config) resolve(settings map[string]string) error {
 	resolved := map[string]string{}
 
 	for k,v := range settings {
-		resolved[k] = c.resolveValue(resolved, v)
+		resolved[k] = c.resolveValue(resolved, settings, v)
 	}
 
-	delete(resolved, "_")
+	for k,v := range resolved {
+		settings[k] = v
+	}
+
 	return nil
 }
 

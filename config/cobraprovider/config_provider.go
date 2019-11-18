@@ -14,6 +14,10 @@ import (
 
 var logger = log.NewLogger("msx.cli.cobra")
 
+const (
+	configKeyAppName = "spring.application.name"
+)
+
 type ConfigProvider struct {
 	name    string
 	prefix  string
@@ -54,7 +58,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	}
 
 	// Apply application name
-	settings["spring.application.name"] = f.appName
+	settings[configKeyAppName] = f.appName
 
 	return settings, nil
 }

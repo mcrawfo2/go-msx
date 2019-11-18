@@ -262,6 +262,8 @@ func (logger *Logger) Level(level logrus.Level) StdLogger {
 
 func (logger *Logger) SetLevel(level logrus.Level) {
 	logger.level = level
+	name := logger.fields[FieldName].(string)
+	levels[name] = level
 }
 
 func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
@@ -283,7 +285,29 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 	}
 }
 
+var loggers = make(map[string]*Logger)
+var levels = make(map[string]logrus.Level)
 func NewLogger(name string, fields ...LogContext) *Logger {
 	fields = append([]LogContext{{FieldName: name}}, fields...)
-	return newLogger(logrus.StandardLogger(), fields...)
+	logger := newLogger(logrus.StandardLogger(), fields...)
+	loggers[name] = logger
+
+	if level, ok := levels[name]; ok {
+		loggers[name].SetLevel(level)
+	}
+
+	return logger
+}
+
+func SetLoggerLevel(name string, level logrus.Level) {
+	logger, ok := loggers[name]
+	if ok {
+		logger.SetLevel(level)
+	} else {
+		levels[name] = level
+	}
+}
+
+func GetLoggerLevels() map[string]logrus.Level {
+	return levels
 }

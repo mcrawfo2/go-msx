@@ -71,7 +71,7 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 			}
 		}
 
-		report.PropertySources = append(report.PropertySources, propertySource)
+		report.PropertySources = append([]PropertySource{propertySource}, report.PropertySources...)
 	}
 
 	return report, nil

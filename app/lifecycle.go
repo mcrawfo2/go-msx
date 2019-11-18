@@ -88,6 +88,7 @@ func (a *MsxApplication) triggerObserver(event, phase string, observer Observer)
 	err := observer(ctx)
 	if err != nil {
 		span.LogFields(trace.Error(err))
+		logger.WithContext(ctx).Error(err)
 	}
 
 	return err

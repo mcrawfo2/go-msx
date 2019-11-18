@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var logger = log.NewLogger("msx.cli.flag")
+var logger = log.NewLogger("msx.config.goflagprovider")
 
 type ConfigProvider struct {
 	prefix  string
