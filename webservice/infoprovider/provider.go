@@ -20,7 +20,7 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	type Info struct {
 		App struct {
 			Name        string `json:"name"`
-			Version     string `json:"version"`
+			Version     string `json:"version" config:"default="`
 			Description string `json:"description"`
 			Attributes  struct {
 				DisplayName string `json:"displayName"`

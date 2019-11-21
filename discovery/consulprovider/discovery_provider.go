@@ -18,20 +18,34 @@ func (p *DiscoveryProvider) Discover(ctx context.Context, service string, passin
 		return nil, err
 	}
 
-	for _, sourceEntry := range serviceEntries {
-		resultEntry := &discovery.ServiceInstance{
-			ID:   sourceEntry.Service.ID,
-			Name: sourceEntry.Service.Service,
-			Host: sourceEntry.Service.Address,
-			Tags: sourceEntry.Service.Tags,
-			Meta: sourceEntry.Service.Meta,
-			Port: sourceEntry.Service.Port,
-		}
+	return convertToServiceInstances(serviceEntries), nil
+}
 
-		result = append(result, resultEntry)
+func (p *DiscoveryProvider) DiscoverAll(ctx context.Context, passingOnly bool, tags ...string) (result discovery.ServiceInstances, err error) {
+	var serviceEntries []*api.ServiceEntry
+	if serviceEntries, err = p.conn.GetAllServiceInstances(ctx, passingOnly, tags...); err != nil {
+		return nil, err
 	}
 
-	return
+	return convertToServiceInstances(serviceEntries), nil
+}
+
+func convertToServiceInstances(sourceEntries []*api.ServiceEntry) (result discovery.ServiceInstances) {
+	for _, sourceEntry := range sourceEntries {
+		result = append(result, convertToServiceInstance(sourceEntry))
+	}
+	return result
+}
+
+func convertToServiceInstance(sourceEntry *api.ServiceEntry) *discovery.ServiceInstance {
+	return &discovery.ServiceInstance{
+		ID:   sourceEntry.Service.ID,
+		Name: sourceEntry.Service.Service,
+		Host: sourceEntry.Service.Address,
+		Tags: sourceEntry.Service.Tags,
+		Meta: sourceEntry.Service.Meta,
+		Port: sourceEntry.Service.Port,
+	}
 }
 
 func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProvider, err error) {

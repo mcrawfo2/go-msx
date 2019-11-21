@@ -12,11 +12,12 @@ const (
 	statsCounterConsulCallErrors       = "call_errors"
 	statsGaugeConsulRegisteredServices = "registrations"
 
-	statsApiListKeyValuePairs   = "list-kv-pairs"
-	statsApiGetServiceInstances = "get-service-instances"
-	statsApiRegisterService     = "register-service"
-	statsApiDeregisterService   = "deregister-service"
-	statsApiNodeHealth          = "node-health"
+	statsApiListKeyValuePairs      = "list-kv-pairs"
+	statsApiGetServiceInstances    = "get-service-instances"
+	statsApiGetAllServiceInstances = "get-all-service-instances"
+	statsApiRegisterService        = "register-service"
+	statsApiDeregisterService      = "deregister-service"
+	statsApiNodeHealth             = "node-health"
 )
 
 var (

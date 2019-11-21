@@ -19,4 +19,6 @@ const (
 	ServiceNameHeartBeat = "heartbeat"
 	ServiceNameSnmpBeat  = "snmpbeat"
 	ServiceNameSshBeat   = "sshbeat"
+
+	ResourceProviderNameDnac = "dnac"
 )

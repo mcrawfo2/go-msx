@@ -3,6 +3,7 @@ package discovery
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -54,4 +55,13 @@ func (i *ServiceInstance) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+func (i *ServiceInstance) ContextPath() string {
+	for _, v := range i.Tags {
+		if strings.HasPrefix(v, "contextPath=") {
+			return strings.TrimPrefix(v, "contextPath=")
+		}
+	}
+	return ""
 }

@@ -97,7 +97,50 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 			err = errors.Wrap(ErrNoInstances, service)
 			return err
 		} else {
-			// Add a quick walk to fix results that have no address to deal with kube2consul entries
+			// Fix results that have no address to deal with kube2consul entries
+			for _, v := range serviceEntries {
+				if v.Service.Address == "" {
+					v.Service.Address = v.Node.Address
+				}
+			}
+			return nil
+		}
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return serviceEntries, nil
+}
+
+func (c *Connection) GetAllServiceInstances(ctx context.Context, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
+	ctx, span := trace.NewSpan(ctx, "consul." + statsApiGetAllServiceInstances)
+	defer span.Finish()
+
+	err = c.stats.Observe(statsApiGetAllServiceInstances, "", func() error {
+		queryOptions := &api.QueryOptions{}
+		queryOptions = queryOptions.WithContext(ctx)
+
+		var serviceMap map[string][]string
+		if serviceMap, _, err = c.client.Catalog().Services(queryOptions); err != nil {
+			return err
+		} else if len(serviceMap) == 0 {
+			return ErrNoInstances
+		} else {
+			for serviceName := range serviceMap {
+				var serviceSpecificEntries []*api.ServiceEntry
+				if serviceSpecificEntries, _, err = c.client.Health().ServiceMultipleTags(serviceName, tags, passingOnly, queryOptions); err != nil {
+					return err
+				} else if len(serviceSpecificEntries) > 0 {
+					serviceEntries = append(serviceEntries, serviceSpecificEntries...)
+				}
+			}
+
+			if len(serviceEntries) == 0 {
+				return ErrNoInstances
+			}
+
+			// Fix results that have no address to deal with kube2consul entries
 			for _, v := range serviceEntries {
 				if v.Service.Address == "" {
 					v.Service.Address = v.Node.Address

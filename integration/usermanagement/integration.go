@@ -81,7 +81,7 @@ var (
 
 func NewIntegration(ctx context.Context) (Api, error) {
 	return &Integration{
-		MsxService: integration.NewMsxService(ctx, serviceName, serviceContextPath, endpoints),
+		MsxService: integration.NewMsxService(ctx, serviceName, endpoints),
 	}, nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/rpinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
@@ -28,8 +29,7 @@ type MsxServiceEndpoint struct {
 	Path   string
 }
 
-
-func (e MsxServiceEndpoint) Url(endpointName, serviceName, contextPath string, variables map[string]string, queryParameters url.Values) (string, error) {
+func (e MsxServiceEndpoint) Url(endpointName, serviceName string, variables map[string]string, queryParameters url.Values) (string, error) {
 	subPathTemplate, err := template.New(endpointName).Parse(e.Path)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to parse e url template")
@@ -38,7 +38,6 @@ func (e MsxServiceEndpoint) Url(endpointName, serviceName, contextPath string, v
 	var pathBuffer bytes.Buffer
 	pathBuffer.WriteString("http://")
 	pathBuffer.WriteString(serviceName)
-	pathBuffer.WriteString(contextPath)
 
 	err = subPathTemplate.Execute(&pathBuffer, variables)
 	if err != nil {
@@ -54,12 +53,11 @@ func (e MsxServiceEndpoint) Url(endpointName, serviceName, contextPath string, v
 	return result, nil
 }
 
-
 type MsxService struct {
-	serviceName string
-	contextPath string
-	endpoints   map[string]MsxServiceEndpoint
-	ctx         context.Context
+	serviceName      string
+	endpoints        map[string]MsxServiceEndpoint
+	resourceProvider bool
+	ctx              context.Context
 }
 
 func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
@@ -75,7 +73,6 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	fullUrl, err := endpoint.Url(
 		r.EndpointName,
 		v.serviceName,
-		v.contextPath,
 		r.EndpointParameters,
 		r.QueryParameters)
 	if err != nil {
@@ -125,7 +122,11 @@ func (v *MsxService) newHttpClientDo() (httpclient.DoFunc, error) {
 
 	httpClient := factory.NewHttpClient()
 	httpClientDo := loginterceptor.NewInterceptor(httpClient.Do)
-	httpClientDo = discoveryinterceptor.NewInterceptor(httpClientDo)
+	if !v.resourceProvider {
+		httpClientDo = discoveryinterceptor.NewInterceptor(httpClientDo)
+	} else {
+		httpClientDo = rpinterceptor.NewInterceptor(httpClientDo)
+	}
 	httpClientDo = traceinterceptor.NewInterceptor(httpClientDo)
 
 	return httpClientDo, nil
@@ -139,7 +140,7 @@ func (v *MsxService) Execute(request *MsxRequest) (response *MsxResponse, err er
 
 	httpRequest = httpRequest.WithContext(httpclient.ContextWithOperationName(
 		httpRequest.Context(),
-		v.serviceName + "." + request.EndpointName))
+		v.serviceName+"."+request.EndpointName))
 
 	httpClientDo, err := v.newHttpClientDo()
 	if err != nil {
@@ -261,11 +262,19 @@ func (v *MsxService) Operation(request *MsxRequest) string {
 	return fmt.Sprintf("%s.%s", v.serviceName, request.EndpointName)
 }
 
-func NewMsxService(ctx context.Context, serviceName, contextPath string, endpoints map[string]MsxServiceEndpoint) *MsxService {
+func NewMsxService(ctx context.Context, serviceName string, endpoints map[string]MsxServiceEndpoint) *MsxService {
 	return &MsxService{
 		serviceName: serviceName,
-		contextPath: contextPath,
 		endpoints:   endpoints,
 		ctx:         ctx,
+	}
+}
+
+func NewMsxServiceResourceProvider(ctx context.Context, serviceName string, endpoints map[string]MsxServiceEndpoint) *MsxService {
+	return &MsxService{
+		serviceName:      serviceName,
+		endpoints:        endpoints,
+		resourceProvider: true,
+		ctx:              ctx,
 	}
 }

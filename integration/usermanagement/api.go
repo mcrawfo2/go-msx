@@ -4,30 +4,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 )
 
-type Pojo integration.Pojo
-type PojoArray integration.PojoArray
-type HealthResult integration.HealthResult
-type ErrorDTO integration.ErrorDTO
-type ErrorDTO2 integration.ErrorDTO2
-
-type EncryptSecretsDTO struct {
-	Scope       map[string]string `json:"scope"`
-	Name        string            `json:"name"`
-	Method      string            `json:"method"`
-	SecretNames []string          `json:"secretNames"`
-}
-
-type GetSecretRequestDTO struct {
-	Names   []string          `json:"names"`
-	Encrypt EncryptSecretsDTO `json:"encrypt"`
-}
-
-type GenerateSecretRequestDTO struct {
-	Names   []string `json:"names"`
-	Save    bool     `json:"save"`
-	Encrypt *Pojo    `json:"encrypt"`
-}
-
 type Api interface {
 	GetAdminHealth() (*HealthResult, error)
 
