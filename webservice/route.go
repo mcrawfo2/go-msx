@@ -12,6 +12,8 @@ import (
 
 const (
 	HeaderNameAuthorization = "Authorization"
+	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
+	MetadataKeyResponsePayload = "MSX_RESPONSE_PAYLOAD"
 )
 
 var (
@@ -25,8 +27,50 @@ func init() {
 		Required(false)
 }
 
+func StandardList(b *restful.RouteBuilder) {
+	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+}
+
+func StandardRetrieve(b *restful.RouteBuilder) {
+	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+}
+
+func StandardCreate(b *restful.RouteBuilder) {
+	b.Do(CreateReturns, ProducesJson, ResponseEnvelope, ConsumesJson)
+}
+
+func StandardUpdate(b *restful.RouteBuilder) {
+	b.Do(StandardReturns, ProducesJson, ResponseEnvelope, ConsumesJson)
+}
+
+func StandardDelete(b *restful.RouteBuilder) {
+	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+}
+
+func ResponseEnvelope(b *restful.RouteBuilder) {
+	b.Metadata(MetadataKeyResponseEnvelope, new(integration.MsxEnvelope))
+}
+
+func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
+	return func(b *restful.RouteBuilder) {
+		b.Metadata(MetadataKeyResponsePayload, payload)
+	}
+}
+
 func StandardReturns(b *restful.RouteBuilder) {
 	b.Do(Returns(200, 400, 401, 403))
+}
+
+func CreateReturns(b *restful.RouteBuilder) {
+	b.Do(Returns(200, 201, 400, 401, 403))
+}
+
+func ProducesJson(b *restful.RouteBuilder) {
+	b.Produces(MIME_JSON)
+}
+
+func ConsumesJson(b *restful.RouteBuilder) {
+	b.Consumes(MIME_JSON)
 }
 
 func securityFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
