@@ -77,5 +77,20 @@ func commandMigrate(context.Context) error {
 		configKeyConsulDiscoveryEnable: "false",
 		configKeyServerEnable: "false",
 	})
+
+
+	OnEvent(EventStart, PhaseBefore, setContextMigrationManifest)
+	return nil
+}
+
+func setContextMigrationManifest(ctx context.Context) error {
+	manifest, err := migrate.NewManifest(config.FromContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	contextInjectors.Register(func(ctx context.Context) context.Context {
+		return migrate.ContextWithManifest(ctx, manifest)
+	})
 	return nil
 }

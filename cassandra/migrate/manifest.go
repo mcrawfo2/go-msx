@@ -1,8 +1,10 @@
 package migrate
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -114,6 +116,12 @@ func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc)
 	m.migrations = append(m.migrations, migration)
 
 	return nil
+}
+
+func (m *Manifest) AddCreateTableMigration(version string, table ddl.Table, ifNotExists bool) error {
+	description := fmt.Sprintf("Create %s table", table.Name)
+	stmt := new(ddl.CreateTableQueryBuilder).CreateTable(table, ifNotExists)
+	return m.AddCqlStringMigration(version, description, stmt)
 }
 
 func script(filename string) string {

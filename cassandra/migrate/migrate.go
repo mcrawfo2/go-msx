@@ -15,16 +15,12 @@ const (
 )
 
 var (
-	migrationManifest *Manifest
 	logger            = log.NewLogger("msx.cassandra.migrate")
 )
 
-func SetMigrationManifest(manifest *Manifest) {
-	migrationManifest = manifest
-}
-
 type Migrator struct {
 	ctx       context.Context
+	manifest  *Manifest
 	session   *gocql.Session
 	versioner Versioner
 }
@@ -34,7 +30,7 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration) error 
 
 	n := 0
 	var migration *Migration
-	for n, migration = range migrationManifest.Migrations() {
+	for n, migration = range m.manifest.Migrations() {
 		if n == len(appliedMigrations) {
 			break
 		}
@@ -70,7 +66,7 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration) error 
 func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) error {
 	logger.WithContext(m.ctx).Info("Applying new migrations")
 
-	migrations := migrationManifest.Migrations()
+	migrations := m.manifest.Migrations()
 	for n := lastAppliedMigration; n < len(migrations); n++ {
 		migration := migrations[n]
 		appliedMigration := AppliedMigration{
@@ -137,6 +133,7 @@ func (m *Migrator) Migrate() error {
 func NewMigrator(ctx context.Context, session *gocql.Session) *Migrator {
 	return &Migrator{
 		ctx:       ctx,
+		manifest:  ManifestFromContext(ctx),
 		session:   session,
 		versioner: NewVersioner(ctx, session),
 	}
