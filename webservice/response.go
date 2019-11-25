@@ -18,8 +18,10 @@ func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interfa
 	}
 
 	status := http.StatusOK
-	if statusProvider, ok := body.(StatusCodeProvider); ok {
-		status = statusProvider.StatusCode()
+	if body != nil {
+		if statusProvider, ok := body.(StatusCodeProvider); ok {
+			status = statusProvider.StatusCode()
+		}
 	}
 
 	WriteSuccessEnvelope(req, resp, status, body)

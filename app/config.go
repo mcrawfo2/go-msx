@@ -176,8 +176,7 @@ func findConfigFiles(cfg *config.Config, baseName string) []string {
 	var results []string
 	for _, folder := range folders {
 		for _, ext := range configFileExtensions {
-			fullName := baseName + ext
-			fullPath := path.Join(folder, fullName)
+			fullPath := path.Join(folder, baseName + ext)
 			info, err := os.Stat(fullPath)
 			if os.IsNotExist(err) || info.IsDir() {
 				continue

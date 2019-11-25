@@ -20,6 +20,7 @@ const (
 
 var (
 	ErrDisabled = errors.New("Cassandra connection disabled")
+	ErrNotFound = gocql.ErrNotFound
 	logger      = log.NewLogger("msx.cassandra")
 )
 
