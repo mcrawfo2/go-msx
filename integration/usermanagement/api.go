@@ -7,7 +7,7 @@ import (
 type Api interface {
 	GetAdminHealth() (*HealthResult, error)
 
-	Login(clientId, clientSecret, user, password string) (*integration.MsxResponse, error)
+	Login(user, password string) (*integration.MsxResponse, error)
 	Logout() (*integration.MsxResponse, error)
 
 	GetMyCapabilities() (*integration.MsxResponse, error)

@@ -9,7 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
-	"cto-github.cisco.com/NFV-BU/go-msx/webservice/jwtprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/metricsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 )
@@ -25,7 +25,7 @@ func registerRegistrations(cfg *config.Config) error {
 	}
 
 	if serverEnabled {
-		OnEvent(EventStart, PhaseBefore, registerJwtSecurityProvider)
+		OnEvent(EventStart, PhaseBefore, registerAuthenticationProvider)
 		OnEvent(EventStart, PhaseBefore, registerAdminWebServices)
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
@@ -35,9 +35,9 @@ func registerRegistrations(cfg *config.Config) error {
 	return nil
 }
 
-func registerJwtSecurityProvider(ctx context.Context) error {
-	logger.Info("Registering JWT web security provider")
-	return jwtprovider.RegisterSecurityProvider(ctx)
+func registerAuthenticationProvider(ctx context.Context) error {
+	logger.Info("Registering resource path glob security provider")
+	return authprovider.RegisterAuthenticationProvider(ctx)
 }
 
 func registerAdminWebServices(ctx context.Context) error {

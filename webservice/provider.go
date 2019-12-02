@@ -12,9 +12,9 @@ type DocumentationProvider interface {
 	Actuate(container *restful.Container, webService *restful.WebService) error
 }
 
-type SecurityProvider interface {
+type AuthenticationProvider interface {
 	// Ensures user is logged in
-	Authentication(request *restful.Request) error
+	Authenticate(request *restful.Request) error
 }
 
 type StaticAlias struct {

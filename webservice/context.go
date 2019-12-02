@@ -106,14 +106,14 @@ func RouteOperationFromContext(ctx context.Context) string {
 	return ctx.Value(contextKeyOperation).(string)
 }
 
-func ContextWithSecurityProvider(ctx context.Context, provider SecurityProvider) context.Context {
+func ContextWithSecurityProvider(ctx context.Context, provider AuthenticationProvider) context.Context {
 	return context.WithValue(ctx, contextKeySecurityProvider, provider)
 }
 
-func SecurityProviderFromContext(ctx context.Context) SecurityProvider {
+func AuthenticationProviderFromContext(ctx context.Context) AuthenticationProvider {
 	providerInterface := ctx.Value(contextKeySecurityProvider)
 	if providerInterface != nil {
-		return providerInterface.(SecurityProvider)
+		return providerInterface.(AuthenticationProvider)
 	}
 	return nil
 }

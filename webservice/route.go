@@ -4,6 +4,8 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
 	"net/http"
@@ -73,10 +75,30 @@ func ConsumesJson(b *restful.RouteBuilder) {
 	b.Consumes(MIME_JSON)
 }
 
-func securityFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-	securityProvider := SecurityProviderFromContext(req.Request.Context())
-	if securityProvider != nil {
-		err := securityProvider.Authentication(req)
+func securityContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	token, err := httprequest.ExtractToken(req.Request)
+	if err != nil && err != httprequest.ErrNotFound {
+		WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+		return
+	}
+
+	if err == nil {
+		userContext, err := security.NewUserContextFromToken(token)
+		if err != nil {
+			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+		}
+
+		ctx := security.ContextWithUserContext(req.Request.Context(), userContext)
+		req.Request = req.Request.WithContext(ctx)
+	}
+
+	chain.ProcessFilter(req, resp)
+}
+
+func authenticationFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	authenticationProvider := AuthenticationProviderFromContext(req.Request.Context())
+	if authenticationProvider != nil {
+		err := authenticationProvider.Authenticate(req)
 		if err != nil {
 			WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
 			return

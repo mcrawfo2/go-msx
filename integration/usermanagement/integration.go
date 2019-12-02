@@ -4,7 +4,6 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"encoding/base64"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"net/http"
@@ -41,12 +40,11 @@ const (
 	endpointNameRemoveTenantSecrets   = "removeTenantSecrets"
 	endpointNameGenerateTenantSecrets = "generateTenantSecrets"
 
-	serviceName        = integration.ServiceNameUserManagement
-	serviceContextPath = "/idm"
+	serviceName = integration.ServiceNameUserManagement
 )
 
 var (
-	logger = log.NewLogger("msx.integration.usermanagement")
+	logger    = log.NewLogger("msx.integration.usermanagement")
 	endpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
@@ -103,11 +101,16 @@ func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 	return result, err
 }
 
-func (i *Integration) Login(clientId, clientSecret, user, password string) (result *integration.MsxResponse, err error) {
+func (i *Integration) Login(user, password string) (result *integration.MsxResponse, err error) {
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	if err != nil {
+		return nil, err
+	}
+
 	return i.Execute(&integration.MsxRequest{
 		EndpointName: endpointNameLogin,
 		Headers: http.Header(map[string][]string{
-			"Authorization": {"Basic " + base64.StdEncoding.EncodeToString([]byte(clientId+":"+clientSecret))},
+			"Authorization": {securityClientSettings.Authorization()},
 			"Content-Type":  {"application/x-www-form-urlencoded"},
 		}),
 		Body: []byte(url.Values(map[string][]string{
@@ -162,7 +165,7 @@ func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: new(TenantListResponse),
+				Payload:    new(TenantListResponse),
 			},
 		}
 		result.Payload = result.Envelope.Payload
@@ -203,7 +206,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 			Envelope: &integration.MsxEnvelope{
 				Success:    true,
 				HttpStatus: "OK",
-				Payload: new(TenantListResponse),
+				Payload:    new(TenantListResponse),
 			},
 		}
 		result.Payload = result.Envelope.Payload

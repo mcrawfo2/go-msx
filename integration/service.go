@@ -9,7 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/rpinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -60,6 +60,10 @@ type MsxService struct {
 	ctx              context.Context
 }
 
+func (v *MsxService) Context() context.Context {
+	return v.ctx
+}
+
 func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	var req *http.Request
 	var err error
@@ -89,6 +93,7 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(v.ctx)
 
 	req.Header.Set("Accept", "application/json")
 
@@ -97,12 +102,7 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	}
 
 	if !r.NoToken {
-		userContext := security.UserContextFromContext(v.ctx)
-		if userContext.Token == "" {
-			logger.Warn("Token required but not set")
-		} else {
-			req.Header.Set("Authorization", "Bearer "+userContext.Token)
-		}
+		httprequest.InjectToken(req)
 	}
 
 	for k, vs := range r.Headers {
@@ -111,7 +111,7 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 		}
 	}
 
-	return req.WithContext(v.ctx), nil
+	return req, nil
 }
 
 func (v *MsxService) newHttpClientDo() (httpclient.DoFunc, error) {

@@ -22,7 +22,7 @@ type WebServer struct {
 	router        *restful.CurlyRouter
 	services      []*restful.WebService
 	documentation DocumentationProvider
-	security      SecurityProvider
+	security      AuthenticationProvider
 	actuators     []ServiceProvider
 	aliases       []StaticAlias
 	server        *http.Server
@@ -79,7 +79,8 @@ func (s *WebServer) Handler() http.Handler {
 		s.injectors.Clone()))
 	s.container.Filter(tracingFilter)
 	s.container.Filter(optionsFilter)
-	s.container.Filter(securityFilter)
+	s.container.Filter(securityContextFilter)
+	s.container.Filter(authenticationFilter)
 	if s.cfg.Cors {
 		ActivateCors(s.container)
 	}
@@ -224,7 +225,7 @@ func (s *WebServer) RegisterActuator(provider ServiceProvider) {
 	}
 }
 
-func (s *WebServer) SetSecurityProvider(provider SecurityProvider) {
+func (s *WebServer) SetAuthenticationProvider(provider AuthenticationProvider) {
 	if provider != nil {
 		s.security = provider
 	}
@@ -257,7 +258,7 @@ func (s *WebServer) ContextPath() string {
 	return s.cfg.ContextPath
 }
 
-func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security SecurityProvider, injectors *types.ContextInjectors) restful.FilterFunction {
+func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security AuthenticationProvider, injectors *types.ContextInjectors) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		// Inject the container, router, security provider, request
 		ctx2 := ContextWithContainer(ctx, container)

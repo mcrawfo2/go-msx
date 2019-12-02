@@ -28,7 +28,7 @@ const (
 	PhaseAfter  = ".after"
 )
 
-type Observer func(ctx context.Context) error
+type Observer types.ActionFunc
 
 type MsxApplication struct {
 	Callbacks map[string][]Observer
