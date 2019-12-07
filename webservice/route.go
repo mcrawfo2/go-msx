@@ -83,7 +83,7 @@ func securityContextFilter(req *restful.Request, resp *restful.Response, chain *
 	}
 
 	if err == nil {
-		userContext, err := security.NewUserContextFromToken(token)
+		userContext, err := security.NewUserContextFromToken(req.Request.Context(), token)
 		if err != nil {
 			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
 		}

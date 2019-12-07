@@ -5,8 +5,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/pkg/errors"
+	"time"
 )
 
 const (
@@ -45,8 +47,24 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	var consulPrefix = f.ContextPath()
 	logger.Infof("Loading configuration from consul (%s): %s)", f.connection.Host(), consulPrefix)
 	var defaultSettings map[string]string
-	if defaultSettings, err = f.connection.ListKeyValuePairs(ctx, consulPrefix); err != nil {
-		return nil, errors.Wrap(err, "Failed to load configuration from consul")
+
+	err = types.Retry{
+		Attempts: 10,
+		Delay:    3 * time.Second,
+		BackOff:  0.0,
+		Linear:   true,
+	}.Retry(func() error {
+		if ctx.Err() != nil {
+			return &types.PermanentError{Cause: err}
+		}
+		if defaultSettings, err = f.connection.ListKeyValuePairs(ctx, consulPrefix); err != nil {
+			return errors.Wrap(err, "Failed to load configuration from consul")
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	for k, v := range defaultSettings {

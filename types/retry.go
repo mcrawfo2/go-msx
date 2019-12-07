@@ -13,6 +13,18 @@ type PermanentFailure interface {
 	IsPermanent() bool
 }
 
+type PermanentError struct {
+	Cause error
+}
+
+func (e *PermanentError) IsPermanent() bool {
+	return true
+}
+
+func (e *PermanentError) Error() string {
+	return e.Cause.Error()
+}
+
 type Retry struct {
 	Attempts int           `config:"default=3"`
 	Delay    time.Duration `config:"default=100ms"`
@@ -39,7 +51,11 @@ func (r Retry) Retry (retryable Retryable) (err error) {
 	}
 
 	if err != nil {
-		retryLogger.WithError(err).Errorf("Attempt %d failed, no more attempts", n)
+		if perm, ok := err.(PermanentFailure); ok && perm.IsPermanent() {
+			retryLogger.WithError(err).Errorf("Attempt %d failed with permanent failure", n)
+		} else {
+			retryLogger.WithError(err).Errorf("Attempt %d failed, no more attempts", n)
+		}
 	}
 
 	return
