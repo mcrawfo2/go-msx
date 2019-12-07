@@ -1,4 +1,4 @@
-BUILDER = go run cmd/build/build.go --config cmd/build/build.yml
+BUILDER = go run -mod=vendor cmd/build/build.go --config cmd/build/build.yml
 
 .PHONY: test dist docker publish clean
 
