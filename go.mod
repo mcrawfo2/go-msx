@@ -3,6 +3,7 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.12
 
 require (
+	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.24.0

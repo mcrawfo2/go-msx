@@ -41,8 +41,10 @@ var (
 		"msx.platform.includegroups": "com.cisco.**",
 		"build.number":               "SNAPSHOT",
 		"build.group":                "com.cisco.msx",
-		"docker.archetype":           "microservice",
 		"kubernetes.group":           "platformms",
+		"docker.repository":          "dockerhub.cisco.com/vms-platform-dev-docker",
+		"docker.username": "",
+		"docker.password": "",
 	}
 )
 
@@ -86,7 +88,9 @@ type Build struct {
 }
 
 type Docker struct {
-	Archetype string
+	Repository string
+	Username   string
+	Password   string
 }
 
 type Kubernetes struct {

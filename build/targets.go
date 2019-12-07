@@ -20,9 +20,10 @@ func AddTarget(name, description string, fn cli.CommandFunc) {
 		return err
 	}
 
-	cmd, err := cli.AddCommand(name, description, wrapper)
-	if err != nil {
+
+	if cmd, err := cli.AddCommand(name, description, wrapper); err != nil {
 		panic(err.Error())
+	} else {
+		cmd.PreRunE = loadConfig
 	}
-	cmd.PreRunE = loadConfig
 }

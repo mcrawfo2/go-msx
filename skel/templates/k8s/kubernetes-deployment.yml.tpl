@@ -38,6 +38,10 @@ spec:
               name: phi
         - name: ${app.name}
           image: {{ ${app.name}_image }}:{{ ${app.name}_version }}
+          command:
+            - "/usr/bin/${app.name}"
+            - --profile
+            - production
           livenessProbe:
             httpGet:
               path: ${server.contextPath}/admin/alive
@@ -73,10 +77,6 @@ spec:
                 secretKeyRef:
                   name: msxvault
                   key: token
-            - name: SECURITY_KEYS_JWT_KEYSOURCE
-              value: pem
-            - name: SECURITY_KEYS_JWT_KEYPATH
-              value: /keystore/jwt-pubkey.pem
           ports:
             - containerPort: ${server.port}
           volumeMounts:

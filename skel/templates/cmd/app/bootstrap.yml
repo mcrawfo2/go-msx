@@ -7,6 +7,6 @@ info.app:
     type: platform
 
 server:
-  port: 9293
-  contextPath: /${app.name}
+  port: ${server.port}
+  contextPath: ${server.contextPath}
   staticPath: ../../static

@@ -2,6 +2,7 @@ executable:
   cmd: app
   configFiles:
     - bootstrap.yml
+    - ${app.name}.production.yml
 
 msx:
   release: 3.8.0

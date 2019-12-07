@@ -2,11 +2,13 @@ package skel
 
 import (
 	"github.com/AlecAivazis/survey/v2"
+	"os"
 	"path"
 	"strconv"
 )
 
 type SkeletonConfig struct {
+	TargetParent   string `survey:"targetParent"`
 	AppName        string `survey:"appName"`
 	AppDisplayName string `survey:"appDisplayName"`
 	AppDescription string `survey:"appDescription"`
@@ -14,10 +16,11 @@ type SkeletonConfig struct {
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
-	return path.Join("/Users/mcrawfo2/vms-3.1/demos", c.AppName)
+	return path.Join(c.TargetParent, c.AppName)
 }
 
 var skeletonConfig = &SkeletonConfig{
+	TargetParent:   path.Join(os.Getenv("HOME"), "Documents"),
 	AppName:        "someservice",
 	AppDisplayName: "Some Microservice",
 	AppDescription: "Does Something",
@@ -25,6 +28,14 @@ var skeletonConfig = &SkeletonConfig{
 }
 
 var surveyQuestions = []*survey.Question{
+	{
+		Name:      "targetParent",
+		Prompt:    &survey.Input{
+			Message: "Project Parent Directory:",
+			Default: skeletonConfig.TargetParent,
+		},
+		Validate:  survey.Required,
+	},
 	{
 		Name:      "appName",
 		Prompt:    &survey.Input{
