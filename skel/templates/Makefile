@@ -6,6 +6,7 @@ test:
 
 
 dist:
+	go mod vendor
 	$(BUILDER) create-dist-dir
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
@@ -16,8 +17,9 @@ docker:
 	$(BUILDER) docker-build
 
 publish:
+	go mod vendor
 	$(BUILDER) docker-push
 
 clean:
-	$(BUILDER) delete-dist-dir
+	rm -Rf dist
 	rm -Rf vendor
