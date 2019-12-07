@@ -2,7 +2,6 @@ executable:
   cmd: app
   configFiles:
     - bootstrap.yml
-    - application.properties
 
 msx:
   release: 3.8.0
@@ -14,6 +13,3 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: 3.8.0-EDGE
     includeGroups: "com.cisco.**"
-
-docker:
-  archetype: microservice

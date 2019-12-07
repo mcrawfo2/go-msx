@@ -3,6 +3,7 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.12
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.24.0
 	github.com/ThreeDotsLabs/watermill v1.0.0
@@ -17,7 +18,9 @@ require (
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/hashicorp/consul v1.4.0
+	github.com/hashicorp/go-syslog v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.1
+	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1

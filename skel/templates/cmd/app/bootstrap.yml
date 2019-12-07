@@ -1,0 +1,12 @@
+info.app:
+  name: ${app.name}
+  description: ${app.description}
+  attributes:
+    displayName: ${app.displayName}
+    parent: platform
+    type: platform
+
+server:
+  port: 9293
+  contextPath: /${app.name}
+  staticPath: ../../static

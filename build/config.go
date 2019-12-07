@@ -20,22 +20,36 @@ const (
 	configRootExecutable = "executable"
 	configRootBuild      = "build"
 	configRootDocker     = "docker"
+	configRootKubernetes = "kubernetes"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
 	configRootServer  = "server"
 
 	// Output directories
-	configOutputPath       = "dist"
+	configOutputPath = "dist"
+
 	configOutputRootPath   = configOutputPath + "/root"
 	configOutputConfigPath = configOutputRootPath + "/etc"
 	configOutputBinaryPath = configOutputRootPath + "/usr/bin"
+
+	configOutputKubernetesPath = configOutputPath + "/k8s"
+)
+
+var (
+	defaultConfigs = map[string]string{
+		"msx.platform.includegroups": "com.cisco.**",
+		"build.number":               "SNAPSHOT",
+		"build.group":                "com.cisco.msx",
+		"docker.archetype":           "microservice",
+		"kubernetes.group":           "platformms",
+	}
 )
 
 type AppInfo struct {
-	Name       string `config:"default="`
+	Name       string
 	Attributes struct {
-		DisplayName string `config:"default="`
+		DisplayName string
 	}
 }
 
@@ -44,7 +58,8 @@ func (p AppInfo) OutputConfigPath() string {
 }
 
 type Server struct {
-	Port int `config:"default=0"`
+	Port        int
+	ContextPath string
 }
 
 func (p Server) PortString() string {
@@ -61,13 +76,21 @@ type MsxParams struct {
 	Platform struct {
 		ParentArtifacts []string
 		Version         string
-		IncludeGroups   string `config:"default=com.cisco.**"`
+		IncludeGroups   string
 	}
 }
 
 type Build struct {
-	Number string `config:"default=SNAPSHOT"`
-	Group  string `config:"default=com.cisco.msx"`
+	Number string
+	Group  string
+}
+
+type Docker struct {
+	Archetype string
+}
+
+type Kubernetes struct {
+	Group string
 }
 
 type Config struct {
@@ -77,6 +100,8 @@ type Config struct {
 	Build      Build
 	App        AppInfo
 	Server     Server
+	Docker     Docker
+	Kubernetes Kubernetes
 	Cfg        *config.Config
 }
 
@@ -103,7 +128,10 @@ func (p Config) Port() string {
 var BuildConfig = new(Config)
 
 func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
-	var providers []config.Provider
+	var providers = []config.Provider{
+		config.NewStatic("defaults", defaultConfigs),
+	}
+
 	for _, configFile := range configFiles {
 		fileProvider := config.NewFileProvider("Build", configFile)
 		providers = append(providers, fileProvider)
@@ -150,6 +178,14 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Server, configRootServer); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Docker, configRootDocker); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Kubernetes, configRootKubernetes); err != nil {
 		return
 	}
 
