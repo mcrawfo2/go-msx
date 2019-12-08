@@ -44,6 +44,7 @@ func ConfigurePool(cfg *config.Config) error {
 }
 
 type vaultContextKey int
+
 const contextKeyVaultPool vaultContextKey = iota
 
 func ContextWithPool(ctx context.Context) context.Context {

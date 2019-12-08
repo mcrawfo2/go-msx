@@ -89,9 +89,9 @@ func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{},
 		TokenUrl     string `json:"tokenUrl"`
 	}{
 		AuthorizeUrl: sso.BaseUrl + sso.AuthorizePath,
-		ClientId: sso.ClientId,
+		ClientId:     sso.ClientId,
 		ClientSecret: sso.ClientSecret,
-		TokenUrl: sso.BaseUrl + sso.TokenPath,
+		TokenUrl:     sso.BaseUrl + sso.TokenPath,
 	}, nil
 }
 
@@ -103,8 +103,8 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
 
 	p.spec = restfulspec.BuildSwagger(restfulspec.Config{
-		WebServices:    container.RegisteredWebServices(),
-		APIPath:        swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
+		WebServices: container.RegisteredWebServices(),
+		APIPath:     swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
 	})
 
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).

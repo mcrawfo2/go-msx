@@ -8,6 +8,7 @@ import (
 var logger = log.NewLogger("msx.httpclient")
 
 type httpClientContextKey int
+
 const (
 	contextKeyHttpClientFactory httpClientContextKey = iota
 	contextKeyOperationName

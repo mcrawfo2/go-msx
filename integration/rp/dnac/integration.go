@@ -11,7 +11,7 @@ const (
 	endpointNameConnect              = "connect"
 	endpointNameRetrieveExtendedData = "retrieveExtendedData"
 
-	serviceName        = integration.ResourceProviderNameDnac
+	serviceName = integration.ResourceProviderNameDnac
 )
 
 var (
@@ -41,10 +41,10 @@ func (i *Integration) Connect(request DnacConnectRequest) (*integration.MsxRespo
 	var payload = ""
 
 	return i.Execute(&integration.MsxRequest{
-		EndpointName:       endpointNameConnect,
-		Body:               bodyBytes,
-		ExpectEnvelope:     true,
-		Payload:            &payload,
+		EndpointName:   endpointNameConnect,
+		Body:           bodyBytes,
+		ExpectEnvelope: true,
+		Payload:        &payload,
 	})
 }
 
@@ -55,10 +55,9 @@ func (i *Integration) RetrieveExtendedData(request DnacExtendedRequest) (*integr
 	}
 
 	return i.Execute(&integration.MsxRequest{
-		EndpointName:       endpointNameRetrieveExtendedData,
-		Body:               bodyBytes,
-		ExpectEnvelope:     true,
-		Payload:            &Pojo{},
+		EndpointName:   endpointNameRetrieveExtendedData,
+		Body:           bodyBytes,
+		ExpectEnvelope: true,
+		Payload:        &Pojo{},
 	})
 }
-

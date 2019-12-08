@@ -13,7 +13,6 @@ import (
 
 type HealthProvider struct{}
 
-
 func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) {
 	ctx := req.Request.Context()
 	userContext := security.UserContextFromContext(ctx)

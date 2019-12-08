@@ -13,8 +13,8 @@ var (
 )
 
 type Connection struct {
-	cfg          *ConnectionConfig
-	client       sarama.Client
+	cfg    *ConnectionConfig
+	client sarama.Client
 }
 
 func (c *Connection) Client() sarama.Client {

@@ -91,7 +91,6 @@ func NewThrowable(err error) *Throwable {
 	return throwable
 }
 
-
 type StackFrame map[string]interface{}
 
 func (f StackFrame) SetLineNumber(lineNumber string) {

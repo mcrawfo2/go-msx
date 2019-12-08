@@ -12,7 +12,7 @@ func Check(ctx context.Context) health.CheckResult {
 	redisPool := redis.PoolFromContext(ctx)
 	if redisPool == nil {
 		return health.CheckResult{
-			Status:  health.StatusDown,
+			Status: health.StatusDown,
 			Details: map[string]interface{}{
 				"error": "Redis pool not found in context",
 			},
@@ -25,7 +25,7 @@ func Check(ctx context.Context) health.CheckResult {
 		pingCmd := conn.Client(ctx).Ping()
 		pingResult, err := pingCmd.Result()
 		healthResult = health.CheckResult{
-			Status:  health.StatusUp,
+			Status: health.StatusUp,
 			Details: map[string]interface{}{
 				"version": conn.Version(),
 			},

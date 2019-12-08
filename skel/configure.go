@@ -29,16 +29,16 @@ var skeletonConfig = &SkeletonConfig{
 
 var surveyQuestions = []*survey.Question{
 	{
-		Name:      "targetParent",
-		Prompt:    &survey.Input{
+		Name: "targetParent",
+		Prompt: &survey.Input{
 			Message: "Project Parent Directory:",
 			Default: skeletonConfig.TargetParent,
 		},
-		Validate:  survey.Required,
+		Validate: survey.Required,
 	},
 	{
-		Name:      "appName",
-		Prompt:    &survey.Input{
+		Name: "appName",
+		Prompt: &survey.Input{
 			Message: "App name:",
 			Default: skeletonConfig.AppName,
 		},
@@ -46,24 +46,24 @@ var surveyQuestions = []*survey.Question{
 		Transform: survey.ToLower,
 	},
 	{
-		Name:      "appDisplayName",
-		Prompt:    &survey.Input{
+		Name: "appDisplayName",
+		Prompt: &survey.Input{
 			Message: "App display name:",
 			Default: skeletonConfig.AppDisplayName,
 		},
-		Validate:  survey.Required,
+		Validate: survey.Required,
 	},
 	{
-		Name:      "appDescription",
-		Prompt:    &survey.Input{
+		Name: "appDescription",
+		Prompt: &survey.Input{
 			Message: "App description:",
 			Default: skeletonConfig.AppDescription,
 		},
-		Validate:  survey.Required,
+		Validate: survey.Required,
 	},
 	{
-		Name:     "serverPort",
-		Prompt:   &survey.Input{
+		Name: "serverPort",
+		Prompt: &survey.Input{
 			Message: "Web server port:",
 			Default: strconv.Itoa(skeletonConfig.ServerPort),
 		},

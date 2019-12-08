@@ -108,7 +108,7 @@ func (c *Cluster) createKeyspace(ctx context.Context, name string, options Keysp
 		Query(keyspaceQueryBuilder.CreateKeyspace(keyspace, true)).
 		Consistency(c.FullConsistency()).
 		WithContext(ctx).
-			Exec()
+		Exec()
 }
 
 func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {

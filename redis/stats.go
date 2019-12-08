@@ -16,10 +16,10 @@ const (
 )
 
 var (
-	countRedisCalls = stats.NewCounterVec(statsSubsystemRedis, statsCounterRedisCalls, "command")
-	countRedisCallErrors = stats.NewCounterVec(statsSubsystemRedis, statsCounterRedisCallErrors, "command")
+	countRedisCalls       = stats.NewCounterVec(statsSubsystemRedis, statsCounterRedisCalls, "command")
+	countRedisCallErrors  = stats.NewCounterVec(statsSubsystemRedis, statsCounterRedisCallErrors, "command")
 	gaugeRedisCallsActive = stats.NewGaugeVec(statsSubsystemRedis, statsGaugeRedisCallsActive, "command")
-	histRedisCallTimeVec = stats.NewHistogramVec(statsSubsystemRedis, statsHistogramRedisCallTime, nil, "command")
+	histRedisCallTimeVec  = stats.NewHistogramVec(statsSubsystemRedis, statsHistogramRedisCallTime, nil, "command")
 )
 
 type statsHook struct{}

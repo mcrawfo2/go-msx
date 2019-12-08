@@ -149,7 +149,7 @@ func (a *MsxApplication) Run(command string) error {
 
 	if err := a.startupEvents(a.ctx); err == nil {
 		// Main loop
-		for ; a.ctx.Err() == nil; {
+		for a.ctx.Err() == nil {
 			select {
 			case <-a.refresh:
 				if err = a.refreshEvents(a.ctx); err != nil {

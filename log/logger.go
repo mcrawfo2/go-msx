@@ -287,6 +287,7 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 
 var loggers = make(map[string]*Logger)
 var levels = make(map[string]logrus.Level)
+
 func NewLogger(name string, fields ...LogContext) *Logger {
 	fields = append([]LogContext{{FieldName: name}}, fields...)
 	logger := newLogger(logrus.StandardLogger(), fields...)

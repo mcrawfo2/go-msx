@@ -2,8 +2,8 @@ package goflagprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/config/args"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"flag"
 	"os"

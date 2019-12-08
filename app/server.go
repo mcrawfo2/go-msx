@@ -6,10 +6,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
-	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/metricsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 )

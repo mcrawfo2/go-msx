@@ -9,21 +9,21 @@ const (
 var standardBuckets = prometheus.ExponentialBuckets(10, 2, 16)
 
 func NewGauge(subsystem, name string) prometheus.Gauge {
-	gauge :=  prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   namespaceMsx,
-		Subsystem:   subsystem,
-		Name:        name,
+	gauge := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: namespaceMsx,
+		Subsystem: subsystem,
+		Name:      name,
 	})
 
 	prometheus.MustRegister(gauge)
 	return gauge
 }
 
-func NewGaugeVec(subsystem, name string, labels...string) *prometheus.GaugeVec {
+func NewGaugeVec(subsystem, name string, labels ...string) *prometheus.GaugeVec {
 	gaugeVec := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace:   namespaceMsx,
-		Subsystem:   subsystem,
-		Name:        name,
+		Namespace: namespaceMsx,
+		Subsystem: subsystem,
+		Name:      name,
 	}, labels)
 
 	prometheus.MustRegister(gaugeVec)
@@ -53,10 +53,10 @@ func NewHistogramVec(subsystem, name string, buckets []float64, labels ...string
 	}
 
 	histogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   namespaceMsx,
-		Subsystem:   subsystem,
-		Name:        name,
-		Buckets:     buckets,
+		Namespace: namespaceMsx,
+		Subsystem: subsystem,
+		Name:      name,
+		Buckets:   buckets,
 	}, labels)
 
 	prometheus.MustRegister(histogramVec)
@@ -65,9 +65,9 @@ func NewHistogramVec(subsystem, name string, buckets []float64, labels ...string
 
 func NewCounter(subsystem, name string) prometheus.Counter {
 	counter := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace:   namespaceMsx,
-		Subsystem:   subsystem,
-		Name:        name,
+		Namespace: namespaceMsx,
+		Subsystem: subsystem,
+		Name:      name,
 	})
 
 	prometheus.MustRegister(counter)
@@ -76,9 +76,9 @@ func NewCounter(subsystem, name string) prometheus.Counter {
 
 func NewCounterVec(subsystem, name string, labels ...string) *prometheus.CounterVec {
 	counterVec := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   namespaceMsx,
-		Subsystem:   subsystem,
-		Name:        name,
+		Namespace: namespaceMsx,
+		Subsystem: subsystem,
+		Name:      name,
 	}, labels)
 
 	prometheus.MustRegister(counterVec)

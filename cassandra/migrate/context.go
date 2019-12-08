@@ -3,6 +3,7 @@ package migrate
 import "context"
 
 type migrateContextKey int
+
 const contextKeyMigrationManifest migrateContextKey = iota
 
 func ContextWithManifest(ctx context.Context, manifest *Manifest) context.Context {

@@ -29,10 +29,10 @@ const (
 	// Output directories
 	configOutputPath = "dist"
 
-	configOutputRootPath       = configOutputPath + "/root"
-	configOutputConfigPath     = configOutputRootPath + "/etc"
-	configOutputBinaryPath     = configOutputRootPath + "/usr/bin"
-	configOutputStaticPath     = configOutputRootPath + "/var/lib"
+	configOutputRootPath   = configOutputPath + "/root"
+	configOutputConfigPath = configOutputRootPath + "/etc"
+	configOutputBinaryPath = configOutputRootPath + "/usr/bin"
+	configOutputStaticPath = configOutputRootPath + "/var/lib"
 
 	configTestPath = "test"
 )

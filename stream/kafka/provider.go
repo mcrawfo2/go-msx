@@ -15,7 +15,7 @@ const (
 
 var ErrDisabled = msxKafka.ErrDisabled
 
-type Provider struct {}
+type Provider struct{}
 
 func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
 	connectionConfig, err := msxKafka.NewConnectionConfig(cfg)

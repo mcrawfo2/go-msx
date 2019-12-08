@@ -16,7 +16,7 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 
 		if !strings.Contains(serviceName, ":") && !strings.Contains(serviceName, ".") {
 			if instances, err := discovery.Discover(req.Context(), serviceName, true); err != nil {
-				return nil, errors.Wrap(err, "Failed to discover service " + serviceName)
+				return nil, errors.Wrap(err, "Failed to discover service "+serviceName)
 			} else if len(instances) == 0 {
 				return nil, errors.New(fmt.Sprintf("No healthy instances of %s found", serviceName))
 			} else {

@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 const (
 	configKeyInfo = "info"
 )
@@ -29,13 +28,13 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 			} `json:"attributes"`
 		} `json:"app"`
 		Build struct {
-			Version       string  `json:"version"`
-			BuildNumber   string  `json:"number" config:"buildNumber"`
-			BuildDateTime string  `json:"-"`
-			Artifact      string  `json:"artifact"`
-			Name          string  `json:"name"`
+			Version       string       `json:"version"`
+			BuildNumber   string       `json:"number" config:"buildNumber"`
+			BuildDateTime string       `json:"-"`
+			Artifact      string       `json:"artifact"`
+			Name          string       `json:"name"`
 			Time          epochSeconds `json:"time" config:"default=0"`
-			Group         string  `json:"group"`
+			Group         string       `json:"group"`
 		} `json:"build"`
 	}
 

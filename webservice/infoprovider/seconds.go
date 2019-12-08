@@ -14,4 +14,3 @@ func (e epochSeconds) MarshalJSON() ([]byte, error) {
 func newEpochSeconds(when time.Time) epochSeconds {
 	return epochSeconds(float64(when.Unix()) + (float64(when.Nanosecond()) * 1e-9))
 }
-

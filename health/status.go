@@ -34,11 +34,9 @@ func ParseStatus(status string) Status {
 	}
 }
 
-
 func (s Status) Aggregate(other Status) Status {
 	if (s == StatusDown && other == StatusUnknown) || s == StatusUp {
 		return other
 	}
 	return s
 }
-

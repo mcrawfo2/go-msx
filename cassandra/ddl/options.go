@@ -2,7 +2,7 @@ package ddl
 
 import "strings"
 
-type OptionsQueryPartBuilder struct {}
+type OptionsQueryPartBuilder struct{}
 
 func (b *OptionsQueryPartBuilder) Options(optionsMaps ...map[string]string) string {
 	sb := new(strings.Builder)

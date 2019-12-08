@@ -39,7 +39,7 @@ func Check(ctx context.Context) health.CheckResult {
 	return health.CheckResult{
 		Status: health.StatusDown,
 		Details: map[string]interface{}{
-			"error":   "Consul serfHealth check missing or failed",
+			"error": "Consul serfHealth check missing or failed",
 		},
 	}
 }

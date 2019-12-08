@@ -28,7 +28,7 @@ type ConfigProviderConfig struct {
 type ConfigProvider struct {
 	name         string
 	sourceConfig *ConfigProviderConfig
-	contextPath   string
+	contextPath  string
 	connection   *vault.Connection
 }
 
@@ -98,5 +98,5 @@ func NewConfigProvidersFromConfig(name string, cfg *config.Config) ([]config.Pro
 			contextPath:  appContext,
 			connection:   conn,
 		},
-	} , nil
+	}, nil
 }

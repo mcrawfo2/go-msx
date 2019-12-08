@@ -2,7 +2,7 @@ package health
 
 import "context"
 
-type Check func (context.Context) CheckResult
+type Check func(context.Context) CheckResult
 
 var healthChecks = make(map[string]Check)
 

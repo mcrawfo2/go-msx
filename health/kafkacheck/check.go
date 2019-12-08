@@ -11,7 +11,7 @@ func Check(ctx context.Context) health.CheckResult {
 	kafkaPool := kafka.PoolFromContext(ctx)
 	if kafkaPool == nil {
 		return health.CheckResult{
-			Status:  health.StatusDown,
+			Status: health.StatusDown,
 			Details: map[string]interface{}{
 				"error": "Kafka pool not found in context",
 			},
@@ -24,7 +24,7 @@ func Check(ctx context.Context) health.CheckResult {
 			broker, err := conn.Client().Controller()
 			if err != nil {
 				healthResult = health.CheckResult{
-					Status:  health.StatusDown,
+					Status: health.StatusDown,
 					Details: map[string]interface{}{
 						"error": err.Error(),
 					},
@@ -35,14 +35,14 @@ func Check(ctx context.Context) health.CheckResult {
 			connectedResult, err := broker.Connected()
 			if err != nil {
 				healthResult = health.CheckResult{
-					Status:  health.StatusDown,
+					Status: health.StatusDown,
 					Details: map[string]interface{}{
 						"error": err.Error(),
 					},
 				}
 			} else if !connectedResult {
 				healthResult = health.CheckResult{
-					Status:  health.StatusDown,
+					Status: health.StatusDown,
 					Details: map[string]interface{}{
 						"error": "Kafka not connected",
 					},
@@ -60,7 +60,7 @@ func Check(ctx context.Context) health.CheckResult {
 
 	if err != nil {
 		healthResult = health.CheckResult{
-			Status:  health.StatusDown,
+			Status: health.StatusDown,
 			Details: map[string]interface{}{
 				"error": err.Error(),
 			},

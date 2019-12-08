@@ -15,16 +15,16 @@ type Publisher interface {
 }
 
 type TopicPublisher struct {
-	cfg *BindingConfiguration
+	cfg       *BindingConfiguration
 	publisher message.Publisher
 }
 
-func (p *TopicPublisher) Publish (message *message.Message) error {
+func (p *TopicPublisher) Publish(message *message.Message) error {
 	if message == nil {
 		return nil
 	}
 
-	ctx, span := trace.NewSpan(message.Context(), "kafka.send." + p.cfg.Destination)
+	ctx, span := trace.NewSpan(message.Context(), "kafka.send."+p.cfg.Destination)
 	defer span.Finish()
 	message.SetContext(ctx)
 

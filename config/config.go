@@ -145,11 +145,11 @@ func (c *Config) resolveValue(resolved, settings map[string]string, value string
 func (c *Config) resolve(settings map[string]string) error {
 	resolved := map[string]string{}
 
-	for k,v := range settings {
+	for k, v := range settings {
 		resolved[k] = c.resolveValue(resolved, settings, v)
 	}
 
-	for k,v := range resolved {
+	for k, v := range resolved {
 		settings[k] = v
 	}
 

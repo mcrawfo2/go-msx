@@ -16,7 +16,7 @@ type Keyspace struct {
 	DurableWrites      bool
 }
 
-type KeyspaceQueryBuilder struct{
+type KeyspaceQueryBuilder struct {
 	options OptionsQueryPartBuilder
 }
 

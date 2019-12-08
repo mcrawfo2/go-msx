@@ -15,7 +15,7 @@ func init() {
 func BuildDebugExecutable(args []string) error {
 	buildArgs := []string{
 		"build",
-		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name + "-debug"),
+		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name+"-debug"),
 		`-gcflags="all=-N -l"`,
 	}
 

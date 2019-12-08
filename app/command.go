@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	configKeyRedisEnable = "spring.redis.enable"
-	configKeyKafkaEnable = "spring.cloud.stream.kafka.binder.enabled"
+	configKeyRedisEnable           = "spring.redis.enable"
+	configKeyKafkaEnable           = "spring.cloud.stream.kafka.binder.enabled"
 	configKeyConsulDiscoveryEnable = "spring.cloud.consul.discovery.enabled"
-	configKeyServerEnable = "server.enabled"
+	configKeyServerEnable          = "server.enabled"
 
-	CommandRoot = ""
-	CommandMigrate = "migrate"
+	CommandRoot     = ""
+	CommandMigrate  = "migrate"
 	CommandPopulate = "populate"
 )
 
@@ -72,12 +72,11 @@ func Noop(context.Context) error {
 
 func commandMigrate(context.Context) error {
 	OverrideConfig(map[string]string{
-		configKeyRedisEnable: "false",
-		configKeyKafkaEnable: "false",
+		configKeyRedisEnable:           "false",
+		configKeyKafkaEnable:           "false",
 		configKeyConsulDiscoveryEnable: "false",
-		configKeyServerEnable: "false",
+		configKeyServerEnable:          "false",
 	})
-
 
 	OnEvent(EventStart, PhaseBefore, setContextMigrationManifest)
 	return nil

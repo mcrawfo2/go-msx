@@ -69,7 +69,7 @@ func StaticFile(fileName string) restful.RouteFunction {
 func EnsureSlash(destination http.HandlerFunc) restful.RouteFunction {
 	return HttpHandlerController(func(writer http.ResponseWriter, request *http.Request) {
 		if !strings.HasSuffix(request.URL.Path, "/") {
-			http.RedirectHandler(request.URL.Path + "/", 302).ServeHTTP(writer, request)
+			http.RedirectHandler(request.URL.Path+"/", 302).ServeHTTP(writer, request)
 			return
 		}
 

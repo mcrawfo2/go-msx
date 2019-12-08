@@ -11,9 +11,9 @@ import (
 type CommandFunc func(args []string) error
 
 var rootCmd = &cobra.Command{
-	Use: "",
-	SilenceUsage: true,
-	SilenceErrors: true,
+	Use:                "",
+	SilenceUsage:       true,
+	SilenceErrors:      true,
 	FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
 }
 
@@ -41,8 +41,8 @@ func AddCommand(path, brief string, cmdFunc CommandFunc) (*cobra.Command, error)
 	}
 
 	cmd := &cobra.Command{
-		Use: commandName,
-		Short: brief,
+		Use:                commandName,
+		Short:              brief,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmdFunc(args)

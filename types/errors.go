@@ -35,4 +35,3 @@ func FilterList(source ErrorList) error {
 	}
 	return result
 }
-

@@ -23,7 +23,7 @@ var (
 
 type PushConfig struct {
 	Enabled   bool          `config:"default=false"`
-	Url       string        `config:"default="`        // no default
+	Url       string        `config:"default="` // no default
 	JobName   string        `config:"default=go_msx"`
 	Frequency time.Duration `config:"default=15s"`
 }

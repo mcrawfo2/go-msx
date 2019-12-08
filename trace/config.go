@@ -43,7 +43,7 @@ type TracingReporterConfig struct {
 	Name string `config:"default=jaeger"`
 	Host string `config:"default=localhost"`
 	Port int    `config:"default=6831"`
-	Url string  `config:"default=http://localhost:9411/api/v1/spans"`
+	Url  string `config:"default=http://localhost:9411/api/v1/spans"`
 }
 
 func (c TracingReporterConfig) Address() string {

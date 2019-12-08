@@ -17,13 +17,13 @@ import (
 type ListenerAction func(msg *message.Message) error
 
 var (
-	logger = log.NewLogger("msx.stream")
-	listenerMux sync.Mutex
-	listeners = make(map[string][]ListenerAction)
-	router *message.Router
-	routerLogger = log.NewLogger("watermill.router")
+	logger                = log.NewLogger("msx.stream")
+	listenerMux           sync.Mutex
+	listeners             = make(map[string][]ListenerAction)
+	router                *message.Router
+	routerLogger          = log.NewLogger("watermill.router")
 	routerWatermillLogger = NewWatermillLoggerAdapter(log.NewLogger("watermill.router"))
-	handlerCounter atomic.Int32
+	handlerCounter        atomic.Int32
 )
 
 func StartRouter(ctx context.Context) error {

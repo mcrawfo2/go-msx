@@ -44,6 +44,7 @@ func ConfigurePool(cfg *config.Config) error {
 }
 
 type consulContextKey int
+
 const contextKeyConsulPool consulContextKey = iota
 
 func ContextWithPool(ctx context.Context) context.Context {

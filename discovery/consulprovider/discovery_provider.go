@@ -2,9 +2,9 @@ package consulprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"github.com/hashicorp/consul/api"
 )
 

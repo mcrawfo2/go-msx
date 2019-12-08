@@ -35,9 +35,9 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 
 	logContext := log.LogContext{
 		"operation": operationName,
-		"method": req.Request.Method,
-		"path": req.Request.URL.Path,
-		"code": resp.StatusCode(),
+		"method":    req.Request.Method,
+		"path":      req.Request.URL.Path,
+		"code":      resp.StatusCode(),
 	}
 
 	span.LogFields(trace.Int(trace.FieldHttpCode, resp.StatusCode()))

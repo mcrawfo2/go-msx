@@ -193,8 +193,6 @@ func installJarConfigs(artifact maven.Artifact, repository maven.ArtifactReposit
 	return nil
 }
 
-
-
 func installConfigs(inputDir, outputDir string, files []string) error {
 	logger.Infof("Source directory: %s", inputDir)
 	logger.Infof("Destination directory: %s", outputDir)

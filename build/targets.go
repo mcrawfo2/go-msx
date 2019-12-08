@@ -20,7 +20,6 @@ func AddTarget(name, description string, fn cli.CommandFunc) {
 		return err
 	}
 
-
 	if cmd, err := cli.AddCommand(name, description, wrapper); err != nil {
 		panic(err.Error())
 	} else {

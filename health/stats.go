@@ -3,9 +3,9 @@ package health
 import "cto-github.cisco.com/NFV-BU/go-msx/stats"
 
 const (
-	statsSubsystemHealth            = "health"
-	statsCounterHealthCheckReports  = "check_reports"
-	statsGaugeHealthChecks          = "checks"
+	statsSubsystemHealth           = "health"
+	statsCounterHealthCheckReports = "check_reports"
+	statsGaugeHealthChecks         = "checks"
 
 	statsHistogramHealthCheckStatus = "check_status"
 	statsGaugeHealthChecksUp        = "checks_up"

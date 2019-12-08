@@ -7,7 +7,7 @@ import (
 
 var retryLogger = log.NewLogger("msx.types.retry")
 
-type Retryable func () error
+type Retryable func() error
 
 type PermanentFailure interface {
 	IsPermanent() bool
@@ -32,7 +32,7 @@ type Retry struct {
 	Linear   bool          `config:"default=false"`
 }
 
-func (r Retry) Retry (retryable Retryable) (err error) {
+func (r Retry) Retry(retryable Retryable) (err error) {
 	currentDelay := r.Delay.Nanoseconds()
 	var n int
 	for n < r.Attempts {

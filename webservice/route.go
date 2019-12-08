@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	HeaderNameAuthorization = "Authorization"
+	HeaderNameAuthorization     = "Authorization"
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
-	MetadataKeyResponsePayload = "MSX_RESPONSE_PAYLOAD"
+	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 )
 
 var (

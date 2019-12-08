@@ -10,7 +10,7 @@ import (
 type traceHook struct{}
 
 func (s *traceHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	ctx, _ = trace.NewSpan(ctx, "redis.cmd." + strings.ToLower(cmd.Name()))
+	ctx, _ = trace.NewSpan(ctx, "redis.cmd."+strings.ToLower(cmd.Name()))
 	return ctx, nil
 }
 

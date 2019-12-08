@@ -75,6 +75,7 @@ func Status(status string) tracelog.Field {
 }
 
 type contextTraceKey int
+
 const (
 	contextKeyUntracedContext contextTraceKey = iota
 )

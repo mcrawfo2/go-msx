@@ -65,7 +65,7 @@ func FlattenJSON(input map[string]interface{}, namespace string) (map[string]str
 			}
 		} else if arrayChild, ok := value.([]interface{}); ok {
 			for k, v := range arrayChild {
-				flattened[NormalizeKey(token) + fmt.Sprintf("[%d]", k)] = fmt.Sprintf("%v", v)
+				flattened[NormalizeKey(token)+fmt.Sprintf("[%d]", k)] = fmt.Sprintf("%v", v)
 			}
 		} else {
 			flattened[NormalizeKey(token)] = fmt.Sprintf("%v", value)

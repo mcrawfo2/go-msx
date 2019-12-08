@@ -133,7 +133,7 @@ func (j *TokenProvider) keystoreSigningKey(token *jwt.Token) (interface{}, error
 	}
 
 	privateKeyInterface, exists := keyStore[j.cfg.KeyName]
-	if !exists  {
+	if !exists {
 		return nil, errors.Errorf("No key named %s found in keystore", j.cfg.KeyName)
 	}
 

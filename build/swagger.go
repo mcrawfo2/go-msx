@@ -25,7 +25,7 @@ func pathMapper(glob string, strip int) pathMapperFunc {
 			return nil
 		}
 
-		fileNameParts := strings.SplitN(fileName, "/", strip + 1)
+		fileNameParts := strings.SplitN(fileName, "/", strip+1)
 		return &fileNameParts[strip]
 	}
 }

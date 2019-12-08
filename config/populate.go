@@ -33,8 +33,8 @@ func (p PartialConfig) Set(key, value string) {
 // with the given prefix and the prefix removed from the keys.
 func (p PartialConfig) FilterStripPrefix(prefix string) PartialConfig {
 	pp := PartialConfig{
-		local:make(map[string]string),
-		config:p.config,
+		local:  make(map[string]string),
+		config: p.config,
 	}
 	n := len(prefix)
 	for k := range p.local {
@@ -190,7 +190,7 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 			}
 
 			// Ensure we have enough slots in the slice
-			for ; index >= len(values); {
+			for index >= len(values) {
 				values = append(values, nil)
 			}
 

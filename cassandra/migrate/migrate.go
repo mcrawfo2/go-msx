@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	logger            = log.NewLogger("msx.cassandra.migrate")
+	logger = log.NewLogger("msx.cassandra.migrate")
 )
 
 type Migrator struct {

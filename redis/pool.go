@@ -44,6 +44,7 @@ func ConfigurePool(cfg *config.Config) error {
 }
 
 type redisContextKey int
+
 const contextKeyRedisPool redisContextKey = iota
 
 func ContextWithPool(ctx context.Context) context.Context {

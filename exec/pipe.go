@@ -25,7 +25,6 @@ func Info(template string, args ...interface{}) pipe.Pipe {
 	}
 }
 
-
 func ExecutePipes(pipes ...pipe.Pipe) error {
 	return ExecutePipesIn("", pipes...)
 }

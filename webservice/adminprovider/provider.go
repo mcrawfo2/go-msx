@@ -21,7 +21,7 @@ type Report struct {
 	Links map[string]Link `json:"_links"`
 }
 
-type AdminProvider struct {}
+type AdminProvider struct{}
 
 func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 	infoService.Consumes(restful.MIME_JSON)
@@ -47,8 +47,8 @@ func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 func (h AdminProvider) adminReport(req *restful.Request) (body interface{}, err error) {
 	baseUrl := fmt.Sprintf("http://%s%s", req.Request.Host, req.Request.URL.String())
 	var reportLinks = map[string]Link{
-		"self": {baseUrl, false},
-		"alive": { baseUrl + "/alive", false},
+		"self":  {baseUrl, false},
+		"alive": {baseUrl + "/alive", false},
 	}
 	for k, v := range links {
 		reportLinks[k] = Link{baseUrl + "/" + v.Href, v.Templated}

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type Environment struct{
+type Environment struct {
 	name string
 }
 

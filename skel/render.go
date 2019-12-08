@@ -16,18 +16,18 @@ import (
 
 type Template struct {
 	SourceFile string
-	DestFile string
+	DestFile   string
 }
 
 func variables() map[string]string {
 	return map[string]string{
-		"app.name": skeletonConfig.AppName,
-		"app.description": skeletonConfig.AppDescription,
-		"app.displayname": skeletonConfig.AppDisplayName,
-		"server.port": strconv.Itoa(skeletonConfig.ServerPort),
+		"app.name":           skeletonConfig.AppName,
+		"app.description":    skeletonConfig.AppDescription,
+		"app.displayname":    skeletonConfig.AppDisplayName,
+		"server.port":        strconv.Itoa(skeletonConfig.ServerPort),
 		"server.contextpath": "/" + skeletonConfig.AppName,
-		"kubernetes.group": "platformms",
-		"target.dir": skeletonConfig.TargetDirectory(),
+		"kubernetes.group":   "platformms",
+		"target.dir":         skeletonConfig.TargetDirectory(),
 	}
 }
 
@@ -93,7 +93,7 @@ func substituteVariables(source string, variableValues map[string]string) string
 		variableName := variableInstance[1]
 		variableValue, ok := variableValues[strings.ToLower(variableName)]
 		if ok {
-			rendered = strings.ReplaceAll(rendered, "${" + variableName + "}", variableValue)
+			rendered = strings.ReplaceAll(rendered, "${"+variableName+"}", variableValue)
 		}
 	}
 	return rendered
