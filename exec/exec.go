@@ -1,38 +1,27 @@
 package exec
 
 import (
-	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"os"
 	"os/exec"
 )
 
 var logger = log.NewLogger("msx.exec")
 
-func Execute(name string, dir string, args ...string) (string, string, error) {
+func execute(dir string, name string, args ...string) error {
+	logger.Infof("%s$ %s %v", dir, name, args)
 	cmd := exec.Command(name, args...)
-	var out bytes.Buffer
-	var stdErr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stdErr
 	cmd.Dir = dir
-	err := cmd.Run()
-
-	return out.String(), stdErr.String(), err
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	return cmd.Run()
 }
 
-func MustExecuteIn(dir string, name string, args ...string) error {
-	stdout, stderr, err := Execute(name, dir, args...)
-	if err != nil {
-		if stdout != "" {
-			logger.Warn(stdout)
-		}
-		if stderr != "" {
-			logger.Error(stderr)
-		}
-	}
-	return err
+func ExecuteIn(dir string, name string, args ...string) error {
+	return execute(dir, name, args...)
 }
 
-func MustExecute(name string, args ...string) error {
-	return MustExecuteIn("", name, args...)
+func Execute(name string, args ...string) error {
+	return ExecuteIn("", name, args...)
 }

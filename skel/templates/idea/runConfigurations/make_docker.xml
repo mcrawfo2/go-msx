@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration name="make docker" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" default="false" nameIsGenerated="true">
+        <makefile filename="$PROJECT_DIR$/Makefile" target="docker" workingDirectory="" arguments="">
+            <envs />
+        </makefile>
+        <method v="2" />
+    </configuration>
+</component>

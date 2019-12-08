@@ -10,6 +10,7 @@ func init() {
 	AddTarget("generate-build", "Create the build command and configuration", GenerateBuild)
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
+	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("kubernetes-manifest-templates", "Create production kubernetes manifest templates", GenerateKubernetesManifestTemplates)
 }
 
@@ -27,6 +28,9 @@ func GenerateSkeleton(args []string) error {
 		return err
 	}
 	if err := GenerateKubernetesManifestTemplates(nil); err != nil {
+		return err
+	}
+	if err := GenerateGoland(nil); err != nil {
 		return err
 	}
 	if err := GenerateRepository(nil); err != nil {
@@ -48,12 +52,59 @@ func GenerateApp(args []string) error {
 	logger.Info("Generating application")
 	return renderTemplates(map[string]Template{
 		"Creating go module definition":    {SourceFile: "go.mod"},
+		"Creating go module hashes":        {SourceFile: "go.sum"},
 		"Creating bootstrap configuration": {SourceFile: "cmd/app/bootstrap.yml"},
 		"Creating production profile": {
 			SourceFile: "cmd/app/profile.production.yml",
 			DestFile:   "cmd/app/${app.name}.production.yml",
 		},
+		"Creating remote profile": {
+			SourceFile: "local/profile.remote.json5",
+			DestFile:   "local/${app.name}.remote.json5",
+		},
 		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
+	})
+}
+
+func GenerateGoland(args []string) error {
+	logger.Info("Generating Goland project")
+	return renderTemplates(map[string]Template{
+		"Creating module definition": {
+			SourceFile: "idea/project.iml.tpl",
+			DestFile:   ".idea/${app.name}.iml",
+		},
+		"Creating project definition": {
+			SourceFile: "idea/modules.xml",
+			DestFile:   ".idea/modules.xml",
+		},
+		"Creating vcs definition": {
+			SourceFile: "idea/vcs.xml",
+			DestFile:   ".idea/vcs.xml",
+		},
+		"Creating workspace": {
+			SourceFile: "idea/workspace.xml",
+			DestFile:   ".idea/workspace.xml",
+		},
+		"Creating run configuration: make clean": {
+			SourceFile: "idea/runConfigurations/make_clean.xml",
+			DestFile:   ".idea/runConfigurations/make_clean.xml",
+		},
+		"Creating run configuration: make dist": {
+			SourceFile: "idea/runConfigurations/make_dist.xml",
+			DestFile:   ".idea/runConfigurations/make_dist.xml",
+		},
+		"Creating run configuration: make docker": {
+			SourceFile: "idea/runConfigurations/make_docker.xml",
+			DestFile:   ".idea/runConfigurations/make_docker.xml",
+		},
+		"Creating run configuration: local": {
+			SourceFile: "idea/runConfigurations/project__local_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}__local_.xml",
+		},
+		"Creating run configuration: remote": {
+			SourceFile: "idea/runConfigurations/project__remote_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}__remote_.xml",
+		},
 	})
 }
 
@@ -101,13 +152,13 @@ func GenerateRepository(args []string) error {
 	}
 
 	logger.Info("- Initializing git repository")
-	if err = exec.MustExecuteIn(targetDirectory, "git", "init", "."); err != nil {
+	if err = exec.ExecuteIn(targetDirectory, "git", "init", "."); err != nil {
 		return err
 	}
 	logger.Info("- Staging changes")
-	if err = exec.MustExecuteIn(targetDirectory, "git", "add", "-A"); err != nil {
+	if err = exec.ExecuteIn(targetDirectory, "git", "add", "-A"); err != nil {
 		return err
 	}
 	logger.Info("- Committing changes")
-	return exec.MustExecuteIn(targetDirectory, "git", "commit", "-m", "Initial commit")
+	return exec.ExecuteIn(targetDirectory, "git", "commit", "-m", "Initial commit")
 }

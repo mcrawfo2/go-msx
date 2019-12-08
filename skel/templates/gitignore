@@ -23,6 +23,11 @@ _testmain.go
 *.test
 *.prof
 
-\.idea/
+*.ipr
+*.iml
+*.iws
+
+.idea/
 dist/
 vendor/
+local/

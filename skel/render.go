@@ -27,6 +27,7 @@ func variables() map[string]string {
 		"server.port": strconv.Itoa(skeletonConfig.ServerPort),
 		"server.contextpath": "/" + skeletonConfig.AppName,
 		"kubernetes.group": "platformms",
+		"target.dir": skeletonConfig.TargetDirectory(),
 	}
 }
 

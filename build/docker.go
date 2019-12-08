@@ -11,7 +11,7 @@ func init() {
 }
 
 func DockerBuild(args []string) error {
-	return exec.MustExecute("docker", "build",
+	return exec.Execute("docker", "build",
 		"-t", dockerImageName(),
 		"-f", "docker/Dockerfile",
 		"--force-rm",
@@ -21,7 +21,7 @@ func DockerBuild(args []string) error {
 
 func DockerPush(args []string) error {
 	if BuildConfig.Docker.Username != "" && BuildConfig.Docker.Password != "" {
-		err := exec.MustExecute("docker", "login",
+		err := exec.Execute("docker", "login",
 			"-u", BuildConfig.Docker.Username,
 			"-p", BuildConfig.Docker.Password)
 		if err != nil {
@@ -29,7 +29,7 @@ func DockerPush(args []string) error {
 		}
 	}
 
-	return exec.MustExecute("docker", "push", dockerImageName())
+	return exec.Execute("docker", "push", dockerImageName())
 }
 
 func dockerImageName() string {

@@ -2,7 +2,9 @@ package build
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"os"
 	"path"
+	"strings"
 )
 
 func init() {
@@ -11,14 +13,33 @@ func init() {
 }
 
 func BuildDebugExecutable(args []string) error {
-	// TODO
-	return exec.MustExecute("go", "build",
-		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name),
-		path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+	buildArgs := []string{
+		"build",
+		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name + "-debug"),
+		`-gcflags="all=-N -l"`,
+	}
+
+	if builderFlags := os.Getenv("BUILDER_FLAGS"); builderFlags != "" {
+		buildArgs = append(buildArgs, strings.Fields(builderFlags)...)
+	}
+
+	buildArgs = append(buildArgs, path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+
+	return exec.Execute("go", buildArgs...)
 }
 
 func BuildExecutable(args []string) error {
-	return exec.MustExecute("go", "build",
+	buildArgs := []string{
+		"build",
 		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name),
-		path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+		"-buildmode=pie",
+	}
+
+	if builderFlags := os.Getenv("BUILDER_FLAGS"); builderFlags != "" {
+		buildArgs = append(buildArgs, strings.Fields(builderFlags)...)
+	}
+
+	buildArgs = append(buildArgs, path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+
+	return exec.Execute("go", buildArgs...)
 }

@@ -6,11 +6,13 @@ test:
 
 
 dist:
-	$(BUILDER) create-dist-dir
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
+
+debug:
+	$(BUILDER) build-debug-executable
 
 docker:
 	go mod vendor
