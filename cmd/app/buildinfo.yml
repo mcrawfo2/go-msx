@@ -1,7 +1,0 @@
-info.build:
-  artifact: someservice
-  buildDateTime: "2019-11-17T13:40:12.109684Z"
-  buildNumber: SNAPSHOT
-  group: com.cisco.msx
-  name: Some Microservice
-  version: 3.8.0-SNAPSHOT

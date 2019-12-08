@@ -1,21 +1,54 @@
 info.app:
   name: someservice
   description: Does Something
-  version: 3.7.0-SNAPSHOT
   attributes:
     displayName: Some Microservice
     parent: platform
     type: platform
 
+info.build:
+  artifact: ${info.app.name}
+  buildDateTime: "2019-01-01T00:00:00.000000Z"
+  buildNumber: SNAPSHOT
+  release: 3.8.0
+  group: com.cisco.msx
+  name: ${info.app.description}
+  version: ${info.build.release}-${info.build.buildNumber}
+
 server:
   port: 9293
   contextPath: /someservice
-  swagger:
-    apiPath: /apidocs.json
-    swaggerPath: /apidocs/
-    webServicesUrl: http://localhost:9293
+  static-path: ../../dist/root/var/lib/${info.app.name}
+  enabled: true
+
+spring.data.cassandra:
+  keyspace-name: ${info.app.name}
+
+spring.cloud.consul:
+  enabled: true
+  config:
+    enabled: true
+  discovery:
+    enabled: true
+
+spring.cloud.vault:
+  enabled: true
+  generic:
+    enabled: true
+
+spring.cloud.stream.kafka.binder:
+  enabled: true
+
+spring.redis:
+  enable: true
+
+stats:
+  enabled: true
+
+swagger:
+  enabled: true
 
 trace:
   enabled: true
   reporter:
-    port: 32650
+    name: zipkin
