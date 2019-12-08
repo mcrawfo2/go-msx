@@ -40,6 +40,7 @@ var (
 	defaultConfigs = map[string]string{
 		"msx.platform.includegroups":   "com.cisco.**",
 		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
+		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.22.2",
 		"build.number":                 "SNAPSHOT",
 		"build.group":                  "com.cisco.msx",
 		"kubernetes.group":             "platformms",
@@ -83,6 +84,7 @@ type MsxParams struct {
 	Platform struct {
 		ParentArtifacts []string
 		SwaggerArtifact string
+		SwaggerWebJar   string
 		Version         string
 		IncludeGroups   string
 	}
