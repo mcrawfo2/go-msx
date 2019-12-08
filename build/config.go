@@ -29,22 +29,23 @@ const (
 	// Output directories
 	configOutputPath = "dist"
 
-	configOutputRootPath   = configOutputPath + "/root"
-	configOutputConfigPath = configOutputRootPath + "/etc"
-	configOutputBinaryPath = configOutputRootPath + "/usr/bin"
-
+	configOutputRootPath       = configOutputPath + "/root"
+	configOutputConfigPath     = configOutputRootPath + "/etc"
+	configOutputBinaryPath     = configOutputRootPath + "/usr/bin"
+	configOutputStaticPath     = configOutputRootPath + "/var/lib"
 	configOutputKubernetesPath = configOutputPath + "/k8s"
 )
 
 var (
 	defaultConfigs = map[string]string{
-		"msx.platform.includegroups": "com.cisco.**",
-		"build.number":               "SNAPSHOT",
-		"build.group":                "com.cisco.msx",
-		"kubernetes.group":           "platformms",
-		"docker.repository":          "dockerhub.cisco.com/vms-platform-dev-docker",
-		"docker.username": "",
-		"docker.password": "",
+		"msx.platform.includegroups":   "com.cisco.**",
+		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
+		"build.number":                 "SNAPSHOT",
+		"build.group":                  "com.cisco.msx",
+		"kubernetes.group":             "platformms",
+		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
+		"docker.username":              "",
+		"docker.password":              "",
 	}
 )
 
@@ -57,6 +58,10 @@ type AppInfo struct {
 
 func (p AppInfo) OutputConfigPath() string {
 	return path.Join(configOutputConfigPath, p.Name)
+}
+
+func (p AppInfo) OutputStaticPath() string {
+	return path.Join(configOutputStaticPath, p.Name)
 }
 
 type Server struct {
@@ -77,6 +82,7 @@ type MsxParams struct {
 	Release  string
 	Platform struct {
 		ParentArtifacts []string
+		SwaggerArtifact string
 		Version         string
 		IncludeGroups   string
 	}

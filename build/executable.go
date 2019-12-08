@@ -7,7 +7,7 @@ import (
 
 func init() {
 	AddTarget("build-executable", "Build the binary executable", BuildExecutable)
-	AddTarget("build-debug-executable", "Build the binary executable", BuildDebugExecutable)
+	AddTarget("build-debug-executable", "Build the binary debug executable", BuildDebugExecutable)
 }
 
 func BuildDebugExecutable(args []string) error {
