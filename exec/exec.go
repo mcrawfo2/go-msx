@@ -9,7 +9,6 @@ import (
 var logger = log.NewLogger("msx.exec")
 
 func execute(dir string, name string, args ...string) error {
-	logger.Infof("%s$ %s %v", dir, name, args)
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir
 	cmd.Stderr = os.Stderr

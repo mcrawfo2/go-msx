@@ -39,6 +39,11 @@ func ExecuteUnitTests(args []string) error {
 
 	logger.Info("Locating testable directories")
 	var testableDirectories = locateTestableDirectories()
+	if len(testableDirectories) == 0 {
+		logger.Warn("No testable directories found.")
+		return nil
+	}
+
 	var testResults = new(bytes.Buffer)
 	var goCoverOutPath = testFile("gocover.out")
 	var goCoverHtmlPath = testFile("gocover.html")
