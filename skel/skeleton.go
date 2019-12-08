@@ -51,8 +51,10 @@ func GenerateBuild(args []string) error {
 func GenerateApp(args []string) error {
 	logger.Info("Generating application")
 	return renderTemplates(map[string]Template{
-		"Creating go module definition":    {SourceFile: "go.mod"},
-		"Creating go module hashes":        {SourceFile: "go.sum"},
+		"Creating go module definition":    {
+			SourceFile: "go.mod.tpl",
+			DestFile: "go.mod",
+		},
 		"Creating bootstrap configuration": {SourceFile: "cmd/app/bootstrap.yml"},
 		"Creating production profile": {
 			SourceFile: "cmd/app/profile.production.yml",
@@ -151,6 +153,10 @@ func GenerateRepository(args []string) error {
 		return err
 	}
 
+	logger.Info("- Tidying go modules")
+	if err = exec.ExecuteIn(targetDirectory, "go", "mod", "tidy"); err != nil {
+		return err
+	}
 	logger.Info("- Initializing git repository")
 	if err = exec.ExecuteIn(targetDirectory, "git", "init", "."); err != nil {
 		return err
