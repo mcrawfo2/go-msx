@@ -1,9 +1,10 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml
 
-.PHONY: test dist docker publish clean
+.PHONY: test dist docker publish clean precommit
 
 test:
-
+	$(BUILDER) download-test-deps
+	$(BUILDER) execute-unit-tests
 
 dist:
 	$(BUILDER) generate-build-info
@@ -24,3 +25,6 @@ publish:
 clean:
 	rm -Rf dist
 	rm -Rf vendor
+
+precommit:
+	$(BUILDER) go-fmt

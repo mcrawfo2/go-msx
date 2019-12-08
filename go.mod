@@ -3,7 +3,7 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.12
 
 require (
-	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd // indirect
+	bou.ke/staticfiles v0.0.0-20190225145250-827d7f6389cd
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.24.0
@@ -19,9 +19,7 @@ require (
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/hashicorp/consul v1.4.0
-	github.com/hashicorp/go-syslog v1.0.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.1
-	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1
@@ -42,6 +40,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1
 	go.uber.org/atomic v1.4.0
 	gopkg.in/ini.v1 v1.48.0 // indirect
+	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.2.2
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )

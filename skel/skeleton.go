@@ -2,6 +2,7 @@ package skel
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"gopkg.in/pipe.v2"
 	"os"
 	"path"
 )
@@ -11,32 +12,21 @@ func init() {
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
-	AddTarget("kubernetes-manifest-templates", "Create production kubernetes manifest templates", GenerateKubernetesManifestTemplates)
+	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
+	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
 
 func GenerateSkeleton(args []string) error {
 	if err := ConfigureInteractive(nil); err != nil {
 		return err
 	}
-	if err := GenerateBuild(nil); err != nil {
-		return err
-	}
-	if err := GenerateApp(nil); err != nil {
-		return err
-	}
-	if err := GenerateDockerfile(nil); err != nil {
-		return err
-	}
-	if err := GenerateKubernetesManifestTemplates(nil); err != nil {
-		return err
-	}
-	if err := GenerateGoland(nil); err != nil {
-		return err
-	}
-	if err := GenerateRepository(nil); err != nil {
-		return err
-	}
-	return nil
+	return ExecTargets(
+		"generate-build",
+		"generate-app",
+		"generate-dockerfile",
+		"generate-goland",
+		"generate-kubernetes",
+		"generate-git")
 }
 
 func GenerateBuild(args []string) error {
@@ -51,9 +41,9 @@ func GenerateBuild(args []string) error {
 func GenerateApp(args []string) error {
 	logger.Info("Generating application")
 	return renderTemplates(map[string]Template{
-		"Creating go module definition":    {
+		"Creating go module definition": {
 			SourceFile: "go.mod.tpl",
-			DestFile: "go.mod",
+			DestFile:   "go.mod",
 		},
 		"Creating bootstrap configuration": {SourceFile: "cmd/app/bootstrap.yml"},
 		"Creating production profile": {
@@ -117,7 +107,7 @@ func GenerateDockerfile(args []string) error {
 	})
 }
 
-func GenerateKubernetesManifestTemplates(args []string) error {
+func GenerateKubernetes(args []string) error {
 	logger.Info("Generating kubernetes manifest templates")
 	return renderTemplates(map[string]Template{
 		"Creating deployment template": {
@@ -135,7 +125,7 @@ func GenerateKubernetesManifestTemplates(args []string) error {
 	})
 }
 
-func GenerateRepository(args []string) error {
+func GenerateGit(args []string) error {
 	logger.Info("Generating git repository")
 	err := renderTemplates(map[string]Template{
 		"Creating .gitignore": {
@@ -153,18 +143,19 @@ func GenerateRepository(args []string) error {
 		return err
 	}
 
-	logger.Info("- Tidying go modules")
-	if err = exec.ExecuteIn(targetDirectory, "go", "mod", "tidy"); err != nil {
-		return err
-	}
-	logger.Info("- Initializing git repository")
-	if err = exec.ExecuteIn(targetDirectory, "git", "init", "."); err != nil {
-		return err
-	}
-	logger.Info("- Staging changes")
-	if err = exec.ExecuteIn(targetDirectory, "git", "add", "-A"); err != nil {
-		return err
-	}
-	logger.Info("- Committing changes")
-	return exec.ExecuteIn(targetDirectory, "git", "commit", "-m", "Initial commit")
+	return exec.ExecutePipesIn(
+		targetDirectory,
+		pipe.Line(
+			exec.Info("- Tidying go modules"),
+			pipe.Exec("go", "mod", "tidy")),
+		pipe.Line(
+			exec.Info("- Initializing git repository"),
+			pipe.Exec("git", "init", ".")),
+		pipe.Line(
+			exec.Info("- Staging changes"),
+			pipe.Exec("git", "add", "-A")),
+		pipe.Line(
+			exec.Info("- Committing changes"),
+			pipe.Exec("git", "commit", "-m", "Initial Commit")),
+	)
 }

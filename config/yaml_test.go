@@ -6,7 +6,7 @@ import (
 )
 
 func TestYAMLLoad(t *testing.T) {
-	p := NewYAMLFile("test/config.yaml")
+	p := NewYAMLFile("YAMLFile", "test/config.yaml")
 
 	actualSettings, err := p.Load(context.Background())
 	if err != nil {

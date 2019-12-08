@@ -2,13 +2,10 @@ package skel
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
+	"github.com/pkg/errors"
 )
 
-type Target struct {
-	Name        string
-	Description string
-	Fn          cli.CommandFunc
-}
+var allTargets = make(map[string]cli.CommandFunc)
 
 func AddTarget(name, description string, fn cli.CommandFunc) {
 	wrapper := func(args []string) error {
@@ -22,8 +19,23 @@ func AddTarget(name, description string, fn cli.CommandFunc) {
 		return err
 	}
 
+	allTargets[name] = fn
+
 	_, err := cli.AddCommand(name, description, wrapper)
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func ExecTargets(targets ...string) error {
+	for _, target := range targets {
+		fn, ok := allTargets[target]
+		if !ok {
+			return errors.Errorf("Target not found: %s", target)
+		}
+		if err := fn(nil); err != nil {
+			return err
+		}
+	}
+	return nil
 }

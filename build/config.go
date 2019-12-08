@@ -33,7 +33,8 @@ const (
 	configOutputConfigPath     = configOutputRootPath + "/etc"
 	configOutputBinaryPath     = configOutputRootPath + "/usr/bin"
 	configOutputStaticPath     = configOutputRootPath + "/var/lib"
-	configOutputKubernetesPath = configOutputPath + "/k8s"
+
+	configTestPath = "test"
 )
 
 var (
@@ -127,6 +128,10 @@ func (p Config) OutputBinaryPath() string {
 
 func (p Config) OutputRoot() string {
 	return configOutputRootPath
+}
+
+func (p Config) TestPath() string {
+	return configTestPath
 }
 
 func (p Config) InputCommandRoot() string {

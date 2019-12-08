@@ -19,13 +19,15 @@ func BuildDebugExecutable(args []string) error {
 		`-gcflags="all=-N -l"`,
 	}
 
-	if builderFlags := os.Getenv("BUILDER_FLAGS"); builderFlags != "" {
-		buildArgs = append(buildArgs, strings.Fields(builderFlags)...)
-	}
+	builderFlags := strings.Fields(os.Getenv("BUILDER_FLAGS"))
 
-	buildArgs = append(buildArgs, path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+	sourceFile := strings.Fields(path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
 
-	return exec.Execute("go", buildArgs...)
+	return exec.ExecutePipes(exec.Exec(
+		"go",
+		buildArgs,
+		builderFlags,
+		sourceFile))
 }
 
 func BuildExecutable(args []string) error {
@@ -35,11 +37,13 @@ func BuildExecutable(args []string) error {
 		"-buildmode=pie",
 	}
 
-	if builderFlags := os.Getenv("BUILDER_FLAGS"); builderFlags != "" {
-		buildArgs = append(buildArgs, strings.Fields(builderFlags)...)
-	}
+	builderFlags := strings.Fields(os.Getenv("BUILDER_FLAGS"))
 
-	buildArgs = append(buildArgs, path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
+	sourceFile := strings.Fields(path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
 
-	return exec.Execute("go", buildArgs...)
+	return exec.ExecutePipes(exec.Exec(
+		"go",
+		buildArgs,
+		builderFlags,
+		sourceFile))
 }

@@ -1,8 +1,8 @@
 package build
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"fmt"
+	"gopkg.in/pipe.v2"
 )
 
 func init() {
@@ -11,25 +11,29 @@ func init() {
 }
 
 func DockerBuild(args []string) error {
-	return exec.Execute("docker", "build",
+	return pipe.Run(pipe.Exec(
+		"docker", "build",
 		"-t", dockerImageName(),
 		"-f", "docker/Dockerfile",
 		"--force-rm",
 		"--no-cache",
-		".")
+		"."))
 }
 
 func DockerPush(args []string) error {
 	if BuildConfig.Docker.Username != "" && BuildConfig.Docker.Password != "" {
-		err := exec.Execute("docker", "login",
+		err := pipe.Run(pipe.Exec(
+			"docker", "login",
 			"-u", BuildConfig.Docker.Username,
-			"-p", BuildConfig.Docker.Password)
+			"-p", BuildConfig.Docker.Password))
 		if err != nil {
 			return err
 		}
 	}
 
-	return exec.Execute("docker", "push", dockerImageName())
+	return pipe.Run(pipe.Exec(
+		"docker", "push",
+		dockerImageName()))
 }
 
 func dockerImageName() string {

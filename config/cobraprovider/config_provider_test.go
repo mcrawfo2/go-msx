@@ -33,7 +33,7 @@ func TestConfigProvider_Load(t *testing.T) {
 	}
 	os.Args = append(os.Args[:1], args...)
 
-	cp := NewCobraSource(secondaryCommand, "cli.flag.")
+	cp := NewCobraSource("commandLine", secondaryCommand, "cli.flag.")
 
 	settings, err := cp.Load(context.Background())
 	assert.Nil(t, err)

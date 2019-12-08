@@ -6,7 +6,7 @@ import (
 )
 
 func TestJSONLoad(t *testing.T) {
-	p := NewJSONFile("test/config.json")
+	p := NewJSONFile("JSONFile", "test/config.json")
 
 	actualSettings, err := p.Load(context.Background())
 	if err != nil {

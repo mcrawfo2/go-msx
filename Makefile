@@ -1,24 +1,31 @@
-BUILDER = go run build.go
+BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml
 
-.PHONY: test dist docker clean publish
+.PHONY: test dist docker publish clean precommit
 
 test:
-
+	$(BUILDER) download-test-deps
+	$(BUILDER) execute-unit-tests
 
 dist:
-	$(BUILDER) create-dist-dir
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
-	$(BUILDER) generate-dockerfile
+	$(BUILDER) install-swagger-ui
+	$(BUILDER) build-executable
 
-docker: dist
+debug:
+	$(BUILDER) build-debug-executable
+
+docker:
 	go mod vendor
 	$(BUILDER) docker-build
-	$(BUILDER) docker-login
 
-publish: dist
+publish:
 	$(BUILDER) docker-push
 
 clean:
-	$(BUILDER) delete-dist-dir
+	rm -Rf dist
 	rm -Rf vendor
+
+precommit:
+	$(BUILDER) update-skel-templates
+	$(BUILDER) go-fmt

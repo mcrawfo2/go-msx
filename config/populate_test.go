@@ -7,8 +7,10 @@ import (
 
 func TestProperties_Populate_CaseInsensitive(t *testing.T) {
 	p := PartialConfig{
-		"arg": "something",
-		"prop.test": "42",
+		local:map[string]string{
+			"arg": "something",
+			"prop.test": "42",
+		},
 	}
 
 	type TestStruct struct {
@@ -29,8 +31,10 @@ func TestProperties_Populate_CaseInsensitive(t *testing.T) {
 
 func TestProperties_Populate_Slice(t *testing.T) {
 	p := PartialConfig{
-		"whitelist[0]": "value0",
-		"whitelist[1]": "value1",
+		local:map[string]string{
+			"whitelist[0]": "value0",
+			"whitelist[1]": "value1",
+		},
 	}
 
 	type TestStruct struct {
