@@ -45,6 +45,7 @@ func GenerateApp(args []string) error {
 			SourceFile: "go.mod.tpl",
 			DestFile:   "go.mod",
 		},
+		"Creating README":                  {SourceFile: "README.md"},
 		"Creating bootstrap configuration": {SourceFile: "cmd/app/bootstrap.yml"},
 		"Creating production profile": {
 			SourceFile: "cmd/app/profile.production.yml",
