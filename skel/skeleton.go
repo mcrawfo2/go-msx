@@ -148,7 +148,7 @@ func GenerateGit(args []string) error {
 		targetDirectory,
 		pipe.Line(
 			exec.Info("- Adding go-msx to modules"),
-			pipe.Exec("go", "get", "-u", "cto-github.cisco.com/NFV-BU/go-msx")),
+			pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx")),
 		pipe.Line(
 			exec.Info("- Tidying go modules"),
 			pipe.Exec("go", "mod", "tidy")),
