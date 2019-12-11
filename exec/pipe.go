@@ -40,7 +40,8 @@ func ExecutePipesIn(directory string, pipes ...pipe.Pipe) error {
 			linePipes = append([]pipe.Pipe{pipe.ChDir(directory)}, linePipes...)
 		}
 
-		if err := pipe.Run(pipe.Line(linePipes...)); err != nil {
+		if outputBytes, err := pipe.CombinedOutput(pipe.Line(linePipes...)); err != nil {
+			_, _ = os.Stderr.Write(outputBytes)
 			return err
 		}
 	}
