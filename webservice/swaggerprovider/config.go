@@ -7,6 +7,8 @@ import (
 
 const (
 	configRootDocumentation = "swagger"
+	configKeyAppName        = "info.app.name"
+	configKeyBuildVersion   = "info.build.version"
 )
 
 type DocumentationConfig struct {
@@ -44,4 +46,21 @@ func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, er
 	}
 
 	return &documentationConfig, nil
+}
+
+type AppInfo struct {
+	Name string
+	Version string
+}
+
+func AppInfoFromConfig(cfg *config.Config) (*AppInfo, error) {
+	var appInfo AppInfo
+	var err error
+	if appInfo.Name, err = cfg.String(configKeyAppName); err != nil {
+		return nil, err
+	}
+	if appInfo.Version, err = cfg.String(configKeyBuildVersion); err != nil {
+		return nil, err
+	}
+	return &appInfo, nil
 }

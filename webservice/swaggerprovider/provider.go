@@ -20,6 +20,7 @@ type SwaggerProvider struct {
 	ctx  context.Context
 	cfg  *DocumentationConfig
 	spec *spec.Swagger
+	info spec.Info
 }
 
 func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
@@ -106,6 +107,7 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 		WebServices: container.RegisteredWebServices(),
 		APIPath:     swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
 	})
+	p.spec.Info = &p.info
 
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
 		To(webservice.RawController(p.GetSpec)).
@@ -159,9 +161,34 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		return ErrDisabled
 	}
 
+	appInfo, err := AppInfoFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
+	}
+
 	server.SetDocumentationProvider(&SwaggerProvider{
 		ctx: ctx,
 		cfg: cfg,
+		info: spec.Info{
+			InfoProps: spec.InfoProps{
+				Title:          "MSX API Documentation for " + appInfo.Name,
+				Description:    "This is the REST API documentation for " + appInfo.Name + "\n" +
+					"+ API Authorization \n" +
+					"    + Authorization header is <b>required</b>. \n" +
+					"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
+				TermsOfService: "http://www.cisco.com",
+				Contact: &spec.ContactInfo{
+					Name:  "Cisco Systems Inc.",
+					URL:   "http://www.cisco.com",
+					Email: "somecontact@cisco.com",
+				},
+				License: &spec.License{
+					Name: "Apache License Version 2.0",
+					URL:  "http://www.apache.org/licenses/LICENSE-2.0.html",
+				},
+				Version: appInfo.Version,
+			},
+		},
 	})
 	return nil
 }
