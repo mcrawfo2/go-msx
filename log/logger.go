@@ -8,7 +8,6 @@ import (
 
 type Logger struct {
 	ParentLogger
-	level  logrus.Level
 	fields logrus.Fields
 }
 
@@ -261,13 +260,13 @@ func (logger *Logger) Level(level logrus.Level) StdLogger {
 }
 
 func (logger *Logger) SetLevel(level logrus.Level) {
-	logger.level = level
+	logger.ParentLogger.SetLevel(level)
 	name := logger.fields[FieldName].(string)
 	levels[name] = level
 }
 
 func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
-	return logger.level >= level
+	return logger.ParentLogger.GetLevel() <= level
 }
 
 func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
@@ -280,7 +279,6 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 
 	return &Logger{
 		ParentLogger: logger,
-		level:        logrus.DebugLevel,
 		fields:       allFields,
 	}
 }
@@ -289,13 +287,21 @@ var loggers = make(map[string]*Logger)
 var levels = make(map[string]logrus.Level)
 
 func NewLogger(name string, fields ...LogContext) *Logger {
-	fields = append([]LogContext{{FieldName: name}}, fields...)
-	logger := newLogger(logrus.StandardLogger(), fields...)
-	loggers[name] = logger
-
-	if level, ok := levels[name]; ok {
-		loggers[name].SetLevel(level)
+	var level logrus.Level
+	var ok bool
+	if level, ok = levels[name]; !ok {
+	 	level = InfoLevel
 	}
+
+	fields = append([]LogContext{{FieldName: name}}, fields...)
+	logger := newLogger(&logrus.Logger{
+		Out:          logrus.StandardLogger().Out,
+		Formatter:    logrus.StandardLogger().Formatter,
+		Level:        level,
+	}, fields...)
+
+	logger.SetLevel(level)
+	loggers[name] = logger
 
 	return logger
 }

@@ -10,6 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/loggersprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/metricsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 )
@@ -48,6 +49,7 @@ func registerAdminWebServices(ctx context.Context) error {
 		infoprovider.RegisterProvider(ctx),
 		metricsprovider.RegisterProvider(ctx),
 		envprovider.RegisterProvider(ctx),
+		loggersprovider.RegisterProvider(ctx),
 	}
 	return err.Filter()
 }

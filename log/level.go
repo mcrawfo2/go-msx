@@ -12,7 +12,68 @@ const (
 	ErrorLevel = logrus.ErrorLevel
 	FatalLevel = logrus.FatalLevel
 	PanicLevel = logrus.PanicLevel
+
+	TraceLevelName = "TRACE"
+	DebugLevelName = "DEBUG"
+	InfoLevelName = "INFO"
+	WarnLevelName = "WARN"
+	ErrorLevelName = "ERROR"
+	FatalLevelName = "FATAL"
+	PanicLevelName = "PANIC"
 )
+
+var AllLevelNames = []string{
+	PanicLevelName,
+	FatalLevelName,
+	ErrorLevelName,
+	WarnLevelName,
+	InfoLevelName,
+	DebugLevelName,
+	TraceLevelName,
+}
+
+type LoggerLevel logrus.Level
+
+func (l LoggerLevel) Name() string {
+	switch logrus.Level(l) {
+	case TraceLevel:
+		return TraceLevelName
+	case DebugLevel:
+		return DebugLevelName
+	case InfoLevel:
+		return InfoLevelName
+	case WarnLevel:
+		return WarnLevelName
+	case ErrorLevel:
+		return ErrorLevelName
+	case FatalLevel:
+		return FatalLevelName
+	case PanicLevel:
+		return PanicLevelName
+	}
+	return PanicLevelName
+}
+
+func LevelFromName(name string) logrus.Level {
+	switch name {
+	case TraceLevelName:
+		return TraceLevel
+	case DebugLevelName:
+		return DebugLevel
+	case InfoLevelName:
+		return InfoLevel
+	case WarnLevelName:
+		return WarnLevel
+	case ErrorLevelName:
+		return ErrorLevel
+	case FatalLevelName:
+		return FatalLevel
+	case PanicLevelName:
+		return PanicLevel
+	default:
+		return PanicLevel
+	}
+}
 
 type LevelLogger struct {
 	parent ParentLogger

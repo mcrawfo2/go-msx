@@ -113,15 +113,21 @@ func RawAdminController(fn webservice.ControllerFunction) restful.RouteFunction 
 			return
 		}
 
-		bodyBytes, _ := json.Marshal(body)
+		var bodyBytes []byte
+		if body != nil {
+			bodyBytes, _ = json.Marshal(body)
+		}
 
 		resp.Header().Set("Expires", "0")
 		resp.Header().Set("Pragma", "no-cache")
 		resp.Header().Set("Content-Type", "application/vnd.spring-boot.actuator.v2+json")
 		resp.Header().Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
 
-		resp.WriteHeader(200)
-
-		_, _ = resp.Write(bodyBytes)
+		if bodyBytes != nil {
+			resp.WriteHeader(200)
+			_, _ = resp.Write(bodyBytes)
+		} else {
+			resp.WriteHeader(204)
+		}
 	}
 }

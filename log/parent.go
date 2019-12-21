@@ -39,6 +39,9 @@ type ParentLogger interface {
 	Fatalln(args ...interface{})
 	Panicln(args ...interface{})
 
+	SetLevel(level logrus.Level)
+
+	GetLevel() logrus.Level
 	IsLevelEnabled(level logrus.Level) bool
 	Logf(level logrus.Level, format string, args ...interface{})
 	Log(level logrus.Level, args ...interface{})
