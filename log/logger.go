@@ -290,14 +290,14 @@ func NewLogger(name string, fields ...LogContext) *Logger {
 	var level logrus.Level
 	var ok bool
 	if level, ok = levels[name]; !ok {
-	 	level = InfoLevel
+		level = InfoLevel
 	}
 
 	fields = append([]LogContext{{FieldName: name}}, fields...)
 	logger := newLogger(&logrus.Logger{
-		Out:          logrus.StandardLogger().Out,
-		Formatter:    logrus.StandardLogger().Formatter,
-		Level:        level,
+		Out:       logrus.StandardLogger().Out,
+		Formatter: logrus.StandardLogger().Formatter,
+		Level:     level,
 	}, fields...)
 
 	logger.SetLevel(level)

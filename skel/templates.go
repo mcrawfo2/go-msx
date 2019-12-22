@@ -51,11 +51,11 @@ var staticFiles = map[string]*staticFilesFile{
 		size:  679,
 	},
 	"cmd/app/profile.production.yml": {
-		data:  "security.jwt.keys:\n  key-source: pem\n  key-path: /keystore/jwt-pubkey.pem\n",
-		hash:  "06dfef26cc039f6e97c2b4246df15c3781e5d950200709e01c9d61edca64998d",
+		data:  "\x1f\x8b\b\x00\x00\x00\x00\x00\x02\xff,\xce\xc1\r\xc3 \f\x85\xe1;S\xb0@\x9c;\x1bd\x8cԼ6$\x14\x10\xb6\x1b\xb1}E\xd5\xebӧ\xa7_\xc0֓\x0e:o\xa5\vC\x82\xf3\xfe\xc2X\xa4Zg\x04\xdf\xf0\xfe/m\xd7#\xf8u\"\xad\x1d\xeby\xeb\xd2\xecqa\xd0DNZO\xe5E\x9c\xabE\xe2Z\xc42\xc5$\\?\xe8cަ\"\xba\x17\xc6\x16\x837KѹC\xb5\x11焢\xa4Y\xb6\xf2\xcbA\xf0\xcf=\v\xdc7\x00\x00\xff\xff\xc25=S\x9d\x00\x00\x00",
+		hash:  "8cc00411a4cb05c133bf135dd5acb21cb4dba8918abab09a5d9a9529b1579e64",
 		mime:  "",
-		mtime: time.Unix(1575761467, 0),
-		size:  0,
+		mtime: time.Unix(1577044179, 0),
+		size:  157,
 	},
 	"cmd/build/build.go": {
 		data:  "package main\n\nimport (\n\t\"cto-github.cisco.com/NFV-BU/go-msx/build\"\n)\n\nfunc main() {\n\tbuild.Run()\n}\n",

@@ -4,3 +4,5 @@ security.jwt.keys:
 
 spring.cloud.consul.discovery:
   instanceId: uuid
+
+http.client.tlsInsecure: false

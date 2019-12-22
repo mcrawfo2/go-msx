@@ -15,8 +15,8 @@ const (
 
 	TraceLevelName = "TRACE"
 	DebugLevelName = "DEBUG"
-	InfoLevelName = "INFO"
-	WarnLevelName = "WARN"
+	InfoLevelName  = "INFO"
+	WarnLevelName  = "WARN"
 	ErrorLevelName = "ERROR"
 	FatalLevelName = "FATAL"
 	PanicLevelName = "PANIC"

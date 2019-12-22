@@ -46,8 +46,11 @@ func withConfig(handler configHandler) Observer {
 	}
 }
 
-func configureHttpClientFactory(context.Context) error {
-	httpClientFactory := httpclient.NewProductionHttpClientFactory()
+func configureHttpClientFactory(ctx context.Context) error {
+	httpClientFactory, err := httpclient.NewProductionHttpClientFactory(ctx)
+	if err != nil {
+		return err
+	}
 	contextInjectors.Register(func(ctx context.Context) context.Context {
 		return httpclient.ContextWithFactory(ctx, httpClientFactory)
 	})

@@ -49,7 +49,7 @@ func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, er
 }
 
 type AppInfo struct {
-	Name string
+	Name    string
 	Version string
 }
 
