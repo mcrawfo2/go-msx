@@ -266,7 +266,7 @@ func (logger *Logger) SetLevel(level logrus.Level) {
 }
 
 func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
-	return logger.ParentLogger.GetLevel() <= level
+	return logger.ParentLogger.GetLevel() >= level
 }
 
 func newLogger(logger ParentLogger, fields ...LogContext) *Logger {

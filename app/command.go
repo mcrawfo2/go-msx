@@ -30,6 +30,9 @@ func init() {
 				config.NewCachedLoader(
 					cobraprovider.NewCobraSource(name, cmd, "cli.flag."),
 				),
+				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
+					"info.app.name": cmd.Use,
+				})),
 			}, nil
 		})
 	}

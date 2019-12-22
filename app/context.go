@@ -116,8 +116,10 @@ func configureWebService(ctx context.Context) error {
 	return withConfig(func(cfg *config.Config) error {
 		if err := webservice.ConfigureWebServer(cfg, ctx); err != nil && err != webservice.ErrDisabled {
 			return err
-		} else if err != webservice.ErrDisabled {
+		} else if err == nil {
 			contextInjectors.Register(webservice.ContextWithWebServer)
+		} else {
+			logger.Warn(err.Error())
 		}
 
 		return nil

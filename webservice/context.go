@@ -17,10 +17,16 @@ var (
 )
 
 func Start(ctx context.Context) error {
+	if service == nil {
+		return nil
+	}
 	return service.Serve(ctx)
 }
 
 func Stop(ctx context.Context) error {
+	if service == nil {
+		return nil
+	}
 	return service.StopServing(ctx)
 }
 

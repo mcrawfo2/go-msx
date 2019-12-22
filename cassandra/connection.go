@@ -45,7 +45,7 @@ func (o KeyspaceOptions) ReplicationOptions() map[string]string {
 }
 
 type ClusterConfig struct {
-	Enabled         bool          `config:"default=true"`
+	Enabled         bool          `config:"default=false"`
 	KeyspaceName    string        `config:"default=system"`
 	ContactPoints   string        `config:"default=localhost"` // comma separated
 	Port            int           `config:"default=9042"`
