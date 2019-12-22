@@ -53,7 +53,7 @@ type RegistrationProviderConfig struct {
 	HealthCheckInterval time.Duration `config:"default=10s"`
 	HealthCheckTimeout  time.Duration `config:"default=2s"`
 	Tags                string        `config:"default="`
-	InstanceId          string        `config:"default=uuid"` // uuid, hostname, or any static string
+	InstanceId          string        `config:"default=local"` // uuid, hostname, or any static string
 }
 
 type AppRegistrationDetails struct {

@@ -1,3 +1,6 @@
 security.jwt.keys:
   key-source: pem
   key-path: /keystore/jwt-pubkey.pem
+
+spring.cloud.consul.discovery:
+  instanceId: uuid
