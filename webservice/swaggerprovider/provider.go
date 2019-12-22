@@ -104,8 +104,9 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
 
 	p.spec = restfulspec.BuildSwagger(restfulspec.Config{
-		WebServices: container.RegisteredWebServices(),
-		APIPath:     swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
+		WebServices:          container.RegisteredWebServices(),
+		APIPath:              swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
+		ModelTypeNameHandler: webservice.ResponseTypeName,
 	})
 	p.spec.Info = &p.info
 
@@ -171,8 +172,8 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		cfg: cfg,
 		info: spec.Info{
 			InfoProps: spec.InfoProps{
-				Title:          "MSX API Documentation for " + appInfo.Name,
-				Description:    "This is the REST API documentation for " + appInfo.Name + "\n" +
+				Title: "MSX API Documentation for " + appInfo.Name,
+				Description: "This is the REST API documentation for " + appInfo.Name + "\n" +
 					"+ API Authorization \n" +
 					"    + Authorization header is <b>required</b>. \n" +
 					"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",

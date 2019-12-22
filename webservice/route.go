@@ -6,9 +6,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
+	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
 	"net/http"
+	"path"
+	"reflect"
 	"strings"
 )
 
@@ -21,6 +24,7 @@ const (
 var (
 	HeaderAuthorization *restful.Parameter
 	logger              = log.NewLogger("msx.webservice")
+	responseTypes       = make(map[reflect.Type]string)
 )
 
 func init() {
@@ -30,32 +34,68 @@ func init() {
 }
 
 func StandardList(b *restful.RouteBuilder) {
-	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+	b.Do(StandardReturns, ProducesJson)
 }
 
 func StandardRetrieve(b *restful.RouteBuilder) {
-	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+	b.Do(StandardReturns, ProducesJson)
 }
 
 func StandardCreate(b *restful.RouteBuilder) {
-	b.Do(CreateReturns, ProducesJson, ResponseEnvelope, ConsumesJson)
+	b.Do(CreateReturns, ProducesJson, ConsumesJson)
 }
 
 func StandardUpdate(b *restful.RouteBuilder) {
-	b.Do(StandardReturns, ProducesJson, ResponseEnvelope, ConsumesJson)
+	b.Do(StandardReturns, ProducesJson, ConsumesJson)
 }
 
 func StandardDelete(b *restful.RouteBuilder) {
-	b.Do(StandardReturns, ProducesJson, ResponseEnvelope)
+	b.Do(StandardReturns, ProducesJson)
 }
 
-func ResponseEnvelope(b *restful.RouteBuilder) {
-	b.Metadata(MetadataKeyResponseEnvelope, new(integration.MsxEnvelope))
+func ResponseTypeName(t reflect.Type) (string, bool) {
+	typeName, ok := responseTypes[t]
+	return typeName, ok
+}
+
+func newResponse(payload interface{}) interface{} {
+	structType := reflect.TypeOf(integration.MsxEnvelope{})
+	var structFields []reflect.StructField
+	for i := 0; i < structType.NumField(); i++ {
+		structField := structType.Field(i)
+		if structField.Name == "Payload" {
+			structField.Type = reflect.TypeOf(payload)
+		}
+		structFields = append(structFields, structField)
+	}
+
+	payloadType := reflect.TypeOf(payload)
+	if payloadType.Kind() == reflect.Ptr {
+		payloadType = payloadType.Elem()
+	}
+	payloadPackageName := path.Base(payloadType.PkgPath())
+	if payloadPackageName != "" {
+		payloadPackageName += "."
+	}
+	payloadTypeName := payloadPackageName + payloadType.Name()
+	responseTypeName := fmt.Sprintf("integration.MsxEnvelope«%s»", payloadTypeName)
+	responseType := reflect.StructOf(structFields)
+	responseTypes[responseType] = responseTypeName
+	return reflect.New(responseType).Interface()
 }
 
 func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	return func(b *restful.RouteBuilder) {
-		b.Metadata(MetadataKeyResponsePayload, payload)
+		example := newResponse(payload)
+		b.DefaultReturns("Success", example)
+		b.Writes(example)
+	}
+}
+
+func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
+	return func(b *restful.RouteBuilder) {
+		b.DefaultReturns("Success", payload)
+		b.Writes(payload)
 	}
 }
 
@@ -200,13 +240,13 @@ var DefaultSuccessEnvelope = integration.MsxEnvelope{}
 type RouteBuilderFunc func(*restful.RouteBuilder)
 
 func Returns200(b *restful.RouteBuilder) {
-	b.Returns(http.StatusOK, "OK", DefaultSuccessEnvelope)
+	b.Returns(http.StatusOK, "OK", nil)
 }
 func Returns201(b *restful.RouteBuilder) {
-	b.Returns(http.StatusCreated, "Created", DefaultSuccessEnvelope)
+	b.Returns(http.StatusCreated, "Created", nil)
 }
 func Returns204(b *restful.RouteBuilder) {
-	b.Returns(http.StatusNoContent, "No Content", DefaultSuccessEnvelope)
+	b.Returns(http.StatusNoContent, "No Content", nil)
 }
 func Returns400(b *restful.RouteBuilder) {
 	b.Returns(http.StatusBadRequest, "Bad Request", nil)
