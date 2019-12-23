@@ -97,6 +97,7 @@ func NewProductionHttpClientFactoryFromConfig(cfg *config.Config) (*ProductionHt
 
 	return &ProductionHttpClientFactory{
 		tlsConfig: tlsConfig,
+		clientConfig: &clientConfig,
 	}, nil
 }
 
