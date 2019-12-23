@@ -8,6 +8,8 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"fmt"
 	"github.com/emicklei/go-restful"
+	restfulspec "github.com/emicklei/go-restful-openapi"
+	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
 	"net/http"
 	"path"
@@ -19,6 +21,7 @@ const (
 	HeaderNameAuthorization     = "Authorization"
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
+	MetadataTagDefinition       = "TagDefinition"
 )
 
 var (
@@ -304,5 +307,15 @@ func Returns(statuses ...int) RouteBuilderFunc {
 		for _, statusFunc := range statusFuncs {
 			statusFunc(b)
 		}
+	}
+}
+
+func TagDefinition(name, description string) RouteBuilderFunc {
+	return func(b *restful.RouteBuilder) {
+		b.Metadata(restfulspec.KeyOpenAPITags, []string{name})
+		b.Metadata(MetadataTagDefinition, spec.TagProps{
+			Name: name,
+			Description:description,
+		})
 	}
 }

@@ -110,6 +110,15 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	})
 	p.spec.Info = &p.info
 
+	// Register tags definitions from all of the routes
+	for _, svc := range container.RegisteredWebServices() {
+		for _, route := range svc.Routes() {
+			if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
+				p.spec.Tags = append(p.spec.Tags, spec.Tag{TagProps:routeTagDefinitionInterface.(spec.TagProps)})
+			}
+		}
+	}
+
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
 		To(webservice.RawController(p.GetSpec)).
 		Produces(webservice.MIME_JSON).
