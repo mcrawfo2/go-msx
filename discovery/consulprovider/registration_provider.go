@@ -47,6 +47,7 @@ type RegistrationProviderConfig struct {
 	Enabled             bool          `config:"default=false"`
 	Register            bool          `config:"default=true"`
 	Address             string        `config:"default="`
+	Interface           string        `config:"default="`
 	Port                int           `config:"default=0"`
 	RegisterHealthCheck bool          `config:"default=true"`
 	HealthCheckPath     string        `config:"default=/admin/health"`
@@ -182,7 +183,7 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 	result = &AppRegistrationDetails{}
 
 	if rpConfig.Address == "" {
-		if result.ServiceAddress, err = getIp(); err != nil {
+		if result.ServiceAddress, err = getIp(rpConfig.Interface); err != nil {
 			return nil, err
 		}
 	} else {
@@ -261,7 +262,7 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 	return
 }
 
-func getIp() (string, error) {
+func getIp(iface string) (string, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "", err
@@ -269,7 +270,7 @@ func getIp() (string, error) {
 	var ip net.IP
 	for _, i := range ifaces {
 		name := i.Name
-		if strings.Contains(name, "utun") {
+		if iface != name && strings.Contains(name, "utun") {
 			continue
 		}
 		addrs, err := i.Addrs()
@@ -277,7 +278,6 @@ func getIp() (string, error) {
 			return "", err
 		}
 		for _, addr := range addrs {
-
 			switch v := addr.(type) {
 			case *net.IPNet:
 				if v.IP.To4() != nil {
@@ -289,9 +289,16 @@ func getIp() (string, error) {
 				}
 			}
 		}
+		if iface == name {
+			break
+		}
 	}
 	if ip == nil {
-		return "", errors.New("No valid interface or address found")
+		if iface == "" {
+			return "", errors.New("No valid interface or address found")
+		} else {
+			return "", errors.Errorf("Interface %s not found or no address", iface)
+		}
 	}
 
 	return ip.String(), nil
