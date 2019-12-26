@@ -4,11 +4,13 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 var (
@@ -100,24 +102,48 @@ func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err er
 	return p.spec, nil
 }
 
+func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
+	return func(swagger *spec.Swagger) {
+		// Inject info blob
+		swagger.Info = &p.info
+
+		// Register tags definitions from all of the routes
+		var existingTags = types.StringStack{}
+		for _, svc := range container.RegisteredWebServices() {
+			for _, route := range svc.Routes() {
+				if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
+					routeTagDefinition := routeTagDefinitionInterface.(spec.TagProps)
+					if !existingTags.Contains(routeTagDefinition.Name) {
+						existingTags = append(existingTags, routeTagDefinition.Name)
+						swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
+					}
+				}
+			}
+		}
+
+		// Factor out contextPath into basePath
+		newPaths := make(map[string]spec.PathItem)
+		for path, pathItem := range swagger.Paths.Paths {
+			if strings.HasPrefix(path, contextPath) {
+				path = strings.TrimPrefix(path, contextPath)
+			}
+			newPaths[path] = pathItem
+		}
+		swagger.Paths.Paths = newPaths
+		swagger.BasePath = contextPath
+	}
+}
+
 func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
+	contextPath := swaggerService.RootPath()
 	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
 
 	p.spec = restfulspec.BuildSwagger(restfulspec.Config{
-		WebServices:          container.RegisteredWebServices(),
-		APIPath:              swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
-		ModelTypeNameHandler: webservice.ResponseTypeName,
+		WebServices:                   container.RegisteredWebServices(),
+		APIPath:                       swaggerService.RootPath() + p.cfg.SwaggerPath + p.cfg.ApiPath,
+		ModelTypeNameHandler:          webservice.ResponseTypeName,
+		PostBuildSwaggerObjectHandler: p.PostBuildSpec(container, swaggerService, contextPath),
 	})
-	p.spec.Info = &p.info
-
-	// Register tags definitions from all of the routes
-	for _, svc := range container.RegisteredWebServices() {
-		for _, route := range svc.Routes() {
-			if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
-				p.spec.Tags = append(p.spec.Tags, spec.Tag{TagProps:routeTagDefinitionInterface.(spec.TagProps)})
-			}
-		}
-	}
 
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
 		To(webservice.RawController(p.GetSpec)).
