@@ -3,17 +3,23 @@ package types
 import (
 	"bytes"
 	"encoding/json"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/gocql/gocql"
 	"github.com/hashicorp/go-uuid"
 )
 
 type UUID []byte
 
 func (u UUID) MarshalJSON() ([]byte, error) {
+	if u == nil {
+		return json.Marshal(nil)
+	}
 	str, err := uuid.FormatUUID(u)
-	return []byte(str), err
+	if err != nil { return nil, err }
+	return json.Marshal(str)
 }
 
-func (u UUID) UnmarshalJSON(data []byte) error {
+func (u *UUID) UnmarshalJSON(data []byte) error {
 	var uuidString string
 	if err := json.Unmarshal(data, &uuidString); err != nil {
 		return err
@@ -21,7 +27,29 @@ func (u UUID) UnmarshalJSON(data []byte) error {
 	if uuidBytes, err := uuid.ParseUUID(uuidString); err != nil {
 		return err
 	} else {
-		copy(u, uuidBytes)
+		*u = uuidBytes[:]
+	}
+	return nil
+}
+
+func (u UUID) MarshalCQL(info gocql.TypeInfo) ([]byte, error) {
+	return u[:], nil
+}
+
+func (u *UUID) UnmarshalCQL(info gocql.TypeInfo, data []byte) error {
+	*u = data
+	return nil
+}
+
+func (u UUID) MarshalText() (string, error) {
+	return uuid.FormatUUID(u)
+}
+
+func (u *UUID) UnmarshalText(data string) error {
+	if uuidBytes, err := uuid.ParseUUID(data); err != nil {
+		return err
+	} else {
+		*u = uuidBytes[:]
 	}
 	return nil
 }
@@ -32,4 +60,12 @@ func ParseUUID(value string) (UUID, error) {
 
 func (u UUID) Equals(other UUID) bool {
 	return bytes.Compare(u, other) == 0
+}
+
+func NewUUID() (UUID, error) {
+	return uuid.GenerateRandomBytes(16)
+}
+
+func (u UUID) Validate() error {
+	return validation.Validate([]byte(u), validation.Length(16, 16))
 }
