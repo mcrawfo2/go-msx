@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"text/template"
 )
 
@@ -30,7 +31,23 @@ type MsxServiceEndpoint struct {
 }
 
 func (e MsxServiceEndpoint) Url(endpointName, serviceName string, variables map[string]string, queryParameters url.Values) (string, error) {
-	subPathTemplate, err := template.New(endpointName).Parse(e.Path)
+	// Normalize path variables to go template variable references
+	path := e.Path
+	if strings.Contains(path, "/{") {
+		pathParts := strings.Split(path, "/")
+		for i := 0; i < len(pathParts); i++ {
+			part := pathParts[i]
+			if strings.HasPrefix(part, "{") && !strings.HasPrefix(part, "{{") {
+				part = strings.TrimPrefix(part, "{")
+				part = strings.TrimSuffix(part, "}")
+				part = "{{." + part + "}}"
+			}
+			pathParts[i] = part
+		}
+		path = strings.Join(pathParts, "/")
+	}
+
+	subPathTemplate, err := template.New(endpointName).Parse(path)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to parse e url template")
 	}
@@ -238,11 +255,11 @@ func (v *MsxService) UnmarshalSuccess(ctx context.Context, request *MsxRequest, 
 
 	case request.ExpectEnvelope:
 		// Unmarshal the envelope and payload
-		response.Payload = request.Payload
-		response.Envelope = &MsxEnvelope{Payload: response.Payload}
+		response.Envelope = &MsxEnvelope{Payload: request.Payload}
 		if err = json.Unmarshal(response.Body, response.Envelope); err != nil {
 			return errors.Wrap(err, "Failed to unmarshal envelope")
 		}
+		response.Payload = response.Envelope.Payload
 
 	case request.Payload == nil:
 		logger.WithContext(ctx).Debug("No payload defined")
