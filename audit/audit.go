@@ -31,12 +31,12 @@ type ModelAuditor struct {
 
 func (a ModelAuditor) Created(auditable CreateAuditable) {
 	auditable.SetCreatedBy(a.userName())
-	auditable.SetCreatedOn(time.Now())
+	auditable.SetCreatedOn(time.Now().In(time.UTC))
 }
 
 func (a ModelAuditor) Updated(auditable UpdateAuditable) {
 	auditable.SetUpdatedBy(a.userName())
-	auditable.SetUpdatedOn(time.Now())
+	auditable.SetUpdatedOn(time.Now().In(time.UTC))
 }
 
 func (a ModelAuditor) CreatedUpdated(auditable CreateUpdateAuditable) {
