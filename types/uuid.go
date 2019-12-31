@@ -45,6 +45,14 @@ func (u UUID) MarshalText() (string, error) {
 	return uuid.FormatUUID(u)
 }
 
+func (u UUID) MustMarshalText() string {
+	text, err := u.MarshalText()
+	if err != nil {
+		panic(err)
+	}
+	return text
+}
+
 func (u *UUID) UnmarshalText(data string) error {
 	if uuidBytes, err := uuid.ParseUUID(data); err != nil {
 		return err
