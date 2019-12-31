@@ -58,38 +58,47 @@ func (s SleuthTextMapPropagator) Extract(abstractCarrier interface{}) (jaeger.Sp
 		return jaeger.SpanContext{}, opentracing.ErrInvalidCarrier
 	}
 
+	httpHeaders := opentracing.HTTPHeadersCarrier{}
+
 	var headerValue string
 	err := textMapReader.ForeachKey(func(key, val string) error {
 		if key == "b3" {
 			headerValue = val
+		} else {
+			headerName := strings.ToLower(key)
+			switch headerName {
+			case "x-b3-traceid", "x-b3-spanid", "x-b3-sampled", "x-b3-parentspanid":
+				httpHeaders.Set(headerName, strings.Trim(val, "\""))
+			}
 		}
 		return nil
 	})
 
 	if err != nil {
 		return jaeger.SpanContext{}, err
-	} else if headerValue == "" {
+	} else if headerValue != "" {
+		headerValueParts := strings.SplitN(headerValue, "-", 4)
+		if len(headerValueParts) < 3 {
+			return jaeger.SpanContext{}, ErrInvalidTrace
+		}
+
+		httpHeaders.Set("x-b3-traceid", headerValueParts[0])
+		httpHeaders.Set("x-b3-spanid", headerValueParts[1])
+
+		if headerValueParts[2] != "" {
+			httpHeaders.Set("x-b3-sampled", headerValueParts[2])
+		}
+
+		if len(headerValueParts) == 4 && headerValueParts[3] != "" {
+			httpHeaders.Set("x-b3-parentspanid", headerValueParts[3])
+		}
+	}
+
+	if len(httpHeaders) == 0 {
 		return jaeger.SpanContext{}, ErrNoTrace
+	} else {
+		return s.zipkin.Extract(httpHeaders)
 	}
-
-	headerValueParts := strings.SplitN(headerValue, "-", 4)
-	if len(headerValueParts) < 3 {
-		return jaeger.SpanContext{}, ErrInvalidTrace
-	}
-
-	httpHeaders := opentracing.HTTPHeadersCarrier{}
-	httpHeaders.Set("x-b3-traceid", headerValueParts[0])
-	httpHeaders.Set("x-b3-spanid", headerValueParts[1])
-
-	if headerValueParts[2] != "" {
-		httpHeaders.Set("x-b3-sampled", headerValueParts[2])
-	}
-
-	if len(headerValueParts) == 4 && headerValueParts[3] != "" {
-		httpHeaders.Set("x-b3-parentspanid", headerValueParts[3])
-	}
-
-	return s.zipkin.Extract(httpHeaders)
 }
 
 func NewSleuthTextMapPropagator(zipkinPropagator zipkin.Propagator) SleuthTextMapPropagator {
