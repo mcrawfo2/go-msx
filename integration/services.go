@@ -13,6 +13,7 @@ const (
 	ServiceNameServiceExtension = "serviceextensionservice"
 	ServiceNameUserManagement   = "usermanagementservice"
 	ServiceNameWorkflow         = "workflowservice"
+	ServiceNameResource         = "resourceservice"
 
 	ServiceNameDnacBeat  = "dnacbeat"
 	ServiceNameEncsBeat  = "encsbeat"
