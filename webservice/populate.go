@@ -81,11 +81,11 @@ func Populate(req *restful.Request, params interface{}) error {
 }
 
 func populateBody(req *restful.Request, fieldValue reflect.Value) error {
-	var val = fieldValue.Interface()
+	var val = fieldValue.Addr().Interface()
 	if err := req.ReadEntity(val); err != nil {
 		return NewBadRequestError(err)
 	}
-	fieldValue.Set(reflect.ValueOf(val))
+	fieldValue.Set(reflect.ValueOf(val).Elem())
 	return nil
 }
 
@@ -130,14 +130,14 @@ func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fie
 
 func populateValue(fieldValue reflect.Value, value, fieldName string) error {
 	if fieldValue.Kind() == reflect.String {
-		fieldValue.Set(reflect.ValueOf(value))
+		fieldValue.Set(reflect.ValueOf(value).Convert(fieldValue.Type()))
 		return nil
 	}
 
 	if fieldValue.Kind() == reflect.Ptr {
 		if fieldValue.Elem().Kind() == reflect.String {
 			ptrValue := &value
-			fieldValue.Set(reflect.ValueOf(ptrValue))
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 		}
 	}
