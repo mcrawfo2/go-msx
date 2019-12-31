@@ -42,5 +42,7 @@ func NewBindingConfigurationFromConfig(cfg *config.Config, key string) (*Binding
 		}
 	}
 
+	bindingConfig.Group = key + "-" + bindingConfig.Group
+
 	return bindingConfig, nil
 }

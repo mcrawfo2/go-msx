@@ -17,7 +17,6 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 	incomingContext, err := opentracing.GlobalTracer().Extract(opentracing.TextMap, textMap)
 	if err != nil {
 		logger.WithError(err).Error("Invalid trace context.")
-		return nil
 	}
 
 	operationName := "kafka.receive." + a.cfg.Destination
