@@ -124,6 +124,12 @@ func (m *Manifest) AddCreateTableMigration(version string, table ddl.Table, ifNo
 	return m.AddCqlStringMigration(version, description, stmt)
 }
 
+func (m *Manifest) AddCreateIndexMigration(version string, index ddl.Index, ifNotExists bool) error {
+	description := fmt.Sprintf("Create %s index on %s", index.Name, index.Table)
+	stmt := new(ddl.CreateIndexQueryBuilder).CreateIndex(index, ifNotExists)
+	return m.AddCqlStringMigration(version, description, stmt)
+}
+
 func script(filename string) string {
 	return strings.ToUpper(path.Base(filename))
 }
