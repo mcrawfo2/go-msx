@@ -3,6 +3,7 @@ package cassandra
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 	"sync"
@@ -24,6 +25,17 @@ func (p *ConnectionPool) WithSession(action func(*gocql.Session) error) error {
 	defer session.Close()
 
 	return action(session)
+}
+
+func (p *ConnectionPool) WithSessionRetry(ctx context.Context, action func(*gocql.Session) error) error {
+	return p.WithSession(func(session *gocql.Session) error {
+		r, err := retry.NewRetryFromContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		return r.Retry(func() error { return action(session) })
+	})
 }
 
 func (p *ConnectionPool) ClusterConfig() ClusterConfig {

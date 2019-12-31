@@ -2,7 +2,7 @@ package stream
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"fmt"
 	"strings"
 )
@@ -17,7 +17,7 @@ type BindingConfiguration struct {
 	Group       string `config:"default="`                 // Consumer group id
 	ContentType string `config:"default=application/json"` // Content-Type Header
 	Binder      string `config:"default=kafka"`            // Stream Provider
-	Retry       types.Retry
+	Retry       retry.RetryConfig
 }
 
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string) (*BindingConfiguration, error) {

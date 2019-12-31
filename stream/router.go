@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -116,7 +117,7 @@ func addListener(cfg *config.Config, topic string, action ListenerAction) error 
 
 	index := handlerCounter.Inc()
 	handlerName := fmt.Sprintf("%s-%d", topic, index)
-	router.AddNoPublisherHandler(handlerName, topic, subscriber, listenerHandler(action, bindingConfig))
+	router.AddNoPublisherHandler(handlerName, topic, subscriber, listenerHandler(topic, action, bindingConfig))
 	return nil
 }
 
@@ -137,15 +138,20 @@ func AddListener(topic string, action ListenerAction) error {
 	return nil
 }
 
-func listenerHandler(action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
+func listenerHandler(topic string, action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
 	action = TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, action))
-
 	return func(msg *message.Message) error {
+		logger.
+			WithContext(msg.Context()).
+			WithField("messageId", msg.UUID).
+			WithField("topic", topic).
+			Infof("received message payload: %s", string(msg.Payload))
+
 		retryableAction := func() error {
 			return action(msg)
 		}
 
-		if err := cfg.Retry.Retry(retryableAction); err != nil {
+		if err := retry.NewRetry(msg.Context(), cfg.Retry).Retry(retryableAction); err != nil {
 			logger.WithContext(msg.Context()).WithError(err).Error("Failed to process message")
 		}
 
