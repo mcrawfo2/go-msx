@@ -78,6 +78,7 @@ func (s *WebServer) Handler() http.Handler {
 		s.security,
 		s.injectors.Clone()))
 	s.container.Filter(tracingFilter)
+	s.container.Filter(recoveryFilter)
 	s.container.Filter(optionsFilter)
 	s.container.Filter(securityContextFilter)
 	s.container.Filter(authenticationFilter)
