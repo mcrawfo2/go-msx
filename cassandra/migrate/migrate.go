@@ -70,7 +70,7 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) er
 	for n := lastAppliedMigration; n < len(migrations); n++ {
 		migration := migrations[n]
 		appliedMigration := AppliedMigration{
-			Version:       migration.Version,
+			Version:       migration.Version.String(),
 			Description:   migration.Description,
 			Script:        migration.Script,
 			Type:          migration.Type,

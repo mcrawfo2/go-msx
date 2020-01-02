@@ -25,6 +25,17 @@ func (v Version) Lt(other Version) bool {
 	return len(v) < len(other)
 }
 
+func (v Version) String() string {
+	var sb = strings.Builder{}
+	for _, v := range v {
+		if sb.Len() > 0 {
+			sb.WriteRune('.')
+		}
+		sb.WriteString(strconv.Itoa(v))
+	}
+	return sb.String()
+}
+
 func NewVersion(source string) Version {
 	parts := strings.Split(source, ".")
 	var numbers []int

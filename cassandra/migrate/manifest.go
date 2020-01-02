@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ const (
 )
 
 type Migration struct {
-	Version     string
+	Version     types.Version
 	Description string
 	Script      string
 	Type        MigrationType
@@ -57,15 +58,13 @@ func (m *Manifest) AddCqlStringMigration(version, description, cql string) error
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	migration := &Migration{
-		Version:     version,
+	m.addMigration(&Migration{
+		Version:     parsedVersion,
 		Description: description,
 		Script:      "cql-inline",
 		Type:        MigrationTypeCql,
 		Func:        CqlMigration(cql),
-	}
-
-	m.migrations = append(m.migrations, migration)
+	})
 
 	return nil
 }
@@ -86,15 +85,13 @@ func (m *Manifest) AddCqlFileMigration(version, description, filename string) er
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	migration := &Migration{
-		Version:     version,
+	m.addMigration(&Migration{
+		Version:     parsedVersion,
 		Description: description,
 		Script:      script(filename),
 		Type:        MigrationTypeCql,
 		Func:        CqlMigration(string(cql)),
-	}
-
-	m.migrations = append(m.migrations, migration)
+	})
 
 	return nil
 }
@@ -105,17 +102,22 @@ func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc)
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	migration := &Migration{
-		Version:     version,
+	m.addMigration(&Migration{
+		Version:     parsedVersion,
 		Description: description,
 		Script:      types.FullFunctionName(fn),
 		Type:        MigrationTypeGoDriver,
 		Func:        fn,
-	}
-
-	m.migrations = append(m.migrations, migration)
+	})
 
 	return nil
+}
+
+func (m *Manifest) addMigration(migration *Migration) {
+	m.migrations = append(m.migrations, migration)
+	sort.Slice(m.migrations, func(i, j int) bool {
+		return m.migrations[i].Version.Lt(m.migrations[j].Version)
+	})
 }
 
 func (m *Manifest) AddCreateTableMigration(version string, table ddl.Table, ifNotExists bool) error {
