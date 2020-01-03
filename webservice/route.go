@@ -22,6 +22,7 @@ const (
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 	MetadataTagDefinition       = "TagDefinition"
+	requestAttributeParams      = "params"
 )
 
 var (
@@ -318,4 +319,34 @@ func TagDefinition(name, description string) RouteBuilderFunc {
 			Description:description,
 		})
 	}
+}
+
+type RouteFunction func(svc *restful.WebService) *restful.RouteBuilder
+
+func PopulateParams(template interface{}) RouteBuilderFunc {
+	templateType := reflect.TypeOf(template)
+	if templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	return func(builder *restful.RouteBuilder) {
+		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			// Instantiate a new object of the same type as template
+			target := reflect.New(templateType).Interface()
+
+			// Populate the target
+			if err := Populate(req, target); err != nil {
+				WriteErrorEnvelope(req, response, 400, err)
+				return
+			}
+
+			req.SetAttribute(requestAttributeParams, target)
+
+			chain.ProcessFilter(req, response)
+		})
+	}
+}
+
+func Params(req *restful.Request) interface{} {
+	return req.Attribute(requestAttributeParams)
 }
