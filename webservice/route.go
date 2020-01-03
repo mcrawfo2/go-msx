@@ -321,6 +321,10 @@ func TagDefinition(name, description string) RouteBuilderFunc {
 	}
 }
 
+type RestController interface {
+	Routes(svc *restful.WebService)
+}
+
 type RouteFunction func(svc *restful.WebService) *restful.RouteBuilder
 
 func PopulateParams(template interface{}) RouteBuilderFunc {
