@@ -21,6 +21,7 @@ const (
 )
 
 var (
+	logger = log.NewLogger("msx.trace")
 	jaegerLogger = log.NewLogger("jaeger")
 	jaegerCloser io.Closer
 )
@@ -77,11 +78,13 @@ func NewTracingConfig(cfg *config.Config) (*TracingConfig, error) {
 	return &tracingConfig, nil
 }
 
-func newTransport(reporterConfig TracingReporterConfig) (jaeger.Transport, error) {
+func newTransport(ctx context.Context, reporterConfig TracingReporterConfig) (jaeger.Transport, error) {
 	switch reporterConfig.Name {
 	case "zipkin":
+		logger.WithContext(ctx).Infof("Sending traces to zipkin: %q", reporterConfig.Url)
 		return jaegerzipkin.NewHTTPTransport(reporterConfig.Url, jaegerzipkin.HTTPBatchSize(1))
 	case "jaeger":
+		logger.WithContext(ctx).Infof("Sending traces to jaeger: %q", reporterConfig.Address())
 		return jaeger.NewUDPTransport(reporterConfig.Address(), 0)
 	}
 
@@ -99,7 +102,7 @@ func ConfigureTracer(ctx context.Context) error {
 	jaegerConfig := tracingConfig.ToJaegerConfig()
 	jaegerSampler := jaeger.NewConstSampler(true)
 	jaegerLogger := &JaegerLoggerAdapter{logger: jaegerLogger}
-	jaegerTransport, err := newTransport(tracingConfig.Reporter)
+	jaegerTransport, err := newTransport(ctx, tracingConfig.Reporter)
 	if err != nil {
 		return err
 	}
