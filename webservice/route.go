@@ -155,10 +155,14 @@ func authenticationFilter(req *restful.Request, resp *restful.Response, chain *r
 func PermissionsFilter(anyOf ...string) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		var ctx = req.Request.Context()
-		if err := rbac.HasPermission(ctx, anyOf); err != nil {
-			logger.WithError(err).WithField("perms", anyOf).Error("Permission denied")
-			WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
-			return
+		// Temporarily allow system user
+		var userContext = security.UserContextFromContext(ctx)
+		if userContext.UserName != "system" {
+			if err := rbac.HasPermission(ctx, anyOf); err != nil {
+				logger.WithError(err).WithField("perms", anyOf).Error("Permission denied")
+				WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
+				return
+			}
 		}
 
 		chain.ProcessFilter(req, resp)
