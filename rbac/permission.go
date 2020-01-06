@@ -8,6 +8,8 @@ import (
 
 const (
 	PermissionIsApiAdmin = "IS_API_ADMIN"
+	PermissionViewServices = "VIEW_SERVICES"
+	PermissionManageServices = "MANAGE_SERVICES"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
