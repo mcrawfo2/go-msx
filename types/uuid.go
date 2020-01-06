@@ -62,12 +62,29 @@ func (u *UUID) UnmarshalText(data string) error {
 	return nil
 }
 
+func (u UUID) Equals(other UUID) bool {
+	return bytes.Compare(u, other) == 0
+}
+
+func (u UUID) IsEmpty() bool {
+	for _, v := range u {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (u UUID) String() string {
+	return u.MustMarshalText()
+}
+
 func ParseUUID(value string) (UUID, error) {
 	return uuid.ParseUUID(value)
 }
 
-func (u UUID) Equals(other UUID) bool {
-	return bytes.Compare(u, other) == 0
+func EmptyUUID() UUID {
+	return UUID([]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,})
 }
 
 func NewUUID() (UUID, error) {
