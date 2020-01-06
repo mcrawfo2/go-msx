@@ -49,7 +49,7 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 	}
 
 	token := loginResponse.AccessToken
-	newUserContext, err := security.NewUserContextFromToken(token)
+	newUserContext, err := security.NewUserContextFromToken(ctx, token)
 	if err != nil {
 		return err
 	}
