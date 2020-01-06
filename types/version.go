@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 )
@@ -36,15 +37,35 @@ func (v Version) String() string {
 	return sb.String()
 }
 
-func NewVersion(source string) Version {
+func (v Version) Equals(o Version) bool {
+	if len(v) != len(o) {
+		return false
+	}
+
+	for i, n := range v {
+		if n != o[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func NewVersion(source string) (Version, error) {
 	parts := strings.Split(source, ".")
 	var numbers []int
+
+	if len(parts) == 0 {
+		return Version{}, errors.New("Version must have at least one numeric component")
+	}
+
 	for _, part := range parts {
 		if number, err := strconv.Atoi(part); err != nil {
-			return Version{}
+			return Version{}, errors.Wrap(err, "Cannot parse component as integer")
 		} else {
 			numbers = append(numbers, number)
 		}
 	}
-	return numbers
+
+	return numbers, nil
 }
