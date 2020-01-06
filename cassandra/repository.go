@@ -26,6 +26,7 @@ func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err err
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
+			WithContext(ctx).
 			SelectRelease(dest)
 	})
 
@@ -52,6 +53,7 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindMap(where).
 			SelectRelease(dest)
 	})
@@ -79,6 +81,7 @@ func (r *CrudRepository) FindOneBy(ctx context.Context, where map[string]interfa
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindMap(where).
 			GetRelease(dest)
 	})
@@ -99,6 +102,7 @@ func (r *CrudRepository) Save(ctx context.Context, value interface{}) (err error
 			ToCql()
 
 		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindStruct(value).
 			ExecRelease()
 	})
@@ -133,6 +137,7 @@ func (r *CrudRepository) UpdateBy(ctx context.Context, where map[string]interfac
 			ToCql()
 
 		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindMap(bind).
 			ExecRelease()
 	})
@@ -158,6 +163,7 @@ func (r *CrudRepository) DeleteBy(ctx context.Context, where map[string]interfac
 			ToCql()
 
 		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindMap(where).
 			ExecRelease()
 	})
