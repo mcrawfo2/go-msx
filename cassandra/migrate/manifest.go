@@ -53,20 +53,21 @@ func (m *Manifest) Migrations() []*Migration {
 }
 
 func (m *Manifest) AddCqlStringMigration(version, description, cql string) error {
-	parsedVersion := types.NewVersion(version)
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
 	if len(parsedVersion) < 3 {
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	m.addMigration(&Migration{
+	return m.addMigration(&Migration{
 		Version:     parsedVersion,
 		Description: description,
 		Script:      "cql-inline",
 		Type:        MigrationTypeCql,
 		Func:        CqlMigration(cql),
 	})
-
-	return nil
 }
 
 func (m *Manifest) AddCqlFileMigration(version, description, filename string) error {
@@ -80,44 +81,54 @@ func (m *Manifest) AddCqlFileMigration(version, description, filename string) er
 		return err
 	}
 
-	parsedVersion := types.NewVersion(version)
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
 	if len(parsedVersion) < 3 {
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	m.addMigration(&Migration{
+	return m.addMigration(&Migration{
 		Version:     parsedVersion,
 		Description: description,
 		Script:      script(filename),
 		Type:        MigrationTypeCql,
 		Func:        CqlMigration(string(cql)),
 	})
-
-	return nil
 }
 
 func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc) error {
-	parsedVersion := types.NewVersion(version)
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
 	if len(parsedVersion) < 3 {
 		return errors.Errorf("Invalid version: %s", version)
 	}
 
-	m.addMigration(&Migration{
+	return m.addMigration(&Migration{
 		Version:     parsedVersion,
 		Description: description,
 		Script:      types.FullFunctionName(fn),
 		Type:        MigrationTypeGoDriver,
 		Func:        fn,
 	})
-
-	return nil
 }
 
-func (m *Manifest) addMigration(migration *Migration) {
+func (m *Manifest) addMigration(migration *Migration) error {
+	for _, existingMigration := range m.migrations {
+		if existingMigration.Version.Equals(migration.Version) {
+			return errors.Errorf("Migration version %q already defined", migration.Version.String())
+		}
+	}
+
 	m.migrations = append(m.migrations, migration)
 	sort.Slice(m.migrations, func(i, j int) bool {
 		return m.migrations[i].Version.Lt(m.migrations[j].Version)
 	})
+
+	return nil
 }
 
 func (m *Manifest) AddCreateTableMigration(version string, table ddl.Table, ifNotExists bool) error {
