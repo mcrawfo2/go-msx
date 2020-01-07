@@ -4,8 +4,13 @@ go-msx is a Go library for microservices and tools interacting with MSX.
 
 ## Requirements
 
-- Go 1.12
-
+- Go 1.12 -  No extra configuration required.
+- Go 1.13 -  Be sure to set your Go proxy settings correctly.  For example:
+  ```
+  GOPRIVATE="cto-github.cisco.com/NFV-BU"
+  GOPROXY="https://proxy.golang.org,direct"
+  ```
+  
 ## Usage
 
 - To add go-msx to an existing module-enabled go project:
