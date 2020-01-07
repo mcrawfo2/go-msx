@@ -17,7 +17,7 @@ go-msx is a Go library for microservices and tools interacting with MSX.
 - To create a new go-msx microservice skeleton project:
     - Install the `skel` generator:
         ```bash
-        go install cto-github.cisco.com/NFV-BU/cmd/skel
+        go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
         ```
     - Run the `skel` generator:
         ```bash
