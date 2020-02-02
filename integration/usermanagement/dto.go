@@ -35,14 +35,20 @@ type UserCapabilityResponse struct {
 }
 
 type TenantResponse struct {
-	TenantId     string `json:"tenantId"`
-	ProviderId   string `json:"providerId"`
-	ProviderName string `json:"providerName"`
-	TenantName   string `json:"tenantName"`
-	DisplayName  string `json:"displayName"`
-	CreatedOn    int64  `json:"createdOn"`
-	ModifiedOn   int64  `json:"lastUpdated"`
-	Suspended    bool   `json:"suspended"`
+	TenantId          string      `json:"tenantId"`
+	ProviderId        string      `json:"providerId"`
+	ProviderName      string      `json:"providerName"`
+	TenantName        string      `json:"tenantName"`
+	DisplayName       string      `json:"displayName"`
+	CreatedOn         int64       `json:"createdOn"`
+	ModifiedOn        int64       `json:"lastUpdated"`
+	Suspended         bool        `json:"suspended"`
+	TenantDescription string      `json:"tenantDescription"`
+	URL               string      `json:"url"`
+	TenantGroupName   interface{} `json:"tenantGroupName"`
+	TenantExtension   struct {
+		Parameters interface{} `json:"parameters"`
+	} `json:"tenantExtension"`
 }
 
 type TenantListResponse struct {
