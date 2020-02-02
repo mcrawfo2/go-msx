@@ -195,13 +195,13 @@ func findConfigFiles(cfg *config.Config, baseName string) []string {
 
 func findConfigFolders(cfg *config.Config) []string {
 	folders := []string{"."}
-	folders = append(folders, configConfig.Path...)
 	if cfg != nil {
 		appName, err := cfg.String(configKeyAppName)
-		if err != nil && appName != "" {
-			folders = append(folders, path.Join("etc", appName))
+		if err == nil && appName != "" {
+			folders = append(folders, path.Join("/etc", appName))
 		}
 	}
+	folders = append(folders, configConfig.Path...)
 
 	for i, folder := range folders {
 		absFolder, err := filepath.Abs(folder)
@@ -309,6 +309,9 @@ func loadConfig(ctx context.Context) (err error) {
 	if err := cfg.Populate(&configConfig, configRootConfig); err != nil {
 		return err
 	}
+
+	paths := findConfigFolders(cfg)
+	logger.WithContext(ctx).Infof("Config Search Path: %v", paths)
 
 	sources.DefaultsFiles = newDefaultsFilesProviders(cfg)
 	sources.BootstrapFiles = newBootstrapProviders(cfg)
