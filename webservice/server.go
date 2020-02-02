@@ -39,6 +39,10 @@ func NewWebServer(cfg *WebServerConfig, ctx context.Context) *WebServer {
 }
 
 func (s *WebServer) NewService(path string) (*restful.WebService, error) {
+	if s == nil {
+		return nil, ErrDisabled
+	}
+
 	if path == "" {
 		return nil, errors.New("Web service path must be specified")
 	}
