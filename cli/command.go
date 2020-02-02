@@ -88,6 +88,9 @@ func Exit() {
 func Run(appName string) {
 	RootCmd().Use = appName
 	if err := RootCmd().Execute(); err != nil {
+		if exitCode == 0 {
+			Fatal(err)
+		}
 		logger.Error(err)
 	}
 	Exit()
