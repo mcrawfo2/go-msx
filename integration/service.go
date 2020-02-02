@@ -16,9 +16,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
-	"strings"
-	"text/template"
+)
+
+const (
+	schemeMsxService = "http"
 )
 
 var (
@@ -30,44 +31,12 @@ type MsxServiceEndpoint struct {
 	Path   string
 }
 
-func (e MsxServiceEndpoint) Url(endpointName, serviceName string, variables map[string]string, queryParameters url.Values) (string, error) {
-	// Normalize path variables to go template variable references
-	path := e.Path
-	if strings.Contains(path, "/{") {
-		pathParts := strings.Split(path, "/")
-		for i := 0; i < len(pathParts); i++ {
-			part := pathParts[i]
-			if strings.HasPrefix(part, "{") && !strings.HasPrefix(part, "{{") {
-				part = strings.TrimPrefix(part, "{")
-				part = strings.TrimSuffix(part, "}")
-				part = "{{." + part + "}}"
-			}
-			pathParts[i] = part
-		}
-		path = strings.Join(pathParts, "/")
+func (e MsxServiceEndpoint) Endpoint(name string) Endpoint {
+	return Endpoint{
+		Name:   name,
+		Method: e.Method,
+		Path:   e.Path,
 	}
-
-	subPathTemplate, err := template.New(endpointName).Parse(path)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to parse e url template")
-	}
-
-	var pathBuffer bytes.Buffer
-	pathBuffer.WriteString("http://")
-	pathBuffer.WriteString(serviceName)
-
-	err = subPathTemplate.Execute(&pathBuffer, variables)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to fill url template")
-	}
-
-	if len(queryParameters) > 0 {
-		pathBuffer.WriteString("?")
-		pathBuffer.WriteString(queryParameters.Encode())
-	}
-
-	result := pathBuffer.String()
-	return result, nil
 }
 
 type MsxService struct {
@@ -86,13 +55,13 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 	var err error
 	var buf io.Reader
 
-	endpoint, ok := v.endpoints[r.EndpointName]
+	msxServiceEndpoint, ok := v.endpoints[r.EndpointName]
 	if !ok {
 		return nil, errors.New("No endpoint defined: " + r.EndpointName)
 	}
 
-	fullUrl, err := endpoint.Url(
-		r.EndpointName,
+	fullUrl, err := msxServiceEndpoint.Endpoint(r.EndpointName).Url(
+		schemeMsxService,
 		v.serviceName,
 		r.EndpointParameters,
 		r.QueryParameters)
@@ -106,16 +75,16 @@ func (v *MsxService) newHttpRequest(r *MsxRequest) (*http.Request, error) {
 		buf = http.NoBody
 	}
 
-	req, err = http.NewRequest(endpoint.Method, fullUrl, buf)
+	req, err = http.NewRequest(msxServiceEndpoint.Method, fullUrl, buf)
 	if err != nil {
 		return nil, err
 	}
 	req = req.WithContext(v.ctx)
 
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept", httpclient.MimeTypeApplicationJson)
 
 	if r.Body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", httpclient.MimeTypeApplicationJson)
 	}
 
 	if !r.NoToken {

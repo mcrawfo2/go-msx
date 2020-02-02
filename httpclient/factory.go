@@ -11,3 +11,5 @@ type Client interface {
 }
 
 type DoFunc func(req *http.Request) (*http.Response, error)
+
+type RequestInterceptor func(fn DoFunc) DoFunc
