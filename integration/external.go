@@ -151,6 +151,8 @@ func (v *ExternalService) Do(req *http.Request, responseBody interface{}) (*http
 func NewExternalService(ctx context.Context, scheme, authority string) *ExternalService {
 	return &ExternalService{
 		ctx: ctx,
+		scheme:    scheme,
+		authority: authority,
 		interceptors: []httpclient.RequestInterceptor{
 			loginterceptor.NewInterceptor,
 			traceinterceptor.NewInterceptor,
