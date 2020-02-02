@@ -53,6 +53,7 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 		Delay:    3 * time.Second,
 		BackOff:  0.0,
 		Linear:   true,
+		Context:  ctx,
 	}.Retry(func() error {
 		if ctx.Err() != nil {
 			return &retry.PermanentError{Cause: err}
