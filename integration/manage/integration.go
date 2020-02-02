@@ -54,6 +54,8 @@ const (
 	endpointNameConnectControlPlane          = "connectControlPlane"
 	endpointNameConnectUnmanagedControlPlane = "connectUnmanagedControlPlane"
 
+	endpointNameGetEntityShard = "getEntityShard"
+
 	serviceName        = integration.ServiceNameManage
 )
 
@@ -101,6 +103,8 @@ var (
 		endpointNameDeleteControlPlane:           {Method: "DELETE", Path: "/api/v1/controlplanes/{{.controlPlaneId}}"},
 		endpointNameConnectControlPlane:          {Method: "POST", Path: "/api/v1/controlplanes/{{.controlPlaneId}}/connect"},
 		endpointNameConnectUnmanagedControlPlane: {Method: "POST", Path: "/api/v1/controlplanes/connect"},
+
+		endpointNameGetEntityShard: {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
 	} 
 )
 
@@ -624,5 +628,14 @@ func (i *Integration) ConnectUnmanagedControlPlane(username, password, url, reso
 		Body:           bodyBytes,
 		Payload:        new(Pojo),
 		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetEntityShard(entityId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxRequest{
+		EndpointName:       endpointNameGetEntityShard,
+		EndpointParameters: map[string]string{"entityId": entityId},
+		Payload:            new(EntityShard),
+		ExpectEnvelope:     true,
 	})
 }

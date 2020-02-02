@@ -34,7 +34,7 @@ type Api interface {
 
 	GetDevice(deviceInstanceId string) (*integration.MsxResponse, error)
 	GetDevices(deviceInstanceId, subscriptionId, serialKey, tenantId *string, page, pageSize int) (*integration.MsxResponse, error)
-	CreateDevice(subscriptionId string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error)
+	CreateDevice(subscriptionId string, deviceInstanceId *string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error)
 	UpdateDevice(deviceInstanceId string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error)
 	DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error)
 
@@ -51,4 +51,6 @@ type Api interface {
 	DeleteControlPlane(controlPlaneId string) (*integration.MsxResponse, error)
 	ConnectControlPlane(controlPlaneId string) (*integration.MsxResponse, error)
 	ConnectUnmanagedControlPlane(username, password, url, resourceProvider string, tlsInsecure bool) (*integration.MsxResponse, error)
+
+	GetEntityShard(entityId string) (*integration.MsxResponse, error)
 }
