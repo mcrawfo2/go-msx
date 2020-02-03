@@ -82,6 +82,8 @@ spec:
           volumeMounts:
             - mountPath: /keystore
               name: keystore
+            - mountPath: /etc/ssl/certs/ca-certificates.crt
+              name: certs
       volumes:
         - name: phi
           configMap:
@@ -89,3 +91,6 @@ spec:
         - name: keystore
           hostPath:
             path: /data/vms/keystore/
+        - name: certs
+          hostPath:
+            path: /etc/ssl/certs/ca-bundle.crt
