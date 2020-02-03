@@ -28,7 +28,7 @@ var (
 		"tenantId",
 	}...)}
 
-	IsDuration    = RuleFunc(CheckDuration)
+	IsDuration = RuleFunc(CheckDuration)
 )
 
 type Rule interface {

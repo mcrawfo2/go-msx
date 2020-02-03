@@ -56,7 +56,7 @@ const (
 
 	endpointNameGetEntityShard = "getEntityShard"
 
-	serviceName        = integration.ServiceNameManage
+	serviceName = integration.ServiceNameManage
 )
 
 var (
@@ -105,7 +105,7 @@ var (
 		endpointNameConnectUnmanagedControlPlane: {Method: "POST", Path: "/api/v1/controlplanes/connect"},
 
 		endpointNameGetEntityShard: {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
-	} 
+	}
 )
 
 type Integration struct {

@@ -15,7 +15,9 @@ func (u UUID) MarshalJSON() ([]byte, error) {
 		return json.Marshal(nil)
 	}
 	str, err := uuid.FormatUUID(u)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return json.Marshal(str)
 }
 
@@ -84,7 +86,7 @@ func ParseUUID(value string) (UUID, error) {
 }
 
 func EmptyUUID() UUID {
-	return UUID([]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,})
+	return UUID([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 }
 
 func NewUUID() (UUID, error) {

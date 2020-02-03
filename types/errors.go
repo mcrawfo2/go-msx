@@ -94,9 +94,9 @@ func FilterItem(v error) error {
 		return nil
 	} else if errorMap, ok := v.(ErrorMap); ok {
 		return FilterMap(errorMap)
-	// TODO: ozzo-validation.Errors
-	//} else if validationErrors, ok := v.(validation.Errors); ok {
-	//	return FilterMap(validationErrors)
+		// TODO: ozzo-validation.Errors
+		//} else if validationErrors, ok := v.(validation.Errors); ok {
+		//	return FilterMap(validationErrors)
 	} else if errorList, ok := v.(ErrorList); ok {
 		return FilterList(errorList)
 	} else {

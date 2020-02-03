@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	PermissionIsApiAdmin = "IS_API_ADMIN"
-	PermissionViewServices = "VIEW_SERVICES"
+	PermissionIsApiAdmin     = "IS_API_ADMIN"
+	PermissionViewServices   = "VIEW_SERVICES"
 	PermissionManageServices = "MANAGE_SERVICES"
 )
 

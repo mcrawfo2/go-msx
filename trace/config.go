@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	logger = log.NewLogger("msx.trace")
+	logger       = log.NewLogger("msx.trace")
 	jaegerLogger = log.NewLogger("jaeger")
 	jaegerCloser io.Closer
 )

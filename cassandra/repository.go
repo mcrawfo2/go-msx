@@ -120,8 +120,8 @@ func (r *CrudRepository) UpdateBy(ctx context.Context, where map[string]interfac
 		var bind = make(map[string]interface{})
 		var cmps []gocqlxqb.Cmp
 		for k, v := range where {
-			cmps = append(cmps, gocqlxqb.EqNamed(k, k + "Where"))
-			bind[k + "Where"] = v
+			cmps = append(cmps, gocqlxqb.EqNamed(k, k+"Where"))
+			bind[k+"Where"] = v
 		}
 
 		var sets []string

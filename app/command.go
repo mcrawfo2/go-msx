@@ -32,7 +32,7 @@ func init() {
 				),
 				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
 					"spring.application.name": cmd.Use,
-					"info.app.name": cmd.Use,
+					"info.app.name":           cmd.Use,
 				})),
 			}, nil
 		})

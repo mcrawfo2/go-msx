@@ -319,8 +319,8 @@ func TagDefinition(name, description string) RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
 		b.Metadata(restfulspec.KeyOpenAPITags, []string{name})
 		b.Metadata(MetadataTagDefinition, spec.TagProps{
-			Name: name,
-			Description:description,
+			Name:        name,
+			Description: description,
 		})
 	}
 }
