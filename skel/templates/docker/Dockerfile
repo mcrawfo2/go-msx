@@ -3,6 +3,7 @@
 ###
 
 FROM golang:1.12-stretch AS builder
+ARG BUILD_FLAGS
 ENV BUILDER_FLAGS -mod=vendor
 ADD . /app/
 WORKDIR /app
