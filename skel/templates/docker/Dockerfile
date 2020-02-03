@@ -12,7 +12,7 @@ RUN make dist
 ### Distribution Container
 ###
 
-FROM dockerhub.cisco.com/vms-platform-dev-docker/vms-base-stretch:3.7.0-339
+FROM dockerhub.cisco.com/vms-platform-dev-docker/vms-base-stretch:3.8.0-370
 ENV SERVER_STATICPATH /var/lib/${app.name}
 EXPOSE ${server.port}
 WORKDIR /var/run/${app.name}/
