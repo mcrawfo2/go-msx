@@ -39,6 +39,7 @@ func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 	infoService.Route(infoService.GET("/alive").
 		Operation("admin.alive").
 		To(RawAdminController(h.emptyReport)).
+		Doc("Liveness check").
 		Do(webservice.Returns200))
 
 	return nil

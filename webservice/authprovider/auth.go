@@ -26,7 +26,7 @@ var ErrUserForbidden = webservice.NewStatusError(
 
 type ResourcePatternAuthenticationConfig struct {
 	Blacklist []string `config:"default=/api/**;/admin;/admin/**"`
-	Whitelist []string `config:"default=/admin/health;/admin/info"`
+	Whitelist []string `config:"default=/admin/health;/admin/info;/admin/alive"`
 }
 
 type ResourcePatternAuthenticationProvider struct {
