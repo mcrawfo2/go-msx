@@ -24,6 +24,7 @@ func variables() map[string]string {
 		"app.name":           skeletonConfig.AppName,
 		"app.description":    skeletonConfig.AppDescription,
 		"app.displayname":    skeletonConfig.AppDisplayName,
+		"app.version":        skeletonConfig.AppVersion,
 		"server.port":        strconv.Itoa(skeletonConfig.ServerPort),
 		"server.contextpath": "/" + skeletonConfig.AppName,
 		"kubernetes.group":   "platformms",

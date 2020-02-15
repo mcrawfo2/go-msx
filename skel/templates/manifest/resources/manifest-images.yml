@@ -1,0 +1,3 @@
+images:
+   - image: dockerhub.cisco.com/vms-platform-dev-docker/${app.name}
+     tag: "${version}-${build_number}"

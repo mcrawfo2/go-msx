@@ -10,7 +10,7 @@ info.build:
   artifact: ${app.name}
   buildDateTime: "2019-01-01T00:00:00.000000Z"
   buildNumber: SNAPSHOT
-  release: 3.8.0
+  release: ${app.version}
   group: com.cisco.msx
   name: ${app.description}
   version: ${info.build.release}-${info.build.buildNumber}

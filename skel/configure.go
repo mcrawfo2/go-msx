@@ -13,6 +13,7 @@ type SkeletonConfig struct {
 	AppDisplayName string `survey:"appDisplayName"`
 	AppDescription string `survey:"appDescription"`
 	ServerPort     int    `survey:"serverPort"`
+	AppVersion     string `survey:"appVersion"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -24,6 +25,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppName:        "someservice",
 	AppDisplayName: "Some Microservice",
 	AppDescription: "Does Something",
+	AppVersion:     "3.9.0",
 	ServerPort:     9999,
 }
 
@@ -35,6 +37,13 @@ var surveyQuestions = []*survey.Question{
 			Default: skeletonConfig.TargetParent,
 		},
 		Validate: survey.Required,
+	},
+	{
+		Name: "appVersion",
+		Prompt: &survey.Input{
+			Message: "Version:",
+			Default: skeletonConfig.AppVersion,
+		},
 	},
 	{
 		Name: "appName",

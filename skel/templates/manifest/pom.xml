@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0     http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>${app.name}-manifest</name>
+    <groupId>com.cisco.vms.manifest.${folder}</groupId>
+    <artifactId>${app.name}-manifest</artifactId>
+    <packaging>pom</packaging>
+    <version>${app.version}-${build_number}</version>
+
+    <properties>
+       <folder>Build-Stable</folder>
+    </properties>
+
+    <scm>
+    <connection>scm:git:https://cto-github.cisco.com/NFV-BU/vms-isolated.git</connection>
+    <developerConnection>scm:git:https://cto-github.cisco.com/NFV-BU/vms-isolated.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://cto-github.cisco.com/NFV-BU/vms-isolated.git</url>
+    </scm>
+
+
+    <build>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/extra-resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/resources</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!--
+        This is what packages the deployment for others.
+        -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>create-archive</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+        <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <shortRevisionLength>0</shortRevisionLength>
+
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+    </build>
+
+   <distributionManagement>
+        <repository>
+            <id>symphony-release</id>
+            <name>symphony-release</name>
+            <url>https://engci-maven-master.cisco.com/artifactory/symphony-release</url>
+        </repository>
+        <snapshotRepository>
+            <id>symphony-snapshot</id>
+            <name>symphony-snapshot</name>
+            <url>https://engci-maven-master.cisco.com/artifactory/symphony-snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>virtual_repo</id>
+            <url>https://engci-maven-master.cisco.com/artifactory/symphony-group/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+</project>

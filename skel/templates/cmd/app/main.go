@@ -22,7 +22,7 @@ func addMigrations(ctx context.Context) error {
 	manifest := migrate.ManifestFromContext(ctx)
 
 	return types.ErrorList{
-		manifest.AddCqlStringMigration("3.8.0.1", "Create first table", "CREATE TABLE first (value text PRIMARY KEY)"),
+		manifest.AddCqlStringMigration("${app.version}.1", "Create first table", "CREATE TABLE first (value text PRIMARY KEY)"),
 	}.Filter()
 }
 

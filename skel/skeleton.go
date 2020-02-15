@@ -13,6 +13,7 @@ func init() {
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
+	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
 
@@ -23,6 +24,7 @@ func GenerateSkeleton(args []string) error {
 	return ExecTargets(
 		"generate-build",
 		"generate-app",
+		"generate-manifest",
 		"generate-dockerfile",
 		"generate-goland",
 		"generate-kubernetes",
@@ -35,6 +37,18 @@ func GenerateBuild(args []string) error {
 		"Creating Makefile":             {SourceFile: "Makefile"},
 		"Creating build descriptor":     {SourceFile: "cmd/build/build.yml"},
 		"Creating build command source": {SourceFile: "cmd/build/build.go"},
+	})
+}
+
+func GenerateInstallerManifest(args []string) error {
+	logger.Info("Generating installer manifest")
+	return renderTemplates(map[string]Template{
+		"Creating pom.xml":      {SourceFile: "manifest/pom.xml"},
+		"Creating assembly.xml": {SourceFile: "manifest/assembly.xml"},
+		"Creating images manifest": {
+			SourceFile: "manifest/resources/manifest-images.yml",
+			DestFile:   "manifest/resources/${app.name}-manifest-images.yml",
+		},
 	})
 }
 
