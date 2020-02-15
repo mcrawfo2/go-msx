@@ -6,7 +6,7 @@
     <groupId>com.cisco.vms.manifest.${folder}</groupId>
     <artifactId>${app.name}-manifest</artifactId>
     <packaging>pom</packaging>
-    <version>${app.version}-${build_number}</version>
+    <version>${version}-${build_number}</version>
 
     <properties>
        <folder>Build-Stable</folder>

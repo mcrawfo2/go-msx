@@ -21,6 +21,7 @@ const (
 	configRootBuild      = "build"
 	configRootDocker     = "docker"
 	configRootKubernetes = "kubernetes"
+	configRootManifest   = "manifest"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -44,6 +45,7 @@ var (
 		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.22.2",
 		"build.number":                 "SNAPSHOT",
 		"build.group":                  "com.cisco.msx",
+		"manifest.folder":              "Build-Stable",
 		"kubernetes.group":             "platformms",
 		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
 		"docker.username":              "",
@@ -96,6 +98,10 @@ type Build struct {
 	Group  string
 }
 
+type Manifest struct {
+	Folder string
+}
+
 type Docker struct {
 	Repository string
 	Username   string
@@ -115,6 +121,7 @@ type Config struct {
 	Server     Server
 	Docker     Docker
 	Kubernetes Kubernetes
+	Manifest   Manifest
 	Cfg        *config.Config
 }
 
@@ -203,6 +210,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Kubernetes, configRootKubernetes); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Manifest, configRootManifest); err != nil {
 		return
 	}
 

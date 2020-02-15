@@ -21,6 +21,7 @@ docker:
 
 publish:
 	$(BUILDER) docker-push
+	$(BUILDER) publish-installer-manifest
 
 clean:
 	rm -Rf dist
