@@ -19,6 +19,9 @@ docker:
 	go mod vendor
 	$(BUILDER) docker-build
 
+docker-publish: docker
+	$(BUILDER) docker-push
+
 publish:
 	$(BUILDER) docker-push
 	$(BUILDER) publish-installer-manifest
