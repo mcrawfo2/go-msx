@@ -1,3 +1,5 @@
+ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/vms-base-stretch:3.8.0-370
+
 ###
 ### Build container
 ###
@@ -13,7 +15,7 @@ RUN make dist
 ### Distribution Container
 ###
 
-FROM dockerhub.cisco.com/vms-platform-dev-docker/vms-base-stretch:3.8.0-370
+FROM ${BASE_IMAGE}
 ENV SERVER_STATICPATH /var/lib/${app.name}
 EXPOSE ${server.port}
 WORKDIR /var/run/${app.name}/

@@ -47,6 +47,7 @@ var (
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",
 		"kubernetes.group":             "platformms",
+		"docker.baseimage":             "vms-base-stretch:3.8.0-370",
 		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
 		"docker.username":              "",
 		"docker.password":              "",
@@ -103,6 +104,7 @@ type Manifest struct {
 }
 
 type Docker struct {
+	BaseImage  string
 	Repository string
 	Username   string
 	Password   string

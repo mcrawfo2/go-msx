@@ -17,6 +17,7 @@ func DockerBuild(args []string) error {
 		"-f", "docker/Dockerfile",
 		"--build-arg", "BUILDER_FLAGS",
 		"--build-arg", "BUILD_FLAGS",
+		"--build-arg", "BASE_IMAGE="+BuildConfig.Docker.BaseImage,
 		"--force-rm",
 		"--no-cache",
 		".")

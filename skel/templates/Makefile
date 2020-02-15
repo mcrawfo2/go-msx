@@ -1,4 +1,4 @@
-BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml
+BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
 .PHONY: test dist docker publish clean precommit
 
