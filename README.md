@@ -11,7 +11,7 @@ go-msx is a Go library for microservices and tools interacting with MSX.
   GOPROXY="https://proxy.golang.org,direct"
   ```
   
-## Usage
+## Quick Start
 
 - To add go-msx to an existing module-enabled go project:
 
@@ -29,6 +29,31 @@ go-msx is a Go library for microservices and tools interacting with MSX.
         skel
         ```
 
+## Documentation
+
+### Cross-Cutting Concerns
+* [Logging](log/README.md)
+* [Configuration](config/README.md)
+* [Dependencies](#)
+* [Lifecycle](app/README.md)
+* [Stats](#)
+* [Tracing](#)
+
+### Application Components
+* Web Service
+    * [Controller](#)
+    * [Filter](#)
+
+* Persistence
+    * [Repository](#)
+    * [Migration](#)
+
+* Communication
+    * [Integration](#)
+    * [Streaming](#)
+
+
+
 ## License
 
-Copyright (C) 2019 Cisco Systems, Inc.  All rights reserved.
+Copyright (C) 2020 Cisco Systems, Inc.  All rights reserved.
