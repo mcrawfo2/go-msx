@@ -1,6 +1,6 @@
 # MSX Configuration Module
 
-MSX configuration is a modified version of the [github.com/zpatrick/go-config](#README.orig.md) package with added support for remote configuration stores, JSON5 files, key normalization, and structure population.
+MSX configuration is a modified version of the [github.com/zpatrick/go-config](README.orig.md) package with added support for remote configuration stores, JSON5 files, key normalization, and structure population.
 
 ## Model
 
