@@ -53,7 +53,7 @@ func (c *Connection) Client() *api.Client {
 }
 
 func (c *Connection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
-	err = trace.Operation(ctx, "vault."+statsApiListSecrets, func() error {
+	err = trace.Operation(ctx, "vault."+statsApiListSecrets, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiListSecrets, path, func() error {
 			results = make(map[string]string)
 
@@ -106,7 +106,7 @@ func (c *Connection) read(ctx context.Context, path string) (*api.Secret, error)
 
 // Copied from vault/api to allow custom context
 func (c *Connection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
-	err = trace.Operation(ctx, "vault."+statsApiHealth, func() error {
+	err = trace.Operation(ctx, "vault."+statsApiHealth, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiHealth, "", func() error {
 			r := c.client.NewRequest("GET", "/v1/sys/health")
 			// If the code is 400 or above it will automatically turn into an error,

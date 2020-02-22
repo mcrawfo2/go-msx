@@ -49,11 +49,11 @@ func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
 
-func Operation(ctx context.Context, operationName string, operation func() error) (err error) {
+func Operation(ctx context.Context, operationName string, operation func(context.Context) error) (err error) {
 	ctx, span := NewSpan(ctx, operationName)
 	defer span.Finish()
 
-	err = operation()
+	err = operation(ctx)
 
 	if err != nil {
 		span.LogFields(Error(err))

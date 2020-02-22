@@ -157,7 +157,7 @@ func (c *Connection) GetAllServiceInstances(ctx context.Context, passingOnly boo
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	return trace.Operation(ctx, "consul."+statsApiRegisterService, func() error {
+	return trace.Operation(ctx, "consul."+statsApiRegisterService, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiRegisterService, "", func() error {
 			return c.client.Agent().ServiceRegister(registration)
 		})
@@ -165,7 +165,7 @@ func (c *Connection) RegisterService(ctx context.Context, registration *api.Agen
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
-	return trace.Operation(ctx, "consul."+statsApiDeregisterService, func() error {
+	return trace.Operation(ctx, "consul."+statsApiDeregisterService, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiDeregisterService, "", func() error {
 			return c.client.Agent().ServiceDeregister(registration.ID)
 		})
@@ -173,7 +173,7 @@ func (c *Connection) DeregisterService(ctx context.Context, registration *api.Ag
 }
 
 func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
-	err = trace.Operation(ctx, "consul."+statsApiNodeHealth, func() error {
+	err = trace.Operation(ctx, "consul."+statsApiNodeHealth, func(ctx context.Context) error {
 		err = c.stats.Observe(statsApiNodeHealth, "", func() error {
 			var nodeName string
 			nodeName, err = c.client.Agent().NodeName()

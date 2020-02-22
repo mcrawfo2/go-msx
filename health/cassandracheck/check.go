@@ -28,7 +28,7 @@ func Check(ctx context.Context) health.CheckResult {
 
 	healthResult := health.CheckResult{Details: make(map[string]interface{})}
 
-	err = trace.Operation(ctx, "cassandra.healthCheck", func() error {
+	err = trace.Operation(ctx, "cassandra.healthCheck", func(ctx context.Context) error {
 		return cassandraPool.WithSession(func(session *gocql.Session) error {
 			var version *string
 

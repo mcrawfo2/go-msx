@@ -19,7 +19,7 @@ func Check(ctx context.Context) health.CheckResult {
 	}
 
 	var healthResult health.CheckResult
-	err := trace.Operation(ctx, "kafka.healthCheck", func() error {
+	err := trace.Operation(ctx, "kafka.healthCheck", func(ctx context.Context) error {
 		return kafkaPool.WithConnection(ctx, func(conn *kafka.Connection) error {
 			broker, err := conn.Client().Controller()
 			if err != nil {

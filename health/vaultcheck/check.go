@@ -19,7 +19,7 @@ func Check(ctx context.Context) health.CheckResult {
 	}
 
 	var healthResult health.CheckResult
-	_ = trace.Operation(ctx, "vault.healthCheck", func() error {
+	_ = trace.Operation(ctx, "vault.healthCheck", func(ctx context.Context) error {
 		return vaultPool.WithConnection(func(connection *vault.Connection) error {
 			healthResponse, err := connection.Health(ctx)
 			if err != nil {
