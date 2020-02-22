@@ -34,9 +34,9 @@ go-msx is a Go library for microservices and tools interacting with MSX.
 ### Cross-Cutting Concerns
 * [Logging](log/README.md)
 * [Configuration](config/README.md)
-* [Dependencies](app/context.md)
 * [Lifecycle](app/README.md)
-* [Stats](#)
+* [Dependencies](app/context.md)
+* [Stats](stats/README.md)
 * [Tracing](#)
 
 ### Application Components
