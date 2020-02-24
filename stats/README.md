@@ -20,13 +20,15 @@ MSX Statistics supports several base data collection types:
 
 If you wish to further group the data, you can use the Vector version of each of the above types.  For example, we can group a "Request Duration Histogram" by API endpoint, in order to see the distribution of request duration distributions for each endpoint separated from other endpoints.
 
+## Usage
+
 ### Instantiation
 
 To start collecting a statistic, you must first initialize its collector.  This can be accomplished during module initialization by assigning the collector to a module-global variable:
 
 ```go
 const (
-      statsSubsystemConsul               = "consul"
+    statsSubsystemConsul               = "consul"
     statsHistogramConsulCallTime       = "call_time"
     statsGaugeConsulCalls              = "calls"
     statsCounterConsulCallErrors       = "call_errors"
@@ -77,9 +79,7 @@ After initializing your collectors, you can start to measure your application as
 A common pattern is define a wrapper function whose only purpose is to collect statistics.  In the Consul package, we can see an example of this:
 
 ```go
-type queryFunc func() error
-
-func observeConsulCall(api, param string, fn queryFunc) (err error) {
+func observeConsulCall(api, param string, fn func() error) (err error) {
     // Collect the start time of the call
     start := time.Now()
     // Increase the number of active calls
@@ -115,3 +115,18 @@ There are a few things to note here not covered in the inline comments:
 4. Gauges can be decremented by `1.0` using the `.Dec()` method.
 5. Histograms can record an observation using the `.Observe()` method.
 
+## Push Gateway
+
+By default, the MSX Statistics package expects the statistics to be polled by an external application.  If such a poller is not available, MSX Statistics can be configured to push
+to an external Prometheus push gateway.
+
+### Configuration
+
+The following configuration settings can be specified to configure the stats pusher:
+
+| Key                   | Description | Default |
+|-----------------------|-------------|---------|
+| `stats.push.enabled`  | enable the stats pusher | `false` |
+| `stats.push.url`      | url to push stats too | |
+| `stats.push.job-name` | prometheus job name to send | `go_msx` |
+| `stats.push.frequency` | duration between pushes | `15s` |

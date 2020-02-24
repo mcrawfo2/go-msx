@@ -93,7 +93,7 @@ By default, the application is configured:
 - `app.PhaseBefore`
     - Register remote config providers
 - `app.PhaseDuring`
-    - Load configuration
+    - [Load configuration](#configuration-loading)
 - `app.PhaseAfter`
     - HTTP Client
     - Consul connection pool
@@ -159,3 +159,34 @@ Any custom application code running in the background should be shutdown during 
 The `app.EventFinal` events are fired last during shutdown.
 
 By default, tracing is stopped during `app.PhaseAfter` to allow trace collection to include `app.EventStop`.
+
+## Configuration Loading
+
+In response to the `app.EventConfigure` event, MSX Application combines all registered sources of configuration.  This occurs in three phases:
+- **Phase 1** - In-Memory
+  - Application Static Defaults
+  - Environment Variables
+  - Application Runtime Overrides
+  - Command Line
+- **Phase 2** - Filesystem
+  - Defaults Files
+  - Bootstrap Files
+  - Application Files
+  - Profile Files 
+  - Build Files
+- **Phase 3** - Remote
+  - Consul
+  - Vault
+
+Note that this loading order is not the same as the order of precendence for calculating values:
+  - Application Static Defaults
+  - Defaults Files
+  - Bootstrap Files
+  - Application Files
+  - Build Files
+  - Consul
+  - Vault
+  - Profile Files
+  - Environment Variables
+  - Command Line
+  - Application Runtime Overrides
