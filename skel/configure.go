@@ -8,12 +8,13 @@ import (
 )
 
 type SkeletonConfig struct {
-	TargetParent   string `survey:"targetParent"`
-	AppName        string `survey:"appName"`
-	AppDisplayName string `survey:"appDisplayName"`
-	AppDescription string `survey:"appDescription"`
-	ServerPort     int    `survey:"serverPort"`
-	AppVersion     string `survey:"appVersion"`
+	TargetParent      string `survey:"targetParent"`
+	AppName           string `survey:"appName"`
+	AppDisplayName    string `survey:"appDisplayName"`
+	AppDescription    string `survey:"appDescription"`
+	ServerPort        int    `survey:"serverPort"`
+	ServerContextPath string `survey:"serverContextPath"`
+	AppVersion        string `survey:"appVersion"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -21,12 +22,13 @@ func (c SkeletonConfig) TargetDirectory() string {
 }
 
 var skeletonConfig = &SkeletonConfig{
-	TargetParent:   path.Join(os.Getenv("HOME"), "Documents"),
-	AppName:        "someservice",
-	AppDisplayName: "Some Microservice",
-	AppDescription: "Does Something",
-	AppVersion:     "3.9.0",
-	ServerPort:     9999,
+	TargetParent:      path.Join(os.Getenv("HOME"), "msx"),
+	AppName:           "someservice",
+	AppDisplayName:    "Some Microservice",
+	AppDescription:    "Does Something",
+	AppVersion:        "3.9.0",
+	ServerPort:        9999,
+	ServerContextPath: "/some",
 }
 
 var surveyQuestions = []*survey.Question{
@@ -75,6 +77,14 @@ var surveyQuestions = []*survey.Question{
 		Prompt: &survey.Input{
 			Message: "Web server port:",
 			Default: strconv.Itoa(skeletonConfig.ServerPort),
+		},
+		Validate: survey.Required,
+	},
+	{
+		Name: "serverContextPath",
+		Prompt: &survey.Input{
+			Message: "Web server context path:",
+			Default: skeletonConfig.ServerContextPath,
 		},
 		Validate: survey.Required,
 	},

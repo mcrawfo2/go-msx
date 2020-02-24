@@ -6,7 +6,13 @@ go-msx skeleton project generator
 
 Prerequisites:
 
-- Go 1.12
+- Go 1.13
+
+0. Configure your GO proxy:
+   ```bash
+   export GOPRIVATE="cto-github.cisco.com/NFV-BU"
+   export GOPROXY="https://proxy.golang.org,direct"
+   ```
 
 1. Install the skeleton generator:
 
@@ -18,11 +24,13 @@ Prerequisites:
 
     ```bash
     skel
-    ? Project Parent Directory: /Users/mcrawfo2/vms-3.1/demos
-    ? App name: fancyservice
-    ? App display name: Fancy Microservice
-    ? App description: Fancy Microservice
-    ? Web server port: 9998
+    ? Project Parent Directory: /Users/mcrawfo2/msx
+    ? Version: 3.9.0
+    ? App name: administrationservice
+    ? App display name: Administration Microservice
+    ? App description: Administration Microservice
+    ? Web server port: 9210
+    ? Context path: /administration
     ```
    
    Your skeleton project will be created in the target directory.
