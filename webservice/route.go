@@ -358,3 +358,11 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 func Params(req *restful.Request) interface{} {
 	return req.Attribute(requestAttributeParams)
 }
+
+func Routes(svc *restful.WebService, tag RouteBuilderFunc, routeFunctions ...RouteFunction) {
+	for _, routeFunction := range routeFunctions {
+		routeBuilder := routeFunction(svc)
+		routeBuilder.Do(tag)
+		svc.Route(routeBuilder)
+	}
+}
