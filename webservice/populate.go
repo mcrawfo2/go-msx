@@ -98,6 +98,9 @@ func populateHeader(req *restful.Request, fieldValue reflect.Value, headerTag, f
 	}
 
 	headerValue := req.HeaderParameter(headerName)
+	if headerValue == "" {
+		return nil
+	}
 
 	return populateValue(fieldValue, headerValue, fieldName)
 }
@@ -123,9 +126,12 @@ func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fie
 		queryName = strcase.ToLowerCamel(fieldName)
 	}
 
-	pathValue := req.QueryParameter(queryName)
+	queryValue := req.QueryParameter(queryName)
+	if queryValue == "" {
+		return nil
+	}
 
-	return populateValue(fieldValue, pathValue, fieldName)
+	return populateValue(fieldValue, queryValue, fieldName)
 }
 
 func populateValue(fieldValue reflect.Value, value, fieldName string) error {
@@ -134,20 +140,20 @@ func populateValue(fieldValue reflect.Value, value, fieldName string) error {
 		return nil
 	}
 
-	if fieldValue.Kind() == reflect.Ptr {
-		if fieldValue.Elem().Kind() == reflect.String {
-			ptrValue := &value
-			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-			return nil
-		}
-	}
-
 	fieldType := fieldValue.Type()
 	if fieldValue.IsNil() {
 		if fieldValue.Kind() == reflect.Ptr {
 			fieldValue.Set(reflect.New(fieldType.Elem()))
 		} else {
 			fieldValue.Set(reflect.New(fieldType).Elem())
+		}
+	}
+
+	if fieldValue.Kind() == reflect.Ptr {
+		if fieldValue.Elem().Kind() == reflect.String {
+			ptrValue := &value
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
 		}
 	}
 
