@@ -5,12 +5,14 @@ import (
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/pkg/errors"
+	"regexp"
 	"time"
 )
 
 var (
 	Required      = validation.Required
 	NilOrNotEmpty = validation.NilOrNotEmpty
+	Match         = validation.Match
 	OptionalUuid  = []Rule{validation.NilOrNotEmpty, IfNotNil(is.UUID)}
 	ValidScope    = []Rule{validation.Required, validation.In([]interface{}{
 		"controlPlaneId",
@@ -29,6 +31,8 @@ var (
 	}...)}
 
 	IsDuration = RuleFunc(CheckDuration)
+
+	RegExpEmail = regexp.MustCompile(`^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$`)
 )
 
 type Rule interface {
