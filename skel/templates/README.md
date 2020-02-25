@@ -32,7 +32,7 @@ are available:
 * `docker` 
     - Build docker image
 * `publish` 
-    - Publish docker image
+    - Publish docker image and installer manifest
 * `clean`
     - Remove test and distribution directories
 * `precommit`

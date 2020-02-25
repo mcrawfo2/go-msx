@@ -22,7 +22,7 @@ server:
   enabled: true
 
 spring.data.cassandra:
-  keyspace-name: someservice
+  keyspace-name: ${app.name}
   enabled: true
 
 spring.cloud.consul:
