@@ -10,6 +10,8 @@ const (
 	PermissionIsApiAdmin     = "IS_API_ADMIN"
 	PermissionViewServices   = "VIEW_SERVICES"
 	PermissionManageServices = "MANAGE_SERVICES"
+	PermissionViewContact    = "VIEW_CONTACT"
+	PermissionManageContact  = "MANAGE_CONTACT"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
