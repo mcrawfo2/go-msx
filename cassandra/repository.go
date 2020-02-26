@@ -8,6 +8,29 @@ import (
 	gocqlxqb "github.com/scylladb/gocqlx/qb"
 )
 
+type CrudRepositoryFactoryApi interface {
+	NewCrudRepository(table ddl.Table) CrudRepositoryApi
+}
+
+type ProductionCrudRepositoryFactory struct {}
+
+func (f *ProductionCrudRepositoryFactory) NewCrudRepository(table ddl.Table) CrudRepositoryApi {
+	return &CrudRepository{Table:table}
+}
+
+func NewProductionCrudRepositoryFactory() CrudRepositoryFactoryApi {
+	return new(ProductionCrudRepositoryFactory)
+}
+
+type CrudRepositoryApi interface {
+	FindAll(ctx context.Context, dest interface{}) (err error)
+	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	Save(ctx context.Context, value interface{}) (err error)
+	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
+	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
+}
+
 type CrudRepository struct {
 	Table ddl.Table
 }

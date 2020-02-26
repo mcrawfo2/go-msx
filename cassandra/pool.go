@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"github.com/gocql/gocql"
-	"github.com/pkg/errors"
 	"sync"
 )
 
@@ -90,24 +89,4 @@ func ConfigurePool(cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-type cassandraContextKey int
-
-const contextKeyCassandraPool cassandraContextKey = iota
-
-func ContextWithPool(ctx context.Context) context.Context {
-	return context.WithValue(ctx, contextKeyCassandraPool, pool)
-}
-
-func PoolFromContext(ctx context.Context) (*ConnectionPool, error) {
-	connectionPoolInterface := ctx.Value(contextKeyCassandraPool)
-	if connectionPoolInterface == nil {
-		return nil, ErrDisabled
-	}
-	if connectionPool, ok := connectionPoolInterface.(*ConnectionPool); !ok {
-		return nil, errors.New("Context cassandra connection pool value is the wrong type")
-	} else {
-		return connectionPool, nil
-	}
 }

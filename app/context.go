@@ -27,6 +27,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
+	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
@@ -53,6 +54,14 @@ func configureHttpClientFactory(ctx context.Context) error {
 	}
 	contextInjectors.Register(func(ctx context.Context) context.Context {
 		return httpclient.ContextWithFactory(ctx, httpClientFactory)
+	})
+	return nil
+}
+
+func configureCassandraCrudRepositoryFactory(context.Context) error {
+	crudRepositoryFactory := cassandra.NewProductionCrudRepositoryFactory()
+	contextInjectors.Register(func (ctx context.Context) context.Context {
+		return cassandra.ContextWithCrudRepositoryFactory(ctx, crudRepositoryFactory)
 	})
 	return nil
 }
