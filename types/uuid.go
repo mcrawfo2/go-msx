@@ -85,6 +85,14 @@ func ParseUUID(value string) (UUID, error) {
 	return uuid.ParseUUID(value)
 }
 
+func MustParseUUID(value string) UUID {
+	result, err := uuid.ParseUUID(value)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
 func EmptyUUID() UUID {
 	return UUID([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 }
