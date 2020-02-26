@@ -56,3 +56,7 @@ func NewNotFoundError(cause error) error {
 func NewInternalError(cause error) error {
 	return NewStatusError(cause, http.StatusInternalServerError)
 }
+
+func NewConflictError(cause error) error {
+	return NewStatusError(cause, http.StatusConflict)
+}
