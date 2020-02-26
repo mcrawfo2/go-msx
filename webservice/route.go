@@ -68,20 +68,27 @@ func newResponse(payload interface{}) interface{} {
 	for i := 0; i < structType.NumField(); i++ {
 		structField := structType.Field(i)
 		if structField.Name == "Payload" {
-			structField.Type = reflect.TypeOf(payload)
+			if payload == nil {
+				continue
+			} else {
+				structField.Type = reflect.TypeOf(payload)
+			}
 		}
 		structFields = append(structFields, structField)
 	}
 
-	payloadType := reflect.TypeOf(payload)
-	if payloadType.Kind() == reflect.Ptr {
-		payloadType = payloadType.Elem()
+	payloadTypeName := "Void"
+	if payload != nil {
+		payloadType := reflect.TypeOf(payload)
+		if payloadType.Kind() == reflect.Ptr {
+			payloadType = payloadType.Elem()
+		}
+		payloadPackageName := path.Base(payloadType.PkgPath())
+		if payloadPackageName != "" {
+			payloadPackageName += "."
+		}
+		payloadTypeName = payloadPackageName + payloadType.Name()
 	}
-	payloadPackageName := path.Base(payloadType.PkgPath())
-	if payloadPackageName != "" {
-		payloadPackageName += "."
-	}
-	payloadTypeName := payloadPackageName + payloadType.Name()
 	responseTypeName := fmt.Sprintf("integration.MsxEnvelope«%s»", payloadTypeName)
 	responseType := reflect.StructOf(structFields)
 	responseTypes[responseType] = responseTypeName
