@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
 	"path"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -22,6 +23,7 @@ const (
 	configRootDocker     = "docker"
 	configRootKubernetes = "kubernetes"
 	configRootManifest   = "manifest"
+	configRootGo         = "go"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -51,6 +53,10 @@ var (
 		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
 		"docker.username":              "",
 		"docker.password":              "",
+		"go.env.all.GOPRIVATE":         "cto-github.cisco.com/NFV-BU",
+		"go.env.all.GOPROXY":           "https://proxy.golang.org,direct",
+		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro"`,
+		"go.env.darwin.GOFLAGS":        `-buildmode=pie -i`,
 	}
 )
 
@@ -81,6 +87,31 @@ func (p Server) PortString() string {
 type Executable struct {
 	Cmd         string // refers to `cmd/<name>/main.go`
 	ConfigFiles []string
+}
+
+type Go struct {
+	Env struct {
+		All    map[string]string
+		Linux  map[string]string
+		Darwin map[string]string
+	}
+}
+
+func (g Go) Environment() map[string]string {
+	result := make(map[string]string)
+	copyMap := func(source map[string]string) {
+		for k, v := range source {
+			result[k] = v
+		}
+	}
+	copyMap(g.Env.All)
+	switch runtime.GOOS {
+	case "linux":
+		copyMap(g.Env.Linux)
+	case "darwin":
+		copyMap(g.Env.Darwin)
+	}
+	return result
 }
 
 type MsxParams struct {
@@ -117,6 +148,7 @@ type Kubernetes struct {
 type Config struct {
 	Timestamp  time.Time
 	Msx        MsxParams
+	Go         Go
 	Executable Executable
 	Build      Build
 	App        AppInfo
@@ -181,6 +213,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Executable, configRootExecutable); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Go, configRootGo); err != nil {
 		return
 	}
 

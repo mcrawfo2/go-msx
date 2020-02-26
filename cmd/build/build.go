@@ -3,7 +3,6 @@ package main
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/build"
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
-	"gopkg.in/pipe.v2"
 )
 
 func init() {
@@ -11,7 +10,9 @@ func init() {
 }
 
 func UpdateSkelTemplates(args []string) error {
-	return exec.ExecutePipesIn("skel", pipe.Exec("go", "generate"))
+	return exec.ExecutePipes(
+		exec.WithDir("skel",
+			exec.Exec("go", []string{"generate"})))
 }
 
 func main() {

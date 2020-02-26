@@ -7,11 +7,11 @@ func init() {
 }
 
 func PublishInstallerManifest(args []string) error {
-	return exec.ExecuteIn(
-		"manifest",
-		"mvn", "-B",
-		"clean", "deploy",
-		"-Dversion="+BuildConfig.Msx.Release,
-		"-Dbuild_number="+BuildConfig.Build.Number,
-		"-Dfolder="+BuildConfig.Manifest.Folder)
+	return exec.ExecutePipes(
+		exec.WithDir("manifest",
+			exec.ExecSimple("mvn",
+				"-B", "clean", "deploy",
+				"-Dversion="+BuildConfig.Msx.Release,
+				"-Dbuild_number="+BuildConfig.Build.Number,
+				"-Dfolder="+BuildConfig.Manifest.Folder)))
 }

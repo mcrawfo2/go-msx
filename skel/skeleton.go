@@ -14,6 +14,7 @@ func init() {
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
+	AddTarget("add-go-msx-dependency", "Add go-msx dependency", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
 
@@ -24,6 +25,7 @@ func GenerateSkeleton(args []string) error {
 	return ExecTargets(
 		"generate-build",
 		"generate-app",
+		"add-go-msx-dependency",
 		"generate-manifest",
 		"generate-dockerfile",
 		"generate-goland",
@@ -71,6 +73,23 @@ func GenerateApp(args []string) error {
 		},
 		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
 	})
+}
+
+func AddGoMsxDependency(args []string) error {
+	logger.Info("Add go-msx dependency")
+
+	targetDirectory := skeletonConfig.TargetDirectory()
+
+	return exec.ExecutePipes(
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Adding go-msx to modules"),
+				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx"))),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Tidying go modules"),
+				pipe.Exec("go", "mod", "tidy")),
+		))
 }
 
 func GenerateGoland(args []string) error {
@@ -153,27 +172,25 @@ func GenerateGit(args []string) error {
 	}
 
 	targetDirectory := skeletonConfig.TargetDirectory()
+	logger.Infof("Target Directory: %s", targetDirectory)
+
 	gitDirectory := path.Join(targetDirectory, ".git")
 	if _, err := os.Stat(gitDirectory); err == nil || !os.IsNotExist(err) {
 		return err
 	}
 
-	return exec.ExecutePipesIn(
-		targetDirectory,
-		pipe.Line(
-			exec.Info("- Adding go-msx to modules"),
-			pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx")),
-		pipe.Line(
-			exec.Info("- Tidying go modules"),
-			pipe.Exec("go", "mod", "tidy")),
-		pipe.Line(
-			exec.Info("- Initializing git repository"),
-			pipe.Exec("git", "init", ".")),
-		pipe.Line(
-			exec.Info("- Staging changes"),
-			pipe.Exec("git", "add", "-A")),
-		pipe.Line(
-			exec.Info("- Committing changes"),
-			pipe.Exec("git", "commit", "-m", "Initial Commit")),
-	)
+	return exec.ExecutePipes(
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Initializing git repository"),
+				pipe.Exec("git", "init", "."))),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Staging changes"),
+				pipe.Exec("git", "add", "-A"))),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Committing changes"),
+				pipe.Exec("git", "commit", "-m", "Initial Commit")),
+		))
 }

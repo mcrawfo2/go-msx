@@ -23,11 +23,11 @@ func BuildDebugExecutable(args []string) error {
 
 	sourceFile := strings.Fields(path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
 
-	return exec.ExecutePipes(exec.Exec(
-		"go",
-		buildArgs,
-		builderFlags,
-		sourceFile))
+	return exec.ExecutePipes(
+		exec.Exec("go",
+			buildArgs,
+			builderFlags,
+			sourceFile))
 }
 
 func BuildExecutable(args []string) error {
@@ -41,9 +41,11 @@ func BuildExecutable(args []string) error {
 
 	sourceFile := strings.Fields(path.Join("cmd", BuildConfig.Executable.Cmd, "main.go"))
 
-	return exec.ExecutePipes(exec.Exec(
-		"go",
-		buildArgs,
-		builderFlags,
-		sourceFile))
+	return exec.ExecutePipes(
+		exec.WithEnv(BuildConfig.Go.Environment(),
+			exec.Exec(
+				"go",
+				buildArgs,
+				builderFlags,
+				sourceFile)))
 }

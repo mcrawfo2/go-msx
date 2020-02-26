@@ -11,30 +11,37 @@ func init() {
 }
 
 func DockerBuild(args []string) error {
-	return exec.Execute(
+	logger.WithExtendedField("target", "docker-build").
+		Infof("BASE_IMAGE=%s", dockerBaseImage())
+
+	return exec.ExecutePipes(exec.ExecSimple(
 		"docker", "build",
 		"-t", dockerImageName(),
 		"-f", "docker/Dockerfile",
 		"--build-arg", "BUILDER_FLAGS",
 		"--build-arg", "BUILD_FLAGS",
-		"--build-arg", "BASE_IMAGE="+BuildConfig.Docker.BaseImage,
+		"--build-arg", "BASE_IMAGE="+dockerBaseImage(),
 		"--force-rm",
 		"--no-cache",
-		".")
+		"."))
 }
 
 func DockerPush(args []string) error {
+	logger.WithExtendedField("target", "docker-push").
+		Infof("IMAGE=%s", dockerImageName())
+
 	if BuildConfig.Docker.Username != "" && BuildConfig.Docker.Password != "" {
-		err := exec.Execute(
+		err := exec.ExecutePipes(exec.ExecSimple(
 			"docker", "login",
 			"-u", BuildConfig.Docker.Username,
-			"-p", BuildConfig.Docker.Password)
+			"-p", BuildConfig.Docker.Password))
 		if err != nil {
 			return err
 		}
 	}
 
-	return exec.Execute("docker", "push", dockerImageName())
+	return exec.ExecutePipes(exec.ExecSimple(
+		"docker", "push", dockerImageName()))
 }
 
 func dockerImageName() string {
@@ -42,4 +49,10 @@ func dockerImageName() string {
 		BuildConfig.Docker.Repository,
 		BuildConfig.App.Name,
 		BuildConfig.FullBuildNumber())
+}
+
+func dockerBaseImage() string {
+	return fmt.Sprintf("%s/%s",
+		BuildConfig.Docker.Repository,
+		BuildConfig.Docker.BaseImage)
 }
