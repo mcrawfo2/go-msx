@@ -29,6 +29,10 @@ func RegisterDiscoveryProvider(provider DiscoveryProvider) {
 	}
 }
 
+func IsDiscoveryProviderRegistered() bool {
+	return discoveryProvider != nil
+}
+
 func Discover(ctx context.Context, name string, healthyOnly bool, tags ...string) (ServiceInstances, error) {
 	if discoveryProvider == nil {
 		return nil, ErrDiscoveryProviderNotDefined
