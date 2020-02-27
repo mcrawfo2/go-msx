@@ -26,6 +26,7 @@ type CrudRepositoryApi interface {
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindPartitionKeys(ctx context.Context, dest interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
 	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
 	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
@@ -78,6 +79,27 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 			Query(session.Query(stmt), names).
 			WithContext(ctx).
 			BindMap(where).
+			SelectRelease(dest)
+	})
+
+	return
+}
+
+func (r *CrudRepository) FindPartitionKeys(ctx context.Context, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			Distinct(r.Table.PartitionKeys...).
+			ToCql()
+
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
 			SelectRelease(dest)
 	})
 
