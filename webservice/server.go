@@ -3,10 +3,12 @@ package webservice
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -188,14 +190,14 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	// Start the server
 	go func() {
 		var err error
-		if s.cfg.Tls {
+		if s.cfg.Tls.Enabled {
 			logger.Infof("Serving on https://%s%s", s.cfg.Address(), s.cfg.ContextPath)
-
-			tlsConfig := &tls.Config{
-				ClientAuth: tls.VerifyClientCertIfGiven,
+			tlsConfig, err := buildTlsConfig(s.cfg)
+			if err != nil {
+				logger.WithError(err).Error("TLS: Configuration issue")
 			}
 			tlsConfig.BuildNameToCertificate()
-			err = s.server.ListenAndServeTLS(s.cfg.CertFile, s.cfg.KeyFile)
+			err = s.server.ListenAndServeTLS(s.cfg.Tls.CertFile, s.cfg.Tls.KeyFile)
 		} else {
 			logger.Infof("Serving on http://%s%s", s.cfg.Address(), s.cfg.ContextPath)
 
@@ -287,4 +289,26 @@ func requestContextInjectorFilter(ctx context.Context, container *restful.Contai
 
 		chain.ProcessFilter(req, resp)
 	}
+}
+
+func buildTlsConfig(cfg *WebServerConfig) (*tls.Config, error) {
+	ca, err := ioutil.ReadFile(cfg.Tls.CaFile)
+	if err != nil {
+		return &tls.Config{}, err
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(ca)
+	ciphers, err := ParseCiphers(cfg.Tls.CipherSuites)
+	if err != nil {
+		return &tls.Config{}, err
+	}
+
+	tlsconfig := &tls.Config{
+		ClientAuth:   tls.VerifyClientCertIfGiven,
+		ClientCAs:    caCertPool,
+		MinVersion:   TLSLookup[cfg.Tls.MinVersion],
+		CipherSuites: ciphers,
+	}
+
+	return tlsconfig, nil
 }
