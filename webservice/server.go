@@ -88,6 +88,7 @@ func (s *WebServer) Handler() http.Handler {
 	s.container.Filter(optionsFilter)
 	s.container.Filter(securityContextFilter)
 	s.container.Filter(authenticationFilter)
+	s.container.Filter(auditContextFilter)
 	if s.cfg.Cors {
 		ActivateCors(s.container)
 	}

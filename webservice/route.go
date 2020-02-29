@@ -1,6 +1,7 @@
 package webservice
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/audit/auditlog"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
@@ -156,6 +157,14 @@ func authenticationFilter(req *restful.Request, resp *restful.Response, chain *r
 		}
 	}
 
+	chain.ProcessFilter(req, resp)
+}
+
+func auditContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	server := WebServerFromContext(req.Request.Context())
+	auditDetails := auditlog.ExtractRequestDetails(req, server.cfg.Host, server.cfg.Port)
+	ctx := auditlog.ContextWithRequestDetails(req.Request.Context(), auditDetails)
+	req.Request = req.Request.WithContext(ctx)
 	chain.ProcessFilter(req, resp)
 }
 
