@@ -7,6 +7,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -97,11 +98,15 @@ func populateHeader(req *restful.Request, fieldValue reflect.Value, headerTag, f
 		headerName = strcase.ToKebab(fieldName)
 	}
 
-	headerValue := req.HeaderParameter(headerName)
-	if headerValue == "" {
+	headerValues, ok := req.Request.Header[headerName]
+	if !ok || len(headerValues) == 0 {
+		if fieldValue.Kind() != reflect.Ptr {
+			return errors.Errorf("Missing non-optional header %q", headerName)
+		}
 		return nil
 	}
 
+	headerValue := headerValues[0]
 	return populateValue(fieldValue, headerValue, fieldName)
 }
 
@@ -126,20 +131,69 @@ func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fie
 		queryName = strcase.ToLowerCamel(fieldName)
 	}
 
-	queryValue := req.QueryParameter(queryName)
-	if queryValue == "" {
+	queryValues, ok := req.Request.URL.Query()[queryName]
+	if !ok || len(queryValues) == 0 {
+		if fieldValue.Kind() != reflect.Ptr {
+			return errors.Errorf("Missing non-optional query parameter %q", fieldName)
+		}
 		return nil
 	}
 
+	queryValue := queryValues[0]
 	return populateValue(fieldValue, queryValue, fieldName)
 }
 
-func populateValue(fieldValue reflect.Value, value, fieldName string) error {
-	if fieldValue.Kind() == reflect.String {
+func populateValue(fieldValue reflect.Value, value, fieldName string) (err error) {
+	errorWrapper := func(err error) error {
+		return errors.Wrapf(err, "Cannot marshal string %q into field %q", value, fieldName)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.Errorf("Cannot marshal string %q into field %q", value, fieldName)
+		}
+	}()
+
+	// Scalars
+	switch fieldValue.Kind() {
+	case reflect.String:
 		fieldValue.Set(reflect.ValueOf(value).Convert(fieldValue.Type()))
+		return nil
+
+	case reflect.Bool:
+		boolValue, err := strconv.ParseBool(value)
+		if err != nil {
+			return errorWrapper(err)
+		}
+		fieldValue.Set(reflect.ValueOf(boolValue).Convert(fieldValue.Type()))
+		return nil
+
+	case reflect.Float32, reflect.Float64:
+		floatValue, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return errorWrapper(err)
+		}
+		fieldValue.Set(reflect.ValueOf(floatValue).Convert(fieldValue.Type()))
+		return nil
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		intValue, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return errorWrapper(err)
+		}
+		fieldValue.Set(reflect.ValueOf(intValue).Convert(fieldValue.Type()))
+		return nil
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		uintValue, err := strconv.ParseUint(value, 10, 64)
+		if err != nil {
+			return errorWrapper(err)
+		}
+		fieldValue.Set(reflect.ValueOf(uintValue).Convert(fieldValue.Type()))
 		return nil
 	}
 
+	// Nil Pointers
 	fieldType := fieldValue.Type()
 	if fieldValue.IsNil() {
 		if fieldValue.Kind() == reflect.Ptr {
@@ -149,14 +203,53 @@ func populateValue(fieldValue reflect.Value, value, fieldName string) error {
 		}
 	}
 
+	// Pointers to scalars
 	if fieldValue.Kind() == reflect.Ptr {
-		if fieldValue.Elem().Kind() == reflect.String {
+		switch fieldValue.Elem().Kind() {
+		case reflect.String:
 			ptrValue := &value
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Bool:
+			boolValue, err := strconv.ParseBool(value)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			ptrValue := &boolValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Float32, reflect.Float64:
+			floatValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			ptrValue := &floatValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			intValue, err := strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			ptrValue := &intValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			uintValue, err := strconv.ParseUint(value, 10, 64)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			ptrValue := &uintValue
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 		}
 	}
 
+	// Unmarshaler
 	fieldInterface := fieldValue.Interface()
 	if fieldUnmarshaler, ok := fieldInterface.(types.TextUnmarshaler); ok {
 		err := fieldUnmarshaler.UnmarshalText(value)
@@ -177,5 +270,5 @@ func populateValue(fieldValue reflect.Value, value, fieldName string) error {
 		}
 	}
 
-	return NewInternalError(errors.Errorf("Cannot marshal string into field %s", fieldName))
+	return NewInternalError(errors.Errorf("Cannot marshal string %q into field %q", value, fieldName))
 }
