@@ -3,19 +3,22 @@ package cassandra
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
+	"fmt"
 	"github.com/gocql/gocql"
+	"github.com/scylladb/go-reflectx"
 	"github.com/scylladb/gocqlx"
 	gocqlxqb "github.com/scylladb/gocqlx/qb"
+	"reflect"
 )
 
 type CrudRepositoryFactoryApi interface {
 	NewCrudRepository(table ddl.Table) CrudRepositoryApi
 }
 
-type ProductionCrudRepositoryFactory struct {}
+type ProductionCrudRepositoryFactory struct{}
 
 func (f *ProductionCrudRepositoryFactory) NewCrudRepository(table ddl.Table) CrudRepositoryApi {
-	return &CrudRepository{Table:table}
+	return &CrudRepository{Table: table}
 }
 
 func NewProductionCrudRepositoryFactory() CrudRepositoryFactoryApi {
@@ -28,6 +31,7 @@ type CrudRepositoryApi interface {
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindPartitionKeys(ctx context.Context, dest interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
+	SaveAll(ctx context.Context, values []interface{}) (err error)
 	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
 	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
 }
@@ -65,8 +69,12 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 
 	err = pool.WithSession(func(session *gocql.Session) error {
 		var cmps []gocqlxqb.Cmp
-		for k, _ := range where {
-			cmps = append(cmps, gocqlxqb.EqNamed(k, k))
+		for k, v := range where {
+			if reflect.TypeOf(v).Kind() == reflect.Slice {
+				cmps = append(cmps, gocqlxqb.InNamed(k, k))
+			} else {
+				cmps = append(cmps, gocqlxqb.EqNamed(k, k))
+			}
 		}
 
 		stmt, names := gocqlxqb.
@@ -153,6 +161,71 @@ func (r *CrudRepository) Save(ctx context.Context, value interface{}) (err error
 	})
 
 	return
+}
+
+func (r *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSessionRetry(ctx, func(session *gocql.Session) error {
+
+		insertBuilder := gocqlxqb.
+			Insert(r.Table.Name).
+			Columns(r.Table.ColumnNames()...)
+
+		itemNames := r.Table.ColumnNames()
+		batchBuilder := gocqlxqb.Batch()
+		batchMap := make(map[string]interface{})
+		for i, batchValue := range values {
+			batchPrefix := createBatchKey(i)
+			batchBuilder.AddWithPrefix(batchPrefix, insertBuilder)
+
+			// Flatten the batchValue object into the map (one entry per field)
+			mapper := gocqlx.DefaultMapper
+			v := reflect.ValueOf(batchValue)
+			err := mapper.TraversalsByNameFunc(v.Type(), itemNames, func(i int, t []int) error {
+				if len(t) != 0 {
+					val := reflectx.FieldByIndexesReadOnly(v, t)
+					batchMap[batchPrefix + "." + itemNames[i]] = val.Interface()
+					return nil
+				} else {
+					return fmt.Errorf("could not find name %q in %#v", itemNames[i], batchValue)
+				}
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		stmt, names := batchBuilder.ToCql()
+
+		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(batchMap).
+			ExecRelease()
+	})
+
+	return
+}
+
+func createBatchKey(i int) string {
+	var key []byte
+	scale := 16
+	for {
+		remainder := i % scale
+		base := 97
+		if i < scale && len(key) > 0 {
+			base = 96
+		}
+		key = append([]byte{byte(base + remainder)}, key...)
+		i = i / scale
+		if i == 0 {
+			break
+		}
+	}
+	return string(key)
 }
 
 func (r *CrudRepository) UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error) {
