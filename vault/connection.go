@@ -104,6 +104,52 @@ func (c *Connection) read(ctx context.Context, path string) (*api.Secret, error)
 	return api.ParseSecret(resp.Body)
 }
 
+func (c *Connection) StoreSecrets(ctx context.Context, path string, secrets map[string]string) (err error) {
+	err = trace.Operation(ctx, "vault."+statsApiStoreSecrets, func(ctx context.Context) error {
+		return c.stats.Observe(statsApiStoreSecrets, path, func() error {
+			if _, err := c.write(ctx, path, secrets); err != nil {
+				return errors.Wrap(err, "Failed to store vault secrets")
+			}
+
+			return nil
+		})
+	})
+
+	return
+}
+
+func (c *Connection) write(ctx context.Context, path string, secrets map[string]string) (*api.Secret, error) {
+	r := c.client.NewRequest("PUT", "/v1/"+path)
+	if err := r.SetJSONBody(secrets); err != nil {
+		return nil, err
+	}
+
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer cancelFunc()
+	resp, err := c.client.RawRequestWithContext(ctx, r)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if resp != nil && resp.StatusCode == 404 {
+		secret, parseErr := api.ParseSecret(resp.Body)
+		switch parseErr {
+		case nil:
+		case io.EOF:
+			return nil, nil
+		default:
+			return nil, err
+		}
+		if secret != nil && (len(secret.Warnings) > 0 || len(secret.Data) > 0) {
+			return secret, err
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return api.ParseSecret(resp.Body)
+}
+
 // Copied from vault/api to allow custom context
 func (c *Connection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
 	err = trace.Operation(ctx, "vault."+statsApiHealth, func(ctx context.Context) error {
