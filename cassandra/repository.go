@@ -28,6 +28,7 @@ func NewProductionCrudRepositoryFactory() CrudRepositoryFactoryApi {
 type CrudRepositoryApi interface {
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindPartitionKeys(ctx context.Context, dest interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
@@ -83,6 +84,23 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 			Where(cmps...).
 			ToCql()
 
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(where).
+			SelectRelease(dest)
+	})
+
+	return
+}
+
+func (r *CrudRepository) FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
 		return gocqlx.
 			Query(session.Query(stmt), names).
 			WithContext(ctx).
