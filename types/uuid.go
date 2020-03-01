@@ -34,10 +34,12 @@ func (u *UUID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// DEPRECATED
 func (u UUID) MarshalCQL(info gocql.TypeInfo) ([]byte, error) {
 	return u[:], nil
 }
 
+// DEPRECATED
 func (u *UUID) UnmarshalCQL(info gocql.TypeInfo, data []byte) error {
 	*u = data
 	return nil
@@ -103,4 +105,10 @@ func NewUUID() (UUID, error) {
 
 func (u UUID) Validate() error {
 	return validation.Validate([]byte(u), validation.Length(16, 16))
+}
+
+func (u UUID) ToByteArray() [16]byte {
+	result := [16]byte{}
+	copy(result[:], u[0:16])
+	return result
 }

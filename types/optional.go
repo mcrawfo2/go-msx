@@ -29,3 +29,25 @@ func (s OptionalString) String() string {
 func NewOptionalString(value *string) OptionalString {
 	return OptionalString{Value:value}
 }
+
+type Optional struct {
+	Value interface{}
+}
+
+func (o Optional) IfPresent(fn func(v interface{})) Optional {
+	if o.Value != nil {
+		fn(o.Value)
+	}
+	return o
+}
+
+func (o Optional) IfNotPresent(fn func()) Optional {
+	if o.Value == nil {
+		fn()
+	}
+	return o
+}
+
+func NewOptional(value interface{}) Optional {
+	return Optional{Value:value}
+}
