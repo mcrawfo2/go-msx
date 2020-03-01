@@ -14,6 +14,20 @@ const (
 	StateFail    State = "fail"
 	StateSuccess State = "success"
 	StateAction  State = "action"
+
+	ActionCreate = "create"
+	ActionUpdate = "update"
+	ActionDelete = "delete"
+
+	FieldEntityId = "entityId"
+	FieldResource = "resource"
+	FieldAction   = "action"
+	FieldState    = "state"
+	FieldAudit    = "audit"
+	FieldSource   = "source"
+	FieldProtocol = "protocol"
+	FieldHost     = "host"
+	FieldPort     = "port"
 )
 
 func Entry(logger *log.Logger, ctx context.Context, resourceName, action string, state State) *logrus.Entry {
@@ -52,6 +66,10 @@ func Success(logger *log.Logger, ctx context.Context, resourceName, action strin
 	return Entry(logger, ctx, resourceName, action, StateSuccess)
 }
 
+func Error(logger  *log.Logger, ctx context.Context, resourceName, action string, err error) *logrus.Entry {
+	return Failure(logger, ctx, resourceName, action).WithError(err)
+}
+
 func Failure(logger *log.Logger, ctx context.Context, resourceName, action string) *logrus.Entry {
 	return Entry(logger, ctx, resourceName, action, StateFail)
 }
@@ -60,11 +78,6 @@ func Result(logger *log.Logger, ctx context.Context, resourceName, action string
 	if err == nil {
 		return Success(logger, ctx, resourceName, action)
 	} else {
-		return Failure(logger, ctx, resourceName, action).WithError(err)
+		return Error(logger, ctx, resourceName, action, err)
 	}
-}
-
-func ResultOf(logger *log.Logger, ctx context.Context, resourceName, action string, fn func () error) (*logrus.Entry, error) {
-	err := fn()
-	return Result(logger, ctx, resourceName, action, err), err
 }
