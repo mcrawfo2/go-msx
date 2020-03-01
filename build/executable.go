@@ -34,7 +34,6 @@ func BuildExecutable(args []string) error {
 	buildArgs := []string{
 		"build",
 		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name),
-		"-buildmode=pie",
 	}
 
 	builderFlags := strings.Fields(os.Getenv("BUILDER_FLAGS"))
