@@ -225,7 +225,7 @@ func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxRes
 			"tenantId": tenantId,
 		},
 		ExpectEnvelope: true,
-		Payload:        new(Pojo),
+		Payload:        new(TenantResponse),
 	})
 }
 
@@ -235,7 +235,7 @@ func (i *Integration) GetTenantByName(tenantName string) (result *integration.Ms
 		EndpointParameters: map[string]string{
 			"tenantName": tenantName,
 		},
-		Payload: new(Pojo),
+		Payload: new(TenantResponse),
 	})
 }
 

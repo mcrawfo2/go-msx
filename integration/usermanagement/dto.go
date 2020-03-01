@@ -36,10 +36,12 @@ type UserCapabilityResponse struct {
 
 type TenantResponse struct {
 	TenantId          string      `json:"tenantId"`
+	ParentId          string      `json:"parentId"`
 	ProviderId        string      `json:"providerId"`
 	ProviderName      string      `json:"providerName"`
 	TenantName        string      `json:"tenantName"`
 	DisplayName       string      `json:"displayName"`
+	Image             string      `json:"image"`
 	CreatedOn         int64       `json:"createdOn"`
 	ModifiedOn        int64       `json:"lastUpdated"`
 	Suspended         bool        `json:"suspended"`
