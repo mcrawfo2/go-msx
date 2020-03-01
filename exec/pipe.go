@@ -19,6 +19,7 @@ func Exec(name string, args []string, moreArgs ...[]string) pipe.Pipe {
 	for _, moreArg := range moreArgs {
 		args = append(args, moreArg...)
 	}
+	logger.Infof("cmd: %s %v", name, args)
 	return pipe.Exec(name, args...)
 }
 
