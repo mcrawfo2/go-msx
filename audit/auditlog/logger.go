@@ -66,7 +66,7 @@ func Success(logger *log.Logger, ctx context.Context, resourceName, action strin
 	return Entry(logger, ctx, resourceName, action, StateSuccess)
 }
 
-func Error(logger  *log.Logger, ctx context.Context, resourceName, action string, err error) *logrus.Entry {
+func Error(logger *log.Logger, ctx context.Context, resourceName, action string, err error) *logrus.Entry {
 	return Failure(logger, ctx, resourceName, action).WithError(err)
 }
 
@@ -80,4 +80,14 @@ func Result(logger *log.Logger, ctx context.Context, resourceName, action string
 	} else {
 		return Error(logger, ctx, resourceName, action, err)
 	}
+}
+
+func ResultOf(logger *log.Logger, ctx context.Context, resourceName, action string, fn func() error) *logrus.Entry {
+	err := fn()
+	return Result(logger, ctx, resourceName, action, err)
+}
+
+func Audit(logger *log.Logger, ctx context.Context, resourceName, action string, fn func() error) {
+	Init(logger, ctx, resourceName, action).Info()
+	ResultOf(logger, ctx, resourceName, action, fn).Info()
 }
