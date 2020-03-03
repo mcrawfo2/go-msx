@@ -4,9 +4,15 @@ go-msx is a Go library for microservices and tools interacting with MSX.
 
 ## Requirements
 
+- All Versions - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
+  ```bash
+  GOPATH=$HOME/go
+  PATH=$PATH:$GOPATH/bin
+  ```   
+
 - Go 1.12 -  No extra configuration required.
 - Go 1.13 -  Be sure to set your Go proxy settings correctly.  For example:
-  ```
+  ```bash
   GOPRIVATE="cto-github.cisco.com/NFV-BU"
   GOPROXY="https://proxy.golang.org,direct"
   ```
