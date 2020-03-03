@@ -41,6 +41,10 @@ func (t *Time) UnmarshalText(data string) (err error) {
 	return nil
 }
 
+func (t *Time) String() string {
+	return time.Time(*t).Format(timeLayout)
+}
+
 // DEPRECATED
 func (t Time) MarshalCQL(info gocql.TypeInfo) ([]byte, error) {
 	return gocql.Marshal(info, time.Time(t))
