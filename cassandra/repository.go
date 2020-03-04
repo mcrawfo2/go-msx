@@ -26,6 +26,8 @@ func NewProductionCrudRepositoryFactory() CrudRepositoryFactoryApi {
 }
 
 type CrudRepositoryApi interface {
+	CountAll(ctx context.Context, dest interface{}) error
+	CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) error
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error)
@@ -40,6 +42,60 @@ type CrudRepositoryApi interface {
 type CrudRepository struct {
 	Table ddl.Table
 }
+
+func (r *CrudRepository) CountAll(ctx context.Context, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			CountAll().
+			ToCql()
+
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			GetRelease(dest)
+	})
+
+	return
+}
+
+func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		var cmps []gocqlxqb.Cmp
+		for k, v := range where {
+			if reflect.TypeOf(v).Kind() == reflect.Slice {
+				cmps = append(cmps, gocqlxqb.InNamed(k, k))
+			} else {
+				cmps = append(cmps, gocqlxqb.EqNamed(k, k))
+			}
+		}
+
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			CountAll().
+			Where(cmps...).
+			ToCql()
+
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(where).
+			GetRelease(dest)
+	})
+
+	return
+}
+
 
 func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)

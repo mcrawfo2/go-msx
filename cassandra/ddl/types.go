@@ -6,4 +6,5 @@ const (
 	DataTypeTimestamp = "timestamp"
 	DataTypeUuid = "uuid"
 	DataTypeBoolean = "boolean"
+	DataTypeBigInt = "bigint"
 )
