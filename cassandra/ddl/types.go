@@ -7,4 +7,5 @@ const (
 	DataTypeUuid = "uuid"
 	DataTypeBoolean = "boolean"
 	DataTypeBigInt = "bigint"
+	DataTypeInt = "int"
 )

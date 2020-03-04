@@ -9,6 +9,7 @@ import (
 	"github.com/scylladb/gocqlx"
 	gocqlxqb "github.com/scylladb/gocqlx/qb"
 	"reflect"
+	"time"
 )
 
 type CrudRepositoryFactoryApi interface {
@@ -31,9 +32,11 @@ type CrudRepositoryApi interface {
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error)
+	FindAllByLuceneSearch(ctx context.Context, index, search string, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindPartitionKeys(ctx context.Context, dest interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
+	SaveWithTtl(ctx context.Context, value interface{}, ttl time.Duration) (err error)
 	SaveAll(ctx context.Context, values []interface{}) (err error)
 	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
 	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
@@ -167,6 +170,36 @@ func (r *CrudRepository) FindAllCql(ctx context.Context, stmt string, names []st
 	return
 }
 
+func (r *CrudRepository) FindAllByLuceneSearch(ctx context.Context, index, search string, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		const luceneQuery = "luceneQuery"
+
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			Columns(r.Table.ColumnNames()...).
+			ToCql()
+
+		stmt += fmt.Sprintf(" where expr(%s,?)", index)
+		names = append(names, luceneQuery)
+		where := map[string]interface{}{
+			luceneQuery: search,
+		}
+
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(where).
+			SelectRelease(dest)
+	})
+
+	return
+}
+
 func (r *CrudRepository) FindPartitionKeys(ctx context.Context, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -226,6 +259,28 @@ func (r *CrudRepository) Save(ctx context.Context, value interface{}) (err error
 		stmt, names := gocqlxqb.
 			Insert(r.Table.Name).
 			Columns(r.Table.ColumnNames()...).
+			ToCql()
+
+		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindStruct(value).
+			ExecRelease()
+	})
+
+	return
+}
+
+func (r *CrudRepository) SaveWithTtl(ctx context.Context, value interface{}, ttl time.Duration) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSessionRetry(ctx, func(session *gocql.Session) error {
+		stmt, names := gocqlxqb.
+			Insert(r.Table.Name).
+			Columns(r.Table.ColumnNames()...).
+			TTL(ttl).
 			ToCql()
 
 		return gocqlx.Query(session.Query(stmt), names).
