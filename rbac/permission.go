@@ -18,6 +18,8 @@ const (
 	PermissionManageIntegration     = "MANAGE_INTEGRATION"
 	PermissionViewMaintenanceInfo   = "VIEW_MAINTENANCE_INFO"
 	PermissionManageMaintenanceInfo = "MANAGE_MAINTENANCE_INFO"
+	PermissionViewMetadata          = "VIEW_METADATA"
+	PermissionManageMetadata        = "MANAGE_METADATA"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
