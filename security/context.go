@@ -5,6 +5,7 @@ import "context"
 type securityContextKey int
 
 const (
+	contextDefaultUserName = "system"
 	contextKeyUserContext securityContextKey = iota
 )
 
@@ -18,4 +19,13 @@ func UserContextFromContext(ctx context.Context) *UserContext {
 		return defaultUserContext.Clone()
 	}
 	return userContextInterface.(*UserContext)
+}
+
+func UserNameFromContext(ctx context.Context) string {
+	user := UserContextFromContext(ctx)
+	userName := contextDefaultUserName
+	if user != nil {
+		userName = user.UserName
+	}
+	return userName
 }
