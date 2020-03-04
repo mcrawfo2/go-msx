@@ -67,7 +67,7 @@ func Populate(req *restful.Request, params interface{}) error {
 		}
 
 		fieldInterface := fieldValue.Interface()
-		if fieldInterface == nil {
+		if fieldInterface == nil || (fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()) {
 			continue
 		}
 
