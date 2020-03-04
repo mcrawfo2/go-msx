@@ -8,6 +8,7 @@ import (
 
 const (
 	PermissionIsApiAdmin            = "IS_API_ADMIN"
+	PermissionAccessAllTenants      = "ACCESS_ALL_TENANTS"
 	PermissionViewServices          = "VIEW_SERVICES"
 	PermissionManageServices        = "MANAGE_SERVICES"
 	PermissionViewContact           = "VIEW_CONTACT"
@@ -20,6 +21,8 @@ const (
 	PermissionManageMaintenanceInfo = "MANAGE_MAINTENANCE_INFO"
 	PermissionViewMetadata          = "VIEW_METADATA"
 	PermissionManageMetadata        = "MANAGE_METADATA"
+	PermissionViewScheduledTask     = "VIEW_SCHEDULE_TASK"
+	PermissionManageScheduledTask   = "MANAGE_SCHEDULE_TASK"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
@@ -49,4 +52,16 @@ func HasPermission(ctx context.Context, required []string) error {
 	}
 
 	return ErrUserDosNotHavePermission
+}
+
+func HasAccessAllTenants(ctx context.Context) (bool, error) {
+	err := HasPermission(ctx, []string{PermissionAccessAllTenants})
+	if err == ErrUserDosNotHavePermission {
+		return false, nil
+	}
+	if err == nil {
+		return true, nil
+	}
+
+	return false, err
 }
