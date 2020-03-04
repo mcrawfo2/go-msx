@@ -52,13 +52,31 @@ var Self = RuleFunc(func(value interface{}) error {
 	return nil
 })
 
-func IfNotNil(rules ...validation.Rule) RuleFunc {
+func Composite(rules ...validation.Rule) RuleFunc {
 	return func(value interface{}) error {
 		result := types.ErrorList{}
 		for _, rule := range rules {
 			result = append(result, rule.Validate(value))
 		}
 		return result.Filter()
+	}
+}
+
+func IfNotNil(rules ...validation.Rule) RuleFunc {
+	return func(value interface{}) error {
+		if value != nil {
+			return Composite(rules...).Validate(value)
+		}
+		return nil
+	}
+}
+
+func Iff(truth bool, rules ...validation.Rule) RuleFunc {
+	return func(value interface{}) error {
+		if truth {
+			return Composite(rules...).Validate(value)
+		}
+		return nil
 	}
 }
 
