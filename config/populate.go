@@ -160,6 +160,54 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 		return "", fmt.Errorf("missing required key %s", key)
 	}
 
+	arrayStructValue := func() ([]PartialConfig, error) {
+		values := []*PartialConfig{}
+
+		keyPattern := strings.ReplaceAll(key, ".", "\\.") + `\[(\d+)\]`
+		keyRegex, _ := regexp.Compile(keyPattern)
+		for k, v := range p.local {
+			// Parse the key for a "key[index]" match
+			matches := keyRegex.FindStringSubmatch(k)
+			if len(matches) != 2 {
+				continue
+			}
+
+			// Extract the index
+			index, err := strconv.Atoi(matches[1])
+			if err != nil {
+				logger.Warnf("Invalid property index: %s", k)
+				continue
+			}
+
+			// Ensure we have enough slots in the slice
+			for index >= len(values) {
+				values = append(values, nil)
+			}
+
+			// Set the value into the slice
+			submap := values[index]
+			if submap == nil {
+				submap = &PartialConfig{
+					local: make(map[string]string),
+					config:p.config,
+				}
+				values[index] = submap
+			}
+
+			submapKey := strings.TrimPrefix(k, fmt.Sprint(key, "[", index, "]."))
+			submap.local[submapKey] = v
+		}
+
+		var result []PartialConfig
+		for _, v := range values {
+			if v != nil {
+				result = append(result, *v)
+			}
+		}
+
+		return result, nil
+	}
+
 	arrayValue := func() ([]string, error) {
 		values := []*string{}
 
@@ -306,19 +354,38 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 		return nil
 
 	case isArray(t):
-		vals, err := arrayValue()
-		if err != nil {
-			return err
-		}
-		a := reflect.MakeSlice(t, 0, len(vals))
-		for _, s := range vals {
-			val, err := conv(s, t.Elem())
+		if isStruct(t.Elem()) {
+			partialConfigs, err := arrayStructValue()
 			if err != nil {
 				return err
 			}
-			a = reflect.Append(a, val)
+
+			a := reflect.MakeSlice(t, 0, len(partialConfigs))
+			for _, partialConfig := range partialConfigs {
+				v := reflect.New(t.Elem())
+				if err := dec(partialConfig, "", nil, nil, v); err != nil {
+					return err
+				}
+				a = reflect.Append(a, v.Elem())
+			}
+			v.Set(a)
+
+		} else {
+			// Scalars
+			vals, err := arrayValue()
+			if err != nil {
+				return err
+			}
+			a := reflect.MakeSlice(t, 0, len(vals))
+			for _, s := range vals {
+				val, err := conv(s, t.Elem())
+				if err != nil {
+					return err
+				}
+				a = reflect.Append(a, val)
+			}
+			v.Set(a)
 		}
-		v.Set(a)
 
 	case isMap(t):
 		valT := t.Elem()

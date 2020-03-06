@@ -44,6 +44,10 @@ func (f *JSONFile) Load(ctx context.Context) (map[string]string, error) {
 }
 
 func FlattenJSON(input map[string]interface{}, namespace string) (map[string]string, error) {
+	return flattenMap(input, namespace)
+}
+
+func flattenMap(input map[string]interface{}, namespace string) (map[string]string, error) {
 	flattened := map[string]string{}
 
 	for key, value := range input {
@@ -54,24 +58,45 @@ func FlattenJSON(input map[string]interface{}, namespace string) (map[string]str
 			token = fmt.Sprintf("%s.%s", namespace, key)
 		}
 
-		if objectChild, ok := value.(map[string]interface{}); ok {
-			settings, err := FlattenJSON(objectChild, token)
-			if err != nil {
-				return nil, err
-			}
+		settings, err := flattenChild(value, token)
+		if err != nil {
+			return nil, err
+		}
 
-			for k, v := range settings {
-				flattened[NormalizeKey(k)] = v
-			}
-		} else if arrayChild, ok := value.([]interface{}); ok {
-			for k, v := range arrayChild {
-				flattened[NormalizeKey(token)+fmt.Sprintf("[%d]", k)] = fmt.Sprintf("%v", v)
-			}
-		} else {
-			flattened[NormalizeKey(token)] = fmt.Sprintf("%v", value)
+		for k, v := range settings {
+			flattened[NormalizeKey(k)] = v
 		}
 	}
 
+	return flattened, nil
+}
+
+func flattenChild(value interface{}, token string) (map[string]string, error) {
+	if objectChild, ok := value.(map[string]interface{}); ok {
+		return flattenMap(objectChild, token)
+	} else if arrayChild, ok := value.([]interface{}); ok {
+		return flattenArray(arrayChild, token)
+	} else { // Scalar
+		key := NormalizeKey(token)
+		value := fmt.Sprintf("%v", value)
+		return map[string]string{key: value}, nil
+	}
+}
+
+func flattenArray(input []interface{}, namespace string) (map[string]string, error) {
+	flattened := map[string]string{}
+	for k, v := range input {
+		token := NormalizeKey(namespace) + fmt.Sprintf("[%d]", k)
+
+		settings, err := flattenChild(v, token)
+		if err != nil {
+			return nil, err
+		}
+
+		for k, v := range settings {
+			flattened[NormalizeKey(k)] = v
+		}
+	}
 	return flattened, nil
 }
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var logger = log.NewLogger("httpclient.discoveryinterceptor")
+var logger = log.NewLogger("msx.httpclient.discoveryinterceptor")
 
 func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 	if !discovery.IsDiscoveryProviderRegistered() {
