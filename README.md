@@ -4,7 +4,7 @@ go-msx is a Go library for microservices and tools interacting with MSX.
 
 ## Requirements
 
-- Go 1.13
+- Go 1.13+
 
     - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
       ```bash
@@ -17,7 +17,27 @@ go-msx is a Go library for microservices and tools interacting with MSX.
       GOPRIVATE="cto-github.cisco.com/NFV-BU"
       GOPROXY="https://proxy.golang.org,direct"
       ```
-  
+
+- Git SSH configuration for `cto-github.cisco.com`
+
+    - Ensure you have a registered SSH key referenced in your `~/.ssh/config`:
+    
+        ```
+        Host github
+              HostName cto-github.cisco.com
+              User git
+              IdentityFile ~/.ssh/github.key
+        ```
+      
+      Note that this key must be registered via the [Github UI](https://cto-github.cisco.com/settings/keys).
+
+    - Ensure you have SSH protocol override for git HTTPS urls to our github in your `~/.gitconfig`:
+    
+      ```
+      [url "ssh://git@cto-github.cisco.com/"]
+              insteadOf = https://cto-github.cisco.com/
+      ```
+
 ## Quick Start
 
 - To add go-msx to an existing module-enabled go project:
