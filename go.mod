@@ -4,11 +4,13 @@ go 1.12
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.0.5
+	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.24.0
 	github.com/ThreeDotsLabs/watermill v1.0.0
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a // indirect
+	github.com/axw/gocov v1.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/go-restful v2.11.1+incompatible
@@ -23,6 +25,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
+	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/opentracing/opentracing-go v1.1.0

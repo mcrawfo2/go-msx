@@ -27,6 +27,7 @@ func InstallTestDependencies(args []string) error {
 		goGet("github.com/stretchr/testify/mock"),
 		goGet("github.com/stretchr/testify/http"),
 		goGet("github.com/pmezard/go-difflib/difflib"),
+		goGet("github.com/jstemmer/go-junit-report"),
 		pipe.Write(os.Stdout),
 	)
 	return pipe.Run(script)
