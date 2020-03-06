@@ -13,7 +13,7 @@ var logger = log.NewLogger("msx.leader.consulprovider")
 
 type ConsulLeaderElectionConfig struct {
 	Enabled          bool   `config:"default=false"`
-	DefaultMasterKey string `config:"default=service/${spring.application.name}/leader"`
+	DefaultMasterKey string `config:"default=service/${info.app.name}/leader"`
 	LeaderProperties []LeaderProperties
 }
 
