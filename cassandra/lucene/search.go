@@ -143,6 +143,11 @@ type RangeCondition struct {
 	DocValues    *bool       `json:"doc_values,omitempty"`
 }
 
+func (r *RangeCondition) WithField(field string) *RangeCondition {
+	r.Field = field
+	return r
+}
+
 func (r *RangeCondition) WithLower(lower interface{}) *RangeCondition {
 	r.Lower = lower
 	return r
@@ -180,9 +185,7 @@ func NewRangeCondition() *RangeCondition {
 }
 
 func Range(field string) *RangeCondition {
-	return &RangeCondition{
-		Field: field,
-	}
+	return NewRangeCondition().WithField(field)
 }
 
 type SortField interface {

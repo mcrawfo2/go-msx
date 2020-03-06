@@ -31,6 +31,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
+	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
