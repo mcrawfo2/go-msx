@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"encoding/json"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
@@ -67,4 +68,14 @@ func Publish(ctx context.Context, topic string, payload []byte, metadata map[str
 	}
 
 	return nil
+}
+
+func PublishObject(ctx context.Context, topic string, payload interface{}, metadata map[string]string) (err error) {
+	bytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	return Publish(ctx, topic, bytes, metadata)
+
 }
