@@ -188,8 +188,8 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 			submap := values[index]
 			if submap == nil {
 				submap = &PartialConfig{
-					local: make(map[string]string),
-					config:p.config,
+					local:  make(map[string]string),
+					config: p.config,
 				}
 				values[index] = submap
 			}

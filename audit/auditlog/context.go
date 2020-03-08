@@ -3,6 +3,7 @@ package auditlog
 import "context"
 
 type contextKey int
+
 const contextKeyRequestAudit contextKey = iota
 
 func ContextWithRequestDetails(ctx context.Context, requestAudit *RequestDetails) context.Context {

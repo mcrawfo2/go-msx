@@ -1,11 +1,11 @@
 package ddl
 
 const (
-	DataTypeText = "text"
+	DataTypeText        = "text"
 	DataTypeMapTextText = "map<text,test>"
-	DataTypeTimestamp = "timestamp"
-	DataTypeUuid = "uuid"
-	DataTypeBoolean = "boolean"
-	DataTypeBigInt = "bigint"
-	DataTypeInt = "int"
+	DataTypeTimestamp   = "timestamp"
+	DataTypeUuid        = "uuid"
+	DataTypeBoolean     = "boolean"
+	DataTypeBigInt      = "bigint"
+	DataTypeInt         = "int"
 )

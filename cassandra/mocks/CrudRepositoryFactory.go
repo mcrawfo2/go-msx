@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
 )
 
-type CrudRepositoryFactory struct{
+type CrudRepositoryFactory struct {
 	Repository *CrudRepositoryApi
 }
 

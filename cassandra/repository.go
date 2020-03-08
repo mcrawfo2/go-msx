@@ -99,7 +99,6 @@ func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interf
 	return
 }
 
-
 func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -317,7 +316,7 @@ func (r *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err
 			err := mapper.TraversalsByNameFunc(v.Type(), itemNames, func(i int, t []int) error {
 				if len(t) != 0 {
 					val := reflectx.FieldByIndexesReadOnly(v, t)
-					batchMap[batchPrefix + "." + itemNames[i]] = val.Interface()
+					batchMap[batchPrefix+"."+itemNames[i]] = val.Interface()
 					return nil
 				} else {
 					return fmt.Errorf("could not find name %q in %#v", itemNames[i], batchValue)

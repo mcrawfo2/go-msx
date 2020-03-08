@@ -193,7 +193,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 		var err error
 		if s.cfg.Tls.Enabled {
 			logger.Infof("Serving on https://%s%s", s.cfg.Address(), s.cfg.ContextPath)
-			tlsConfig, _:= buildTlsConfig(s.cfg)
+			tlsConfig, _ := buildTlsConfig(s.cfg)
 			tlsConfig.BuildNameToCertificate()
 			s.server.TLSConfig = tlsConfig
 			err = s.server.ListenAndServeTLS(s.cfg.Tls.CertFile, s.cfg.Tls.KeyFile)

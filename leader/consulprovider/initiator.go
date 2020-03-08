@@ -145,7 +145,7 @@ func (l *LeadershipInitiator) acquire(ctx context.Context) {
 	logger.WithContext(ctx).Infof("Leadership lock acquired")
 	l.setAcquired(acquired)
 	defer l.setAcquired(false)
-	
+
 	l.createRenewContext()
 	defer l.clearRenewContext()
 

@@ -5,8 +5,8 @@ import "context"
 type securityContextKey int
 
 const (
-	contextDefaultUserName = "system"
-	contextKeyUserContext securityContextKey = iota
+	contextDefaultUserName                    = "system"
+	contextKeyUserContext  securityContextKey = iota
 )
 
 func ContextWithUserContext(ctx context.Context, userContext *UserContext) context.Context {

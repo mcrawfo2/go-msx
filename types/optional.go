@@ -27,7 +27,7 @@ func (s OptionalString) String() string {
 }
 
 func NewOptionalString(value *string) OptionalString {
-	return OptionalString{Value:value}
+	return OptionalString{Value: value}
 }
 
 type Optional struct {
@@ -49,5 +49,5 @@ func (o Optional) IfNotPresent(fn func()) Optional {
 }
 
 func NewOptional(value interface{}) Optional {
-	return Optional{Value:value}
+	return Optional{Value: value}
 }

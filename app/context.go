@@ -60,7 +60,7 @@ func configureHttpClientFactory(ctx context.Context) error {
 
 func configureCassandraCrudRepositoryFactory(context.Context) error {
 	crudRepositoryFactory := cassandra.NewProductionCrudRepositoryFactory()
-	contextInjectors.Register(func (ctx context.Context) context.Context {
+	contextInjectors.Register(func(ctx context.Context) context.Context {
 		return cassandra.ContextWithCrudRepositoryFactory(ctx, crudRepositoryFactory)
 	})
 	return nil

@@ -37,7 +37,7 @@ func (l *LeadershipProvider) MasterKey(ctx context.Context) string {
 }
 
 func (l *LeadershipProvider) Start(ctx context.Context) error {
-	err := func () error {
+	err := func() error {
 		l.mtx.Lock()
 		defer l.mtx.Unlock()
 		if l.started {
@@ -123,6 +123,6 @@ func NewLeadershipProvider(ctx context.Context) (*LeadershipProvider, error) {
 	}
 
 	return &LeadershipProvider{
-		cfg:  leaderElectionConfig,
+		cfg: leaderElectionConfig,
 	}, nil
 }

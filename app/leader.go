@@ -39,4 +39,3 @@ func stopLeadershipElection(ctx context.Context) error {
 	}
 	return nil
 }
-
