@@ -40,7 +40,7 @@ func (i *Integration) Connect(request DnacConnectRequest) (*integration.MsxRespo
 
 	var payload = ""
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameConnect,
 		Body:           bodyBytes,
 		ExpectEnvelope: true,
@@ -54,7 +54,7 @@ func (i *Integration) RetrieveExtendedData(request DnacExtendedRequest) (*integr
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameRetrieveExtendedData,
 		Body:           bodyBytes,
 		ExpectEnvelope: true,

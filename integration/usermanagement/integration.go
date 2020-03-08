@@ -92,7 +92,7 @@ func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 		Payload: &integration.HealthDTO{},
 	}
 
-	result.Response, err = i.Execute(&integration.MsxRequest{
+	result.Response, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetAdminHealth,
 		Payload:      result.Payload,
 		NoToken:      true,
@@ -107,7 +107,7 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameLogin,
 		Headers: http.Header(map[string][]string{
 			"Authorization": {securityClientSettings.Authorization()},
@@ -125,13 +125,13 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 }
 
 func (i *Integration) Logout() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameLogout,
 	})
 }
 
 func (i *Integration) GetMyCapabilities() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyCapabilities,
 		Payload:      &UserCapabilityListResponse{},
 		ErrorPayload: &ErrorDTO{},
@@ -139,7 +139,7 @@ func (i *Integration) GetMyCapabilities() (result *integration.MsxResponse, err 
 }
 
 func (i *Integration) GetUserCapabilities(userId string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetUserCapabilities,
 		EndpointParameters: map[string]string{
 			"userId": userId,
@@ -150,7 +150,7 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 }
 
 func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxRequest{
+	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyTenants,
 		Payload:      new(TenantListResponse),
 		ErrorPayload: &ErrorDTO{},
@@ -178,7 +178,7 @@ func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error
 }
 
 func (i *Integration) GetTenantIds() (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxRequest{
+	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantIds,
 		Payload:      new(TenantIdList),
 		ErrorPayload: &ErrorDTO2{},
@@ -188,7 +188,7 @@ func (i *Integration) GetTenantIds() (result *integration.MsxResponse, err error
 }
 
 func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxRequest{
+	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetUserTenants,
 		EndpointParameters: map[string]string{
 			"userId": userId,
@@ -219,7 +219,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 }
 
 func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantById,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -230,7 +230,7 @@ func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxRes
 }
 
 func (i *Integration) GetTenantByName(tenantName string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantByName,
 		EndpointParameters: map[string]string{
 			"tenantName": tenantName,
@@ -240,7 +240,7 @@ func (i *Integration) GetTenantByName(tenantName string) (result *integration.Ms
 }
 
 func (i *Integration) GetSystemSecrets(scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -255,7 +255,7 @@ func (i *Integration) AddSystemSecrets(scope string, secrets map[string]string) 
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameAddSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -270,7 +270,7 @@ func (i *Integration) ReplaceSystemSecrets(scope string, secrets map[string]stri
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameReplaceSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -291,7 +291,7 @@ func (i *Integration) EncryptSystemSecrets(scope string, names []string, encrypt
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameEncryptSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -303,7 +303,7 @@ func (i *Integration) EncryptSystemSecrets(scope string, names []string, encrypt
 }
 
 func (i *Integration) RemoveSystemSecrets(scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameRemoveSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -324,7 +324,7 @@ func (i *Integration) GenerateSystemSecrets(scope string, names []string, save b
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGenerateSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -336,7 +336,7 @@ func (i *Integration) GenerateSystemSecrets(scope string, names []string, save b
 }
 
 func (i *Integration) GetTenantSecrets(tenantId, scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -352,7 +352,7 @@ func (i *Integration) AddTenantSecrets(tenantId, scope string, secrets map[strin
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameAddTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -368,7 +368,7 @@ func (i *Integration) ReplaceTenantSecrets(tenantId, scope string, secrets map[s
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameReplaceTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -390,7 +390,7 @@ func (i *Integration) EncryptTenantSecrets(tenantId, scope string, names []strin
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameEncryptTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -403,7 +403,7 @@ func (i *Integration) EncryptTenantSecrets(tenantId, scope string, names []strin
 }
 
 func (i *Integration) RemoveTenantSecrets(tenantId, scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameRemoveTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -425,7 +425,7 @@ func (i *Integration) GenerateTenantSecrets(tenantId, scope string, names []stri
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGenerateTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,

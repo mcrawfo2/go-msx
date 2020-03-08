@@ -33,7 +33,7 @@ func (e *MsxEnvelope) StatusCode() int {
 
 func NewEnvelope(payload interface{}) *MsxEnvelope {
 	return &MsxEnvelope{
-		Payload:    payload,
+		Payload: payload,
 	}
 }
 

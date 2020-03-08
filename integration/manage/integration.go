@@ -123,7 +123,7 @@ func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 		Payload: &integration.HealthDTO{},
 	}
 
-	result.Response, err = i.Execute(&integration.MsxRequest{
+	result.Response, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetAdminHealth,
 		Payload:      result.Payload,
 		NoToken:      true,
@@ -133,7 +133,7 @@ func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 }
 
 func (i *Integration) GetSubscription(subscriptionId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSubscription,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -158,7 +158,7 @@ func (i *Integration) CreateSubscription(tenantId, serviceType string, subscript
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameCreateSubscription,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -184,7 +184,7 @@ func (i *Integration) UpdateSubscription(subscriptionId, serviceType string, sub
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUpdateSubscription,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -196,7 +196,7 @@ func (i *Integration) UpdateSubscription(subscriptionId, serviceType string, sub
 }
 
 func (i *Integration) DeleteSubscription(subscriptionId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteSubscription,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -206,7 +206,7 @@ func (i *Integration) DeleteSubscription(subscriptionId string) (*integration.Ms
 }
 
 func (i *Integration) GetServiceInstance(serviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetServiceInstance,
 		EndpointParameters: map[string]string{
 			"serviceInstanceId": serviceInstanceId,
@@ -217,7 +217,7 @@ func (i *Integration) GetServiceInstance(serviceInstanceId string) (*integration
 }
 
 func (i *Integration) GetSubscriptionServiceInstances(subscriptionId string, page, pageSize int) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSubscriptionServiceInstances,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -242,7 +242,7 @@ func (i *Integration) CreateServiceInstance(subscriptionId, serviceInstanceId st
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameCreateServiceInstance,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -265,7 +265,7 @@ func (i *Integration) UpdateServiceInstance(serviceInstanceId string, serviceAtt
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUpdateServiceInstance,
 		EndpointParameters: map[string]string{
 			"serviceInstanceId": serviceInstanceId,
@@ -277,7 +277,7 @@ func (i *Integration) UpdateServiceInstance(serviceInstanceId string, serviceAtt
 }
 
 func (i *Integration) DeleteServiceInstance(serviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteServiceInstance,
 		EndpointParameters: map[string]string{
 			"serviceInstanceId": serviceInstanceId,
@@ -287,7 +287,7 @@ func (i *Integration) DeleteServiceInstance(serviceInstanceId string) (*integrat
 }
 
 func (i *Integration) GetSite(siteId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSite,
 		EndpointParameters: map[string]string{
 			"siteId": siteId,
@@ -314,7 +314,7 @@ func (i *Integration) CreateSite(subscriptionId, serviceInstanceId string, siteI
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameCreateSite,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -339,7 +339,7 @@ func (i *Integration) UpdateSite(siteId string, siteType, displayName *string,
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUpdateSite,
 		EndpointParameters: map[string]string{
 			"siteId": siteId,
@@ -351,7 +351,7 @@ func (i *Integration) UpdateSite(siteId string, siteType, displayName *string,
 }
 
 func (i *Integration) DeleteSite(siteId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteSite,
 		EndpointParameters: map[string]string{
 			"siteId": siteId,
@@ -377,7 +377,7 @@ func (i *Integration) CreateManagedDevice(tenantId string, deviceModel, deviceOn
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameCreateManagedDevice,
 		Body:           bodyBytes,
 		Payload:        new(Pojo),
@@ -386,7 +386,7 @@ func (i *Integration) CreateManagedDevice(tenantId string, deviceModel, deviceOn
 }
 
 func (i *Integration) DeleteManagedDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteManagedDevice,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -396,7 +396,7 @@ func (i *Integration) DeleteManagedDevice(deviceInstanceId string) (*integration
 }
 
 func (i *Integration) GetDeviceConfig(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetDeviceConfig,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -406,7 +406,7 @@ func (i *Integration) GetDeviceConfig(deviceInstanceId string) (*integration.Msx
 }
 
 func (i *Integration) GetDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetDevice,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -436,7 +436,7 @@ func (i *Integration) GetDevices(deviceInstanceId, subscriptionId, serialKey, te
 		}
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetDevices,
 		QueryParameters: queryParameters,
 		ExpectEnvelope:  true,
@@ -461,7 +461,7 @@ func (i *Integration) CreateDevice(subscriptionId string, deviceInstanceId *stri
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameCreateDevice,
 		EndpointParameters: map[string]string{
 			"subscriptionId": subscriptionId,
@@ -483,7 +483,7 @@ func (i *Integration) UpdateDevice(deviceInstanceId string, deviceAttribute, dev
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUpdateDevice,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -494,7 +494,7 @@ func (i *Integration) UpdateDevice(deviceInstanceId string, deviceAttribute, dev
 }
 
 func (i *Integration) DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteDevice,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -504,7 +504,7 @@ func (i *Integration) DeleteDevice(deviceInstanceId string) (*integration.MsxRes
 }
 
 func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetDeviceTemplateHistory,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
@@ -528,7 +528,7 @@ func (i *Integration) GetAllControlPlanes(tenantId *string) (*integration.MsxRes
 		queryParameters[*tenantId] = []string{*tenantId}
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetAllControlPlanes,
 		QueryParameters: queryParameters,
 		Payload:         new(PojoArray),
@@ -551,7 +551,7 @@ func (i *Integration) CreateControlPlane(tenantId, name, url, resourceProvider, 
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameCreateControlPlane,
 		Body:           bodyBytes,
 		Payload:        new(Pojo),
@@ -560,7 +560,7 @@ func (i *Integration) CreateControlPlane(tenantId, name, url, resourceProvider, 
 }
 
 func (i *Integration) GetControlPlane(controlPlaneId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:       endpointNameGetControlPlane,
 		EndpointParameters: map[string]string{"controlPlaneId": controlPlaneId},
 		Payload:            new(Pojo),
@@ -583,7 +583,7 @@ func (i *Integration) UpdateControlPlane(controlPlaneId, tenantId, name, url, re
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:       endpointNameUpdateControlPlane,
 		EndpointParameters: map[string]string{"controlPlaneId": controlPlaneId},
 		Body:               bodyBytes,
@@ -593,7 +593,7 @@ func (i *Integration) UpdateControlPlane(controlPlaneId, tenantId, name, url, re
 }
 
 func (i *Integration) DeleteControlPlane(controlPlaneId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:       endpointNameDeleteControlPlane,
 		EndpointParameters: map[string]string{"controlPlaneId": controlPlaneId},
 		Payload:            new(Pojo),
@@ -602,7 +602,7 @@ func (i *Integration) DeleteControlPlane(controlPlaneId string) (*integration.Ms
 }
 
 func (i *Integration) ConnectControlPlane(controlPlaneId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:       endpointNameConnectControlPlane,
 		EndpointParameters: map[string]string{"controlPlaneId": controlPlaneId},
 		Payload:            new(Pojo),
@@ -623,7 +623,7 @@ func (i *Integration) ConnectUnmanagedControlPlane(username, password, url, reso
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameConnectUnmanagedControlPlane,
 		Body:           bodyBytes,
 		Payload:        new(Pojo),
@@ -632,7 +632,7 @@ func (i *Integration) ConnectUnmanagedControlPlane(username, password, url, reso
 }
 
 func (i *Integration) GetEntityShard(entityId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxRequest{
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:       endpointNameGetEntityShard,
 		EndpointParameters: map[string]string{"entityId": entityId},
 		Payload:            new(EntityShard),
