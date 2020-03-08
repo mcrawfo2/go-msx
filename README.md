@@ -2,6 +2,12 @@
 
 go-msx is a Go library for microservices and tools interacting with MSX. 
 
+## Versioning
+
+Currently this library and tools are in a pre-alpha state.  They are subject to
+backwards-incompatible changes at *any* time.  After reaching the first stable release (v1.0.0),
+[SemVer](https://semver.org/) will be used per industry and golang best practices.     
+
 ## Requirements
 
 - Go 1.13+
