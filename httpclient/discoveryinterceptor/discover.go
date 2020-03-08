@@ -32,6 +32,18 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 				url.Host = serviceInstance.Address()
 				serviceContextPath := serviceInstance.ContextPath()
 				if serviceContextPath != "" {
+					// Normalize leading slash
+					if !strings.HasPrefix(url.Path, "/") {
+						url.Path = "/" + url.Path
+						url.RawPath = "/" + url.RawPath
+					}
+
+					// Strip duplicate context path
+					if strings.HasPrefix(url.Path, serviceContextPath) {
+						url.Path = strings.TrimPrefix(url.Path, serviceContextPath)
+						url.RawPath = strings.TrimPrefix(url.RawPath, serviceContextPath)
+					}
+
 					url.Path = serviceContextPath + url.Path
 					url.RawPath = serviceContextPath + url.RawPath
 				}
