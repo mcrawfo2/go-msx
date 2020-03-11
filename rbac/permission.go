@@ -23,6 +23,7 @@ const (
 	PermissionManageMetadata        = "MANAGE_METADATA"
 	PermissionViewScheduledTask     = "VIEW_SCHEDULE_TASK"
 	PermissionManageScheduledTask   = "MANAGE_SCHEDULE_TASK"
+	PermissionManageBulkImport      = "MANAGE_BULK_IMPORT"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
