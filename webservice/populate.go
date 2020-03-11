@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"mime/multipart"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ const (
 	requestTagSourceQuery  = "query"
 	requestTagSourceHeader = "header"
 	requestTagSourcePath   = "path"
+	requestTagSourceForm   = "form"
 )
 
 func Populate(req *restful.Request, params interface{}) error {
@@ -64,6 +66,10 @@ func Populate(req *restful.Request, params interface{}) error {
 			if err := populateQuery(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
 				return err
 			}
+		case requestTagSourceForm:
+			if err := populateForm(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
+				return err
+			}
 		}
 
 		fieldInterface := fieldValue.Interface()
@@ -107,7 +113,7 @@ func populateHeader(req *restful.Request, fieldValue reflect.Value, headerTag, f
 	}
 
 	headerValue := headerValues[0]
-	return populateValue(fieldValue, headerValue, fieldName)
+	return populateScalar(fieldValue, headerValue, fieldName)
 }
 
 func populatePath(req *restful.Request, fieldValue reflect.Value, pathTag, fieldName string) error {
@@ -120,7 +126,7 @@ func populatePath(req *restful.Request, fieldValue reflect.Value, pathTag, field
 
 	pathValue := req.PathParameter(pathName)
 
-	return populateValue(fieldValue, pathValue, fieldName)
+	return populateScalar(fieldValue, pathValue, fieldName)
 }
 
 func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fieldName string) error {
@@ -140,10 +146,55 @@ func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fie
 	}
 
 	queryValue := queryValues[0]
-	return populateValue(fieldValue, queryValue, fieldName)
+	return populateScalar(fieldValue, queryValue, fieldName)
 }
 
-func populateValue(fieldValue reflect.Value, value, fieldName string) (err error) {
+func populateForm(req *restful.Request, fieldValue reflect.Value, formTag, fieldName string) error {
+	var formName string
+	if formTag != "" {
+		formName = formTag
+	} else {
+		formName = strcase.ToLowerCamel(fieldName)
+	}
+
+	if req.Request.PostForm == nil {
+		err := req.Request.ParseMultipartForm(32 << 20)
+		if err != nil {
+			return err
+		}
+	}
+
+	formFiles, ok := req.Request.MultipartForm.File[formName]
+	if ok {
+		return populateFile(fieldValue, formFiles[0], fieldName)
+	}
+
+	formValues, ok := req.Request.MultipartForm.Value[formName]
+	if !ok || len(formValues) == 0 {
+		if fieldValue.Kind() != reflect.Ptr {
+			return errors.Errorf("Missing non-optional form field %q", fieldName)
+		}
+		return nil
+	}
+
+	formValue := formValues[0]
+	return populateScalar(fieldValue, formValue, fieldName)
+}
+
+func populateFile(fieldValue reflect.Value, header *multipart.FileHeader, fieldName string) error {
+	if fieldValue.Kind() != reflect.Ptr {
+		return errors.Errorf("Cannot marshal multi-part file header into field %q", fieldName)
+	}
+
+	if fieldValue.Type() != reflect.TypeOf(header) {
+		return errors.Errorf("Cannot marshal multi-part file header into field %q", fieldName)
+	}
+
+	fieldValue.Set(reflect.ValueOf(header))
+	return nil
+}
+
+func populateScalar(fieldValue reflect.Value, value, fieldName string) (err error) {
 	errorWrapper := func(err error) error {
 		return errors.Wrapf(err, "Cannot marshal string %q into field %q", value, fieldName)
 	}
