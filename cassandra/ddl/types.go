@@ -8,4 +8,5 @@ const (
 	DataTypeBoolean     = "boolean"
 	DataTypeBigInt      = "bigint"
 	DataTypeInt         = "int"
+	DataTypeSetText     = "set<text>"
 )
