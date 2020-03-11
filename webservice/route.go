@@ -27,16 +27,9 @@ const (
 )
 
 var (
-	HeaderAuthorization *restful.Parameter
 	logger              = log.NewLogger("msx.webservice")
 	responseTypes       = make(map[reflect.Type]string)
 )
-
-func init() {
-	HeaderAuthorization = restful.
-		HeaderParameter(HeaderNameAuthorization, "Authentication token in form 'Bearer {token}'").
-		Required(false)
-}
 
 func StandardList(b *restful.RouteBuilder) {
 	b.Do(StandardReturns, ProducesJson)
@@ -130,14 +123,15 @@ func ConsumesJson(b *restful.RouteBuilder) {
 func securityContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	token, err := httprequest.ExtractToken(req.Request)
 	if err != nil && err != httprequest.ErrNotFound {
-		WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+		WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err == nil {
 		userContext, err := security.NewUserContextFromToken(req.Request.Context(), token)
 		if err != nil {
-			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+			WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
+			return
 		}
 
 		ctx := security.ContextWithUserContext(req.Request.Context(), userContext)
