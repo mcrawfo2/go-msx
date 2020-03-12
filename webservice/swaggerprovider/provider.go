@@ -10,6 +10,7 @@ import (
 	"github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
+	"sort"
 	"strings"
 )
 
@@ -131,6 +132,13 @@ func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restfu
 		}
 		swagger.Paths.Paths = newPaths
 		swagger.BasePath = contextPath
+
+		// Sort tags
+		sort.Slice(swagger.Tags, func(i, j int) bool {
+			iTagName := swagger.Tags[i].Name
+			jTagName := swagger.Tags[j].Name
+			return strings.Compare(iTagName, jTagName) < 0
+		})
 	}
 }
 

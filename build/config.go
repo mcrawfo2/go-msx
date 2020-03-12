@@ -44,7 +44,7 @@ var (
 	defaultConfigs = map[string]string{
 		"msx.platform.includegroups":   "com.cisco.**",
 		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
-		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.22.2",
+		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.23.11",
 		"build.number":                 "SNAPSHOT",
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",
