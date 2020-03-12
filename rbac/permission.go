@@ -24,6 +24,8 @@ const (
 	PermissionViewScheduledTask     = "VIEW_SCHEDULE_TASK"
 	PermissionManageScheduledTask   = "MANAGE_SCHEDULE_TASK"
 	PermissionManageBulkImport      = "MANAGE_BULK_IMPORT"
+	PermissionViewThemes            = "VIEW_THEMES"
+	PermissionManageThemes          = "MANAGE_THEMES"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
