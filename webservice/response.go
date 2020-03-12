@@ -18,6 +18,11 @@ func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interfa
 	}
 
 	status := http.StatusOK
+	if route := RouteFromContext(req.Request.Context()); route != nil {
+		if defaultResponseCode, ok := route.Metadata[MetadataDefaultReturnCode]; ok {
+			status = defaultResponseCode.(int)
+		}
+	}
 	if body != nil {
 		if statusProvider, ok := body.(StatusCodeProvider); ok {
 			status = statusProvider.StatusCode()
@@ -38,6 +43,11 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 	}
 
 	status := http.StatusOK
+	if route := RouteFromContext(req.Request.Context()); route != nil {
+		if defaultResponseCode, ok := route.Metadata[MetadataDefaultReturnCode]; ok {
+			status = defaultResponseCode.(int)
+		}
+	}
 	if statusProvider, ok := body.(StatusCodeProvider); ok {
 		status = statusProvider.StatusCode()
 	}

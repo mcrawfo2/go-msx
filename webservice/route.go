@@ -23,6 +23,7 @@ const (
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 	MetadataTagDefinition       = "TagDefinition"
+	MetadataDefaultReturnCode   = "DefaultReturnCode"
 	requestAttributeParams      = "params"
 )
 
@@ -105,11 +106,11 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 }
 
 func StandardReturns(b *restful.RouteBuilder) {
-	b.Do(Returns(200, 400, 401, 403))
+	b.Do(Returns(200, 400, 401, 403)).Metadata(MetadataDefaultReturnCode, 200)
 }
 
 func CreateReturns(b *restful.RouteBuilder) {
-	b.Do(Returns(200, 201, 400, 401, 403))
+	b.Do(Returns(200, 201, 400, 401, 403)).Metadata(MetadataDefaultReturnCode, 201)
 }
 
 func ProducesJson(b *restful.RouteBuilder) {
