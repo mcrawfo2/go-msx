@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	restfulspec "github.com/emicklei/go-restful-openapi"
@@ -28,8 +29,8 @@ const (
 )
 
 var (
-	logger              = log.NewLogger("msx.webservice")
-	responseTypes       = make(map[reflect.Type]string)
+	logger        = log.NewLogger("msx.webservice")
+	responseTypes = make(map[reflect.Type]string)
 )
 
 func StandardList(b *restful.RouteBuilder) {
@@ -207,8 +208,13 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 			return
 		}
 
+		tenantUuid, err := types.ParseUUID(tenantId)
+		if err != nil {
+			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+		}
+
 		ctx := req.Request.Context()
-		if err := rbac.HasTenant(ctx, tenantId); err != nil {
+		if err := rbac.HasTenant(ctx, tenantUuid); err != nil {
 			ctx = log.ExtendContext(ctx, log.LogContext{
 				"tenant": tenantId,
 			})

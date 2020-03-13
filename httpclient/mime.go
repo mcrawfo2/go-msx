@@ -1,5 +1,6 @@
 package httpclient
 
 const (
-	MimeTypeApplicationJson = "application/json"
+	MimeTypeApplicationJson              = "application/json"
+	MimeTypeApplicationWwwFormUrlencoded = "application/x-www-form-urlencoded"
 )

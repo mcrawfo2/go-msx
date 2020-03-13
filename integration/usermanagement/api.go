@@ -9,9 +9,13 @@ type Api interface {
 
 	Login(user, password string) (*integration.MsxResponse, error)
 	Logout() (*integration.MsxResponse, error)
+	IsTokenActive() (*integration.MsxResponse, error)
+	GetTokenDetails(noDetails bool) (*integration.MsxResponse, error)
 
 	GetMyCapabilities() (*integration.MsxResponse, error)
 	GetUserCapabilities(userId string) (*integration.MsxResponse, error)
+	GetMyUserId() (*integration.MsxResponse, error)
+	GetMyPersonalInfo() (*integration.MsxResponse, error)
 
 	GetTenantIds() (*integration.MsxResponse, error)
 	GetMyTenants() (*integration.MsxResponse, error)

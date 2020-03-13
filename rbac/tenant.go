@@ -2,7 +2,6 @@ package rbac
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -12,45 +11,20 @@ import (
 var logger = log.NewLogger("msx.rbac")
 var ErrUserDoesNotHaveTenantAccess = errors.New("User does not have access to the tenant")
 
-func HasTenant(ctx context.Context, tenantId string) error {
-	tenantUuid, err := types.ParseUUID(tenantId)
+func HasTenant(ctx context.Context, tenantId types.UUID) error {
+	logger.WithContext(ctx).Debugf("Verifying tenant access for tenantId %q", tenantId.String())
+
+	userContextDetails, err := security.NewUserContextDetails(ctx)
 	if err != nil {
 		return err
 	}
 
-	userContext := security.UserContextFromContext(ctx)
-	if userContext != nil {
-		if userContext.TenantId == tenantId {
-			userTenantUuid, err := types.ParseUUID(tenantId)
-			if err != nil {
-				return err
-			}
-			if userTenantUuid.Equals(tenantUuid) {
-				return nil
-			}
-		}
+	if !userContextDetails.HasTenantId(tenantId) {
+		logger.WithContext(ctx).
+			WithError(ErrUserDoesNotHaveTenantAccess).
+			Errorf("Tenant access check failed for tenantId %q", tenantId.String())
+		return ErrUserDoesNotHaveTenantAccess
 	}
 
-	usermanagementIntegration, err := usermanagement.NewIntegration(ctx)
-	if err != nil {
-		return err
-	}
-
-	s, err := usermanagementIntegration.GetMyTenants()
-	if err != nil {
-		return err
-	}
-
-	payload, ok := s.Payload.(*usermanagement.TenantListResponse)
-	if !ok {
-		return errors.New("Failed to convert response payload")
-	}
-
-	for _, t := range payload.Tenants {
-		if tenantId == t.TenantId {
-			return nil
-		}
-	}
-
-	return ErrUserDoesNotHaveTenantAccess
+	return nil
 }

@@ -24,6 +24,11 @@ var ErrUserForbidden = webservice.NewStatusError(
 	errors.New("User does not have required identity"),
 	http.StatusForbidden)
 
+
+var ErrUserExpired = webservice.NewStatusError(
+	errors.New("User token has expired"),
+	http.StatusForbidden)
+
 type ResourcePatternAuthenticationConfig struct {
 	Blacklist []string `config:"default=/api/**;/admin;/admin/**"`
 	Whitelist []string `config:"default=/admin/health;/admin/info;/admin/alive"`
@@ -79,6 +84,17 @@ func (f *ResourcePatternAuthenticationProvider) Authenticate(req *restful.Reques
 		!types.StringStack(userContext.Scopes).Contains(oAuthScopeWrite) {
 		return ErrUserForbidden
 	}
+
+	if userContext.Token != "" {
+		active, err := security.IsTokenActive(req.Request.Context())
+		if err != nil {
+			return err
+		}
+		if !active {
+			return ErrUserExpired
+		}
+	}
+
 	return nil
 }
 

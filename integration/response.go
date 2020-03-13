@@ -59,6 +59,22 @@ func (e *ErrorDTO2) IsError() bool {
 	return e.Message != ""
 }
 
+type ErrorDTO3 struct {
+	Timestamp string `json:"timestamp"`
+	Status    int    `json:"status"`
+	ErrorName string `json:"error"`
+	Message   string `json:"message"`
+	Path      string `json:"path"`
+}
+
+func (e *ErrorDTO3) Error() error {
+	return errors.New(e.Message)
+}
+
+func (e *ErrorDTO3) IsError() bool {
+	return e.Message != ""
+}
+
 type Pojo map[string]interface{}
 
 type PojoArray []map[string]interface{}

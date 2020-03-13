@@ -3,8 +3,7 @@ package security
 import "context"
 
 type TokenProvider interface {
-	SecurityContextFromToken(ctx context.Context, token string) (*UserContext, error)
-	TokenFromSecurityContext(userContext *UserContext) (token string, err error)
+	UserContextFromToken(ctx context.Context, token string) (*UserContext, error)
 }
 
 var tokenProvider TokenProvider
@@ -16,5 +15,5 @@ func SetTokenProvider(provider TokenProvider) {
 }
 
 func NewUserContextFromToken(ctx context.Context, token string) (userContext *UserContext, err error) {
-	return tokenProvider.SecurityContextFromToken(ctx, token)
+	return tokenProvider.UserContextFromToken(ctx, token)
 }

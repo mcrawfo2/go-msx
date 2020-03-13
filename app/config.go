@@ -98,9 +98,7 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 }
 
 func newDefaultsProvider() config.Provider {
-	return config.NewCachedLoader(config.NewStatic(SourceDefault, map[string]string{
-		"profile": "default",
-	}))
+	return config.NewCachedLoader(config.Defaults)
 }
 
 func newDefaultsFilesProviders(cfg *config.Config) []config.Provider {
@@ -233,9 +231,15 @@ func findConfigFilesGlob(cfg *config.Config, glob string) []string {
 }
 
 func init() {
+	OnEvent(EventConfigure, PhaseBefore, setDefaultProfile)
 	OnEvent(EventConfigure, PhaseBefore, registerRemoteConfigProviders)
 	OnEvent(EventConfigure, PhaseDuring, loadConfig)
 	OnEvent(EventStart, PhaseAfter, watchConfig)
+}
+
+func setDefaultProfile(ctx context.Context) error {
+	config.Defaults.Set("profile", "default")
+	return nil
 }
 
 func registerRemoteConfigProviders(ctx context.Context) error {

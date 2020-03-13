@@ -57,9 +57,10 @@ func NewMessage(ctx context.Context) Message {
 	var tenantId = types.EmptyUUID()
 	var providerId = types.EmptyUUID() // TODO
 
+	// TODO: UserContextDetails
 	userContext := security.UserContextFromContext(ctx)
-	if userContext != nil {
-		tenantId = types.MustParseUUID(userContext.TenantId)
+	if userContext.TenantId != nil {
+		tenantId = *userContext.TenantId
 	}
 
 	return Message{

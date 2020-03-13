@@ -1,12 +1,39 @@
 package usermanagement
 
-import "cto-github.cisco.com/NFV-BU/go-msx/integration"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
 
 type Pojo integration.Pojo
 type PojoArray integration.PojoArray
 type HealthResult integration.HealthResult
-type ErrorDTO integration.ErrorDTO
-type ErrorDTO2 integration.ErrorDTO2
+
+type TokenDetails struct {
+	Active       bool         `json:"active"`
+	Issuer       *string      `json:"iss"`
+	Subject      *string      `json:"sub"`
+	Expires      *int         `json:"exp"`
+	IssuedAt     *int         `json:"iat"`
+	Jti          *string      `json:"jti"`
+	AuthTime     *int         `json:"auth_time"`
+	GivenName    *string      `json:"given_name"`
+	FamilyName   *string      `json:"family_name"`
+	Email        *string      `json:"email"`
+	Locale       *string      `json:"locale"`
+	Scopes       []string     `json:"scope"`
+	ClientId     *string      `json:"client_id"`
+	Username     *string      `json:"username"`
+	UserId       *types.UUID  `json:"user_id"`
+	Currency     *string      `json:"currency"`
+	TenantId     *types.UUID  `json:"tenant_id"`
+	TenantName   *string      `json:"tenant_name"`
+	ProviderId   *types.UUID  `json:"provider_id"`
+	ProviderName *string      `json:"provider_name"`
+	Tenants      []types.UUID `json:"tenants"`
+	Roles        []string     `json:"roles"`
+	Permissions  []string     `json:"permissions"`
+}
 
 type EncryptSecretsDTO struct {
 	Scope       map[string]string `json:"scope"`
@@ -34,10 +61,23 @@ type UserCapabilityResponse struct {
 	Name string `json:"name"`
 }
 
+type UserIdResponse struct {
+	Uuid types.UUID `json:"uuid"`
+}
+
+type UserPersonalInfoResponse struct {
+	FirstName *string  `json:"firstName"`
+	LastName  *string  `json:"lastName"`
+	UserId    string   `json:"userId"`
+	Email     *string  `json:"email"`
+	Locale    *string  `json:"locale"`
+	Roles     []string `json:"roles"`
+}
+
 type TenantResponse struct {
-	TenantId          string      `json:"tenantId"`
-	ParentId          string      `json:"parentId"`
-	ProviderId        string      `json:"providerId"`
+	TenantId          types.UUID  `json:"tenantId"`
+	ParentId          *types.UUID `json:"parentId"`
+	ProviderId        types.UUID  `json:"providerId"`
 	ProviderName      string      `json:"providerName"`
 	TenantName        string      `json:"tenantName"`
 	DisplayName       string      `json:"displayName"`
@@ -57,18 +97,18 @@ type TenantListResponse struct {
 	Tenants []TenantResponse `json:"tenants"`
 }
 
-type TenantIdList []string
+type TenantIdList []types.UUID
 
 type LoginResponse struct {
-	AccessToken string   `json:"access_token"`
-	TokenType   string   `json:"token_type"`
-	ExpiresIn   int      `json:"expires_in"`
-	Scope       string   `json:"scope"`
-	FirstName   string   `json:"firstName"`
-	LastName    string   `json:"lastName"`
-	Roles       []string `json:"roles"`
-	IdToken     string   `json:"id_token"`
-	TenantId    string   `json:"tenantId"`
-	Email       string   `json:"email"`
-	Username    string   `json:"username"`
+	AccessToken string      `json:"access_token"`
+	TokenType   string      `json:"token_type"`
+	ExpiresIn   int         `json:"expires_in"`
+	Scope       string      `json:"scope"`
+	FirstName   string      `json:"firstName"`
+	LastName    string      `json:"lastName"`
+	Roles       []string    `json:"roles"`
+	IdToken     string      `json:"id_token"`
+	TenantId    *types.UUID `json:"tenantId"`
+	Email       string      `json:"email"`
+	Username    string      `json:"username"`
 }

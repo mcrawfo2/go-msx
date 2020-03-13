@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
@@ -33,7 +34,9 @@ const (
 	pemEndPublicKey   = `-----END PUBLIC KEY-----`
 )
 
-var ErrNotFound = errors.New("Token not found in security context")
+var (
+	logger = log.NewLogger("msx.security.jwttokenprovider")
+)
 
 type TokenProviderConfig struct {
 	KeySource   string `config:"default=vault"`
@@ -46,7 +49,7 @@ type TokenProvider struct {
 	cfg *TokenProviderConfig
 }
 
-func (j *TokenProvider) SecurityContextFromToken(ctx context.Context, token string) (userContext *security.UserContext, err error) {
+func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) (userContext *security.UserContext, err error) {
 	parser := &jwt.Parser{}
 	jwtClaims := jwt.MapClaims{}
 	keyFunc, err := j.signingKeyFunc(ctx)
@@ -59,21 +62,23 @@ func (j *TokenProvider) SecurityContextFromToken(ctx context.Context, token stri
 		return nil, err
 	}
 
+	tenantUuid := types.EmptyUUID()
+	tenantId := jwtClaims[jwtClaimTenantId].(string)
+	if tenantId != "" {
+		tenantUuid, err = types.ParseUUID(tenantId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &security.UserContext{
 		UserName:    jwtClaims[jwtClaimUserName].(string),
 		Roles:       types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
-		TenantId:    jwtClaims[jwtClaimTenantId].(string),
+		TenantId:    &tenantUuid,
 		Scopes:      types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
 		Authorities: types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimAuthorities].([]interface{})),
 		Token:       token,
 	}, nil
-}
-
-func (j *TokenProvider) TokenFromSecurityContext(userContext *security.UserContext) (token string, err error) {
-	if userContext.Token == "" {
-		return "", ErrNotFound
-	}
-	return userContext.Token, nil
 }
 
 func (j *TokenProvider) signingKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {
@@ -195,6 +200,8 @@ func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 }
 
 func RegisterTokenProvider(ctx context.Context) error {
+	logger.Info("Registering JWT token provider")
+
 	cfg := config.FromContext(ctx)
 	jwtTokenProviderConfig := new(TokenProviderConfig)
 	if err := cfg.Populate(jwtTokenProviderConfig, configRootJwtTokenProvider); err != nil {

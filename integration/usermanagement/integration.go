@@ -2,8 +2,10 @@ package usermanagement
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"net/http"
@@ -16,8 +18,13 @@ const (
 	endpointNameLogin  = "login"
 	endpointNameLogout = "logout"
 
+	endpointNameIsTokenValid    = "isTokenValid"
+	endpointNameGetTokenDetails = "getTokenDetails"
+
 	endpointNameGetMyCapabilities   = "getMyCapabilities"
 	endpointNameGetUserCapabilities = "getUserCapabilities"
+	endpointNameGetMyUserId         = "getMyIdentity"
+	endpointNameGetMyPersonalInfo   = "getMyPersonalInfo"
 
 	endpointNameGetTenantIds   = "getTenantIds"
 	endpointNameGetMyTenants   = "getMyTenants"
@@ -51,10 +58,15 @@ var (
 		endpointNameLogin:  {Method: "POST", Path: "/v2/token"},
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
+		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
+		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/checkToken"},
+
 		endpointNameGetMyCapabilities:   {Method: "GET", Path: "/api/v1/users/capabilities"},
 		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
+		endpointNameGetMyUserId:         {Method: "GET", Path: "/api/v1/currentuser"},
+		endpointNameGetMyPersonalInfo:   {Method: "GET", Path: "/api/v1/personalinfo"},
 
-		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantIds"},
+		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantids"},
 		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},
 		endpointNameGetUserTenants: {Method: "GET", Path: "/api/v1/users/{{.userId}}/tenants"},
 
@@ -130,11 +142,48 @@ func (i *Integration) Logout() (result *integration.MsxResponse, err error) {
 	})
 }
 
+func (i *Integration) IsTokenActive() (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameIsTokenValid,
+		ErrorPayload: new(integration.OAuthErrorDTO),
+	})
+}
+
+func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse, error) {
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	if err != nil {
+		return nil, err
+	}
+
+	var headers = make(http.Header)
+	headers.Set("Authorization", securityClientSettings.Authorization())
+	headers.Set("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)
+	headers.Set("Accept", httpclient.MimeTypeApplicationJson)
+
+	var body = make(url.Values)
+	userContext := security.UserContextFromContext(i.Context())
+	body.Set("token", userContext.Token)
+	if noDetails {
+		body.Set("no_details", "true")
+	}
+	var bodyBytes = []byte(body.Encode())
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   endpointNameGetTokenDetails,
+		Headers:        headers,
+		Body:           bodyBytes,
+		ExpectEnvelope: false,
+		NoToken:        true,
+		Payload:        new(TokenDetails),
+		ErrorPayload:   new(integration.ErrorDTO3),
+	})
+}
+
 func (i *Integration) GetMyCapabilities() (result *integration.MsxResponse, err error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyCapabilities,
 		Payload:      &UserCapabilityListResponse{},
-		ErrorPayload: &ErrorDTO{},
+		ErrorPayload: new(integration.ErrorDTO),
 	})
 }
 
@@ -145,7 +194,23 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 			"userId": userId,
 		},
 		Payload:      &UserCapabilityListResponse{},
-		ErrorPayload: &ErrorDTO{},
+		ErrorPayload: new(integration.ErrorDTO),
+	})
+}
+
+func (i *Integration) GetMyUserId() (result *integration.MsxResponse, err error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetMyUserId,
+		Payload:      &UserIdResponse{},
+		ErrorPayload: new(integration.ErrorDTO),
+	})
+}
+
+func (i *Integration) GetMyPersonalInfo() (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetMyPersonalInfo,
+		Payload:      &UserPersonalInfoResponse{},
+		ErrorPayload: new(integration.ErrorDTO),
 	})
 }
 
@@ -153,7 +218,7 @@ func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error
 	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyTenants,
 		Payload:      new(TenantListResponse),
-		ErrorPayload: &ErrorDTO{},
+		ErrorPayload: new(integration.ErrorDTO),
 	})
 
 	if result != nil && result.StatusCode == 404 {
@@ -181,7 +246,6 @@ func (i *Integration) GetTenantIds() (result *integration.MsxResponse, err error
 	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantIds,
 		Payload:      new(TenantIdList),
-		ErrorPayload: &ErrorDTO2{},
 	})
 
 	return result, err
@@ -194,7 +258,7 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 			"userId": userId,
 		},
 		Payload:      new(TenantListResponse),
-		ErrorPayload: &ErrorDTO{},
+		ErrorPayload: new(integration.ErrorDTO),
 	})
 
 	if result != nil && result.StatusCode == 404 {

@@ -42,7 +42,7 @@ func TestTokenProvider_keystoreSigningKey(t *testing.T) {
 //	var token *string
 //	loadFile(t, "token", &token)
 //
-//	userContext, err := tokenProvider.SecurityContextFromToken(context.Background(), *token)
+//	userContext, err := tokenProvider.UserContextFromToken(context.Background(), *token)
 //	assert.NoError(t, err)
 //	assert.NotNil(t, userContext)
 //}

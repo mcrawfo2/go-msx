@@ -42,6 +42,7 @@ const (
 
 var (
 	defaultConfigs = map[string]string{
+		"spring.application.name":      "build",
 		"msx.platform.includegroups":   "com.cisco.**",
 		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
 		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.23.11",

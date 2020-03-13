@@ -83,7 +83,9 @@ func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) 
 	req.Header.Set("Accept", httpclient.MimeTypeApplicationJson)
 
 	if v.Body != nil {
-		req.Header.Set("Content-Type", httpclient.MimeTypeApplicationJson)
+		if v.Headers.Get("Content-Type") == "" {
+			req.Header.Set("Content-Type", httpclient.MimeTypeApplicationJson)
+		}
 	}
 
 	if !v.NoToken {
@@ -184,20 +186,19 @@ func (v *MsxRequest) UnmarshalError(ctx context.Context, response *MsxResponse) 
 		if v.ErrorPayload == nil {
 			v.ErrorPayload = v.Payload
 		}
-		response.Payload = v.ErrorPayload
-		if err = json.Unmarshal(response.Body, response.Payload); err != nil {
-			return errors.Wrap(err, "Failed to unmarshal payload")
-		}
 
-		// Extract the payload error if possible
-		if errorPayload, ok := response.Payload.(ResponseError); ok {
-			if errorPayload.IsError() {
-				return errorPayload.Error()
+		response.Payload = v.ErrorPayload
+		if err = json.Unmarshal(response.Body, response.Payload); err == nil {
+			// Extract the payload error if possible
+			if errorPayload, ok := response.Payload.(ResponseError); ok {
+				if errorPayload.IsError() {
+					return errorPayload.Error()
+				}
 			}
 		}
 	}
 
-	// Check for a spring authentication error
+	// Check for a common MSX error formats
 	if response.Body != nil {
 		oauthErrorPayload := &OAuthErrorDTO{}
 		if err = json.Unmarshal(response.Body, oauthErrorPayload); err == nil && oauthErrorPayload.IsError() {
@@ -212,6 +213,11 @@ func (v *MsxRequest) UnmarshalError(ctx context.Context, response *MsxResponse) 
 		errorDto2Payload := &ErrorDTO2{}
 		if err = json.Unmarshal(response.Body, errorDto2Payload); err == nil && errorDto2Payload.IsError() {
 			return errorDto2Payload.Error()
+		}
+
+		errorDto3Payload := &ErrorDTO3{}
+		if err = json.Unmarshal(response.Body, errorDto3Payload); err == nil && errorDto3Payload.IsError() {
+			return errorDto3Payload.Error()
 		}
 	}
 

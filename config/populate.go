@@ -6,6 +6,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -130,7 +131,7 @@ func (p PartialConfig) FilterStripPrefix(prefix string) PartialConfig {
 func (p PartialConfig) Populate(x interface{}) error {
 	t, v := reflect.TypeOf(x), reflect.ValueOf(x)
 	if t.Kind() != reflect.Ptr || v.Elem().Type().Kind() != reflect.Struct {
-		return fmt.Errorf("not a pointer to struct: %s", t)
+		return errors.Errorf("Cannot populate config: not a pointer to struct: %s", t)
 	}
 	if err := dec(p, "", nil, nil, v); err != nil {
 		return err

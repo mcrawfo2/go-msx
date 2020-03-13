@@ -2,7 +2,7 @@ package rbac
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"github.com/pkg/errors"
 )
 
@@ -31,24 +31,18 @@ const (
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
 
 func HasPermission(ctx context.Context, required []string) error {
-	usermanagementIntegration, err := usermanagement.NewIntegration(ctx)
+	logger.WithContext(ctx).Debugf("Verifying permissions %q", required)
+
+	userContextDetails, err := security.NewUserContextDetails(ctx)
 	if err != nil {
 		return err
 	}
 
-	s, err := usermanagementIntegration.GetMyCapabilities()
-	if err != nil {
-		return err
-	}
-
-	payload, ok := s.Payload.(*usermanagement.UserCapabilityListResponse)
-	if !ok {
-		return errors.New("Failed to convert response payload")
-	}
+	permissions := userContextDetails.Permissions
 
 	for _, p := range required {
-		for _, c := range payload.Capabilities {
-			if p == c.Name {
+		for _, permission := range permissions {
+			if p == permission {
 				return nil
 			}
 		}

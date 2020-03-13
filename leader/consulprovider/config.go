@@ -4,7 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"errors"
+	"github.com/pkg/errors"
 )
 
 const configRootConsulLeaderElection = "consul.leader.election"
@@ -13,14 +13,14 @@ var logger = log.NewLogger("msx.leader.consulprovider")
 
 type ConsulLeaderElectionConfig struct {
 	Enabled          bool   `config:"default=false"`
-	DefaultMasterKey string `config:"default=service/${info.app.name}/leader"`
+	DefaultMasterKey string `config:"default=service/${spring.application.name}/leader"`
 	LeaderProperties []LeaderProperties
 }
 
 type LeaderProperties struct {
-	Key             string
-	HeartBeatMillis int
-	BusyWaitMillis  int
+	Key             string `config:"default=${consul.leader.election.defaultMasterKey}"`
+	HeartBeatMillis int    `config:"default=2000"`
+	BusyWaitMillis  int    `config:"default=5000"`
 }
 
 func NewConsulLeaderElectionConfigFromConfig(cfg *config.Config) (*ConsulLeaderElectionConfig, error) {
