@@ -9,6 +9,7 @@ test:
 dist:
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
+	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
 
