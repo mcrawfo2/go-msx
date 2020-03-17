@@ -24,7 +24,6 @@ var ErrUserForbidden = webservice.NewStatusError(
 	errors.New("User does not have required identity"),
 	http.StatusForbidden)
 
-
 var ErrUserExpired = webservice.NewStatusError(
 	errors.New("User token has expired"),
 	http.StatusForbidden)
