@@ -13,3 +13,17 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: 3.8.0-EDGE
     includeGroups: "com.cisco.**"
+
+generate:
+  - path: skel
+    command: staticfiles -o templates.go templates/
+  - path: resource
+    vfsgen:
+      filename: "defaults.go"
+      variable-name: "Defaults"
+      root: ".."
+      includes:
+        - "/**/defaults-*.properties"
+      excludes:
+        - "/dist/**"
+        - "/test/**"

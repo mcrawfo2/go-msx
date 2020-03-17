@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
-	"io/ioutil"
 )
 
 type TOMLFile struct {
-	name string
-	path string
+	name   string
+	path   string
+	reader ContentReader
 }
 
 func (f *TOMLFile) Description() string {
@@ -20,7 +20,7 @@ func (f *TOMLFile) Description() string {
 func (f *TOMLFile) Load(ctx context.Context) (map[string]string, error) {
 	logger.Infof("Loading TOML config: %s", f.path)
 
-	data, err := ioutil.ReadFile(f.path)
+	data, err := f.reader()
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +37,10 @@ func (f *TOMLFile) Load(ctx context.Context) (map[string]string, error) {
 	return FlattenJSON(out, "")
 }
 
-func NewTOMLFile(name, path string) *TOMLFile {
+func NewTOMLFile(name, path string, reader ContentReader) *TOMLFile {
 	return &TOMLFile{
-		name: name,
-		path: path,
+		name:   name,
+		path:   path,
+		reader: reader,
 	}
 }

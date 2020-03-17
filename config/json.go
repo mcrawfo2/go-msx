@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	json "github.com/yosuke-furukawa/json5/encoding/json5"
-	"io/ioutil"
 )
 
 type JSONFile struct {
-	name string
-	path string
+	name   string
+	path   string
+	reader ContentReader
 }
 
 func (f *JSONFile) Description() string {
@@ -20,7 +20,7 @@ func (f *JSONFile) Description() string {
 func (f *JSONFile) Load(ctx context.Context) (map[string]string, error) {
 	logger.Infof("Loading JSON config: %s", f.path)
 
-	encodedJSON, err := ioutil.ReadFile(f.path)
+	encodedJSON, err := f.reader()
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +100,10 @@ func flattenArray(input []interface{}, namespace string) (map[string]string, err
 	return flattened, nil
 }
 
-func NewJSONFile(name, path string) *JSONFile {
+func NewJSONFile(name, path string, reader ContentReader) *JSONFile {
 	return &JSONFile{
-		name: name,
-		path: path,
+		name:   name,
+		path:   path,
+		reader: reader,
 	}
 }

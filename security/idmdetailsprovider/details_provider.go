@@ -16,10 +16,6 @@ var (
 	logger = log.NewLogger("msx.security.idmdetailsprovider")
 )
 
-func init() {
-	config.Defaults.Set("security.token.details.active-cache.ttl", "5s")
-}
-
 type IdmTokenDetailsProviderConfig struct {
 	Fast         bool `config:"default=true"`
 	ActiveCache  lru.CacheConfig

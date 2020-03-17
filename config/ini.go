@@ -8,8 +8,9 @@ import (
 )
 
 type INIFile struct {
-	name string
-	path string
+	name   string
+	path   string
+	reader ContentReader
 }
 
 func (f *INIFile) Description() string {
@@ -21,7 +22,12 @@ func (f *INIFile) Load(ctx context.Context) (map[string]string, error) {
 
 	settings := map[string]string{}
 
-	file, err := ini.Load(f.path)
+	bytes, err := f.reader()
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := ini.Load(bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +46,10 @@ func (f *INIFile) Load(ctx context.Context) (map[string]string, error) {
 	return settings, nil
 }
 
-func NewINIFile(name, path string) *INIFile {
+func NewINIFile(name, path string, reader ContentReader) *INIFile {
 	return &INIFile{
-		name: name,
-		path: path,
+		name:   name,
+		path:   path,
+		reader: reader,
 	}
 }

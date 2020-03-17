@@ -8,8 +8,9 @@ import (
 )
 
 type PropertiesFile struct {
-	name string
-	path string
+	name   string
+	path   string
+	reader ContentReader
 }
 
 func (f *PropertiesFile) Description() string {
@@ -22,7 +23,13 @@ func (f *PropertiesFile) Load(ctx context.Context) (map[string]string, error) {
 	l := &properties.Loader{
 		Encoding:         properties.UTF8,
 		DisableExpansion: true}
-	props, err := l.LoadAll([]string{f.path})
+
+	bytes, err := f.reader()
+	if err != nil {
+		return nil, err
+	}
+
+	props, err := l.LoadBytes(bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +46,10 @@ func (f *PropertiesFile) Load(ctx context.Context) (map[string]string, error) {
 	return settings, nil
 }
 
-func NewPropertiesFile(name, path string) *PropertiesFile {
+func NewPropertiesFile(name, path string, reader ContentReader) *PropertiesFile {
 	return &PropertiesFile{
-		name: name,
-		path: path,
+		name:   name,
+		path:   path,
+		reader: reader,
 	}
 }

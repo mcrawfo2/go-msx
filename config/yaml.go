@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"io/ioutil"
 )
 
 type YAMLFile struct {
-	name string
-	path string
+	name   string
+	path   string
+	reader ContentReader
 }
 
 func (f *YAMLFile) Description() string {
@@ -21,7 +21,7 @@ func (f *YAMLFile) Description() string {
 func (f *YAMLFile) Load(ctx context.Context) (map[string]string, error) {
 	logger.Infof("Loading YAML config: %s", f.path)
 
-	encodedYAML, err := ioutil.ReadFile(f.path)
+	encodedYAML, err := f.reader()
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +43,10 @@ func (f *YAMLFile) Load(ctx context.Context) (map[string]string, error) {
 	return FlattenJSON(decodedJSON, "")
 }
 
-func NewYAMLFile(name string, path string) *YAMLFile {
+func NewYAMLFile(name string, path string, reader ContentReader) *YAMLFile {
 	return &YAMLFile{
-		name: name,
-		path: path,
+		name:   name,
+		path:   path,
+		reader: reader,
 	}
 }

@@ -24,6 +24,7 @@ const (
 	configRootKubernetes = "kubernetes"
 	configRootManifest   = "manifest"
 	configRootGo         = "go"
+	configRootGenerate   = "generate"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -146,6 +147,20 @@ type Kubernetes struct {
 	Group string
 }
 
+type Generate struct {
+	Path    string
+	Command string `config:"default="`
+	VfsGen  *GenerateVfs
+}
+
+type GenerateVfs struct {
+	Root         string `config:"default="`
+	Filename     string `config:"default=assets.go"`
+	VariableName string `config:"default=assets"`
+	Includes     []string
+	Excludes     []string `config:"default="`
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Msx        MsxParams
@@ -157,6 +172,7 @@ type Config struct {
 	Docker     Docker
 	Kubernetes Kubernetes
 	Manifest   Manifest
+	Generate   []Generate
 	Cfg        *config.Config
 }
 
@@ -253,6 +269,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Manifest, configRootManifest); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Generate, configRootGenerate); err != nil {
 		return
 	}
 

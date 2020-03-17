@@ -32,4 +32,5 @@ clean:
 	rm -Rf vendor
 
 precommit:
+	$(BUILDER) generate
 	$(BUILDER) go-fmt

@@ -5,8 +5,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/resource"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/bmatcuk/doublestar"
 	"github.com/pkg/errors"
+	"github.com/shurcooL/httpfs/vfsutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,17 +19,18 @@ import (
 )
 
 const (
-	SourceConsul      = "Consul"
-	SourceVault       = "Vault"
-	SourceApplication = "Application"
-	SourceProfile     = "Profile"
-	SourceCommandLine = "CommandLine"
-	SourceBuild       = "Build"
-	SourceBootStrap   = "Bootstrap"
-	SourceEnvironment = "Environment"
-	SourceOverride    = "Override"
-	SourceDefaults    = "Defaults"
-	SourceDefault     = "Default"
+	SourceConsul           = "Consul"
+	SourceVault            = "Vault"
+	SourceApplication      = "Application"
+	SourceProfile          = "Profile"
+	SourceCommandLine      = "CommandLine"
+	SourceBuild            = "Build"
+	SourceBootStrap        = "Bootstrap"
+	SourceEnvironment      = "Environment"
+	SourceOverride         = "Override"
+	SourceDefaultResources = "DefaultResources"
+	SourceDefaults         = "Defaults"
+	SourceDefault          = "Default"
 
 	configKeyAppName = "spring.application.name"
 	configRootConfig = "config"
@@ -44,17 +49,18 @@ type ConfigConfig struct {
 var configConfig ConfigConfig
 
 type Sources struct {
-	Default          config.Provider
-	DefaultsFiles    []config.Provider
-	BootstrapFiles   []config.Provider
-	ApplicationFiles []config.Provider
-	BuildFiles       []config.Provider
-	Consul           []config.Provider
-	Vault            []config.Provider
-	ProfileFiles     []config.Provider
-	Environment      config.Provider
-	CommandLine      []config.Provider
-	Override         config.Provider
+	Default           config.Provider
+	DefaultsFiles     []config.Provider
+	DefaultsResources []config.Provider
+	BootstrapFiles    []config.Provider
+	ApplicationFiles  []config.Provider
+	BuildFiles        []config.Provider
+	Consul            []config.Provider
+	Vault             []config.Provider
+	ProfileFiles      []config.Provider
+	Environment       config.Provider
+	CommandLine       []config.Provider
+	Override          config.Provider
 }
 
 type SourcesList []config.Provider
@@ -71,6 +77,7 @@ func (c Sources) Providers() []config.Provider {
 	sourcesList := &SourcesList{}
 	sourcesList.Append(c.Default)
 	sourcesList.Append(c.DefaultsFiles...)
+	sourcesList.Append(c.DefaultsResources...)
 	sourcesList.Append(c.BootstrapFiles...)
 	sourcesList.Append(c.ApplicationFiles...)
 	sourcesList.Append(c.BuildFiles...)
@@ -99,6 +106,11 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 
 func newDefaultsProvider() config.Provider {
 	return config.NewCachedLoader(config.Defaults)
+}
+
+func newDefaultsResourcesProviders() []config.Provider {
+	files := findConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
+	return newHttpFileProviders(SourceDefaultResources, resource.Defaults, files)
 }
 
 func newDefaultsFilesProviders(cfg *config.Config) []config.Provider {
@@ -155,7 +167,15 @@ func newProfileProvider(name string, cfg *config.Config) ([]config.Provider, err
 func newFileProviders(name string, files []string) []config.Provider {
 	var providers []config.Provider
 	for _, file := range files {
-		providers = append(providers, config.NewFileProvider(SourceApplication, file))
+		providers = append(providers, config.NewFileProvider(SourceApplication, file)) // TODO: name?
+	}
+	return providers
+}
+
+func newHttpFileProviders(name string, fs http.FileSystem, files []string) []config.Provider {
+	var providers []config.Provider
+	for _, file := range files {
+		providers = append(providers, config.NewHttpFileProvider(name, fs, file))
 	}
 	return providers
 }
@@ -230,16 +250,26 @@ func findConfigFilesGlob(cfg *config.Config, glob string) []string {
 	return results
 }
 
+func findConfigHttpFilesGlob(fs http.FileSystem, glob string) []string {
+	var configFiles = make(types.StringSet)
+	_ = vfsutil.Walk(fs, "/", func(path string, info os.FileInfo, err error) error {
+		for _, ext := range configFileExtensions {
+			fileGlob := glob + ext
+			if inc, err2 := doublestar.Match(fileGlob, path); err2 != nil {
+				continue
+			} else if inc {
+				configFiles.Add(path)
+			}
+		}
+		return nil
+	})
+	return configFiles.Values()
+}
+
 func init() {
-	OnEvent(EventConfigure, PhaseBefore, setDefaultProfile)
 	OnEvent(EventConfigure, PhaseBefore, registerRemoteConfigProviders)
 	OnEvent(EventConfigure, PhaseDuring, loadConfig)
 	OnEvent(EventStart, PhaseAfter, watchConfig)
-}
-
-func setDefaultProfile(ctx context.Context) error {
-	config.Defaults.Set("profile", "default")
-	return nil
 }
 
 func registerRemoteConfigProviders(ctx context.Context) error {
@@ -296,9 +326,10 @@ func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
 
 func loadConfig(ctx context.Context) (err error) {
 	sources := &Sources{
-		Default:     newDefaultsProvider(),
-		Environment: newEnvironmentProvider(),
-		Override:    newOverrideProvider(overrideConfig),
+		Default:           newDefaultsProvider(),
+		DefaultsResources: newDefaultsResourcesProviders(),
+		Environment:       newEnvironmentProvider(),
+		Override:          newOverrideProvider(overrideConfig),
 	}
 
 	if sources.CommandLine, err = newProviders(SourceCommandLine, nil); err != nil {
