@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/emicklei/go-restful"
 	"net/http"
-	"path"
 	"strings"
 )
 
@@ -51,18 +50,10 @@ func HttpHandlerController(fn http.HandlerFunc) restful.RouteFunction {
 	}
 }
 
-func Static(prefix, path string) restful.RouteFunction {
-	return HttpHandlerController(
-		http.StripPrefix(prefix,
-			http.FileServer(http.Dir(path))).ServeHTTP)
-}
-
-func StaticFile(fileName string) restful.RouteFunction {
+func StaticFileAlias(alias StaticAlias, handler http.HandlerFunc) restful.RouteFunction {
 	return HttpHandlerController(func(writer http.ResponseWriter, request *http.Request) {
-		server := WebServerFromContext(request.Context())
-		staticFolder := server.StaticFolder()
-		filePath := path.Join(staticFolder, fileName)
-		http.ServeFile(writer, request, filePath)
+		request.URL.Path = alias.Alias(request.URL.Path)
+		handler(writer, request)
 	})
 }
 

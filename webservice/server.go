@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
@@ -29,15 +31,36 @@ type WebServer struct {
 	aliases       []StaticAlias
 	server        *http.Server
 	injectors     *types.ContextInjectors
+	webRoot       http.FileSystem
 }
 
-func NewWebServer(cfg *WebServerConfig, ctx context.Context) *WebServer {
+func NewWebRoot(ctx context.Context) (http.FileSystem, error) {
+	fsConfig, err := fs.NewFileSystemConfig(config.FromContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+
+	vfs, err := fs.NewVirtualFileSystemFromConfig(fsConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return fs.NewPrefixFileSystem(vfs, filepath.Join(fsConfig.Resources, "www"))
+}
+
+func NewWebServer(cfg *WebServerConfig, ctx context.Context) (*WebServer, error) {
+	webRoot, err := NewWebRoot(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &WebServer{
 		ctx:       ctx,
 		cfg:       cfg,
 		router:    &restful.CurlyRouter{},
 		injectors: new(types.ContextInjectors),
-	}
+		webRoot:   webRoot,
+	}, nil
 }
 
 func (s *WebServer) NewService(path string) (*restful.WebService, error) {
@@ -128,13 +151,13 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 
 	staticUiHandler := http.StripPrefix(
 		staticService.RootPath(),
-		http.FileServer(http.Dir(s.cfg.StaticPath))).ServeHTTP
+		http.FileServer(s.webRoot)).ServeHTTP
 
 	for _, alias := range aliases {
 		staticService.Route(staticService.
 			GET(alias.Path).
 			Operation("static-alias").
-			To(StaticFile(alias.File)))
+			To(StaticFileAlias(alias, staticUiHandler)))
 	}
 
 	staticService.Route(staticService.
@@ -246,14 +269,6 @@ func (s *WebServer) RegisterAlias(path, file string) {
 		Path: path,
 		File: file,
 	})
-}
-
-func (s *WebServer) StaticFolder() string {
-	folder, err := filepath.Abs(s.cfg.StaticPath)
-	if err != nil {
-		return s.cfg.StaticPath
-	}
-	return folder
 }
 
 func (s *WebServer) Url() string {

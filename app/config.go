@@ -43,7 +43,7 @@ var (
 )
 
 type ConfigConfig struct {
-	Path []string `config:"default="`
+	Path []string
 }
 
 var configConfig ConfigConfig

@@ -2,6 +2,7 @@ package webservice
 
 import (
 	"github.com/emicklei/go-restful"
+	"strings"
 )
 
 type ServiceProvider interface {
@@ -20,4 +21,9 @@ type AuthenticationProvider interface {
 type StaticAlias struct {
 	Path string
 	File string
+}
+
+func (a StaticAlias) Alias(path string) string {
+	p := strings.TrimSuffix(path, a.Path)
+	return p + a.File
 }

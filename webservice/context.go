@@ -45,7 +45,7 @@ func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer
 		return nil, ErrDisabled
 	}
 
-	return NewWebServer(&webServerConfig, ctx), nil
+	return NewWebServer(&webServerConfig, ctx)
 }
 
 type webServerContextKey int
