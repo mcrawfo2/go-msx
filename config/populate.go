@@ -43,10 +43,27 @@ func (p PartialConfig) FilterStripPrefix(prefix string) PartialConfig {
 			// TODO(fs): we are ignoring the error which flags a circular reference.
 			// TODO(fs): since we are modifying keys I am not entirely sure whether we can create a circular reference
 			// TODO(fs): this function should probably return an error but the signature is fixed
-			pp.Set(k[n:], p.local[k])
+			newk := k[n:]
+			if strings.HasPrefix(newk, ".") {
+				newk = newk[1:]
+			}
+			pp.Set(newk, p.local[k])
 		}
 	}
 	return pp
+}
+
+func (p PartialConfig) HasKey(prefix string) bool {
+	for k := range p.local {
+		if k == prefix {
+			return true
+		} else if strings.HasPrefix(k, prefix+".") {
+			return true
+		} else if strings.HasPrefix(k, prefix+"[") {
+			return true
+		}
+	}
+	return false
 }
 
 // Populate assigns property values to exported fields of a struct.
@@ -130,8 +147,8 @@ func (p PartialConfig) FilterStripPrefix(prefix string) PartialConfig {
 //     Field map[string]string `config:"myName"`
 func (p PartialConfig) Populate(x interface{}) error {
 	t, v := reflect.TypeOf(x), reflect.ValueOf(x)
-	if t.Kind() != reflect.Ptr || v.Elem().Type().Kind() != reflect.Struct {
-		return errors.Errorf("Cannot populate config: not a pointer to struct: %s", t)
+	if t.Kind() != reflect.Ptr {
+		return errors.Errorf("Cannot populate config: not a pointer: %q", t)
 	}
 	if err := dec(p, "", nil, nil, v); err != nil {
 		return err
@@ -260,7 +277,6 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 				defResolved := p.config.resolveValue(make(map[string]string), p.config.settings, *def)
 				return strings.Split(defResolved, ";"), nil
 			}
-			return nil, fmt.Errorf("missing required key %s", key)
 		}
 
 		return result, nil
@@ -333,6 +349,14 @@ func dec(p PartialConfig, key string, def *string, opts map[string]string, v ref
 		v.Set(val)
 
 	case isPtr(t):
+		if v.IsNil() {
+			if p.HasKey(key) {
+				elem := reflect.New(t.Elem())
+				v.Set(elem)
+			} else {
+				return nil
+			}
+		}
 		return dec(p, key, def, opts, v.Elem())
 
 	case isStruct(t):

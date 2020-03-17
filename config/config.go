@@ -351,7 +351,7 @@ func (c *Config) Populate(target interface{}, prefix string) error {
 	partialConfig := NewPartialConfig(c.settings, c)
 
 	// Filter by prefix
-	partialConfig = partialConfig.FilterStripPrefix(NormalizeKey(prefix) + ".")
+	partialConfig = partialConfig.FilterStripPrefix(NormalizeKey(prefix))
 
 	// Populate the object from the properties map
 	return partialConfig.Populate(target)
