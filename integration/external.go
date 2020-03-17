@@ -35,6 +35,10 @@ func (e Endpoint) Url(scheme, authority string, variables map[string]string, que
 	pathBuffer.WriteString("://")
 	pathBuffer.WriteString(authority)
 
+	if !strings.HasPrefix(path, "/") {
+		pathBuffer.WriteRune('/')
+	}
+
 	err = subPathTemplate.Execute(&pathBuffer, variables)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to fill url template")
