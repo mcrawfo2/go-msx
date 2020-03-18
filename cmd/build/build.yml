@@ -23,7 +23,9 @@ generate:
       variable-name: "Defaults"
       root: ".."
       includes:
-        - "/**/defaults-*.properties"
+        - "/**/defaults-*.{properties,yml,yaml,json,json5}"
       excludes:
         - "/dist/**"
         - "/test/**"
+        - "/vendor/**"
+        - "/local/**"
