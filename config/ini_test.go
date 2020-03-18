@@ -6,7 +6,7 @@ import (
 )
 
 func TestINILoad(t *testing.T) {
-	p := NewINIFile("IniFile", "test/config.ini")
+	p := NewINIFile("IniFile", "test/config.ini", FileContentReader("test/config.ini"))
 
 	actualSettings, err := p.Load(context.Background())
 	if err != nil {
