@@ -105,7 +105,7 @@ func installFiles(artifact maven.Artifact, repository maven.ArtifactRepository, 
 		return err
 	}
 
-	outputDir := BuildConfig.App.OutputStaticPath()
+	outputDir := BuildConfig.OutputStaticPath()
 	if err = os.MkdirAll(outputDir, 0755); err != nil {
 		logger.WithError(err).Error("Failed to create output directory")
 		return err

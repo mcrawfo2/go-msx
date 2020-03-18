@@ -10,9 +10,10 @@ const configRootFileSystem = "fs"
 var logger = log.NewLogger("msx.fs")
 
 type FileSystemConfig struct {
-	Root      string
-	Resources string
-	Configs   string
+	Root      string `config:"default=/"`
+	Resources string `config:"default=/var/lib/${spring.application.name}"`
+	Configs   string `config:"default=/etc/${spring.application.name}"`
+	Binaries  string `config:"default=/usr/bin"`
 }
 
 func NewFileSystemConfig(cfg *config.Config) (*FileSystemConfig, error) {

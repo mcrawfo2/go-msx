@@ -2,11 +2,15 @@ package build
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/app/appconfig"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"fmt"
+	"net/http"
 	"path"
 	"runtime"
 	"strconv"
@@ -31,12 +35,7 @@ const (
 	configRootServer  = "server"
 
 	// Output directories
-	configOutputPath = "dist"
-
-	configOutputRootPath   = configOutputPath + "/root"
-	configOutputConfigPath = configOutputRootPath + "/etc"
-	configOutputBinaryPath = configOutputRootPath + "/usr/bin"
-	configOutputStaticPath = configOutputRootPath + "/var/lib"
+	configOutputRootPath = "dist/root"
 
 	configTestPath = "test"
 )
@@ -69,17 +68,10 @@ type AppInfo struct {
 	}
 }
 
-func (p AppInfo) OutputConfigPath() string {
-	return path.Join(configOutputConfigPath, p.Name)
-}
-
-func (p AppInfo) OutputStaticPath() string {
-	return path.Join(configOutputStaticPath, p.Name)
-}
-
 type Server struct {
 	Port        int
 	ContextPath string
+	StaticPath  string
 }
 
 func (p Server) PortString() string {
@@ -173,15 +165,12 @@ type Config struct {
 	Kubernetes Kubernetes
 	Manifest   Manifest
 	Generate   []Generate
+	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
 
 func (p Config) FullBuildNumber() string {
 	return fmt.Sprintf("%s-%s", p.Msx.Release, p.Build.Number)
-}
-
-func (p Config) OutputBinaryPath() string {
-	return configOutputBinaryPath
 }
 
 func (p Config) OutputRoot() string {
@@ -200,12 +189,40 @@ func (p Config) Port() string {
 	return strconv.Itoa(p.Server.Port)
 }
 
+func (p Config) OutputConfigPath() string {
+	return path.Join(configOutputRootPath, p.Fs.Root, p.Fs.Configs)
+}
+
+func (p Config) OutputResourcesPath() string {
+	return path.Join(configOutputRootPath, p.Fs.Root, p.Fs.Resources)
+}
+
+func (p Config) OutputBinaryPath() string {
+	return path.Join(configOutputRootPath, p.Fs.Root, p.Fs.Binaries)
+}
+
+func (p Config) OutputStaticPath() string {
+	return path.Join(p.OutputResourcesPath(), "www")
+}
+
 var BuildConfig = new(Config)
+
+func newHttpFileProviders(name string, fs http.FileSystem, files []string) []config.Provider {
+	var providers []config.Provider
+	for _, file := range files {
+		providers = append(providers, config.NewHttpFileProvider(name, fs, file))
+	}
+	return providers
+}
 
 func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	var providers = []config.Provider{
 		config.NewStatic("defaults", defaultConfigs),
 	}
+
+	defaultFiles := appconfig.FindConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
+	defaultFilesProviders := newHttpFileProviders("Defaults", resource.Defaults, defaultFiles)
+	providers = append(providers, defaultFilesProviders...)
 
 	for _, configFile := range configFiles {
 		fileProvider := config.NewFileProvider("Build", configFile)
@@ -256,6 +273,13 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		return
 	}
 
+	// Set the spring app name if it is not set
+	springAppName, _ := cfg.StringOr("spring.application.name", "build")
+	if springAppName == "build" {
+		defaultConfigs["spring.application.name"] = BuildConfig.App.Name
+		_ = cfg.Load(ctx)
+	}
+
 	if err = cfg.Populate(&BuildConfig.Server, configRootServer); err != nil {
 		return
 	}
@@ -274,6 +298,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 
 	if err = cfg.Populate(&BuildConfig.Generate, configRootGenerate); err != nil {
 		return
+	}
+
+	if BuildConfig.Fs, err = fs.NewFileSystemConfig(cfg); err != nil {
+		return err
 	}
 
 	BuildConfig.Cfg = cfg

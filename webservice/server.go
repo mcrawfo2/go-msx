@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -34,22 +33,17 @@ type WebServer struct {
 	webRoot       http.FileSystem
 }
 
-func NewWebRoot(ctx context.Context) (http.FileSystem, error) {
-	fsConfig, err := fs.NewFileSystemConfig(config.FromContext(ctx))
+func NewWebRoot(ctx context.Context, webRootPath string) (http.FileSystem, error) {
+	vfs, err := fs.NewVirtualFileSystem(config.FromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 
-	vfs, err := fs.NewVirtualFileSystemFromConfig(fsConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return fs.NewPrefixFileSystem(vfs, filepath.Join(fsConfig.Resources, "www"))
+	return fs.NewPrefixFileSystem(vfs, webRootPath)
 }
 
 func NewWebServer(cfg *WebServerConfig, ctx context.Context) (*WebServer, error) {
-	webRoot, err := NewWebRoot(ctx)
+	webRoot, err := NewWebRoot(ctx, cfg.StaticPath)
 	if err != nil {
 		return nil, err
 	}

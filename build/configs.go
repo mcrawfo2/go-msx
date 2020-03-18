@@ -29,13 +29,13 @@ func InstallExecutableConfigs(args []string) error {
 
 	return installConfigs(
 		BuildConfig.InputCommandRoot(),
-		BuildConfig.App.OutputConfigPath(),
+		BuildConfig.OutputConfigPath(),
 		BuildConfig.Executable.ConfigFiles)
 }
 
 func InstallExtraConfigs(args []string) error {
 	inputDir, _ := filepath.Abs(".")
-	outputDir := BuildConfig.App.OutputConfigPath()
+	outputDir := BuildConfig.OutputConfigPath()
 	return installConfigs(inputDir, outputDir, args)
 }
 
@@ -153,7 +153,7 @@ func installJarConfigs(artifact maven.Artifact, repository maven.ArtifactReposit
 		return err
 	}
 
-	outputDir := BuildConfig.App.OutputConfigPath()
+	outputDir := BuildConfig.OutputConfigPath()
 	if err = os.MkdirAll(outputDir, 0755); err != nil {
 		logger.WithError(err).Error("Failed to create output directory")
 		return err

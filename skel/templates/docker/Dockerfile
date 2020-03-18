@@ -16,7 +16,7 @@ RUN make dist
 ###
 
 FROM ${BASE_IMAGE}
-ENV SERVER_STATICPATH /var/lib/${app.name}
+ENV FS_RESOURCES /var/lib/${app.name}
 EXPOSE ${server.port}
 WORKDIR /var/run/${app.name}/
 CMD ["/usr/bin/${app.name}"]

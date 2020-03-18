@@ -13,7 +13,6 @@ type PrefixFileSystem struct {
 
 func (t PrefixFileSystem) Open(name string) (http.File, error) {
 	prefixedName := path.Clean(path.Join(t.root, name))
-	logger.Infof("Opening prefixed file %s => %s", name, prefixedName)
 	return t.fs.Open(prefixedName)
 }
 

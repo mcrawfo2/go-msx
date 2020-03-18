@@ -59,9 +59,9 @@ func GenerateBuildInfo(args []string) error {
 		return err
 	}
 
-	buildInfoFile := path.Join(BuildConfig.App.OutputConfigPath(), configDefaultBuildInfoFile)
+	buildInfoFile := path.Join(BuildConfig.OutputConfigPath(), configDefaultBuildInfoFile)
 
-	err = os.MkdirAll(BuildConfig.App.OutputConfigPath(), 0755)
+	err = os.MkdirAll(BuildConfig.OutputConfigPath(), 0755)
 	if err != nil {
 		return err
 	}
