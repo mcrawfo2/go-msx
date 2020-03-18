@@ -29,6 +29,7 @@ const (
 	configRootManifest   = "manifest"
 	configRootGo         = "go"
 	configRootGenerate   = "generate"
+	configRootResources  = "resources"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -153,6 +154,11 @@ type GenerateVfs struct {
 	Excludes     []string `config:"default="`
 }
 
+type Resources struct {
+	Includes []string
+	Excludes []string
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Msx        MsxParams
@@ -165,6 +171,7 @@ type Config struct {
 	Kubernetes Kubernetes
 	Manifest   Manifest
 	Generate   []Generate
+	Resources  Resources
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -297,6 +304,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Generate, configRootGenerate); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Resources, configRootResources); err != nil {
 		return
 	}
 

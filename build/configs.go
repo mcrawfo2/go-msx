@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/build/maven"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/bmatcuk/doublestar"
-	"github.com/otiai10/copy"
+	copypkg "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -216,7 +216,7 @@ func installConfigs(inputDir, outputDir string, files []string) error {
 		outputFilePath := filepath.Join(outputDir, path.Base(v))
 
 		logger.Infof("Copying %s to %s", inputFilePath, outputFilePath)
-		if err := copy.Copy(inputFilePath, outputFilePath); err != nil {
+		if err := copypkg.Copy(inputFilePath, outputFilePath); err != nil {
 			return err
 		}
 	}
@@ -228,7 +228,7 @@ func installEntryPoint(inputFilePath string) error {
 	logger.Infof("Source file: %s", inputFilePath)
 	logger.Infof("Destination file: %s", outputFilePath)
 
-	if err := copy.Copy(inputFilePath, outputFilePath); err != nil {
+	if err := copypkg.Copy(inputFilePath, outputFilePath); err != nil {
 		return err
 	}
 
