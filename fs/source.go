@@ -80,7 +80,7 @@ func getEntryPointFile() (string, bool) {
 	var lastFrame runtime.Frame
 	for {
 		frame, more := frames.Next()
-		if strings.HasSuffix(frame.File, "go-msx/app/command.go") {
+		if strings.HasSuffix(frame.Function, "go-msx/app.Run") {
 			lastFrame, more = frames.Next()
 		}
 		if !more {
