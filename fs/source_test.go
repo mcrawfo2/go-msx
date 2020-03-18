@@ -7,6 +7,10 @@ import (
 
 func TestNewSourceFileSystem(t *testing.T) {
 	fs, err := newSourceFileSystem()
+	if err != nil {
+		assert.Equal(t, err, errFilesystemUnavailable)
+		return
+	}
 	assert.NoError(t, err)
 	assert.NotNil(t, fs)
 
@@ -16,6 +20,10 @@ func TestNewSourceFileSystem(t *testing.T) {
 
 func TestNewDistFileSystem(t *testing.T) {
 	fs, err := newStagingFileSystem()
+	if err != nil {
+		assert.Equal(t, err, errFilesystemUnavailable)
+		return
+	}
 	assert.NoError(t, err)
 	assert.NotNil(t, fs)
 

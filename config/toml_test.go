@@ -8,7 +8,7 @@ import (
 func TestTOMLFile(t *testing.T) {
 	configFile := "test/config.toml"
 
-	tomlProvider := NewTOMLFile("TOMLFile", configFile)
+	tomlProvider := NewTOMLFile("TOMLFile", configFile, FileContentReader(configFile))
 	actualSettings, err := tomlProvider.Load(context.Background())
 	if err != nil {
 		t.Error(err)
