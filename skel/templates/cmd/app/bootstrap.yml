@@ -18,7 +18,6 @@ info.build:
 server:
   port: ${server.port}
   context-path: ${server.contextPath}
-  static-path: ../../dist/root/var/lib/${app.name}
   enabled: true
 
 spring.data.cassandra:

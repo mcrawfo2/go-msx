@@ -32,7 +32,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/fs": &vfsgen۰DirInfo{
 			name:    "fs",
-			modTime: time.Date(2020, 3, 18, 2, 19, 1, 760280239, time.UTC),
+			modTime: time.Date(2020, 3, 18, 12, 28, 9, 501185141, time.UTC),
 		},
 		"/fs/defaults-fs.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-fs.properties",
