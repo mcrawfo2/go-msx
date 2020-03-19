@@ -24,7 +24,7 @@ const (
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 	MetadataTagDefinition       = "TagDefinition"
-	MetadataDefaultReturnCode   = "DefaultReturnCode"
+	AttributeDefaultReturnCode  = "DefaultReturnCode"
 	requestAttributeParams      = "params"
 )
 
@@ -107,11 +107,11 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 }
 
 func StandardReturns(b *restful.RouteBuilder) {
-	b.Do(Returns(200, 400, 401, 403)).Metadata(MetadataDefaultReturnCode, 200)
+	b.Do(Returns(200, 400, 401, 403), DefaultReturns(200))
 }
 
 func CreateReturns(b *restful.RouteBuilder) {
-	b.Do(Returns(200, 201, 400, 401, 403)).Metadata(MetadataDefaultReturnCode, 201)
+	b.Do(Returns(200, 201, 400, 401, 403), DefaultReturns(201))
 }
 
 func ProducesJson(b *restful.RouteBuilder) {
@@ -120,6 +120,15 @@ func ProducesJson(b *restful.RouteBuilder) {
 
 func ConsumesJson(b *restful.RouteBuilder) {
 	b.Consumes(MIME_JSON)
+}
+
+func DefaultReturns(code int) RouteBuilderFunc {
+	return func(b *restful.RouteBuilder) {
+		b.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			request.SetAttribute(AttributeDefaultReturnCode, code)
+			chain.ProcessFilter(request, response)
+		})
+	}
 }
 
 func securityContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
