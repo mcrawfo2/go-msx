@@ -59,6 +59,14 @@ func GenerateBuildInfo(args []string) error {
 		return err
 	}
 
+	// Tack on source root for relative lookups
+	sourceDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	fsSources := "\n" + `fs.sources: ` + sourceDir + "\n"
+	buildInfoBytes = append(buildInfoBytes, []byte(fsSources)...)
+
 	buildInfoFile := path.Join(BuildConfig.OutputConfigPath(), configDefaultBuildInfoFile)
 
 	err = os.MkdirAll(BuildConfig.OutputConfigPath(), 0755)

@@ -14,6 +14,7 @@ type FileSystemConfig struct {
 	Resources string `config:"default=/var/lib/${spring.application.name}"`
 	Configs   string `config:"default=/etc/${spring.application.name}"`
 	Binaries  string `config:"default=/usr/bin"`
+	Sources   string `config:"default="`
 }
 
 func NewFileSystemConfig(cfg *config.Config) (*FileSystemConfig, error) {

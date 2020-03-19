@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -33,8 +32,8 @@ type WebServer struct {
 	webRoot       http.FileSystem
 }
 
-func NewWebRoot(ctx context.Context, webRootPath string) (http.FileSystem, error) {
-	vfs, err := fs.NewVirtualFileSystem(config.FromContext(ctx))
+func NewWebRoot(webRootPath string) (http.FileSystem, error) {
+	vfs, err := fs.FileSystem()
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +42,7 @@ func NewWebRoot(ctx context.Context, webRootPath string) (http.FileSystem, error
 }
 
 func NewWebServer(cfg *WebServerConfig, ctx context.Context) (*WebServer, error) {
-	webRoot, err := NewWebRoot(ctx, cfg.StaticPath)
+	webRoot, err := NewWebRoot(cfg.StaticPath)
 	if err != nil {
 		return nil, err
 	}
