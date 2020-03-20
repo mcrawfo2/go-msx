@@ -22,6 +22,10 @@ func (s OptionalString) OrElse(value string) string {
 	return value
 }
 
+func (s OptionalString) OrEmpty() string {
+	return s.OrElse("")
+}
+
 func (s OptionalString) String() string {
 	return s.OrElse("<nil>")
 }
