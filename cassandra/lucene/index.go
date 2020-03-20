@@ -23,9 +23,9 @@ const (
 type IndexOptions struct {
 	RefreshSeconds      *int
 	DirectoryPath       *string
-	RamBufferMb         *string
-	MaxMergeMb          *string
-	MaxCachedMb         *string
+	RamBufferMb         *int
+	MaxMergeMb          *int
+	MaxCachedMb         *int
 	IndexingThreads     *int
 	IndexingQueuesSize  *string
 	ExcludedDataCenters *string
@@ -75,18 +75,32 @@ func (o IndexOptions) Option(key string, value interface{}) string {
 	}
 
 	valueString := ""
-	if valueStringer, ok := value.(fmt.Stringer); ok {
-		valueString = valueStringer.String()
-	} else if valueInt, ok := value.(*int); ok {
-		valueString = strconv.Itoa(*valueInt)
-	} else if valueBool, ok := value.(*bool); ok {
-		if *valueBool {
-			valueString = "true"
-		} else {
-			valueString = "false"
+	switch value.(type) {
+	case fmt.Stringer:
+		valueString = value.(fmt.Stringer).String()
+	case *int:
+		optionalIntValue := value.(*int)
+		if optionalIntValue != nil {
+			valueString = strconv.Itoa(*optionalIntValue)
 		}
-	} else {
-		valueString = fmt.Sprintf("%v", value)
+	case *bool:
+		optionalBoolValue := value.(*bool)
+		if optionalBoolValue != nil {
+			if *optionalBoolValue {
+				valueString = "true"
+			} else {
+				valueString = "false"
+			}
+		}
+	case *string:
+		optionalStringValue := value.(*string)
+		if optionalStringValue != nil {
+			valueString = *optionalStringValue
+		}
+	}
+
+	if valueString == "" {
+		return ""
 	}
 
 	return fmt.Sprintf(`'%s':'%s'`, key, valueString)
@@ -112,7 +126,7 @@ func (b *IndexQueryBuilder) CreateIndex(i Index) string {
 		sb.WriteString(*i.Column)
 	}
 	sb.WriteRune(')')
-	sb.WriteString("USING 'com.stratio.cassandra.lucene.index' WITH OPTIONS = ")
+	sb.WriteString("USING 'com.stratio.cassandra.lucene.Index' WITH OPTIONS = ")
 	sb.WriteString(i.Options.String())
 	return sb.String()
 }

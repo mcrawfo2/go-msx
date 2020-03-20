@@ -31,7 +31,11 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
-	OnEvent(EventConfigure, PhaseAfter, createCassandraKeyspace) // TODO: Only during migrate command
+	OnEvent(EventCommand, CommandMigrate, func(ctx context.Context) error {
+		// Only during migrate command
+		OnEvent(EventConfigure, PhaseAfter, createCassandraKeyspace)
+		return nil
+	})
 }
 
 type configHandler func(cfg *config.Config) error

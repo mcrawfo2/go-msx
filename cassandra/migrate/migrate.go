@@ -87,7 +87,7 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) er
 				migration.Version,
 				migration.Description)
 
-		err := migration.Func(m.session)
+		err := migration.Func(m.ctx, m.session)
 		if err != nil {
 			return errors.Wrap(err, "Migration failed")
 		}

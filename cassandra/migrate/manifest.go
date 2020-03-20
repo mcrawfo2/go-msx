@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
@@ -29,14 +30,35 @@ type Migration struct {
 	Description string
 	Script      string
 	Type        MigrationType
-	Func        MigrationFunc
+	Func        MigrationContextFunc
 }
 
 type MigrationFunc func(session *gocql.Session) error
+type MigrationContextFunc func(ctx context.Context, session *gocql.Session) error
 
-func CqlMigration(cql string) MigrationFunc {
-	return func(session *gocql.Session) error {
-		return session.Query(cql).Consistency(gocql.All).Exec()
+func dropContext(fn MigrationFunc) MigrationContextFunc {
+	return func(_ context.Context, session *gocql.Session) error {
+		return fn(session)
+	}
+}
+
+func CqlMigration(cql string) MigrationContextFunc {
+	return func(ctx context.Context, session *gocql.Session) error {
+		for _, query := range strings.Split(cql, ";") {
+			query = strings.TrimSpace(query)
+			if query == "" {
+				continue
+			}
+			err := session.Query(query).
+				WithContext(ctx).
+				Consistency(gocql.All).
+				Exec()
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 }
 
@@ -122,7 +144,26 @@ func (m *Manifest) AddCqlResourceMigration(version, description string, res reso
 	})
 }
 
+// Deprecated
 func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc) error {
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
+	if len(parsedVersion) < 3 {
+		return errors.Errorf("Invalid version: %s", version)
+	}
+
+	return m.addMigration(&Migration{
+		Version:     parsedVersion,
+		Description: description,
+		Script:      types.FullFunctionName(fn),
+		Type:        MigrationTypeGoDriver,
+		Func:        dropContext(fn),
+	})
+}
+
+func (m *Manifest) AddGoContextMigration(version, description string, fn MigrationContextFunc) error {
 	parsedVersion, err := types.NewVersion(version)
 	if err != nil {
 		return err

@@ -3,15 +3,15 @@ package migrate
 import "time"
 
 type AppliedMigration struct {
-	Version       string
-	Description   string
-	Script        string
-	Type          MigrationType
-	Checksum      int64
-	ExecutionTime int
-	InstalledBy   string
-	InstalledOn   time.Time
-	InstalledRank int
-	Success       bool
-	VersionRank   int
+	Version       string        `db:"version"`
+	Description   string        `db:"description"`
+	Script        string        `db:"script"`
+	Type          MigrationType `db:"type"`
+	Checksum      int64         `db:"checksum"`
+	ExecutionTime int           `db:"execution_time"`
+	InstalledBy   string        `db:"installed_by"`
+	InstalledOn   time.Time     `db:"installed_on"`
+	InstalledRank int           `db:"installed_rank"`
+	Success       bool          `db:"success"`
+	VersionRank   int           `db:"version_rank"`
 }

@@ -1,6 +1,7 @@
 package dml
 
 import (
+	"context"
 	"github.com/gocql/gocql"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
@@ -16,7 +17,7 @@ func (r Record) Columns() []string {
 	return result
 }
 
-func SeedRecords(session *gocql.Session, table string, records []Record) error {
+func SeedRecords(ctx context.Context, session *gocql.Session, table string, records []Record) error {
 	for _, record := range records {
 		stmt, names := qb.
 			Insert(table).
@@ -24,6 +25,7 @@ func SeedRecords(session *gocql.Session, table string, records []Record) error {
 			ToCql()
 
 		err := gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
 			BindMap(record).
 			ExecRelease()
 
@@ -35,16 +37,16 @@ func SeedRecords(session *gocql.Session, table string, records []Record) error {
 	return nil
 }
 
-type RecordFunc func(session *gocql.Session, record interface{}) error
+type RecordFunc func(ctx context.Context, session *gocql.Session, record interface{}) error
 
-func ScanTable(session *gocql.Session, table string, columns []string, record interface{}, action RecordFunc) error {
+func ScanTable(ctx context.Context, session *gocql.Session, table string, columns []string, record interface{}, action RecordFunc) error {
 	stmt, names := qb.Select(table).Columns(columns...).ToCql()
 	query := gocqlx.Query(session.Query(stmt), names)
 	defer query.Release()
 
 	iter := query.Iter()
 	for iter.Scan(record) {
-		err := action(session, record)
+		err := action(ctx, session, record)
 		if err != nil {
 			return err
 		}
@@ -52,7 +54,7 @@ func ScanTable(session *gocql.Session, table string, columns []string, record in
 	return nil
 }
 
-func DeleteRecord(session *gocql.Session, table string, where ...qb.Cmp) error {
+func DeleteRecord(ctx context.Context, session *gocql.Session, table string, where ...qb.Cmp) error {
 	stmt, names := qb.Delete(table).Where(where...).ToCql()
-	return gocqlx.Query(session.Query(stmt), names).ExecRelease()
+	return gocqlx.Query(session.Query(stmt), names).WithContext(ctx).ExecRelease()
 }

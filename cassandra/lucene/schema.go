@@ -43,7 +43,7 @@ func (s *IndexSchema) WithField(name string, dataType string) *IndexSchema {
 
 func (s *IndexSchema) String() string {
 	sb := new(strings.Builder)
-
+	sb.WriteString(`{"fields":{`)
 	for i, field := range *s {
 		if i > 0 {
 			sb.WriteRune(',')
@@ -62,6 +62,7 @@ func (s *IndexSchema) String() string {
 		}
 		sb.WriteRune('}')
 	}
+	sb.WriteString("}}")
 
 	return sb.String()
 }
