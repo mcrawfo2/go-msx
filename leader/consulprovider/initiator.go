@@ -98,7 +98,7 @@ func (l *LeadershipInitiator) loop() {
 			logger.
 				WithContext(l.acquireCtx).
 				WithError(l.acquireCtx.Err()).
-				Error("Leader election loop stopped for key %q", l.properties.Key)
+				Infof("Leader election loop stopped for key %q", l.properties.Key)
 			return
 		case <-ticker.C:
 			l.acquire(l.acquireCtx)
