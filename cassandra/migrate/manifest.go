@@ -3,6 +3,7 @@ package migrate
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/gocql/gocql"
@@ -93,6 +94,29 @@ func (m *Manifest) AddCqlFileMigration(version, description, filename string) er
 		Version:     parsedVersion,
 		Description: description,
 		Script:      script(filename),
+		Type:        MigrationTypeCql,
+		Func:        CqlMigration(string(cql)),
+	})
+}
+
+func (m *Manifest) AddCqlResourceMigration(version, description string, res resource.Ref) error {
+	cql, err := res.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
+	if len(parsedVersion) < 3 {
+		return errors.Errorf("Invalid version: %s", version)
+	}
+
+	return m.addMigration(&Migration{
+		Version:     parsedVersion,
+		Description: description,
+		Script:      script(res.String()),
 		Type:        MigrationTypeCql,
 		Func:        CqlMigration(string(cql)),
 	})
