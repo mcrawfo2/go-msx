@@ -23,7 +23,7 @@ type WebServerConfig struct {
 	Tls          TLSConfig
 	Cors         bool   `config:"default=true"`
 	ContextPath  string `config:"default=/app"`
-	StaticPath   string `config:"default=${fs.resources}/www"`
+	StaticPath   string `config:"default=/www"`
 	TraceEnabled bool   `config:"default=false"`
 }
 

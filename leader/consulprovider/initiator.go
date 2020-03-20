@@ -98,7 +98,7 @@ func (l *LeadershipInitiator) loop() {
 			logger.
 				WithContext(l.acquireCtx).
 				WithError(l.acquireCtx.Err()).
-				Infof("Leader election loop stopped for key %q", l.properties.Key)
+				Warnf("Leader election loop stopped for key %q", l.properties.Key)
 			return
 		case <-ticker.C:
 			l.acquire(l.acquireCtx)
@@ -161,7 +161,7 @@ func (l *LeadershipInitiator) heartbeat() {
 			logger.
 				WithContext(l.renewCtx).
 				WithError(l.renewCtx.Err()).
-				Error("Leader election heartbeat loop stopped for key %q", l.properties.Key)
+				Warnf("Leader election heartbeat loop stopped for key %q", l.properties.Key)
 			return
 		case <-ticker.C:
 			err := l.renew(l.renewCtx)

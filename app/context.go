@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
+	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/cassandracheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/consulcheck"
@@ -30,6 +31,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
+	OnEvent(EventConfigure, PhaseAfter, withConfig(fs.ConfigureFileSystem))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
 	OnEvent(EventCommand, CommandMigrate, func(ctx context.Context) error {
 		// Only during migrate command

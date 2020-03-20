@@ -48,8 +48,18 @@ func Unmarshal(resourceName string, target interface{}) (err error) {
 	return Ref(abs(resourceName)).Unmarshal(target)
 }
 
+func sourcePath(path string) (string, error) {
+	if fs.Config() == nil || fs.Config().Sources == "" {
+		logger.Error("SourcePath called with nil FS configuration")
+		return "/nil", ErrFilesystemUnavailable
+	}
+
+	path = strings.TrimPrefix(path, fs.Config().Sources)
+	return path, nil
+}
+
 func load(resourcePath string) ([]byte, error) {
-	fileSystem, err := fs.FileSystem()
+	fileSystem, err := FileSystem()
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +87,7 @@ func abs(filename string) string {
 	base := filepath.Dir(file)
 	full := filepath.Join(base, filename)
 
-	absPath, err := fs.SourcePath(full)
+	absPath, err := sourcePath(full)
 	if err != nil {
 		logger.WithError(err).Errorf("Failed to resolve source path: %s", full)
 	}

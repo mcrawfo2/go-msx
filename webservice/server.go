@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
+	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
@@ -33,7 +34,7 @@ type WebServer struct {
 }
 
 func NewWebRoot(webRootPath string) (http.FileSystem, error) {
-	vfs, err := fs.FileSystem()
+	vfs, err := resource.FileSystem()
 	if err != nil {
 		return nil, err
 	}
