@@ -11,9 +11,12 @@ const (
 	statsHistogramVaultCallTime = "call_time"
 	statsCounterVaultCallErrors = "call_errors"
 
-	statsApiListSecrets  = "listSecrets"
-	statsApiStoreSecrets = "storeSecrets"
-	statsApiHealth       = "health"
+	statsApiListSecrets      = "listSecrets"
+	statsApiStoreSecrets     = "storeSecrets"
+	statsApiHealth           = "health"
+	statsApiCreateTransitKey = "createTransitKey"
+	statsApiTransitEncrypt   = "transitEncrypt"
+	statsApiTransitDecrypt   = "transitDecrypt"
 )
 
 var (

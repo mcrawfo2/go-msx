@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 3, 18, 2, 10, 59, 167137393, time.UTC),
+			modTime: time.Date(2020, 3, 20, 1, 13, 42, 193321718, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 3, 18, 2, 14, 43, 917099280, time.UTC),
+			modTime: time.Date(2020, 3, 20, 16, 0, 5, 653481463, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,7 +32,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/fs": &vfsgen۰DirInfo{
 			name:    "fs",
-			modTime: time.Date(2020, 3, 18, 12, 28, 9, 501185141, time.UTC),
+			modTime: time.Date(2020, 3, 20, 12, 45, 34, 658285379, time.UTC),
 		},
 		"/fs/defaults-fs.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-fs.properties",
@@ -54,7 +54,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/security": &vfsgen۰DirInfo{
 			name:    "security",
-			modTime: time.Date(2020, 3, 16, 23, 46, 41, 549914753, time.UTC),
+			modTime: time.Date(2020, 3, 18, 21, 31, 55, 146977618, time.UTC),
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
@@ -65,9 +65,20 @@ var Defaults = func() http.FileSystem {
 			modTime: time.Date(2020, 3, 16, 22, 38, 32, 803682492, time.UTC),
 			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a"),
 		},
+		"/transit": &vfsgen۰DirInfo{
+			name:    "transit",
+			modTime: time.Date(2020, 3, 20, 15, 41, 53, 801652435, time.UTC),
+		},
+		"/transit/defaults-transit.properties": &vfsgen۰CompressedFileInfo{
+			name:             "defaults-transit.properties",
+			modTime:          time.Date(2020, 3, 19, 18, 59, 25, 223165396, time.UTC),
+			uncompressedSize: 268,
+
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xce\xb1\x0e\xc2\x30\x0c\x04\xd0\x9d\xaf\xc8\x0f\xb8\x03\x12\x95\x18\xfa\x31\x6e\x38\x50\x14\xe3\x58\x8e\x51\x9b\xbf\x47\x2c\x4c\x48\xc0\x7e\xef\xee\x0c\x4e\x01\x65\x0d\x82\x66\x1f\x16\xa5\xe9\x04\xe5\x55\x70\x49\x4b\xba\xb2\x74\x1c\x3e\xa7\x58\x36\x1e\x9d\xb2\x83\x03\x54\x31\xfa\x17\x50\x31\xc8\xbc\x19\x3c\x0a\xfa\x14\xc3\x90\x96\xc4\xe8\xc7\xd3\x4c\xb7\x7c\x3f\xcf\xbf\x41\xec\xd6\x3c\x5e\x17\xff\x1b\x64\x91\xb6\x91\x09\x17\x0d\xec\x41\x2b\xe7\xfa\xb0\x77\xc7\x33\x00\x00\xff\xff\x9f\x8e\xd6\xc3\x0c\x01\x00\x00"),
+		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 3, 18, 2, 14, 30, 521108595, time.UTC),
+			modTime: time.Date(2020, 3, 19, 0, 29, 59, 606789367, time.UTC),
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",
@@ -82,6 +93,7 @@ var Defaults = func() http.FileSystem {
 		fs["/fs"].(os.FileInfo),
 		fs["/leader"].(os.FileInfo),
 		fs["/security"].(os.FileInfo),
+		fs["/transit"].(os.FileInfo),
 		fs["/webservice"].(os.FileInfo),
 	}
 	fs["/app"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
@@ -98,6 +110,9 @@ var Defaults = func() http.FileSystem {
 	}
 	fs["/security/idmdetailsprovider"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties"].(os.FileInfo),
+	}
+	fs["/transit"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
+		fs["/transit/defaults-transit.properties"].(os.FileInfo),
 	}
 	fs["/webservice"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/webservice/defaults-webservice.properties"].(os.FileInfo),

@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"encoding/base64"
 	"fmt"
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
@@ -118,9 +119,9 @@ func (c *Connection) StoreSecrets(ctx context.Context, path string, secrets map[
 	return
 }
 
-func (c *Connection) write(ctx context.Context, path string, secrets map[string]string) (*api.Secret, error) {
-	r := c.client.NewRequest("PUT", "/v1/"+path)
-	if err := r.SetJSONBody(secrets); err != nil {
+func (c *Connection) write(ctx context.Context, path string, requestBody interface{}) (*api.Secret, error) {
+	r := c.client.NewRequest("POST", "/v1/"+path)
+	if err := r.SetJSONBody(requestBody); err != nil {
 		return nil, err
 	}
 
@@ -148,6 +149,69 @@ func (c *Connection) write(ctx context.Context, path string, secrets map[string]
 	}
 
 	return api.ParseSecret(resp.Body)
+}
+
+func (c *Connection) CreateTransitKey(ctx context.Context, keyName string, request CreateTransitKeyRequest) (err error) {
+	err = trace.Operation(ctx, "vault."+statsApiCreateTransitKey, func(ctx context.Context) error {
+		return c.stats.Observe(statsApiCreateTransitKey, keyName, func() error {
+			path := "transit/keys/" + keyName
+			if _, err = c.write(ctx, path, request); err != nil {
+				return errors.Wrap(err, "Failed to create transit key")
+			}
+			return nil
+		})
+	})
+
+	return
+}
+
+func (c *Connection) TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error) {
+	err = trace.Operation(ctx, "vault."+statsApiTransitEncrypt, func(ctx context.Context) error {
+		return c.stats.Observe(statsApiTransitEncrypt, keyName, func() error {
+			path := "/transit/encrypt/" + keyName
+
+			data := map[string]interface{}{
+				"plaintext": base64.StdEncoding.EncodeToString([]byte(plaintext)),
+			}
+
+			result, err := c.write(ctx, path, data)
+			if err != nil {
+				return errors.Wrap(err, "Failed to encrypt data")
+			}
+
+			ciphertext = result.Data["ciphertext"].(string)
+			return nil
+		})
+	})
+
+	return
+}
+
+func (c *Connection) TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error) {
+	err = trace.Operation(ctx, "vault."+statsApiTransitDecrypt, func(ctx context.Context) error {
+		return c.stats.Observe(statsApiTransitDecrypt, keyName, func() error {
+			path := "/transit/decrypt/" + keyName
+
+			data := map[string]interface{}{
+				"ciphertext": ciphertext,
+			}
+
+			result, err := c.write(ctx, path, data)
+			if err != nil {
+				return errors.Wrap(err, "Failed to decrypt data")
+			}
+
+			plaintextBytes, err := base64.StdEncoding.DecodeString(result.Data["plaintext"].(string))
+			if err != nil {
+				return err
+			}
+
+			plaintext = string(plaintextBytes)
+			return nil
+		})
+	})
+
+	return
 }
 
 // Copied from vault/api to allow custom context
