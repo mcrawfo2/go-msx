@@ -58,7 +58,7 @@ func collectIncludedResources() ([]string, error) {
 func excludeFilteredResource(included string) (bool, error) {
 	excludes := BuildConfig.Resources.Excludes
 	excludes = append(excludes, "/dist/**", "/test/**", "/local/**", "/vendor/**")
-	for _, exc := range BuildConfig.Resources.Excludes {
+	for _, exc := range excludes {
 		if strings.HasPrefix(exc, "/") {
 			exc = exc[1:]
 		}

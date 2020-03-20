@@ -31,8 +31,8 @@ func init() {
 					cobraprovider.NewCobraSource(name, cmd, "cli.flag."),
 				),
 				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
-					"spring.application.name": cmd.Use,
-					"info.app.name":           cmd.Use,
+					"spring.application.name": cli.RootCmd().Use,
+					"info.app.name":           cli.RootCmd().Use,
 				})),
 			}, nil
 		})

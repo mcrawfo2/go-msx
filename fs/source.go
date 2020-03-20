@@ -25,10 +25,12 @@ func ConfigureFileSystem(cfg *config.Config) (err error) {
 		return err
 	}
 
-	if fsConfig.Sources == "" {
-		fsConfig.Sources, err = getSourceDir()
-		if err != nil {
-			return err
+	if fsConfig.Mode == configModeDetect {
+		if fsConfig.Sources == "" {
+			fsConfig.Sources, err = getSourceDir()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -66,10 +68,15 @@ func SetSources() error {
 }
 
 func newVirtualFileSystem() (http.FileSystem, error) {
+	if fsConfig.Sources == "" {
+		logger.Info("Using release filesystem")
+		return newReleaseFileSystem(filepath.Join(fsConfig.Root, fsConfig.Resources)), nil
+	}
+
 	sourceFileSystem, err := newSourceFileSystem()
 	if err == errFilesystemUnavailable {
 		logger.Info("Using release filesystem")
-		return newReleaseFileSystem(fsConfig.Root), nil
+		return newReleaseFileSystem(filepath.Join(fsConfig.Root, fsConfig.Resources)), nil
 	}
 
 	stagingFileSystem, err := newStagingFileSystem()
@@ -103,7 +110,7 @@ func newStagingFileSystem() (http.FileSystem, error) {
 		return nil, errFilesystemUnavailable
 	}
 	parentFileSystem := newReleaseFileSystem("/")
-	return NewPrefixFileSystem(parentFileSystem, filepath.Join(fsConfig.Sources, "/dist/root"))
+	return NewPrefixFileSystem(parentFileSystem, filepath.Join(fsConfig.Sources, "/dist/root", fsConfig.Resources))
 }
 
 func newReleaseFileSystem(root string) http.FileSystem {

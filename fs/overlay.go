@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"os"
@@ -80,7 +81,11 @@ func (o OverlayFileSystem) Open(name string) (f http.File, err error) {
 	} else if !useTop && useBottom {
 		return o.bottom.Open(name)
 	} else if !useTop && !useBottom {
-
+		return nil, &os.PathError{
+			Op:   "open",
+			Path: name,
+			Err:  errors.Wrap(os.ErrNotExist, "Object does in either top or bottom of overlay"),
+		}
 	}
 
 	// Directories are merged

@@ -6,6 +6,8 @@ import (
 )
 
 const configRootFileSystem = "fs"
+const configModeDetect = "detect"
+const configModeRelease = "release"
 
 var logger = log.NewLogger("msx.fs")
 
@@ -15,6 +17,7 @@ type FileSystemConfig struct {
 	Configs   string `config:"default=/etc/${spring.application.name}"`
 	Binaries  string `config:"default=/usr/bin"`
 	Sources   string `config:"default="`
+	Mode      string `config:"default=detect"`
 }
 
 func NewFileSystemConfig(cfg *config.Config) (*FileSystemConfig, error) {
