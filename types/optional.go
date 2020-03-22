@@ -52,6 +52,13 @@ func (o Optional) IfNotPresent(fn func()) Optional {
 	return o
 }
 
+func (o Optional) OrElse(v interface{}) interface{} {
+	if o.Value != nil {
+		return o.Value
+	}
+	return v
+}
+
 func NewOptional(value interface{}) Optional {
 	return Optional{Value: value}
 }
