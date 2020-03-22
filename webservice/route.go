@@ -4,17 +4,16 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/audit/auditlog"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"fmt"
 	"github.com/emicklei/go-restful"
 	restfulspec "github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
 	"net/http"
-	"path"
 	"reflect"
 	"strings"
 )
@@ -54,48 +53,42 @@ func StandardDelete(b *restful.RouteBuilder) {
 }
 
 func ResponseTypeName(t reflect.Type) (string, bool) {
-	typeName, ok := responseTypes[t]
-	return typeName, ok
+	typeName := types.GetTypeName(t)
+	return typeName, true
 }
 
-func newResponse(payload interface{}) interface{} {
-	structType := reflect.TypeOf(integration.MsxEnvelope{})
-	var structFields []reflect.StructField
-	for i := 0; i < structType.NumField(); i++ {
-		structField := structType.Field(i)
-		if structField.Name == "Payload" {
-			if payload == nil {
-				continue
-			} else {
-				structField.Type = reflect.TypeOf(payload)
-			}
-		}
-		structFields = append(structFields, structField)
-	}
+func newGenericResponse(structType reflect.Type, structFieldName string, payloadInstance interface{}) (interface{}) {
+	responseType := types.NewParameterizedStruct(
+		structType,
+		structFieldName,
+		payloadInstance)
 
-	payloadTypeName := "Void"
-	if payload != nil {
-		payloadType := reflect.TypeOf(payload)
-		if payloadType.Kind() == reflect.Ptr {
-			payloadType = payloadType.Elem()
-		}
-		payloadPackageName := path.Base(payloadType.PkgPath())
-		if payloadPackageName != "" {
-			payloadPackageName += "."
-		}
-		payloadTypeName = payloadPackageName + payloadType.Name()
-	}
-	responseTypeName := fmt.Sprintf("integration.MsxEnvelope«%s»", payloadTypeName)
-	responseType := reflect.StructOf(structFields)
-	responseTypes[responseType] = responseTypeName
 	return reflect.New(responseType).Interface()
 }
 
 func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	return func(b *restful.RouteBuilder) {
-		example := newResponse(payload)
+		example := newGenericResponse(
+			reflect.TypeOf(integration.MsxEnvelope{}),
+			"Payload",
+			payload)
 		b.DefaultReturns("Success", example)
 		b.Writes(example)
+	}
+}
+
+func PaginatedResponsePayload(payload interface{}) func (*restful.RouteBuilder) {
+	return func(b *restful.RouteBuilder) {
+		paginatedPayload := newGenericResponse(
+			reflect.TypeOf(paging.PaginatedResponse{}),
+			"Content",
+			payload)
+		envelopedPayload := newGenericResponse(
+			reflect.TypeOf(integration.MsxEnvelope{}),
+			"Payload",
+			paginatedPayload)
+		b.DefaultReturns("Success", envelopedPayload)
+		b.Writes(envelopedPayload)
 	}
 }
 

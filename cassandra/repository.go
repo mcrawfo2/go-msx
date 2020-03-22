@@ -3,6 +3,8 @@ package cassandra
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"encoding/base64"
 	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/scylladb/go-reflectx"
@@ -30,9 +32,11 @@ type CrudRepositoryApi interface {
 	CountAll(ctx context.Context, dest interface{}) error
 	CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) error
 	FindAll(ctx context.Context, dest interface{}) (err error)
+	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error)
 	FindAllByLuceneSearch(ctx context.Context, index, search string, dest interface{}) (err error)
+	FindAllByPagedLuceneSearch(ctx context.Context, index, search string, dest interface{}, request paging.Request) (response paging.Response, err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindPartitionKeys(ctx context.Context, dest interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
@@ -120,6 +124,87 @@ func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err err
 	return
 }
 
+func (r *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]interface{}, request paging.Request, dest interface{}) (response paging.Response, err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		var cmps []gocqlxqb.Cmp
+		for k, v := range where {
+			if reflect.TypeOf(v).Kind() == reflect.Slice {
+				cmps = append(cmps, gocqlxqb.InNamed(k, k))
+			} else {
+				cmps = append(cmps, gocqlxqb.EqNamed(k, k))
+			}
+		}
+
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			Columns(r.Table.ColumnNames()...).
+			Where(cmps...).
+			ToCql()
+
+		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
+		if err != nil {
+			return err
+		}
+
+		qx := gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(where).
+			PageState(pageState).
+			PageSize(int(request.Size))
+
+		iter := gocqlx.Iter(qx.Query)
+		defer qx.Release()
+		err = iter.Select(dest)
+		if err != nil {
+			return err
+		}
+
+		response = paging.Response{
+			Content: dest,
+			Size:    request.Size,
+			Number:  request.Page,
+			Sort:    request.Sort,
+			State:   base64.StdEncoding.EncodeToString(iter.PageState()),
+		}
+
+		return nil
+	})
+
+	return
+}
+
+// Find the paging state for the requested page by executing the query for all prior records
+func (r *CrudRepository) getPageState(ctx context.Context, session *gocql.Session, stmt string, names []string, where map[string]interface{}, request paging.Request) (pageState []byte, err error) {
+	if request.State != nil {
+		switch request.State.(type) {
+		case *string:
+			pagingStateStringPtr := request.State.(*string)
+			if pagingStateStringPtr != nil {
+				return base64.StdEncoding.DecodeString(*pagingStateStringPtr)
+			}
+		}
+	} else if request.Page == 0 {
+		return nil, nil
+	}
+
+	qx := gocqlx.
+		Query(session.Query(stmt), names).
+		WithContext(ctx).
+		PageSize(int(request.Page) * int(request.Size)).
+		BindMap(where)
+	defer qx.Release()
+
+	iter := qx.Query.Iter()
+	defer iter.Close()
+	return iter.PageState(), nil
+}
+
 func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -193,6 +278,43 @@ func (r *CrudRepository) FindAllByLuceneSearch(ctx context.Context, index, searc
 			Query(session.Query(stmt), names).
 			WithContext(ctx).
 			BindMap(where).
+			SelectRelease(dest)
+	})
+
+	return
+}
+
+func (r *CrudRepository) FindAllByPagedLuceneSearch(ctx context.Context, index, search string, dest interface{}, request paging.Request) (response paging.Response, err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSession(func(session *gocql.Session) error {
+		const luceneQuery = "luceneQuery"
+
+		stmt, names := gocqlxqb.
+			Select(r.Table.Name).
+			Columns(r.Table.ColumnNames()...).
+			ToCql()
+
+		stmt += fmt.Sprintf(" where expr(%s,?)", index)
+		names = append(names, luceneQuery)
+		where := map[string]interface{}{
+			luceneQuery: search,
+		}
+
+		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
+		if err != nil {
+			return err
+		}
+
+		return gocqlx.
+			Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(where).
+			PageState(pageState).
+			PageSize(int(request.Size)).
 			SelectRelease(dest)
 	})
 
