@@ -139,7 +139,7 @@ func NewMigrator(ctx context.Context, session *gocql.Session) *Migrator {
 	}
 }
 
-func Migrate(ctx context.Context) error {
+func Migrate(ctx context.Context, _ []string) error {
 	cassandraPool, err := cassandra.PoolFromContext(ctx)
 	if err != nil {
 		return err

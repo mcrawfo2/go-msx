@@ -29,6 +29,7 @@ const (
 )
 
 type Observer types.ActionFunc
+type CommandObserver func(context.Context, []string) error
 
 type MsxApplication struct {
 	Callbacks map[string][]Observer

@@ -6,7 +6,9 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/populate"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 const (
@@ -14,6 +16,7 @@ const (
 	configKeyKafkaEnable           = "spring.cloud.stream.kafka.binder.enabled"
 	configKeyConsulDiscoveryEnable = "spring.cloud.consul.discovery.enabled"
 	configKeyServerEnable          = "server.enabled"
+	configKeyLeaderEnable          = "consul.leader.election.enabled"
 
 	CommandRoot     = ""
 	CommandMigrate  = "migrate"
@@ -31,8 +34,8 @@ func init() {
 					cobraprovider.NewCobraSource(name, cmd, "cli.flag."),
 				),
 				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
-					"spring.application.name": cli.RootCmd().Use,
-					"info.app.name":           cli.RootCmd().Use,
+					"spring.application.name": strings.Fields(cli.RootCmd().Use)[0],
+					"info.app.name":           strings.Fields(cli.RootCmd().Use)[0],
 				})),
 			}, nil
 		})
@@ -42,20 +45,25 @@ func init() {
 		return application.Run(CommandRoot)
 	}
 
-	if _, err := AddCommand(CommandMigrate, "Migrate database schema", migrate.Migrate, commandMigrate); err != nil {
+	if _, err := AddCommand(CommandMigrate, "Migrate database schema", migrate.Migrate, commandMigrateInit); err != nil {
 		cli.Fatal(err)
+	} else {
 	}
 
-	// TODO: Populate
+	if populateCommand, err := AddCommand(CommandPopulate, "Populate data", populate.Populate, commandPopulateInit); err != nil {
+		cli.Fatal(err)
+	} else {
+		populate.CustomizeCommand(populateCommand)
+	}
 }
 
-func AddCommand(path, brief string, command Observer, init Observer) (cmd *cobra.Command, err error) {
-	cmd, err = cli.AddCommand(path, brief, func(args []string) error {
+func AddCommand(path, brief string, command CommandObserver, init Observer) (cmd *cobra.Command, err error) {
+	return cli.AddCommand(path, brief, func(args []string) error {
 		OnEvent(EventCommand, path, init)
 		OnEvent(EventReady, PhaseAfter, func(ctx context.Context) error {
-			logger.Infof("Executing command: %s", cmd.Use)
-			if err := command(ctx); err != nil {
-				logger.Errorf("Command %s returned error: %v", cmd.Use, err)
+			logger.Infof("Executing command: %s", strings.Fields(cmd.Use)[0])
+			if err := command(ctx, args); err != nil {
+				logger.Errorf("Command %s returned error: %v", strings.Fields(cmd.Use)[0], err)
 				cli.SetExitCode(1)
 			}
 			return application.Stop()
@@ -63,7 +71,6 @@ func AddCommand(path, brief string, command Observer, init Observer) (cmd *cobra
 
 		return application.Run(path)
 	})
-	return cmd, err
 }
 
 func Run(appName string) {
@@ -74,26 +81,35 @@ func Noop(context.Context) error {
 	return nil
 }
 
-func commandMigrate(context.Context) error {
+func commandMigrateInit(context.Context) error {
 	OverrideConfig(map[string]string{
 		configKeyRedisEnable:           "false",
 		configKeyKafkaEnable:           "false",
 		configKeyConsulDiscoveryEnable: "false",
 		configKeyServerEnable:          "false",
+		configKeyLeaderEnable:          "false",
 	})
 
-	OnEvent(EventStart, PhaseBefore, setContextMigrationManifest)
+	OnEvent(EventStart, PhaseBefore, func(ctx context.Context) error {
+		manifest, err := migrate.NewManifest(config.FromContext(ctx))
+		if err != nil {
+			return err
+		}
+
+		contextInjectors.Register(func(ctx context.Context) context.Context {
+			return migrate.ContextWithManifest(ctx, manifest)
+		})
+		return nil
+	})
 	return nil
 }
 
-func setContextMigrationManifest(ctx context.Context) error {
-	manifest, err := migrate.NewManifest(config.FromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	contextInjectors.Register(func(ctx context.Context) context.Context {
-		return migrate.ContextWithManifest(ctx, manifest)
+func commandPopulateInit(context.Context) error {
+	OverrideConfig(map[string]string{
+		configKeyConsulDiscoveryEnable: "false",
+		configKeyServerEnable:          "false",
+		configKeyLeaderEnable:          "false",
 	})
+
 	return nil
 }
