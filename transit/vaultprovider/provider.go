@@ -16,7 +16,7 @@ type Provider struct {
 
 func (p Provider) CreateKey(ctx context.Context, keyName string) (err error) {
 	if !p.cfg.Enabled && !p.cfg.AlwaysCreateKeys {
-		logger.Debugf("Skipping key creation for tenant %s - per-tenant encryption and automatic key creation are disabled", keyName)
+		logger.WithContext(ctx).Debugf("Skipping key creation for tenant %s - per-tenant encryption and automatic key creation are disabled", keyName)
 		return nil
 	}
 

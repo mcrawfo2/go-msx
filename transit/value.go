@@ -89,7 +89,7 @@ func (v Value) WithDecryptedPayload(payload string) Value {
 	return Value{
 		version:   v.version,
 		keyId:     v.keyId,
-		encrypted: true,
+		encrypted: false,
 		payload:   payload,
 	}
 }

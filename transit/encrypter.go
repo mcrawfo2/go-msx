@@ -13,7 +13,7 @@ var (
 
 type Encrypter interface {
 	CreateKey() (err error)
-	Encrypt(value map[string]*string) (secureValue string, err error)
+	Encrypt(value map[string]*string) (secureValue string, encrypted bool, err error)
 	Decrypt(secureValue string) (value map[string]*string, err error)
 }
 
@@ -35,25 +35,25 @@ func (e encrypter) CreateKey() (err error) {
 	return p.CreateKey(e.ctx, e.keyName())
 }
 
-func (e encrypter) Encrypt(value map[string]*string) (securePayload string, err error) {
+func (e encrypter) Encrypt(value map[string]*string) (securePayload string, encrypted bool, err error) {
 	logger.WithContext(e.ctx).Infof("Encrypting using transit encryption key %q", e.keyId)
 
 	p, err := provider()
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	insecureValue, err := NewValue(e.keyId, value)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	secureValue, err := p.Encrypt(e.ctx, insecureValue)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	return secureValue.String(), nil
+	return secureValue.payload, secureValue.encrypted, nil
 }
 
 func (e encrypter) Decrypt(value string) (map[string]*string, error) {
