@@ -40,6 +40,11 @@ type Request struct {
 	State interface{}
 }
 
+func (r Request) WithState(state *string) Request {
+	r.State = state
+	return r
+}
+
 func NewRequestFromQuery(page uint, pageSize uint) Request {
 	return Request{Page:page, Size:pageSize}
 }
