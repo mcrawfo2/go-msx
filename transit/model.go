@@ -34,7 +34,6 @@ func (s *SecureData) MarshalCQL(_ gocql.TypeInfo) (data []byte, err error) {
 
 	// Lazy encrypt on dirty write
 	if s.dirty {
-		// Context hack
 		payload, encrypted, err := NewEncrypter(s.ctx, s.keyId).Encrypt(s.payload)
 		if err != nil {
 			return nil, err
