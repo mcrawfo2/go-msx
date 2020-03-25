@@ -22,3 +22,48 @@ type EntityShard struct {
 	ModifiedOn string      `json:"modifiedOn"`
 	ModifiedBy string      `json:"modifiedBy"`
 }
+
+type CreateSubscriptionResponse struct {
+	SubscriptionID   string `json:"subscriptionId"`
+	SubscriptionName string `json:"subscriptionName"`
+	UserID           string `json:"userId"`
+	ProviderID       string `json:"providerId"`
+	TenantID         string `json:"tenantId"`
+	ServiceType      string `json:"serviceType"`
+	CostAttribute    struct {
+		CustomAttribute string `json:"customAttribute"`
+	} `json:"costAttribute"`
+	OfferDefAttribute struct {
+		ID string `json:"id"`
+	} `json:"offerDefAttribute"`
+	OfferSelectionDetail struct {
+		PriceDetail           string `json:"priceDetail"`
+		ServiceInstanceDetail string `json:"serviceInstanceDetail"`
+	} `json:"offerSelectionDetail"`
+	SubscriptionAttribute struct {
+		Configuration    string `json:"configuration"`
+		NsoResponseTypes string `json:"nsoResponseTypes"`
+	} `json:"subscriptionAttribute"`
+	CreatedOn       string      `json:"createdOn"`
+	ModifiedOn      string      `json:"modifiedOn"`
+	ServiceList     interface{} `json:"serviceList"`
+	RemoteUserCount interface{} `json:"remoteUserCount"`
+}
+
+type CreateServiceInstanceResponse struct {
+	ProviderID        string      `json:"providerId"`
+	TenantID          string      `json:"tenantId"`
+	UserID            string      `json:"userId"`
+	ServiceInstanceID string      `json:"serviceInstanceId"`
+	SubscriptionID    string      `json:"subscriptionId"`
+	TenantName        string      `json:"tenantName"`
+	CreatedOn         string      `json:"createdOn"`
+	ModifiedOn        interface{} `json:"modifiedOn"`
+	ProvisionedOn     interface{} `json:"provisionedOn"`
+	Status            struct {
+		TxStatus        string `json:"txStatus"`
+		LifeCycleStatus string `json:"lifeCycleStatus"`
+	} `json:"status"`
+	ServiceDefAttribute interface{} `json:"serviceDefAttribute"`
+	ServiceAttribute    interface{} `json:"serviceAttribute"`
+}

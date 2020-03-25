@@ -164,7 +164,7 @@ func (i *Integration) CreateSubscription(tenantId, serviceType string, subscript
 			"tenantId": tenantId,
 		},
 		Body:           bodyBytes,
-		Payload:        new(Pojo),
+		Payload:        new(CreateSubscriptionResponse),
 		ExpectEnvelope: true,
 	})
 }
@@ -248,7 +248,7 @@ func (i *Integration) CreateServiceInstance(subscriptionId, serviceInstanceId st
 			"subscriptionId": subscriptionId,
 		},
 		Body:           bodyBytes,
-		Payload:        new(Pojo),
+		Payload:        new(CreateServiceInstanceResponse),
 		ExpectEnvelope: true,
 	})
 }
