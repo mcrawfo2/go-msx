@@ -17,7 +17,7 @@ var (
 )
 
 type IdmTokenDetailsProviderConfig struct {
-	Fast         bool `config:"default=true"`
+	Fast         bool `config:"default=false"`
 	ActiveCache  lru.CacheConfig
 	DetailsCache lru.CacheConfig
 }
