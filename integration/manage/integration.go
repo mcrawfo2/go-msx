@@ -211,7 +211,7 @@ func (i *Integration) GetServiceInstance(serviceInstanceId string) (*integration
 		EndpointParameters: map[string]string{
 			"serviceInstanceId": serviceInstanceId,
 		},
-		Payload:        new(Pojo),
+		Payload:        new(ServiceInstanceResponse),
 		ExpectEnvelope: true,
 	})
 }
@@ -248,7 +248,7 @@ func (i *Integration) CreateServiceInstance(subscriptionId, serviceInstanceId st
 			"subscriptionId": subscriptionId,
 		},
 		Body:           bodyBytes,
-		Payload:        new(CreateServiceInstanceResponse),
+		Payload:        new(ServiceInstanceResponse),
 		ExpectEnvelope: true,
 	})
 }
@@ -271,7 +271,7 @@ func (i *Integration) UpdateServiceInstance(serviceInstanceId string, serviceAtt
 			"serviceInstanceId": serviceInstanceId,
 		},
 		Body:           bodyBytes,
-		Payload:        new(Pojo),
+		Payload:        new(ServiceInstanceResponse),
 		ExpectEnvelope: true,
 	})
 }

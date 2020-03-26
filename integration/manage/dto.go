@@ -50,7 +50,7 @@ type CreateSubscriptionResponse struct {
 	RemoteUserCount interface{} `json:"remoteUserCount"`
 }
 
-type CreateServiceInstanceResponse struct {
+type ServiceInstanceResponse struct {
 	ProviderID        string      `json:"providerId"`
 	TenantID          string      `json:"tenantId"`
 	UserID            string      `json:"userId"`
