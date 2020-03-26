@@ -230,6 +230,10 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 }
 
 func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	if req.Request.Header.Get("Origin") != "" {
+		resp.AddHeader(HEADER_AccessControlAllowOrigin, "*")
+	}
+
 	if "OPTIONS" != req.Request.Method {
 		chain.ProcessFilter(req, resp)
 		return
@@ -241,6 +245,9 @@ func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.
 	var allowedMethods = make(map[string]struct{})
 	for _, method := range []string{"PATCH", "POST", "GET", "PUT", "DELETE", "HEAD", "TRACE"} {
 		newHttpRequest.Method = method
+		newHttpRequest.Header = http.Header{}
+		newHttpRequest.Header.Set("Accept", "*/*")
+		newHttpRequest.Header.Set("Content-Type", MIME_JSON)
 		_, route, err := router.SelectRoute(container.RegisteredWebServices(), &newHttpRequest)
 		if err != nil || route == nil {
 			continue
@@ -260,6 +267,12 @@ func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.
 	}
 
 	resp.AddHeader("Allow", strings.Join(allowMethods, ","))
+	resp.AddHeader("Vary", "Origin")
+	resp.AddHeader("Vary", "Access-Control-Request-Method")
+	resp.AddHeader("Vary", "Access-Control-Request-Headers")
+	resp.AddHeader(HEADER_AccessControlRequestHeaders, "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	resp.AddHeader(HEADER_AccessControlAllowHeaders, "Authorization, access_token, cache-control, currency, if-modified-since, locale, pragma, content-type, content-length")
+	resp.AddHeader(HEADER_ContentEncoding, "application/json")
 }
 
 var DefaultSuccessEnvelope = integration.MsxEnvelope{}
