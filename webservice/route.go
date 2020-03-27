@@ -270,6 +270,7 @@ func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.
 	resp.AddHeader("Vary", "Origin")
 	resp.AddHeader("Vary", "Access-Control-Request-Method")
 	resp.AddHeader("Vary", "Access-Control-Request-Headers")
+	resp.AddHeader(HEADER_AccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")
 	resp.AddHeader(HEADER_AccessControlRequestHeaders, "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 	resp.AddHeader(HEADER_AccessControlAllowHeaders, "Authorization, access_token, cache-control, currency, if-modified-since, locale, pragma, content-type, content-length")
 	resp.AddHeader(HEADER_ContentEncoding, "application/json")
