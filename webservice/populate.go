@@ -77,6 +77,11 @@ func Populate(req *restful.Request, params interface{}) error {
 			continue
 		}
 
+		if fieldValue.CanAddr() {
+			// In case Validate method is declared with a pointer receiver
+			fieldInterface = fieldValue.Addr().Interface()
+		}
+
 		if paramsFieldValidatable, ok := fieldInterface.(validate.Validatable); ok {
 			if err := validate.Validate(paramsFieldValidatable); err != nil {
 				return NewBadRequestError(err)

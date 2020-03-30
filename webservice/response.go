@@ -4,7 +4,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"github.com/emicklei/go-restful"
 	"net/http"
+	"reflect"
 )
+
+type ErrorRaw interface {
+	SetError(code int, err error, path string)
+}
 
 // Force response body or error into an envelope
 func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
@@ -13,7 +18,7 @@ func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interfa
 		if statusErr, ok := err.(StatusCodeProvider); ok {
 			status = statusErr.StatusCode()
 		}
-		WriteErrorEnvelope(req, resp, status, err)
+		WriteError(req, resp, status, err)
 		return
 	}
 
@@ -36,7 +41,7 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 		if statusErr, ok := err.(StatusCodeProvider); ok {
 			status = statusErr.StatusCode()
 		}
-		WriteErrorEnvelope(req, resp, status, err)
+		WriteError(req, resp, status, err)
 		return
 	}
 
@@ -51,6 +56,39 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 	err = resp.WriteHeaderAndJson(status, body, "application/json;charset=utf-8")
 	if err != nil {
 		logger.WithError(err).Error("Failed to write body")
+	}
+}
+
+func WriteError(req *restful.Request, resp *restful.Response, status int, err error) {
+	payload := req.Attribute(AttributeErrorPayload)
+	if payload == nil {
+		WriteErrorEnvelope(req, resp, status, err)
+		return
+	}
+
+	switch payload.(type) {
+	case *integration.MsxEnvelope:
+		WriteErrorEnvelope(req, resp, status, err)
+
+	case ErrorRaw:
+		WriteErrorRaw(req, resp, status, err, payload.(ErrorRaw))
+
+	default:
+		logger.
+			WithContext(req.Request.Context()).
+			WithError(err).
+			Error("Response serialization failed - invalid error payload type %q", reflect.TypeOf(payload).String())
+		WriteErrorRaw(req, resp, status, err, new(integration.ErrorDTO))
+	}
+}
+
+func WriteErrorRaw(req *restful.Request, resp *restful.Response, status int, err error, payload ErrorRaw) {
+	envelope := reflect.New(reflect.TypeOf(payload).Elem()).Interface().(ErrorRaw)
+	envelope.SetError(status, err, req.Request.URL.Path)
+
+	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
+	if err2 != nil {
+		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error payload")
 	}
 }
 

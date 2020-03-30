@@ -24,6 +24,7 @@ const (
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 	MetadataTagDefinition       = "TagDefinition"
 	AttributeDefaultReturnCode  = "DefaultReturnCode"
+	AttributeErrorPayload       = "ErrorPayload"
 	requestAttributeParams      = "params"
 )
 
@@ -67,6 +68,7 @@ func newGenericResponse(structType reflect.Type, structFieldName string, payload
 }
 
 func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
+	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
 	return func(b *restful.RouteBuilder) {
 		example := newGenericResponse(
 			reflect.TypeOf(integration.MsxEnvelope{}),
@@ -74,10 +76,12 @@ func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 			payload)
 		b.DefaultReturns("Success", example)
 		b.Writes(example)
+		b.Do(errorPayloadFn)
 	}
 }
 
 func PaginatedResponsePayload(payload interface{}) func (*restful.RouteBuilder) {
+	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
 	return func(b *restful.RouteBuilder) {
 		paginatedPayload := newGenericResponse(
 			reflect.TypeOf(paging.PaginatedResponse{}),
@@ -89,13 +93,25 @@ func PaginatedResponsePayload(payload interface{}) func (*restful.RouteBuilder) 
 			paginatedPayload)
 		b.DefaultReturns("Success", envelopedPayload)
 		b.Writes(envelopedPayload)
+		b.Do(errorPayloadFn)
 	}
 }
 
 func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
+	errorPayloadFn := ErrorPayload(new(integration.ErrorDTO))
 	return func(b *restful.RouteBuilder) {
 		b.DefaultReturns("Success", payload)
 		b.Writes(payload)
+		b.Do(errorPayloadFn)
+	}
+}
+
+func ErrorPayload(payload interface{}) func(*restful.RouteBuilder) {
+	return func(builder *restful.RouteBuilder) {
+		builder.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			request.SetAttribute(AttributeErrorPayload, payload)
+			chain.ProcessFilter(request, response)
+		})
 	}
 }
 
@@ -127,14 +143,14 @@ func DefaultReturns(code int) RouteBuilderFunc {
 func securityContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	token, err := httprequest.ExtractToken(req.Request)
 	if err != nil && err != httprequest.ErrNotFound {
-		WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
+		WriteError(req, resp, http.StatusUnauthorized, err)
 		return
 	}
 
 	if err == nil {
 		userContext, err := security.NewUserContextFromToken(req.Request.Context(), token)
 		if err != nil {
-			WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
+			WriteError(req, resp, http.StatusUnauthorized, err)
 			return
 		}
 
@@ -150,7 +166,7 @@ func authenticationFilter(req *restful.Request, resp *restful.Response, chain *r
 	if authenticationProvider != nil {
 		err := authenticationProvider.Authenticate(req)
 		if err != nil {
-			WriteErrorEnvelope(req, resp, http.StatusUnauthorized, err)
+			WriteError(req, resp, http.StatusUnauthorized, err)
 			return
 		}
 	}
@@ -174,7 +190,7 @@ func PermissionsFilter(anyOf ...string) restful.FilterFunction {
 		if userContext.UserName != "system" {
 			if err := rbac.HasPermission(ctx, anyOf); err != nil {
 				logger.WithError(err).WithField("perms", anyOf).Error("Permission denied")
-				WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
+				WriteError(req, resp, http.StatusForbidden, err)
 				return
 			}
 		}
@@ -206,13 +222,13 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		tenantId, err := getParameter(parameter, req)
 		if err != nil {
-			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+			WriteError(req, resp, http.StatusBadRequest, err)
 			return
 		}
 
 		tenantUuid, err := types.ParseUUID(tenantId)
 		if err != nil {
-			WriteErrorEnvelope(req, resp, http.StatusBadRequest, err)
+			WriteError(req, resp, http.StatusBadRequest, err)
 		}
 
 		ctx := req.Request.Context()
@@ -221,7 +237,7 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 				"tenant": tenantId,
 			})
 			req.Request = req.Request.WithContext(ctx)
-			WriteErrorEnvelope(req, resp, http.StatusForbidden, err)
+			WriteError(req, resp, http.StatusForbidden, err)
 			return
 		}
 
@@ -275,8 +291,6 @@ func optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.
 	resp.AddHeader(HEADER_AccessControlAllowHeaders, "Authorization, access_token, cache-control, currency, if-modified-since, locale, pragma, content-type, content-length")
 	resp.AddHeader(HEADER_ContentEncoding, "application/json")
 }
-
-var DefaultSuccessEnvelope = integration.MsxEnvelope{}
 
 type RouteBuilderFunc func(*restful.RouteBuilder)
 
@@ -377,7 +391,7 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 
 			// Populate the target
 			if err := Populate(req, target); err != nil {
-				WriteErrorEnvelope(req, response, 400, err)
+				WriteError(req, response, 400, err)
 				return
 			}
 

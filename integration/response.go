@@ -1,8 +1,10 @@
 package integration
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"net/http"
+	"time"
 )
 
 type MsxResponse struct {
@@ -42,6 +44,16 @@ func (e *ErrorDTO) Error() error {
 
 func (e *ErrorDTO) IsError() bool {
 	return e.Message != ""
+}
+
+func (e *ErrorDTO) SetError(code int, err error, path string) {
+	e.Code = fmt.Sprintf("%d", code)
+	if springHttpStatus, ok := springHttpStatusByCode[code]; ok {
+		e.HttpStatus = springHttpStatus.Name()
+	}
+	e.Message = err.Error()
+	e.Path = path
+	e.Timestamp = time.Now().Format(time.RFC3339)
 }
 
 type ErrorDTO2 struct {

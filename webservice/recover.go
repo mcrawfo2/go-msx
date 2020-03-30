@@ -16,7 +16,7 @@ func recoveryFilter(req *restful.Request, resp *restful.Response, chain *restful
 			}
 			logger.WithContext(req.Request.Context()).WithError(e).Error("Recovered from panic")
 
-			WriteErrorEnvelope(req, resp, 500, e)
+			WriteError(req, resp, 500, e)
 		}
 	}()
 
