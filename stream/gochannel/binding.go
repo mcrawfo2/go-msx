@@ -12,9 +12,9 @@ const (
 
 type BindingConfiguration struct {
 	Producer struct {
-		OutputChannelBuffer            int64
-		Persistent                     bool
-		BlockPublishUntilSubscriberAck bool
+		OutputChannelBuffer            int64 `config:"default=16"`
+		Persistent                     bool  `config:"default=false"`
+		BlockPublishUntilSubscriberAck bool  `config:"default=false"`
 	}
 	StreamBindingConfig *stream.BindingConfiguration `config:"-"`
 }
