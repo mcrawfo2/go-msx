@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"github.com/emicklei/go-restful"
 	restfulspec "github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
@@ -26,6 +27,7 @@ const (
 	AttributeDefaultReturnCode  = "DefaultReturnCode"
 	AttributeErrorPayload       = "ErrorPayload"
 	AttributeParams             = "Params"
+	AttributeStandard           = "Standard"
 	AttributeParamsValidator    = "ParamsValidator"
 )
 
@@ -104,8 +106,6 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 		b.DefaultReturns("Success", payload)
 		if payload != nil {
 			b.Writes(payload)
-		} else {
-			b.Do(NoContentReturns)
 		}
 		b.Do(errorPayloadFn)
 	}
@@ -414,13 +414,7 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 func ValidateParams(fn ValidatorFunction) RouteBuilderFunc {
 	return func(builder *restful.RouteBuilder) {
 		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
-			err := fn(req)
-			if err != nil {
-				if filterable, ok := err.(types.Filterable); ok {
-					err = filterable.Filter()
-				}
-			}
-
+			err := validate.Validate(requestValidator{fn: fn, req: req})
 			if err != nil {
 				WriteError(req, response, 400, err)
 				return
@@ -429,6 +423,17 @@ func ValidateParams(fn ValidatorFunction) RouteBuilderFunc {
 			chain.ProcessFilter(req, response)
 		})
 	}
+}
+
+type ValidatorFunction func(req *restful.Request) (err error)
+
+type requestValidator struct {
+	req *restful.Request
+	fn  ValidatorFunction
+}
+
+func (r requestValidator) Validate() error {
+	return r.fn(r.req)
 }
 
 func Params(req *restful.Request) interface{} {

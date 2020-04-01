@@ -13,8 +13,8 @@ var (
 	Required      = validation.Required
 	NilOrNotEmpty = validation.NilOrNotEmpty
 	Match         = validation.Match
-	OptionalUuid  = []Rule{validation.NilOrNotEmpty, IfNotNil(is.UUID)}
-	ValidScope    = []Rule{validation.Required, validation.In([]interface{}{
+	OptionalUuid  = []validation.Rule{validation.NilOrNotEmpty, IfNotNil(is.UUID)}
+	ValidScope    = []validation.Rule{validation.Required, validation.In([]interface{}{
 		"controlPlaneId",
 		"deviceId",
 		"deviceType",

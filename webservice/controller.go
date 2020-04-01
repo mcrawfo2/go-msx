@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-type ValidatorFunction func(req *restful.Request) (err error)
 type ControllerFunction func(req *restful.Request) (body interface{}, err error)
 type ContextFunction func(ctx context.Context) (body interface{}, err error)
 
