@@ -22,7 +22,12 @@ var (
 	ErrDisabled = errors.New("Cassandra connection disabled")
 	ErrNotFound = gocql.ErrNotFound
 	logger      = log.NewLogger("msx.cassandra")
+	gocqlLogger = log.NewLogger("gocql").Level(log.ErrorLevel)
 )
+
+func init() {
+	gocql.Logger = gocqlLogger
+}
 
 type KeyspaceOptions struct {
 	Replications             []string `config:"default=datacenter1"`
