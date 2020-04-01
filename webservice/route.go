@@ -25,7 +25,8 @@ const (
 	MetadataTagDefinition       = "TagDefinition"
 	AttributeDefaultReturnCode  = "DefaultReturnCode"
 	AttributeErrorPayload       = "ErrorPayload"
-	requestAttributeParams      = "params"
+	AttributeParams             = "Params"
+	AttributeParamsValidator    = "ParamsValidator"
 )
 
 var (
@@ -58,7 +59,7 @@ func ResponseTypeName(t reflect.Type) (string, bool) {
 	return typeName, true
 }
 
-func newGenericResponse(structType reflect.Type, structFieldName string, payloadInstance interface{}) (interface{}) {
+func newGenericResponse(structType reflect.Type, structFieldName string, payloadInstance interface{}) interface{} {
 	responseType := types.NewParameterizedStruct(
 		structType,
 		structFieldName,
@@ -80,7 +81,7 @@ func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	}
 }
 
-func PaginatedResponsePayload(payload interface{}) func (*restful.RouteBuilder) {
+func PaginatedResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
 	return func(b *restful.RouteBuilder) {
 		paginatedPayload := newGenericResponse(
@@ -101,7 +102,11 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 	errorPayloadFn := ErrorPayload(new(integration.ErrorDTO))
 	return func(b *restful.RouteBuilder) {
 		b.DefaultReturns("Success", payload)
-		b.Writes(payload)
+		if payload != nil {
+			b.Writes(payload)
+		} else {
+			b.Do(NoContentReturns)
+		}
 		b.Do(errorPayloadFn)
 	}
 }
@@ -121,6 +126,10 @@ func StandardReturns(b *restful.RouteBuilder) {
 
 func CreateReturns(b *restful.RouteBuilder) {
 	b.Do(Returns(200, 201, 400, 401, 403), DefaultReturns(201))
+}
+
+func NoContentReturns(b *restful.RouteBuilder) {
+	b.Do(Returns(204, 400, 401, 403), DefaultReturns(204))
 }
 
 func ProducesJson(b *restful.RouteBuilder) {
@@ -395,7 +404,27 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 				return
 			}
 
-			req.SetAttribute(requestAttributeParams, target)
+			req.SetAttribute(AttributeParams, target)
+
+			chain.ProcessFilter(req, response)
+		})
+	}
+}
+
+func ValidateParams(fn ValidatorFunction) RouteBuilderFunc {
+	return func(builder *restful.RouteBuilder) {
+		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			err := fn(req)
+			if err != nil {
+				if filterable, ok := err.(types.Filterable); ok {
+					err = filterable.Filter()
+				}
+			}
+
+			if err != nil {
+				WriteError(req, response, 400, err)
+				return
+			}
 
 			chain.ProcessFilter(req, response)
 		})
@@ -403,7 +432,7 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 }
 
 func Params(req *restful.Request) interface{} {
-	return req.Attribute(requestAttributeParams)
+	return req.Attribute(AttributeParams)
 }
 
 func Routes(svc *restful.WebService, tag RouteBuilderFunc, routeFunctions ...RouteFunction) {

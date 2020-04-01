@@ -1,6 +1,7 @@
 package webservice
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"github.com/emicklei/go-restful"
@@ -10,9 +11,12 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
+	requestTag = "req"
+
 	requestTagSourceBody   = "body"
 	requestTagSourceQuery  = "query"
 	requestTagSourceHeader = "header"
@@ -20,79 +24,74 @@ const (
 	requestTagSourceForm   = "form"
 )
 
-func Populate(req *restful.Request, params interface{}) error {
-	var paramsType = reflect.TypeOf(params)
-	var paramsValue = reflect.ValueOf(params)
-
-	if paramsType.Kind() != reflect.Ptr {
-		return NewInternalError(errors.New("Parameters value not a pointer to struct"))
-	}
-	paramsType = paramsType.Elem()
-	paramsValue = paramsValue.Elem()
-
-	if paramsType.Kind() != reflect.Struct {
-		return NewInternalError(errors.New("Parameters value not a pointer to struct"))
+func Populate(req *restful.Request, params interface{}) (err error) {
+	routeParams, err := getRouteParams(req.Request.Context(), params)
+	if err != nil {
+		return
 	}
 
-	for i := 0; i < paramsType.NumField(); i++ {
-		var structField = paramsType.Field(i)
-		var fieldValue = paramsValue.FieldByName(structField.Name)
+	var paramsValue = reflect.ValueOf(params).Elem()
+	return routeParams.Populate(req, paramsValue)
+}
 
-		if !fieldValue.CanSet() || !fieldValue.IsValid() {
-			return NewBadRequestError(errors.Errorf("Cannot set field %s", structField.Name))
+type RouteParam struct {
+	Field     reflect.StructField
+	Source    string
+	Name      string
+	Options   map[string]string
+	Parameter restful.ParameterData
+}
+
+func (r RouteParam) Populate(req *restful.Request, paramsValue reflect.Value) error {
+	var fieldValue = paramsValue.FieldByName(r.Field.Name)
+
+	if !fieldValue.CanSet() || !fieldValue.IsValid() {
+		return NewBadRequestError(errors.Errorf("Cannot set field %s", r.Field.Name))
+	}
+
+	switch r.Source {
+	case requestTagSourceBody:
+		if err := r.populateBody(req, fieldValue); err != nil {
+			return err
 		}
-
-		var fieldTag = structField.Tag
-		var requestTag = fieldTag.Get("req")
-		if requestTag == "" {
-			continue
+	case requestTagSourceHeader:
+		if err := r.populateHeader(req, fieldValue); err != nil {
+			return err
 		}
-
-		requestTagParts := append(strings.Split(requestTag, "="), "")[:2]
-		switch requestTagParts[0] {
-		case requestTagSourceBody:
-			if err := populateBody(req, fieldValue); err != nil {
-				return err
-			}
-		case requestTagSourceHeader:
-			if err := populateHeader(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
-				return err
-			}
-		case requestTagSourcePath:
-			if err := populatePath(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
-				return err
-			}
-		case requestTagSourceQuery:
-			if err := populateQuery(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
-				return err
-			}
-		case requestTagSourceForm:
-			if err := populateForm(req, fieldValue, requestTagParts[1], structField.Name); err != nil {
-				return err
-			}
+	case requestTagSourcePath:
+		if err := r.populatePath(req, fieldValue); err != nil {
+			return err
 		}
-
-		fieldInterface := fieldValue.Interface()
-		if fieldInterface == nil || (fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()) {
-			continue
+	case requestTagSourceQuery:
+		if err := r.populateQuery(req, fieldValue); err != nil {
+			return err
 		}
-
-		if fieldValue.CanAddr() {
-			// In case Validate method is declared with a pointer receiver
-			fieldInterface = fieldValue.Addr().Interface()
+	case requestTagSourceForm:
+		if err := r.populateForm(req, fieldValue); err != nil {
+			return err
 		}
+	}
 
-		if paramsFieldValidatable, ok := fieldInterface.(validate.Validatable); ok {
-			if err := validate.Validate(paramsFieldValidatable); err != nil {
-				return NewBadRequestError(err)
-			}
+	fieldInterface := fieldValue.Interface()
+	if fieldInterface == nil || (fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()) {
+		return nil
+	}
+
+	if fieldValue.CanAddr() {
+		// In case Validate method is declared with a pointer receiver
+		fieldInterface = fieldValue.Addr().Interface()
+	}
+
+	if paramsFieldValidatable, ok := fieldInterface.(validate.Validatable); ok {
+		if err := validate.Validate(paramsFieldValidatable); err != nil {
+			return NewBadRequestError(err)
 		}
 	}
 
 	return nil
 }
 
-func populateBody(req *restful.Request, fieldValue reflect.Value) error {
+func (r RouteParam) populateBody(req *restful.Request, fieldValue reflect.Value) error {
 	var val = fieldValue.Addr().Interface()
 	if err := req.ReadEntity(val); err != nil {
 		return NewBadRequestError(err)
@@ -101,67 +100,38 @@ func populateBody(req *restful.Request, fieldValue reflect.Value) error {
 	return nil
 }
 
-func populateHeader(req *restful.Request, fieldValue reflect.Value, headerTag, fieldName string) error {
-	var headerName string
-	if headerTag != "" {
-		headerName = strcase.ToKebab(headerTag)
-	} else {
-		headerName = strcase.ToKebab(fieldName)
-	}
-
-	headerValues, ok := req.Request.Header[headerName]
+func (r RouteParam) populateHeader(req *restful.Request, fieldValue reflect.Value) error {
+	headerValues, ok := req.Request.Header[r.Name]
 	if !ok || len(headerValues) == 0 {
 		if fieldValue.Kind() != reflect.Ptr {
-			return errors.Errorf("Missing non-optional header %q", headerName)
+			return errors.Errorf("Missing non-optional header %q", r.Name)
 		}
 		return nil
 	}
 
 	headerValue := headerValues[0]
-	return populateScalar(fieldValue, headerValue, fieldName)
+	return r.populateScalar(fieldValue, headerValue)
 }
 
-func populatePath(req *restful.Request, fieldValue reflect.Value, pathTag, fieldName string) error {
-	var pathName string
-	if pathTag != "" {
-		pathName = pathTag
-	} else {
-		pathName = strcase.ToLowerCamel(fieldName)
-	}
-
-	pathValue := req.PathParameter(pathName)
-
-	return populateScalar(fieldValue, pathValue, fieldName)
+func (r RouteParam) populatePath(req *restful.Request, fieldValue reflect.Value) error {
+	pathValue := req.PathParameter(r.Name)
+	return r.populateScalar(fieldValue, pathValue)
 }
 
-func populateQuery(req *restful.Request, fieldValue reflect.Value, queryTag, fieldName string) error {
-	var queryName string
-	if queryTag != "" {
-		queryName = queryTag
-	} else {
-		queryName = strcase.ToLowerCamel(fieldName)
-	}
-
-	queryValues, ok := req.Request.URL.Query()[queryName]
+func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value) error {
+	queryValues, ok := req.Request.URL.Query()[r.Name]
 	if !ok || len(queryValues) == 0 {
 		if fieldValue.Kind() != reflect.Ptr {
-			return errors.Errorf("Missing non-optional query parameter %q", fieldName)
+			return errors.Errorf("Missing non-optional query parameter %q", r.Name)
 		}
 		return nil
 	}
 
 	queryValue := queryValues[0]
-	return populateScalar(fieldValue, queryValue, fieldName)
+	return r.populateScalar(fieldValue, queryValue)
 }
 
-func populateForm(req *restful.Request, fieldValue reflect.Value, formTag, fieldName string) error {
-	var formName string
-	if formTag != "" {
-		formName = formTag
-	} else {
-		formName = strcase.ToLowerCamel(fieldName)
-	}
-
+func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value) error {
 	if req.Request.PostForm == nil {
 		err := req.Request.ParseMultipartForm(32 << 20)
 		if err != nil {
@@ -169,44 +139,44 @@ func populateForm(req *restful.Request, fieldValue reflect.Value, formTag, field
 		}
 	}
 
-	formFiles, ok := req.Request.MultipartForm.File[formName]
+	formFiles, ok := req.Request.MultipartForm.File[r.Name]
 	if ok {
-		return populateFile(fieldValue, formFiles[0], fieldName)
+		return r.populateFile(fieldValue, formFiles[0])
 	}
 
-	formValues, ok := req.Request.MultipartForm.Value[formName]
+	formValues, ok := req.Request.MultipartForm.Value[r.Name]
 	if !ok || len(formValues) == 0 {
 		if fieldValue.Kind() != reflect.Ptr {
-			return errors.Errorf("Missing non-optional form field %q", fieldName)
+			return errors.Errorf("Missing non-optional form field %q", r.Name)
 		}
 		return nil
 	}
 
 	formValue := formValues[0]
-	return populateScalar(fieldValue, formValue, fieldName)
+	return r.populateScalar(fieldValue, formValue)
 }
 
-func populateFile(fieldValue reflect.Value, header *multipart.FileHeader, fieldName string) error {
+func (r RouteParam) populateFile(fieldValue reflect.Value, header *multipart.FileHeader) error {
 	if fieldValue.Kind() != reflect.Ptr {
-		return errors.Errorf("Cannot marshal multi-part file header into field %q", fieldName)
+		return errors.Errorf("Cannot marshal multi-part file header into field %q", r.Name)
 	}
 
 	if fieldValue.Type() != reflect.TypeOf(header) {
-		return errors.Errorf("Cannot marshal multi-part file header into field %q", fieldName)
+		return errors.Errorf("Cannot marshal multi-part file header into field %q", r.Name)
 	}
 
 	fieldValue.Set(reflect.ValueOf(header))
 	return nil
 }
 
-func populateScalar(fieldValue reflect.Value, value, fieldName string) (err error) {
+func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err error) {
 	errorWrapper := func(err error) error {
-		return errors.Wrapf(err, "Cannot marshal string %q into field %q", value, fieldName)
+		return errors.Wrapf(err, "Cannot marshal string %q into field %q", value, r.Name)
 	}
 
 	defer func() {
-		if r := recover(); r != nil {
-			err = errors.Errorf("Cannot marshal string %q into field %q", value, fieldName)
+		if v := recover(); v != nil {
+			err = errors.Errorf("Cannot marshal string %q into field %q: %s", value, r.Name, v)
 		}
 	}()
 
@@ -326,5 +296,156 @@ func populateScalar(fieldValue reflect.Value, value, fieldName string) (err erro
 		}
 	}
 
-	return NewInternalError(errors.Errorf("Cannot marshal string %q into field %q", value, fieldName))
+	return NewInternalError(errors.Errorf("Cannot marshal string %q into field %q", value, r.Name))
+}
+
+func NewRouteParam(ctx context.Context, route *restful.Route, field reflect.StructField) *RouteParam {
+	r := new(RouteParam)
+	r.Field = field
+	r.Options = make(map[string]string)
+
+	tag := field.Tag.Get(requestTag)
+
+	if tag == "" {
+		return nil
+	}
+
+	for j, option := range strings.Split(tag, ",") {
+		optionParts := strings.SplitN(option, "=", 2)
+
+		switch j {
+		case 0:
+			if option == "-" {
+				// No source
+				continue
+			}
+
+			r.Source = optionParts[0]
+			if len(optionParts) == 2 {
+				r.Name = optionParts[1]
+			} else {
+				switch r.Source {
+				case requestTagSourceHeader:
+					r.Name = strcase.ToKebab(field.Name)
+				case requestTagSourcePath:
+					r.Name = strcase.ToLowerCamel(field.Name)
+				case requestTagSourceQuery:
+					r.Name = strcase.ToLowerCamel(field.Name)
+				case requestTagSourceForm:
+					r.Name = strcase.ToLowerCamel(field.Name)
+				case requestTagSourceBody:
+					r.Name = "body"
+				}
+			}
+		default:
+			var value = "true"
+			if len(optionParts) == 2 {
+				value = optionParts[1]
+			}
+			r.Options[optionParts[0]] = value
+		}
+	}
+
+	parameterFound := false
+	for _, parameter := range route.ParameterDocs {
+		parameterData := parameter.Data()
+		if parameterData.Name == r.Name {
+			r.Parameter = parameterData
+			parameterFound = true
+		}
+	}
+
+	if !parameterFound {
+		r.Parameter = restful.ParameterData{
+			Name: strcase.ToLowerCamel(r.Name),
+		}
+
+		switch r.Source {
+		case requestTagSourceHeader:
+			r.Parameter.Kind = restful.HeaderParameterKind
+		case requestTagSourcePath:
+			r.Parameter.Kind = restful.PathParameterKind
+		case requestTagSourceQuery:
+			r.Parameter.Kind = restful.QueryParameterKind
+		case requestTagSourceBody:
+			r.Parameter.Kind = restful.BodyParameterKind
+		case requestTagSourceForm:
+			r.Parameter.Kind = restful.FormParameterKind
+		default:
+			logger.
+				WithContext(ctx).
+				WithError(errors.Errorf("Unknown parameter source: %q", r.Source)).
+				Warnf("Defining dynamic parameter %q", r.Parameter.Name)
+		}
+	}
+
+	return r
+}
+
+type RouteParams struct {
+	Type   reflect.Type
+	Fields []*RouteParam
+}
+
+func (r RouteParams) Populate(req *restful.Request, paramsValue reflect.Value) error {
+	for _, routeParam := range r.Fields {
+		err := routeParam.Populate(req, paramsValue)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+var routeParamsMtx sync.Mutex
+var routeParamsIndex = make(map[*restful.Route]*RouteParams)
+
+func getRouteParams(ctx context.Context, params interface{}) (*RouteParams, error) {
+	routeParamsMtx.Lock()
+	defer routeParamsMtx.Unlock()
+
+	route := RouteFromContext(ctx)
+	if route == nil {
+		return nil, NewInternalError(errors.New("Route not set in context"))
+	}
+
+	if result, ok := routeParamsIndex[route]; ok {
+		return result, nil
+	}
+
+	result, err := generateRouteParams(ctx, route, params)
+	if err != nil {
+		return nil, err
+	}
+	routeParamsIndex[route] = result
+	return result, nil
+}
+
+func generateRouteParams(ctx context.Context, route *restful.Route, params interface{}) (*RouteParams, error) {
+	var paramsType = reflect.TypeOf(params)
+
+	if paramsType.Kind() != reflect.Ptr {
+		return nil, NewInternalError(errors.New("Parameters value not a pointer to struct"))
+	}
+	paramsType = paramsType.Elem()
+
+	if paramsType.Kind() != reflect.Struct {
+		return nil, NewInternalError(errors.New("Parameters value not a pointer to struct"))
+	}
+
+	routeParams := &RouteParams{
+		Type:   paramsType,
+		Fields: nil,
+	}
+
+	for i := 0; i < paramsType.NumField(); i++ {
+		routeParam := NewRouteParam(ctx, route, paramsType.Field(i))
+		if routeParam == nil {
+			continue
+		}
+		routeParams.Fields = append(routeParams.Fields, routeParam)
+	}
+
+	return routeParams, nil
 }
