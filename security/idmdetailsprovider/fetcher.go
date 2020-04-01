@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/pkg/errors"
 )
 
 type detailsFetcher interface {
@@ -111,7 +112,7 @@ func (t *slowDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 		tenantResponse := primaryTenantResponse.Payload.(*usermanagement.TenantResponse)
 		details.TenantId = primaryTenantUuid
 		details.TenantName = &tenantResponse.TenantName
-		details.ProviderId = &tenantResponse.ProviderId
+		details.ProviderId = tenantResponse.ProviderId
 		details.ProviderName = &tenantResponse.ProviderName
 	} else {
 		// Fill in Tenant details
@@ -120,21 +121,34 @@ func (t *slowDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 			return nil, err
 		}
 
-		primaryTenantId := *security.UserContextFromContext(ctx).TenantId
+		primaryTenantId := security.UserContextFromContext(ctx).TenantId
 		tenants := tenantResponse.Payload.(*usermanagement.TenantListResponse)
 		for _, tenant := range tenants.Tenants {
 			tenantId := tenant.TenantId
 			details.Tenants = append(details.Tenants, tenantId)
 			if primaryTenantId.Equals(tenantId) {
-				details.TenantId = &tenantId
+				details.TenantId = tenantId
 				tenantName := tenant.TenantName
 				details.TenantName = &tenantName
-				providerId := tenant.ProviderId
-				details.ProviderId = &providerId
+				details.ProviderId = tenant.ProviderId
 				providerName := tenant.ProviderName
 				details.ProviderName = &providerName
 			}
 		}
+	}
+
+	if details.ProviderId == nil {
+		providersResponse, err := userManagementApi.GetMyProvider()
+		if err != nil {
+			return nil, err
+		}
+		provider, ok := providersResponse.Payload.(*usermanagement.ProviderResponse)
+		if !ok {
+			return nil, errors.New("Incorrect response format for provider")
+		}
+
+		details.ProviderName = &provider.Name
+		details.ProviderId = provider.ProvidersID
 	}
 
 	// Fill in User Details and Roles
@@ -157,7 +171,7 @@ func (t *slowDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 		return nil, err
 	}
 
-	details.UserId = &userIdResponse.Payload.(*usermanagement.UserIdResponse).Uuid
+	details.UserId = userIdResponse.Payload.(*usermanagement.UserIdResponse).Uuid
 
 	// Fill in Token
 	userContext := security.UserContextFromContext(ctx)

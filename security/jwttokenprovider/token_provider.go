@@ -74,7 +74,7 @@ func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) 
 	return &security.UserContext{
 		UserName:    jwtClaims[jwtClaimUserName].(string),
 		Roles:       types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
-		TenantId:    &tenantUuid,
+		TenantId:    tenantUuid,
 		Scopes:      types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
 		Authorities: types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimAuthorities].([]interface{})),
 		Token:       token,

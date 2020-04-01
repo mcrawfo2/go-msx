@@ -25,6 +25,9 @@ const (
 	endpointNameGetUserCapabilities = "getUserCapabilities"
 	endpointNameGetMyUserId         = "getMyIdentity"
 	endpointNameGetMyPersonalInfo   = "getMyPersonalInfo"
+	endpointNameGetMyProvider       = "getMyProvider"
+
+	endpointNameGetProviderByName = "getProviderByName"
 
 	endpointNameGetTenantIds   = "getTenantIds"
 	endpointNameGetMyTenants   = "getMyTenants"
@@ -65,6 +68,9 @@ var (
 		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
 		endpointNameGetMyUserId:         {Method: "GET", Path: "/api/v1/currentuser"},
 		endpointNameGetMyPersonalInfo:   {Method: "GET", Path: "/api/v1/personalinfo"},
+
+		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
+		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
 
 		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantids"},
 		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},
@@ -210,6 +216,25 @@ func (i *Integration) GetMyPersonalInfo() (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyPersonalInfo,
 		Payload:      &UserPersonalInfoResponse{},
+		ErrorPayload: new(integration.ErrorDTO),
+	})
+}
+
+func (i *Integration) GetMyProvider() (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetMyProvider,
+		Payload:      &ProviderResponse{},
+		ErrorPayload: new(integration.ErrorDTO),
+	})
+}
+
+func (i *Integration) GetProviderByName(name string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetProviderByName,
+		EndpointParameters: map[string]string{
+			"providerName": name,
+		},
+		Payload:      &ProviderResponse{},
 		ErrorPayload: new(integration.ErrorDTO),
 	})
 }

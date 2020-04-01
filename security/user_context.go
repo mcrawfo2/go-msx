@@ -26,7 +26,7 @@ var (
 type UserContext struct {
 	UserName    string      `json:"user_name"`
 	Roles       []string    `json:"roles"`
-	TenantId    *types.UUID `json:"tenant_id"`
+	TenantId    types.UUID `json:"tenant_id"`
 	Scopes      []string    `json:"scope"`
 	Authorities []string    `json:"authorities"`
 	FirstName   string      `json:"firstName"`

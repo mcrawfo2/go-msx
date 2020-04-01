@@ -60,7 +60,7 @@ func NewMessage(ctx context.Context) Message {
 	// TODO: UserContextDetails
 	userContext := security.UserContextFromContext(ctx)
 	if userContext.TenantId != nil {
-		tenantId = *userContext.TenantId
+		tenantId = userContext.TenantId
 	}
 
 	return Message{
