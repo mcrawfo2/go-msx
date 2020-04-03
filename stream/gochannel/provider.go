@@ -40,6 +40,8 @@ func (p *Provider) channel(cfg *config.Config, key string, streamBinding *stream
 		gochannelConfig,
 		stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.gochannel")))
 
+	p.channels[key] = channel
+
 	return channel, err
 }
 
