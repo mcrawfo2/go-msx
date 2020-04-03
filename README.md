@@ -16,12 +16,23 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
       ```bash
       GOPATH=$HOME/go
       PATH=$PATH:$GOPATH/bin
-      ```   
+      ``` 
+        
+      Execute the following commands:
+        ```bash
+        export GOPATH=~/go
+        export PATH=$PATH:$(go env GOPATH)/bin
+        ```
 
     - Be sure to set your Go proxy settings correctly.  For example:
       ```bash
       GOPRIVATE="cto-github.cisco.com/NFV-BU"
       GOPROXY="https://proxy.golang.org,direct"
+      ```
+      
+      An other way to set the above is to run the command below.
+      ```
+      go env -w GOPRIVATE=cto-github.cisco.com/NFV-BU
       ```
 
 - Git SSH configuration for `cto-github.cisco.com`
@@ -53,7 +64,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     ```
 
 - To create a new go-msx microservice skeleton project:
-    - Install the `skel` generator:
+    - Install the `skel` generator by running the command below from the `go-msx` directory:
         ```bash
         go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
         ```
