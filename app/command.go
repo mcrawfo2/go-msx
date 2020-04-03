@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
 	"github.com/spf13/cobra"
+	"os"
 	"strings"
 )
 
@@ -74,6 +75,11 @@ func AddCommand(path, brief string, command CommandObserver, init Observer) (cmd
 }
 
 func Run(appName string) {
+	// Convert environment variable POPULATE into migrate command
+	if strings.ToLower(os.Getenv("POPULATE")) == "database" {
+		os.Args = append(os.Args, "migrate")
+	}
+
 	cli.Run(appName)
 }
 
