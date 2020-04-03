@@ -47,7 +47,7 @@ var (
 type RegistrationProviderConfig struct {
 	Enabled             bool          `config:"default=false"`
 	Register            bool          `config:"default=true"`
-	Address             string        `config:"default="`
+	IpAddress           string        `config:"default="`
 	Interface           string        `config:"default="`
 	Port                int           `config:"default=0"`
 	RegisterHealthCheck bool          `config:"default=true"`
@@ -185,12 +185,12 @@ func marshalComponentAttributes(attributes map[string]string) string {
 func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig) (result *AppRegistrationDetails, err error) {
 	result = &AppRegistrationDetails{}
 
-	if rpConfig.Address == "" {
+	if rpConfig.IpAddress == "" {
 		if result.ServiceAddress, err = getIp(rpConfig.Interface); err != nil {
 			return nil, err
 		}
 	} else {
-		result.ServiceAddress = rpConfig.Address
+		result.ServiceAddress = rpConfig.IpAddress
 	}
 
 	if rpConfig.Port == 0 {
