@@ -24,20 +24,20 @@ var (
 )
 
 type UserContext struct {
-	UserName    string      `json:"user_name"`
-	Roles       []string    `json:"roles"`
+	UserName    string     `json:"user_name"`
+	Roles       []string   `json:"roles"`
 	TenantId    types.UUID `json:"tenant_id"`
-	Scopes      []string    `json:"scope"`
-	Authorities []string    `json:"authorities"`
-	FirstName   string      `json:"firstName"`
-	LastName    string      `json:"lastName"`
-	Issuer      string      `json:"iss"`
-	Subject     string      `json:"sub"`
-	Exp         int         `json:"exp"`
-	IssuedAt    int         `json:"iat"`
-	Jti         string      `json:"jti"`
-	Email       string      `json:"email"`
-	Token       string      `json:"-"`
+	Scopes      []string   `json:"scope"`
+	Authorities []string   `json:"authorities"`
+	FirstName   string     `json:"firstName"`
+	LastName    string     `json:"lastName"`
+	Issuer      string     `json:"iss"`
+	Subject     string     `json:"sub"`
+	Exp         int        `json:"exp"`
+	IssuedAt    int        `json:"iat"`
+	Jti         string     `json:"jti"`
+	Email       string     `json:"email"`
+	Token       string     `json:"-"`
 }
 
 func (c *UserContext) Clone() *UserContext {

@@ -17,11 +17,11 @@ type UserContextDetails struct {
 	Scopes       []string     `json:"scope"`
 	ClientId     *string      `json:"client_id"`
 	Username     *string      `json:"username"`
-	UserId       types.UUID  `json:"user_id"`
+	UserId       types.UUID   `json:"user_id"`
 	Currency     *string      `json:"currency"`
-	TenantId     types.UUID  `json:"tenant_id"`
+	TenantId     types.UUID   `json:"tenant_id"`
 	TenantName   *string      `json:"tenant_name"`
-	ProviderId   types.UUID  `json:"provider_id"`
+	ProviderId   types.UUID   `json:"provider_id"`
 	ProviderName *string      `json:"provider_name"`
 	Tenants      []types.UUID `json:"tenants"`
 	Roles        []string     `json:"roles"`

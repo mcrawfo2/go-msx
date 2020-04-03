@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"net"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -123,11 +124,13 @@ func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
 		return nil
 	}
 
+	checkPath := path.Clean(path.Join(c.details.ContextPath, c.config.HealthCheckPath))
+
 	return &api.AgentServiceCheck{
 		Interval:      c.config.HealthCheckInterval.String(),
 		Timeout:       c.config.HealthCheckTimeout.String(),
 		TLSSkipVerify: true,
-		HTTP:          fmt.Sprintf("%s://%s%s%s", "http", c.details.SocketAddress(), c.details.ContextPath, c.config.HealthCheckPath),
+		HTTP:          fmt.Sprintf("%s://%s%s", "http", c.details.SocketAddress(), checkPath),
 	}
 }
 

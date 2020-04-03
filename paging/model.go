@@ -46,7 +46,7 @@ func (r Request) WithState(state *string) Request {
 }
 
 func NewRequestFromQuery(page uint, pageSize uint) Request {
-	return Request{Page:page, Size:pageSize}
+	return Request{Page: page, Size: pageSize}
 }
 
 type SortDirection string

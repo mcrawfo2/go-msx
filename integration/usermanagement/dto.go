@@ -24,11 +24,11 @@ type TokenDetails struct {
 	Scopes       []string     `json:"scope"`
 	ClientId     *string      `json:"client_id"`
 	Username     *string      `json:"username"`
-	UserId       types.UUID  `json:"user_id"`
+	UserId       types.UUID   `json:"user_id"`
 	Currency     *string      `json:"currency"`
-	TenantId     types.UUID  `json:"tenant_id"`
+	TenantId     types.UUID   `json:"tenant_id"`
 	TenantName   *string      `json:"tenant_name"`
-	ProviderId   types.UUID  `json:"provider_id"`
+	ProviderId   types.UUID   `json:"provider_id"`
 	ProviderName *string      `json:"provider_name"`
 	Tenants      []types.UUID `json:"tenants"`
 	Roles        []string     `json:"roles"`
@@ -75,14 +75,14 @@ type UserPersonalInfoResponse struct {
 }
 
 type ProviderResponse struct {
-	Name             string `json:"name"`
-	DisplayName      *string `json:"displayName"`
-	Description      *string `json:"description"`
+	Name             string     `json:"name"`
+	DisplayName      *string    `json:"displayName"`
+	Description      *string    `json:"description"`
 	ProvidersID      types.UUID `json:"providersId"`
-	Email            *string `json:"email"`
-	NotificationType *string `json:"notificationType"`
-	Locale           *string `json:"locale"`
-	AnyConnectURL    *string `json:"anyConnectURL"`
+	Email            *string    `json:"email"`
+	NotificationType *string    `json:"notificationType"`
+	Locale           *string    `json:"locale"`
+	AnyConnectURL    *string    `json:"anyConnectURL"`
 }
 
 type TenantResponse struct {

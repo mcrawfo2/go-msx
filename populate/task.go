@@ -24,7 +24,7 @@ func (t Tasks) Ordered() Tasks {
 func (t Tasks) During(jobs ...string) (results Tasks) {
 	for _, task := range t {
 		for _, job := range jobs {
-			if types.StringStack(task.During()).Contains(job)  {
+			if types.StringStack(task.During()).Contains(job) {
 				results = append(results, task)
 				break
 			}
