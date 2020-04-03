@@ -1,5 +1,69 @@
 # ${app.name}
 
+## Quick Start 
+
+### Goland
+
+#### Local MSX Development  Instance
+
+1. Stage artifacts into the `dist` folder:
+
+    - From the Goland toolbar, execute the `make dist` run configuration
+    
+2. Start the main application entrypoint:
+ 
+    - From the Goland toolbar, execute the `${app.name} (local)` run configuration
+    
+#### Remote MSX Development Instance
+
+1. Stage artifacts into the `dist` folder:
+
+    - From the Goland toolbar, execute the `make dist` run configuration
+    
+2. Configure the location of your remote environment:
+   
+    - Edit the `./local/${app.name}.remote.yml` and set your remote
+      environment's IP address:
+      
+        ```yaml
+        remote.service.address: 10.81.85.174
+        
+        spring.cloud:
+          consul:
+            host: ${remote.service.address}
+            discovery.instanceId: local
+          vault:
+            host: ${remote.service.address}
+        ```
+    
+3. Start the main application entrypoint:
+ 
+    - From the Goland toolbar, execute the `${app.name} (remote)` run configuration
+
+### CLI
+1. Stage artifacts into the `dist` directory:
+    ```bash
+    make dist
+    ``` 
+   
+   All the required resources and artifacts will be staged.
+   
+2. Switch to the main entrypoint directory:
+    ```bash
+    cd cmd/app
+    ```
+   
+   From this directory, you can execute the entrypoint and its various commands. 
+   
+3. Migrate your database:
+    ```bash
+    go run main.go migrate
+    ```
+4. Start the main application entrypoint:
+    ```bash
+    go run main.go
+    ```
+
 ## Source Code
 
 The following directories are provided for your code and configuration:

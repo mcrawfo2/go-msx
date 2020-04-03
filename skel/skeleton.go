@@ -68,8 +68,8 @@ func GenerateApp(args []string) error {
 			DestFile:   "cmd/app/${app.name}.production.yml",
 		},
 		"Creating remote profile": {
-			SourceFile: "local/profile.remote.json5",
-			DestFile:   "local/${app.name}.remote.json5",
+			SourceFile: "local/profile.remote.yml",
+			DestFile:   "local/${app.name}.remote.yml",
 		},
 		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
 	})
