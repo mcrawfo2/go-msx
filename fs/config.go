@@ -39,7 +39,9 @@ func ConfigureFileSystem(cfg *config.Config) (err error) {
 	if fsConfig.Mode == configModeDetect {
 		if fsConfig.Sources == "" {
 			fsConfig.Sources, err = types.FindSourceDirFromStack()
-			if err != nil {
+			if err == types.ErrSourceDirUnavailable {
+				logger.WithError(err).Warningf("Did not detect source directory.")
+			} else if err != nil {
 				return err
 			}
 		}
