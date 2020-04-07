@@ -149,6 +149,15 @@ func (r *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
 		if err != nil {
 			return err
+		} else if len(pageState) == 0 && request.Page > 0{
+			response = paging.Response{
+				Content: dest,
+				Size:    request.Size,
+				Number:  request.Page,
+				Sort:    request.Sort,
+				State:   nil,
+			}
+			return nil
 		}
 
 		qx := gocqlx.
@@ -307,6 +316,16 @@ func (r *CrudRepository) FindAllByPagedLuceneSearch(ctx context.Context, index, 
 		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
 		if err != nil {
 			return err
+		} else if len(pageState) == 0 && request.Page > 0 {
+			response = paging.Response{
+				Content: dest,
+				Size:    request.Size,
+				Number:  request.Page,
+				Sort:    request.Sort,
+				State:   nil,
+			}
+
+			return nil
 		}
 
 		return gocqlx.
