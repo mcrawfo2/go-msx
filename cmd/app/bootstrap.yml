@@ -10,7 +10,7 @@ info.build:
   artifact: ${info.app.name}
   buildDateTime: "2019-01-01T00:00:00.000000Z"
   buildNumber: SNAPSHOT
-  release: 3.8.0
+  release: 3.9.0
   group: com.cisco.msx
   name: ${info.app.description}
   version: ${info.build.release}-${info.build.buildNumber}
@@ -18,7 +18,6 @@ info.build:
 server:
   port: 9293
   contextPath: /someservice
-  static-path: ../../dist/root/var/lib/${info.app.name}
   enabled: true
 
 spring.data.cassandra:
@@ -39,6 +38,9 @@ spring.cloud.vault:
 
 spring.cloud.stream.kafka.binder:
   enabled: true
+
+spring.cloud.stream.bindings:
+  LOOPBACK_TOPIC.binder: gochannel
 
 spring.redis:
   enable: true

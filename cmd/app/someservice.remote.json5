@@ -2,13 +2,13 @@
   "spring": {
     "cloud": {
       "consul": {
-        "host": "10.81.85.174",
+        "host": "10.118.144.116",
         "discovery": {
           "instanceId": "local",
         }
       },
       "vault": {
-        "host": "10.81.85.174",
+        "host": "10.118.144.116",
       },
     },
   }

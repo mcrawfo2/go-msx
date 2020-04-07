@@ -24,6 +24,7 @@ const (
 	appName                = "someservice"
 	kafkaTopicExample      = "EXAMPLE_TOPIC"
 	kafkaTopicNotification = "NOTIFICATION_TOPIC"
+	channelTopicLoopback   = "LOOPBACK_TOPIC"
 	configKeyQuiet         = "cli.flag.quiet"
 )
 
@@ -34,8 +35,9 @@ func init() {
 		app.OnEvent(app.EventStart, app.PhaseBefore, addWebService)
 		app.OnEvent(app.EventStart, app.PhaseDuring, dumpConfiguration)
 		app.OnEvent(app.EventStart, app.PhaseDuring, subscribeExampleTopic)
+		app.OnEvent(app.EventStart, app.PhaseDuring, subscribeLoopbackTopic)
 		app.OnEvent(app.EventReady, app.PhaseDuring, listGauges)
-		app.OnEvent(app.EventReady, app.PhaseDuring, sendExampleTopicMessage)
+		app.OnEvent(app.EventReady, app.PhaseDuring, sendLoopbackTopicMessage)
 		return nil
 	})
 
@@ -73,8 +75,14 @@ func dumpConfiguration(ctx context.Context) error {
 
 func subscribeExampleTopic(ctx context.Context) error {
 	return stream.AddListener(kafkaTopicExample, func(msg *message.Message) error {
-		logger.WithContext(msg.Context()).WithField("messageId", msg.UUID).Infof("received message payload: %s", string(msg.Payload))
 		return errors.New("some error occurred")
+	})
+}
+
+func subscribeLoopbackTopic(ctx context.Context) error {
+	return stream.AddListener(channelTopicLoopback, func(msg *message.Message) error {
+		logger.WithContext(msg.Context()).WithField("messageId", msg.UUID).Infof("received message payload: %s", string(msg.Payload))
+		return nil
 	})
 }
 
@@ -108,7 +116,7 @@ func addWebService(ctx context.Context) error {
 
 func myTestEndpoint(writer http.ResponseWriter, req *http.Request) {
 	sendNotificationTopicMessage(req.Context())
-	sendExampleTopicMessage(req.Context())
+	sendLoopbackTopicMessage(req.Context())
 
 	userContext := security.UserContextFromContext(req.Context())
 
@@ -139,13 +147,14 @@ func listGauges(ctx context.Context) error {
 	})
 }
 
-func populate(ctx context.Context) error {
-	logger.Info("Populate activity here")
+func populate(ctx context.Context, _ []string) error {
+	logger.WithContext(ctx).Info("Populate activity here")
 	return errors.New("Population failed")
 }
 
-func sendExampleTopicMessage(ctx context.Context) error {
-	if err := stream.Publish(ctx, kafkaTopicExample, []byte("Test Message"), nil); err != nil {
+func sendLoopbackTopicMessage(ctx context.Context) error {
+	logger.WithContext(ctx).Infof("Sending test message to %q", channelTopicLoopback)
+	if err := stream.Publish(ctx, channelTopicLoopback, []byte("Test Message"), nil); err != nil {
 		return err
 	}
 	return nil
