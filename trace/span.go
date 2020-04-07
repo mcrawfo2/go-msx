@@ -23,9 +23,9 @@ func NewSpan(ctx context.Context, operationName string, options ...opentracing.S
 	if spanContext, ok := span.Context().(jaeger.SpanContext); ok {
 		// Inject log fields
 		ctx = log.ExtendContext(ctx, log.LogContext{
-			"spanId":   spanContext.SpanID(),
-			"traceId":  spanContext.TraceID(),
-			"parentId": spanContext.ParentID(),
+			"spanid":   spanContext.SpanID(),
+			"traceid":  spanContext.TraceID(),
+			"parentid": spanContext.ParentID(),
 		})
 	}
 
