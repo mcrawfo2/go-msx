@@ -32,19 +32,6 @@ func NewSpan(ctx context.Context, operationName string, options ...opentracing.S
 	return ctx, span
 }
 
-func SpanContextFromContext(ctx context.Context) *jaeger.SpanContext {
-	var span opentracing.Span
-	if span = opentracing.SpanFromContext(ctx); span == nil {
-		return nil
-	}
-
-	if spanContext, ok := span.Context().(jaeger.SpanContext); ok {
-		return &spanContext
-	}
-
-	return nil
-}
-
 func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }

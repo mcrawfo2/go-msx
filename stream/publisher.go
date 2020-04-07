@@ -3,7 +3,6 @@ package stream
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"encoding/json"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -11,36 +10,8 @@ import (
 )
 
 type Publisher interface {
-	Publish(messages *message.Message) error
+	Publish(message *message.Message) error
 	Close() error
-}
-
-type TopicPublisher struct {
-	cfg       *BindingConfiguration
-	publisher message.Publisher
-}
-
-func (p *TopicPublisher) Publish(message *message.Message) error {
-	if message == nil {
-		return nil
-	}
-
-	ctx, span := trace.NewSpan(message.Context(), "kafka.send."+p.cfg.Destination)
-	defer span.Finish()
-	message.SetContext(ctx)
-
-	return p.publisher.Publish(p.cfg.Destination, message)
-}
-
-func (p *TopicPublisher) Close() error {
-	return p.publisher.Close()
-}
-
-func NewTopicPublisher(publisher message.Publisher, cfg *BindingConfiguration) *TopicPublisher {
-	return &TopicPublisher{
-		publisher: publisher,
-		cfg:       cfg,
-	}
 }
 
 func Publish(ctx context.Context, topic string, payload []byte, metadata map[string]string) (err error) {
@@ -78,4 +49,44 @@ func PublishObject(ctx context.Context, topic string, payload interface{}, metad
 
 	return Publish(ctx, topic, bytes, metadata)
 
+}
+
+type TopicPublisher struct {
+	cfg       *BindingConfiguration
+	publisher message.Publisher
+}
+
+func (p *TopicPublisher) Publish(message *message.Message) error {
+	return p.publisher.Publish(p.cfg.Destination, message)
+}
+
+func (p *TopicPublisher) Close() error {
+	return p.publisher.Close()
+}
+
+func NewTopicPublisher(publisher message.Publisher, cfg *BindingConfiguration) Publisher {
+	return NewTracePublisher(
+		&TopicPublisher{
+			publisher: publisher,
+			cfg:       cfg,
+		},
+		cfg)
+}
+
+type IntransientPublisher struct {
+	publisher Publisher
+}
+
+func (n *IntransientPublisher) Publish(msg *message.Message) error {
+	return n.publisher.Publish(msg)
+}
+
+func (n *IntransientPublisher) Close() error {
+	return nil
+}
+
+func NewIntransientPublisher(publisher Publisher) Publisher {
+	return &IntransientPublisher{
+		publisher:publisher,
+	}
 }

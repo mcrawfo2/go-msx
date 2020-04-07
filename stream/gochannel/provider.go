@@ -12,6 +12,8 @@ const (
 	providerNameGoChannel = "gochannel"
 )
 
+var loggerAdapter = stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.gochannel"))
+
 type Provider struct {
 	channels   map[string]*gochannel.GoChannel
 	channelMtx sync.Mutex
@@ -38,7 +40,7 @@ func (p *Provider) channel(cfg *config.Config, key string, streamBinding *stream
 
 	channel = gochannel.NewGoChannel(
 		gochannelConfig,
-		stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.gochannel")))
+		loggerAdapter)
 
 	p.channels[key] = channel
 
@@ -51,7 +53,12 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 		return nil, err
 	}
 
-	return stream.NewTopicPublisher(channel, streamBinding), nil
+	var publisher = stream.NewTopicPublisher(channel, streamBinding)
+
+	// Do not close the go channel when we are done with the publisher
+	publisher = stream.NewIntransientPublisher(publisher)
+
+	return publisher, nil
 }
 
 func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {

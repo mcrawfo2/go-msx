@@ -8,6 +8,7 @@ const (
 	FieldKeyspace   = "keyspace"
 	FieldError      = "error"
 	FieldTopic      = "stream.topic"
+	FieldTransport  = "stream.transport"
 	FieldDirection  = "stream.direction"
 	FieldSpanKind   = "span.kind"
 	FieldStatus     = "status"

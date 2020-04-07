@@ -14,6 +14,7 @@ const (
 )
 
 var ErrDisabled = msxKafka.ErrDisabled
+var loggerAdapter = stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.kafka"))
 
 type Provider struct{}
 
@@ -40,10 +41,10 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	publisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
 			Brokers:               connectionConfig.BrokerAddresses(),
-			Marshaler:             TraceMarshaler{},
+			Marshaler:             kafka.DefaultMarshaler{},
 			OverwriteSaramaConfig: saramaConfig,
 		},
-		stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.kafka")),
+		loggerAdapter,
 	)
 	if err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding 
 	subscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
 			Brokers:               connectionConfig.BrokerAddresses(),
-			Unmarshaler:           TraceMarshaler{},
+			Unmarshaler:           kafka.DefaultMarshaler{},
 			OverwriteSaramaConfig: saramaConfig,
 			ConsumerGroup:         streamBinding.Group,
 			InitializeTopicDetails: &sarama.TopicDetail{
@@ -75,7 +76,7 @@ func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding 
 				ReplicationFactor: int16(connectionConfig.ReplicationFactor),
 			},
 		},
-		stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.kafka")),
+		loggerAdapter,
 	)
 	if err != nil {
 		return nil, err

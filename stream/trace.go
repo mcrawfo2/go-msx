@@ -2,6 +2,7 @@ package stream
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -19,7 +20,7 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 		logger.WithError(err).Error("Invalid trace context.")
 	}
 
-	operationName := "kafka.receive." + a.cfg.Destination
+	operationName := fmt.Sprintf("%s.receive.%s", a.cfg.Binder, a.cfg.Destination)
 	ctx, span := trace.NewSpan(msg.Context(), operationName, ext.RPCServerOption(incomingContext))
 	defer span.Finish()
 	msg.SetContext(ctx)
@@ -41,4 +42,47 @@ func TraceActionInterceptor(cfg *BindingConfiguration, action ListenerAction) Li
 		cfg:    cfg,
 	}
 	return traceAction.Call
+}
+
+type TracePublisher struct {
+	publisher Publisher
+	cfg *BindingConfiguration
+}
+
+func (t *TracePublisher) Publish(msg *message.Message) error {
+	if msg == nil {
+		return nil
+	}
+
+	operationName := fmt.Sprintf("%s.send.%s", t.cfg.Binder, t.cfg.Destination)
+	ctx, span := trace.NewSpan(msg.Context(), operationName)
+	span.SetTag(trace.FieldDirection, "send")
+	span.SetTag(trace.FieldTopic, t.cfg.Destination)
+	span.SetTag(trace.FieldTransport, t.cfg.Binder)
+
+	defer span.Finish()
+	msg.SetContext(ctx)
+
+	// Decorate all of the messages with the trace metadata
+
+	err := opentracing.GlobalTracer().Inject(
+		span.Context(),
+		opentracing.TextMap,
+		opentracing.TextMapCarrier(msg.Metadata))
+	if err != nil {
+		logger.WithError(err).WithContext(ctx).Warn("Failed to apply trace context to outgoing message")
+	}
+
+	return t.publisher.Publish(msg)
+}
+
+func (t *TracePublisher) Close() error {
+	return t.publisher.Close()
+}
+
+func NewTracePublisher(publisher Publisher, cfg *BindingConfiguration) Publisher {
+	return &TracePublisher{
+		publisher: publisher,
+		cfg:       cfg,
+	}
 }

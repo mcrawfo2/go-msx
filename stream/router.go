@@ -139,8 +139,7 @@ func AddListener(topic string, action ListenerAction) error {
 }
 
 func listenerHandler(topic string, action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
-	action = TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, action))
-	return func(msg *message.Message) error {
+	result := TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, func(msg *message.Message) error {
 		logger.
 			WithContext(msg.Context()).
 			WithField("messageId", msg.UUID).
@@ -158,5 +157,7 @@ func listenerHandler(topic string, action ListenerAction, cfg *BindingConfigurat
 		msg.Ack()
 
 		return nil
-	}
+	}))
+
+	return message.NoPublishHandlerFunc(result)
 }
