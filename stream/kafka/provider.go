@@ -14,7 +14,8 @@ const (
 )
 
 var ErrDisabled = msxKafka.ErrDisabled
-var loggerAdapter = stream.NewWatermillLoggerAdapter(log.NewLogger("watermill.kafka"))
+var loggerWatermillKafka = log.NewLogger("watermill.kafka")
+var loggerAdapter = stream.NewWatermillLoggerAdapter(loggerWatermillKafka)
 
 type Provider struct{}
 

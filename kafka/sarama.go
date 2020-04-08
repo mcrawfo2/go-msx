@@ -4,7 +4,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -13,7 +12,7 @@ var (
 
 func init() {
 	sarama.Logger = saramaLogger
-	saramaLogger.SetLevel(logrus.WarnLevel)
+	saramaLogger.SetLevel(log.WarnLevel)
 }
 
 func NewSaramaClient(config *ConnectionConfig) (sarama.Client, error) {

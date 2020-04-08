@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
@@ -34,7 +35,7 @@ type ConnectionConfig struct {
 
 func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
 	saramaConfig := sarama.NewConfig()
-	saramaConfig.ClientID = c.ClientId
+	saramaConfig.ClientID = c.ClientId + "-" + types.RandString(5)
 	saramaConfig.Consumer.Fetch.Default = 1024 * 1024
 	saramaConfig.Consumer.MaxWaitTime = 500 * time.Millisecond
 	saramaConfig.Consumer.MaxProcessingTime = 15 * time.Second
