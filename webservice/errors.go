@@ -1,6 +1,7 @@
 package webservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"net/http"
@@ -8,6 +9,23 @@ import (
 
 type StatusCodeProvider interface {
 	StatusCode() int
+}
+
+type statusCodeProviderImpl struct {
+	body interface{}
+	statusCode int
+}
+
+func (s statusCodeProviderImpl) StatusCode() int {
+	return s.statusCode
+}
+
+func (s statusCodeProviderImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.body)
+}
+
+func NewStatusCodeProvider(body interface{}, status int) StatusCodeProvider {
+	return statusCodeProviderImpl{body:body, statusCode:status}
 }
 
 type StatusError struct {
