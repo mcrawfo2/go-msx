@@ -2,12 +2,14 @@ package skel
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"encoding/json"
 	"gopkg.in/pipe.v2"
 	"os"
 	"path"
 )
 
 func init() {
+	AddTarget("generate-skel-json", "Create the skel configuration file", GenerateSkelJson)
 	AddTarget("generate-build", "Create the build command and configuration", GenerateBuild)
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
@@ -19,10 +21,8 @@ func init() {
 }
 
 func GenerateSkeleton(args []string) error {
-	if err := ConfigureInteractive(nil); err != nil {
-		return err
-	}
 	return ExecTargets(
+		"generate-skel-json",
 		"generate-build",
 		"generate-app",
 		"add-go-msx-dependency",
@@ -31,6 +31,22 @@ func GenerateSkeleton(args []string) error {
 		"generate-goland",
 		"generate-kubernetes",
 		"generate-git")
+}
+
+func GenerateSkelJson(args []string) error {
+	logger.Info("Generating skel config")
+
+	bytes, err := json.Marshal(skeletonConfig)
+	if err != nil {
+		return err
+	}
+
+	return writeStaticFiles(map[string]StaticFile{
+		"Creating skel config": {
+			Data:     bytes,
+			DestFile: configFileName,
+		},
+	})
 }
 
 func GenerateBuild(args []string) error {
@@ -137,7 +153,7 @@ func GenerateGoland(args []string) error {
 func GenerateDockerfile(args []string) error {
 	logger.Info("Generating Dockerfile")
 	return renderTemplates(map[string]Template{
-		"Creating Dockerfile": {SourceFile: "docker/Dockerfile"},
+		"Creating Dockerfile": {SourceFile: "build/package/Dockerfile"},
 	})
 }
 
@@ -145,16 +161,16 @@ func GenerateKubernetes(args []string) error {
 	logger.Info("Generating kubernetes manifest templates")
 	return renderTemplates(map[string]Template{
 		"Creating deployment template": {
-			SourceFile: "k8s/kubernetes-deployment.yml.tpl",
-			DestFile:   "k8s/${app.name}-rc.yml.tpl",
+			SourceFile: "deployments/kubernetes-deployment.yml.tpl",
+			DestFile:   "deployments/${app.name}-rc.yml.tpl",
 		},
 		"Creating init template": {
-			SourceFile: "k8s/kubernetes-init.yml.tpl",
-			DestFile:   "k8s/${app.name}-pod.yml.tpl",
+			SourceFile: "deployments/kubernetes-init.yml.tpl",
+			DestFile:   "deployments/${app.name}-pod.yml.tpl",
 		},
 		"Creating pdb template": {
-			SourceFile: "k8s/kubernetes-poddisruptionbudget.yml.tpl",
-			DestFile:   "k8s/${app.name}-pdb.yml.tpl",
+			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
+			DestFile:   "deployments/${app.name}-pdb.yml.tpl",
 		},
 	})
 }

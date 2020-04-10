@@ -6,3 +6,7 @@ spring.cloud:
     discovery.instanceId: local
   vault:
     host: ${remote.service.address}
+
+spring.zipkin.base-url: http://${remote.service.address}:9411/
+trace.reporter:
+  url: ${spring.zipkin.base-url}api/v1/spans

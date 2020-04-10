@@ -17,7 +17,7 @@ func DockerBuild(args []string) error {
 	return exec.ExecutePipes(exec.ExecSimple(
 		"docker", "build",
 		"-t", dockerImageName(),
-		"-f", "docker/Dockerfile",
+		"-f", BuildConfig.Docker.Dockerfile,
 		"--build-arg", "BUILDER_FLAGS",
 		"--build-arg", "BUILD_FLAGS",
 		"--build-arg", "BASE_IMAGE="+dockerBaseImage(),

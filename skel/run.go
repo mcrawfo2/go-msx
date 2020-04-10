@@ -3,31 +3,77 @@ package skel
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 const appName = "skel"
+const configFileName = ".skel.json"
 
 var logger = log.NewLogger("msx.skel")
 
 func init() {
 	rootCmd := cli.RootCmd()
-	rootCmd.Flags().Bool("list", false, "List available build targets")
-	rootCmd.PersistentFlags().StringArray("config", []string{"build.yml"}, "Specify one or more build config files")
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+
 		return GenerateSkeleton(args)
 	}
-	rootCmd.PersistentPreRunE = loadConfig
+	rootCmd.PersistentPreRunE = configure
 }
 
-func loadConfig(cmd *cobra.Command, args []string) error {
-	_, err := cmd.Root().PersistentFlags().GetStringArray("config")
-	if err != nil {
+func configure(cmd *cobra.Command, args []string) error {
+	if loaded, err := loadConfig(); err != nil {
 		return err
+	} else if loaded {
+		return nil
 	}
-	//return LoadBuildConfig(context.Background(), configFiles)
-	return nil
+
+	// Configuration a new project if no project was found
+	return ConfigureInteractive(nil)
+}
+
+func loadConfig() (bool, error) {
+	here, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
+
+	configFile := ""
+	for here != "/" {
+		hereFile := filepath.Join(here, configFileName)
+		stat, err := os.Stat(hereFile)
+		if err != nil && !os.IsNotExist(err) {
+			return false, err
+		} else if err == nil && !stat.IsDir() {
+			configFile = hereFile
+			break
+		} else {
+			err = nil
+		}
+		here = filepath.Dir(here)
+	}
+
+	if configFile == "" {
+		return false, nil
+	}
+
+	bytes, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(bytes, &skeletonConfig)
+	if err != nil {
+		return false, err
+	}
+
+	skeletonConfig.TargetParent = filepath.Dir(filepath.Dir(configFile))
+
+	return true, nil
 }
 
 func Run() {

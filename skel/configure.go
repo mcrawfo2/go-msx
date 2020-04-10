@@ -8,13 +8,13 @@ import (
 )
 
 type SkeletonConfig struct {
-	TargetParent      string `survey:"targetParent"`
-	AppName           string `survey:"appName"`
-	AppDisplayName    string `survey:"appDisplayName"`
-	AppDescription    string `survey:"appDescription"`
-	ServerPort        int    `survey:"serverPort"`
-	ServerContextPath string `survey:"serverContextPath"`
-	AppVersion        string `survey:"appVersion"`
+	TargetParent      string `survey:"targetParent" json:"-"`
+	AppName           string `survey:"appName" json:"appName"`
+	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
+	AppDescription    string `survey:"appDescription" json:"appDescription"`
+	ServerPort        int    `survey:"serverPort" json:"serverPort"`
+	ServerContextPath string `survey:"serverContextPath" json:"serverContextPath"`
+	AppVersion        string `survey:"appVersion" json:"appVersion"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {

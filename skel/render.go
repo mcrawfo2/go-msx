@@ -19,6 +19,11 @@ type Template struct {
 	DestFile   string
 }
 
+type StaticFile struct {
+	Data     []byte
+	DestFile string
+}
+
 func variables() map[string]string {
 	return map[string]string{
 		"app.name":           skeletonConfig.AppName,
@@ -30,6 +35,36 @@ func variables() map[string]string {
 		"kubernetes.group":   "platformms",
 		"target.dir":         skeletonConfig.TargetDirectory(),
 	}
+}
+
+func writeStaticFiles(files map[string]StaticFile) error {
+	for message, static := range files {
+		logger.Infof("- %s (%s)", message, static.DestFile)
+		err := writeStatic(static)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeStatic(static StaticFile) (err error) {
+	variableValues := variables()
+
+	destFile := static.DestFile
+	if destFile == "" {
+		return errors.New("Static file missing destination filename")
+	}
+	destFile = substituteVariables(destFile, variableValues)
+
+	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
+	targetDirectory := path.Dir(targetFileName)
+	err = os.MkdirAll(targetDirectory, 0755)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(targetFileName, static.Data, 0644)
 }
 
 func renderTemplates(templates map[string]Template) error {

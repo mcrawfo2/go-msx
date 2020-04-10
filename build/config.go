@@ -51,6 +51,7 @@ var (
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",
 		"kubernetes.group":             "platformms",
+		"docker.dockerfile":            "docker/Dockerfile", // TODO: v1.0.0: switch to default 'build/package/Dockerfile'
 		"docker.baseimage":             "vms-base-stretch:3.8.0-370",
 		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
 		"docker.username":              "",
@@ -130,6 +131,7 @@ type Manifest struct {
 }
 
 type Docker struct {
+	Dockerfile string
 	BaseImage  string
 	Repository string
 	Username   string

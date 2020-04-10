@@ -4,6 +4,8 @@ executable:
     - bootstrap.yml
     - ${app.name}.production.yml
 
+docker.dockerfile: build/package/Dockerfile
+
 msx:
   release: ${app.version}
   platform:
