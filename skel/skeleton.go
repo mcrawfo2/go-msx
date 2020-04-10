@@ -171,7 +171,7 @@ func GenerateGoland(args []string) error {
 }
 
 func GenerateVsCode(args []string) error {
-	logger.Info("Generating Goland project")
+	logger.Info("Generating VSCode project")
 	return renderTemplates(map[string]Template{
 		"Creating launch configurations": {
 			SourceFile: "vscode/launch.json",
