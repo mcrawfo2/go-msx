@@ -1,0 +1,134 @@
+def REPO_NAME = '${app.name}'
+def VMSBLD_CREDENTIALS = '06702990-d4e7-4a80-beaa-6d407896feff'
+def GITHUB_CREDENTIALS = 'bbac707a-a6ff-43eb-8907-840ef4227f02'
+def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
+def SONARQUBE_INSTALLATION = 'GPK SonarQube'
+def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
+
+pipeline {
+
+    agent {
+        label env.SLAVE_LABEL
+    }
+
+    /* Only keep the 10 most recent builds. */
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+    }
+
+    stages {
+
+        stage('Preparation') {
+            steps {
+                deleteDir()
+
+                script {
+                    assert env.PUBLISH
+                    assert env.BUILD_NUMBER
+                    assert env.WORKSPACE
+
+                    if (env.BRANCH_NAME) {
+                        currentBuild.description = env.BRANCH_NAME + " (Manual)"
+                    } else if (env.sha1) {
+                        // When called from GitHub PR Builder
+                        env.BRANCH_NAME = env.sha1
+                    } else if (env.GIT_BRANCH) {
+                        // When called from GitHub Push Notifier
+                        env.BRANCH_NAME = env.GIT_BRANCH.replaceAll("origin/", "")
+                        currentBuild.description = env.BRANCH_NAME + " (Push)"
+                    }
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+
+                checkout([
+                    $class                           : 'GitSCM',
+                    branches                         : [[name: env.BRANCH_NAME]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions                       : [[
+                        $class: 'RelativeTargetDirectory',
+                        relativeTargetDir: REPO_NAME,
+                    ]],
+                    userRemoteConfigs                : [[
+                        credentialsId: VMSBLD_CREDENTIALS,
+                        url          : "git@cto-github.cisco.com:NFV-BU/${REPO_NAME}.git",
+                        refspec:       '+refs/pull/*:refs/remotes/origin/pr/* +refs/heads/*:refs/remotes/origin/*'
+                    ]]
+                ])
+
+            }
+        }
+
+        stage('Perform Build') {
+            steps {
+                sshagent([VMSBLD_CREDENTIALS]) {
+                    withEnv([
+                        "GOPATH=${env.WORKSPACE}/go",
+                        "PATH+GOBIN=${env.WORKSPACE}/go/bin",
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                    ]) { dir ("$WORKSPACE") {
+                        sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
+                        sh 'make test'
+                        sh "make docker BUILD_FLAGS='$BUILD_FLAGS'"
+                    }}
+                }
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") {
+
+                    junit 'test/junit-report.xml'
+
+                    publishCoverage adapters: [coberturaAdapter('test/cobertura-coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+
+
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                        withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
+                            script {
+                                def sonarProperties = [
+                                    'userHome': env.WORKSPACE,
+                                    'links.ci': env.JOB_URL,
+                                    'branch.name': env.BRANCH_NAME,
+                                    'github.oauth': env.GITHUB_ACCESS_TOKEN,
+                                ]
+
+                                if (env.BRANCH_NAME != 'develop' && env.BRANCH_NAME != 'master') {
+                                    sonarProperties['analysis.mode'] = 'preview'
+                                    sonarProperties['preview.excludePlugins'] = 'devcockpit,jira,pdfreport,views,report,buildstability,scmactivity'
+                                    sonarProperties['branch.target'] = env.ghprbTargetBranch
+                                }
+
+                                def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                                def sonarCommand = "$sonarHome/bin/sonar-scanner"
+                                sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
+                                sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
+                                sh sonarCommand
+                            }
+                        }
+                    }
+                }}
+
+            }
+        }
+
+        stage('Publish Artifacts') {
+            steps {
+                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") {
+
+                    script {
+                        if (env.PUBLISH == 'true') {
+                            sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
+                        }
+                    }
+
+                }}
+            }
+        }
+
+    }
+}

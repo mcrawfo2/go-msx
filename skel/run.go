@@ -19,7 +19,6 @@ var logger = log.NewLogger("msx.skel")
 func init() {
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
-
 		return GenerateSkeleton(args)
 	}
 	rootCmd.PersistentPreRunE = configure

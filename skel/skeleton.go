@@ -12,10 +12,12 @@ func init() {
 	AddTarget("generate-skel-json", "Create the skel configuration file", GenerateSkelJson)
 	AddTarget("generate-build", "Create the build command and configuration", GenerateBuild)
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
+	AddTarget("generate-local", "Create the local profiles", GenerateLocal)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
+	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
 	AddTarget("add-go-msx-dependency", "Add go-msx dependency", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
@@ -25,11 +27,13 @@ func GenerateSkeleton(args []string) error {
 		"generate-skel-json",
 		"generate-build",
 		"generate-app",
+		"generate-local",
 		"add-go-msx-dependency",
 		"generate-manifest",
 		"generate-dockerfile",
 		"generate-goland",
 		"generate-kubernetes",
+		"generate-jenkins",
 		"generate-git")
 }
 
@@ -70,6 +74,25 @@ func GenerateInstallerManifest(args []string) error {
 	})
 }
 
+func GenerateJenkinsCi(args []string) error {
+	logger.Info("Generating Jenkins CI")
+	return renderTemplates(map[string]Template{
+		"Creating Jenkinsfile":        {SourceFile: "build/ci/Jenkinsfile"},
+		"Creating sonar config":       {SourceFile: "build/ci/sonar-project.properties"},
+		"Creating Jenkins job config": {SourceFile: "build/ci/config.xml"},
+	})
+}
+
+func GenerateLocal(args []string) error {
+	logger.Info("Generating local profiles")
+	return renderTemplates(map[string]Template{
+		"Creating remote profile": {
+			SourceFile: "local/profile.remote.yml",
+			DestFile:   "local/${app.name}.remote.yml",
+		},
+	})
+}
+
 func GenerateApp(args []string) error {
 	logger.Info("Generating application")
 	return renderTemplates(map[string]Template{
@@ -82,10 +105,6 @@ func GenerateApp(args []string) error {
 		"Creating production profile": {
 			SourceFile: "cmd/app/profile.production.yml",
 			DestFile:   "cmd/app/${app.name}.production.yml",
-		},
-		"Creating remote profile": {
-			SourceFile: "local/profile.remote.yml",
-			DestFile:   "local/${app.name}.remote.yml",
 		},
 		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
 	})

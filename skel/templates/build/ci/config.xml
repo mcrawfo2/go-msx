@@ -1,0 +1,151 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<flow-definition plugin="workflow-job@2.37">
+    <actions>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction
+                plugin="pipeline-model-definition@1.6.0"/>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction
+                plugin="pipeline-model-definition@1.6.0">
+            <jobProperties>
+                <string>jenkins.model.BuildDiscarderProperty</string>
+            </jobProperties>
+            <triggers/>
+            <parameters/>
+            <options/>
+        </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+    </actions>
+    <description/>
+    <keepDependencies>false</keepDependencies>
+    <properties>
+        <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.14"/>
+        <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
+            <useBuildBlocker>false</useBuildBlocker>
+            <blockLevel>GLOBAL</blockLevel>
+            <scanQueueFor>DISABLED</scanQueueFor>
+            <blockingJobs/>
+        </hudson.plugins.buildblocker.BuildBlockerProperty>
+        <jenkins.model.BuildDiscarderProperty>
+            <strategy class="hudson.tasks.LogRotator">
+                <daysToKeep>-1</daysToKeep>
+                <numToKeep>10</numToKeep>
+                <artifactDaysToKeep>-1</artifactDaysToKeep>
+                <artifactNumToKeep>10</artifactNumToKeep>
+            </strategy>
+        </jenkins.model.BuildDiscarderProperty>
+        <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.25.1">
+            <doNotScan>true</doNotScan>
+        </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
+        <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.5">
+            <projectUrl>https://cto-github.cisco.com/NFV-BU/${app.name}/</projectUrl>
+            <displayName/>
+        </com.coravy.hudson.plugins.github.GithubProjectProperty>
+        <com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty plugin="ownership@0.12.1"/>
+        <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+            <autoRebuild>false</autoRebuild>
+            <rebuildDisabled>false</rebuildDisabled>
+        </com.sonyericsson.rebuild.RebuildSettings>
+        <com.synopsys.arc.jenkinsci.plugins.jobrestrictions.jobs.JobRestrictionProperty plugin="job-restrictions@0.8"/>
+        <hudson.model.ParametersDefinitionProperty>
+            <parameterDefinitions>
+                <hudson.model.StringParameterDefinition>
+                    <name>BRANCH_NAME</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+                <hudson.model.BooleanParameterDefinition>
+                    <name>PUBLISH</name>
+                    <description/>
+                    <defaultValue>false</defaultValue>
+                </hudson.model.BooleanParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>SLAVE_LABEL</name>
+                    <description/>
+                    <defaultValue>dev-vm</defaultValue>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+            </parameterDefinitions>
+        </hudson.model.ParametersDefinitionProperty>
+        <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.2">
+            <maxConcurrentPerNode>0</maxConcurrentPerNode>
+            <maxConcurrentTotal>0</maxConcurrentTotal>
+            <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+            <throttleEnabled>false</throttleEnabled>
+            <throttleOption>project</throttleOption>
+            <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+            <paramsToUseForLimit/>
+        </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+
+        <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+            <triggers>
+                <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.42.0">
+                    <spec>H/5 * * * *</spec>
+                    <configVersion>3</configVersion>
+                    <adminlist>nfv-admin-gen</adminlist>
+                    <allowMembersOfWhitelistedOrgsAsAdmin>false</allowMembersOfWhitelistedOrgsAsAdmin>
+                    <orgslist/>
+                    <cron>H/5 * * * *</cron>
+                    <buildDescTemplate/>
+                    <onlyTriggerPhrase>false</onlyTriggerPhrase>
+                    <useGitHubHooks>false</useGitHubHooks>
+                    <permitAll>false</permitAll>
+                    <whitelist/>
+                    <autoCloseFailedPullRequests>false</autoCloseFailedPullRequests>
+                    <displayBuildErrorsOnDownstreamBuilds>false</displayBuildErrorsOnDownstreamBuilds>
+                    <whiteListTargetBranches>
+                        <org.jenkinsci.plugins.ghprb.GhprbBranch>
+                            <branch/>
+                        </org.jenkinsci.plugins.ghprb.GhprbBranch>
+                    </whiteListTargetBranches>
+                    <blackListTargetBranches>
+                        <org.jenkinsci.plugins.ghprb.GhprbBranch>
+                            <branch/>
+                        </org.jenkinsci.plugins.ghprb.GhprbBranch>
+                    </blackListTargetBranches>
+                    <gitHubAuthId>5eb29d4c-e6a0-4971-8a60-3cc5ea9fcf3b</gitHubAuthId>
+                    <triggerPhrase/>
+                    <skipBuildPhrase>.*\[skip\W+ci\].*</skipBuildPhrase>
+                    <blackListCommitAuthor/>
+                    <blackListLabels/>
+                    <whiteListLabels/>
+                    <includedRegions/>
+                    <excludedRegions/>
+                    <extensions>
+                        <org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
+                            <commitStatusContext/>
+                            <triggeredStatus/>
+                            <startedStatus/>
+                            <statusUrl/>
+                            <addTestResults>false</addTestResults>
+                        </org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
+                    </extensions>
+                </org.jenkinsci.plugins.ghprb.GhprbTrigger>
+                <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.5">
+                    <spec/>
+                </com.cloudbees.jenkins.GitHubPushTrigger>
+            </triggers>
+        </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+    </properties>
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.80">
+        <scm class="hudson.plugins.git.GitSCM" plugin="git@4.2.2">
+            <configVersion>2</configVersion>
+            <userRemoteConfigs>
+                <hudson.plugins.git.UserRemoteConfig>
+                    <url>git@cto-github.cisco.com:NFV-BU/${app.name}.git</url>
+                    <credentialsId>06702990-d4e7-4a80-beaa-6d407896feff</credentialsId>
+                </hudson.plugins.git.UserRemoteConfig>
+            </userRemoteConfigs>
+            <branches>
+                <hudson.plugins.git.BranchSpec>
+                    <name>*/master</name>
+                </hudson.plugins.git.BranchSpec>
+            </branches>
+            <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+            <submoduleCfg class="list"/>
+            <extensions/>
+        </scm>
+        <scriptPath>build/ci/Jenkinsfile</scriptPath>
+        <lightweight>true</lightweight>
+    </definition>
+    <triggers/>
+    <disabled>false</disabled>
+</flow-definition>
