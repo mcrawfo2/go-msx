@@ -12,7 +12,7 @@ type StatusCodeProvider interface {
 }
 
 type statusCodeProviderImpl struct {
-	body interface{}
+	body       interface{}
 	statusCode int
 }
 
@@ -25,7 +25,7 @@ func (s statusCodeProviderImpl) MarshalJSON() ([]byte, error) {
 }
 
 func NewStatusCodeProvider(body interface{}, status int) StatusCodeProvider {
-	return statusCodeProviderImpl{body:body, statusCode:status}
+	return statusCodeProviderImpl{body: body, statusCode: status}
 }
 
 type StatusError struct {

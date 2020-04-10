@@ -6,6 +6,7 @@ import (
 )
 
 var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 const suffixCharset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func RandString(length int) string {

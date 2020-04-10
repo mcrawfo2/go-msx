@@ -87,6 +87,6 @@ func (n *IntransientPublisher) Close() error {
 
 func NewIntransientPublisher(publisher Publisher) Publisher {
 	return &IntransientPublisher{
-		publisher:publisher,
+		publisher: publisher,
 	}
 }

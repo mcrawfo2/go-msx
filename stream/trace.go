@@ -46,7 +46,7 @@ func TraceActionInterceptor(cfg *BindingConfiguration, action ListenerAction) Li
 
 type TracePublisher struct {
 	publisher Publisher
-	cfg *BindingConfiguration
+	cfg       *BindingConfiguration
 }
 
 func (t *TracePublisher) Publish(msg *message.Message) error {
