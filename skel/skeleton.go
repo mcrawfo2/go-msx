@@ -15,6 +15,7 @@ func init() {
 	AddTarget("generate-local", "Create the local profiles", GenerateLocal)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
+	AddTarget("generate-vscode", "Create a VSCode project for the application", GenerateVsCode)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
@@ -165,6 +166,20 @@ func GenerateGoland(args []string) error {
 		"Creating run configuration: remote": {
 			SourceFile: "idea/runConfigurations/project__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__remote_.xml",
+		},
+	})
+}
+
+func GenerateVsCode(args []string) error {
+	logger.Info("Generating Goland project")
+	return renderTemplates(map[string]Template{
+		"Creating launch configurations": {
+			SourceFile: "vscode/launch.json",
+			DestFile:   ".vscode/launch.json",
+		},
+		"Creating task configurations": {
+			SourceFile: "vscode/tasks.json",
+			DestFile:   ".vscode/tasks.json",
 		},
 	})
 }
