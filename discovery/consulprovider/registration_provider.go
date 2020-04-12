@@ -56,6 +56,7 @@ type RegistrationProviderConfig struct {
 	HealthCheckTimeout  time.Duration `config:"default=2s"`
 	Tags                string        `config:"default="`
 	InstanceId          string        `config:"default=local"` // uuid, hostname, or any static string
+	InstanceName        string        `config:"default=${info.app.name}"`
 }
 
 type AppRegistrationDetails struct {
@@ -233,7 +234,15 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 		return nil, errors.New("Registration name not configured")
 	}
 
-	result.InstanceId = result.Name + "-" + instanceIdSuffix
+	var instanceIdPrefix string
+	switch {
+	case rpConfig.InstanceName != "":
+		instanceIdPrefix = rpConfig.InstanceName
+	case rpConfig.Name != "":
+		instanceIdPrefix = rpConfig.Name
+	}
+
+	result.InstanceId = instanceIdPrefix + "-" + instanceIdSuffix
 
 	if result.Description, err = cfg.String(ConfigKeyInfoAppDescription); err != nil {
 		return nil, err
