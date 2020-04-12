@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"github.com/pkg/errors"
 	"net/http"
@@ -179,6 +180,7 @@ func newProviders(name string, cfg *config.Config) ([]config.Provider, error) {
 func init() {
 	OnEvent(EventConfigure, PhaseBefore, registerRemoteConfigProviders)
 	OnEvent(EventConfigure, PhaseDuring, loadConfig)
+	OnEvent(EventConfigure, PhaseDuring, applyLoggingConfig)
 	OnEvent(EventStart, PhaseAfter, watchConfig)
 }
 
@@ -294,6 +296,22 @@ func loadConfig(ctx context.Context) (err error) {
 	contextInjectors.Register(func(ctx context.Context) context.Context {
 		return config.ContextWithConfig(ctx, applicationConfig)
 	})
+
+	return nil
+}
+
+func applyLoggingConfig(ctx context.Context) error {
+	settings := config.FromContext(ctx).Settings()
+	prefix := "logger."
+	n := len(prefix)
+	for k, v := range settings {
+		if len(k) <= len(prefix) || !strings.HasPrefix(k, prefix) {
+			continue
+		}
+		loggerName := k[n:]
+		loggerLevel := log.LevelFromName(v)
+		log.SetLoggerLevel(loggerName, loggerLevel)
+	}
 
 	return nil
 }
