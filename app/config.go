@@ -309,7 +309,7 @@ func applyLoggingConfig(ctx context.Context) error {
 			continue
 		}
 		loggerName := k[n:]
-		loggerLevel := log.LevelFromName(v)
+		loggerLevel := log.LevelFromName(strings.ToUpper(v))
 		log.SetLoggerLevel(loggerName, loggerLevel)
 	}
 
