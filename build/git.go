@@ -11,10 +11,17 @@ func init() {
 
 func GitTag(args []string) error {
 	tag := BuildConfig.FullBuildNumber()
+
+	logger.Infof("Applying git build tag %q", BuildConfig.FullBuildNumber())
+
 	return exec.ExecutePipes(
-		pipe.Exec("git", "tag", "-d", tag),
-		pipe.Exec("git", "push", "--delete", "origin", tag),
-		pipe.Exec("git", "tag", "-a", tag),
-		pipe.Exec("git", "push", "origin", tag),
+		exec.Info("Removing existing remote tag (if exists)"),
+		pipe.Exec("git", "push", "origin", ":refs/tags/" + tag),
+
+		exec.Info("Recreating local tag"),
+		pipe.Exec("git", "tag", "-fa", tag, "-m", "automatic build tag"),
+
+		exec.Info("Pushing local tag to remote repository"),
+		pipe.Exec("git", "push", "origin", "refs/tags/" + tag),
 	)
 }
