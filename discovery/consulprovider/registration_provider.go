@@ -25,7 +25,6 @@ const (
 	InstanceIdUuid     = "uuid"
 	InstanceIdHostname = "hostname"
 
-	ConfigKeyInfoAppName                  = "info.app.name"
 	ConfigKeyInfoAppDescription           = "info.app.description"
 	ConfigKeyInfoAppAttributesDisplayName = "info.app.attributes.displayName"
 	ConfigKeyInfoAppAttributesParent      = "info.app.attributes.parent"
@@ -46,6 +45,7 @@ var (
 
 type RegistrationProviderConfig struct {
 	Enabled             bool          `config:"default=false"`
+	Name                string        `config:"default=${info.app.name}"`
 	Register            bool          `config:"default=true"`
 	IpAddress           string        `config:"default="`
 	Interface           string        `config:"default="`
@@ -228,8 +228,9 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 		return nil, err
 	}
 
-	if result.Name, err = cfg.String(ConfigKeyInfoAppName); err != nil {
-		return nil, err
+	result.Name = rpConfig.Name
+	if result.Name == "" {
+		return nil, errors.New("Registration name not configured")
 	}
 
 	result.InstanceId = result.Name + "-" + instanceIdSuffix
