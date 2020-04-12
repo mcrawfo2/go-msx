@@ -8,7 +8,8 @@ import (
 
 type Logger struct {
 	ParentLogger
-	fields logrus.Fields
+	fields        logrus.Fields
+	levelListener func()
 }
 
 type StdLogger logrus.StdLogger
@@ -263,10 +264,17 @@ func (logger *Logger) SetLevel(level logrus.Level) {
 	logger.ParentLogger.SetLevel(level)
 	name := logger.fields[FieldName].(string)
 	levels[name] = level
+	if logger.levelListener != nil {
+		logger.levelListener()
+	}
 }
 
 func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
 	return logger.ParentLogger.GetLevel() >= level
+}
+
+func (logger *Logger) OnLevelChange(fn func()) {
+	logger.levelListener = fn
 }
 
 func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
