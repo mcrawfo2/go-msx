@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"github.com/shurcooL/vfsgen"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -54,7 +55,12 @@ func generateCodePathVfs(p Generate) (err error) {
 		return err
 	}
 
-	fileName := path.Join(root, p.Path, p.VfsGen.Filename)
+	projectRoot, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	fileName := path.Join(projectRoot, p.Path, p.VfsGen.Filename)
 
 	packageName := path.Base(p.Path)
 	return vfsgen.Generate(targetFs, vfsgen.Options{
