@@ -122,6 +122,7 @@ pipeline {
 
                     script {
                         if (env.PUBLISH == 'true') {
+                            sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
                             sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
                         }
                     }

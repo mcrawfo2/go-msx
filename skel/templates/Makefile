@@ -1,6 +1,6 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: test dist docker publish clean precommit
+.PHONY: test dist docker docker-publish publish clean precommit tag
 
 test:
 	$(BUILDER) download-test-deps
@@ -35,3 +35,6 @@ clean:
 precommit:
 	$(BUILDER) generate
 	$(BUILDER) go-fmt
+
+tag:
+	$(BUILDER) git-tag
