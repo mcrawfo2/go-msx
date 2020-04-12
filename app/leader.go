@@ -16,7 +16,7 @@ func registerLeadershipProvider(ctx context.Context) error {
 	logger.Info("Registering consul leadership provider")
 	leadershipProvider, err := consulprovider.NewLeadershipProvider(ctx)
 	if err == consulprovider.ErrDisabled {
-		logger.Error(err)
+		logger.Info(err)
 	} else if err != nil {
 		return err
 	} else if leadershipProvider != nil {
