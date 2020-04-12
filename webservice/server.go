@@ -231,6 +231,10 @@ func (s *WebServer) Serve(ctx context.Context) error {
 }
 
 func (s *WebServer) StopServing(ctx context.Context) error {
+	if s.server == nil {
+		return nil
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.server.Shutdown(ctx)
