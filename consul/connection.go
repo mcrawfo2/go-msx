@@ -84,6 +84,54 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 	return results, nil
 }
 
+func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte, err error) {
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetKeyValue)
+	defer span.Finish()
+
+	err = c.stats.Observe(statsApiGetKeyValue, path, func() error {
+		queryOptions := &api.QueryOptions{}
+		data, _, err := c.client.KV().Get(path, queryOptions.WithContext(ctx))
+		if err != nil {
+			return err
+		} else if data == nil {
+			logger.Warningf("No kv pair retrieved from consul %q: %s", c.Host(), path)
+			value = nil
+		} else {
+			logger.Infof("Retrieved kv pair from consul %q: %s", c.Host(), path)
+			value = data.Value
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+func (c *Connection) SetKeyValue(ctx context.Context, path string, value []byte) (err error) {
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiSetKeyValue)
+	defer span.Finish()
+
+	return c.stats.Observe(statsApiSetKeyValue, path, func() error {
+		kvPair := &api.KVPair{
+			Key:   path,
+			Value: value,
+		}
+
+		writeOptions := &api.WriteOptions{}
+		_, err := c.client.KV().Put(kvPair, writeOptions.WithContext(ctx))
+		if err != nil {
+			return err
+		}
+
+		logger.Infof("Stored kv pair to consul %q: %s", c.Host(), path)
+		return nil
+	})
+}
+
 func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetServiceInstances)
 	defer span.Finish()

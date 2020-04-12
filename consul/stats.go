@@ -13,6 +13,8 @@ const (
 	statsGaugeConsulRegisteredServices = "registrations"
 
 	statsApiListKeyValuePairs      = "list-kv-pairs"
+	statsApiGetKeyValue            = "get-kv"
+	statsApiSetKeyValue            = "set-kv"
 	statsApiGetServiceInstances    = "get-service-instances"
 	statsApiGetAllServiceInstances = "get-all-service-instances"
 	statsApiRegisterService        = "register-service"
