@@ -31,6 +31,7 @@ type ConnectionConfig struct {
 	Version                string   `config:"default=2.0.1"`
 	ClientId               string   `config:"default=sarama"`
 	Enabled                bool     `config:"default=false"`
+	Partitioner            string   `config:"default=hash"`
 }
 
 func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
@@ -59,6 +60,17 @@ func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
 		saramaConfig.Version = *kafkaVersion
 	} else {
 		return nil, errors.Wrap(err, "Failed to find supported kafka version")
+	}
+
+	switch c.Partitioner {
+	case "hash":
+		saramaConfig.Producer.Partitioner = sarama.NewHashPartitioner
+	case "roundrobin":
+		saramaConfig.Producer.Partitioner = sarama.NewRoundRobinPartitioner
+	case "random":
+		saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
+	case "manual":
+		saramaConfig.Producer.Partitioner = sarama.NewManualPartitioner
 	}
 
 	return saramaConfig, nil
