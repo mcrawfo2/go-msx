@@ -123,15 +123,17 @@ func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restfu
 		}
 
 		// Factor out contextPath into basePath
-		newPaths := make(map[string]spec.PathItem)
-		for path, pathItem := range swagger.Paths.Paths {
-			if strings.HasPrefix(path, contextPath) {
-				path = strings.TrimPrefix(path, contextPath)
+		if contextPath != "/" {
+			newPaths := make(map[string]spec.PathItem)
+			for path, pathItem := range swagger.Paths.Paths {
+				if strings.HasPrefix(path, contextPath) {
+					path = strings.TrimPrefix(path, contextPath)
+				}
+				newPaths[path] = pathItem
 			}
-			newPaths[path] = pathItem
+			swagger.Paths.Paths = newPaths
+			swagger.BasePath = contextPath
 		}
-		swagger.Paths.Paths = newPaths
-		swagger.BasePath = contextPath
 
 		// Sort tags
 		sort.Slice(swagger.Tags, func(i, j int) bool {
