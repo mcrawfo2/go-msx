@@ -143,3 +143,9 @@ func init() {
 This will register your controller during normal microservice startup.  Since it
 is only registering for `CommandRoot`, it will not be created during `migrate`, 
 `populate` or other custom command execution.
+
+To ensure your module is included in the built microservice, include the module from your `main.go`:
+
+```go
+import _ "cto-github.cisco.com/NFV-BU/productservice/internal/products"
+```
