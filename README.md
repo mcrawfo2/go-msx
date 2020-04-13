@@ -21,7 +21,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
       Execute the following commands:
         ```bash
         export GOPATH=~/go
-        export PATH=$PATH:$(go env GOPATH)/bin
+        export PATH=$PATH:$GOPATH/bin
         ```
 
     - Be sure to set your Go proxy settings correctly.  For example:
@@ -85,7 +85,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 ### Application Components
 * Web Service
-    * [Controller](#)
+    * [Controller](webservice/controller.md)
     * [Filter](#)
 
 * Persistence
