@@ -131,9 +131,10 @@ In order to instantiate your controller during application startup, you can regi
 func init() {
 	app.OnEvent(app.EventCommand, app.CommandRoot, func(ctx context.Context) error {
 		app.OnEvent(app.EventStart, app.PhaseBefore, func(ctx context.Context) error {
+			controller := newProductController(ctx)
 			return webservice.
 				WebServerFromContext(ctx).
-				RestService(pathRoot, newProductController(ctx))
+				RegisterRestController(pathRoot, controller)
 		})
 		return nil
 	})

@@ -252,6 +252,15 @@ func (s *WebServer) RegisterActuator(provider ServiceProvider) {
 	}
 }
 
+func (s *WebServer) RegisterRestController(path string, controller RestController) (err error) {
+	svc, err := s.NewService(path)
+	if err != nil {
+		return err
+	}
+	controller.Routes(svc)
+	return nil
+}
+
 func (s *WebServer) SetAuthenticationProvider(provider AuthenticationProvider) {
 	if provider != nil {
 		s.security = provider
