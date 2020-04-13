@@ -22,6 +22,7 @@ var logger = log.NewLogger("build")
 const (
 	// build.yml
 	configRootMsx        = "msx"
+	configRootLibrary    = "library"
 	configRootExecutable = "executable"
 	configRootBuild      = "build"
 	configRootDocker     = "docker"
@@ -60,6 +61,7 @@ var (
 		"go.env.all.GOPROXY":           "https://proxy.golang.org,direct",
 		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro"`,
 		"go.env.darwin.GOFLAGS":        `-i`,
+		"library.name":                 "",
 	}
 )
 
@@ -83,6 +85,10 @@ func (p Server) PortString() string {
 type Executable struct {
 	Cmd         string // refers to `cmd/<name>/main.go`
 	ConfigFiles []string
+}
+
+type Library struct {
+	Name string
 }
 
 type Go struct {
@@ -163,6 +169,7 @@ type Resources struct {
 
 type Config struct {
 	Timestamp  time.Time
+	Library    Library
 	Msx        MsxParams
 	Go         Go
 	Executable Executable
@@ -224,42 +231,12 @@ func newHttpFileProviders(name string, fs http.FileSystem, files []string) []con
 	return providers
 }
 
-func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
-	var providers = []config.Provider{
-		config.NewStatic("defaults", defaultConfigs),
-	}
-
-	defaultFiles := appconfig.FindConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
-	defaultFilesProviders := newHttpFileProviders("Defaults", resource.Defaults, defaultFiles)
-	providers = append(providers, defaultFilesProviders...)
-
-	for _, configFile := range configFiles {
-		fileProvider := config.NewFileProvider("Build", configFile)
-		providers = append(providers, fileProvider)
-	}
-
-	envProvider := config.NewEnvironment("Environment")
-	providers = append(providers, envProvider)
-
-	cliProvider := pflagprovider.NewPflagSource("CommandLine", cli.RootCmd().Flags(), "cli.flag.")
-	providers = append(providers, cliProvider)
-
-	cfg := config.NewConfig(providers...)
-	if err = cfg.Load(ctx); err != nil {
-		return
-	}
-
-	BuildConfig.Timestamp = time.Now().UTC()
-
+func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []config.Provider) (finalConfig *config.Config, err error) {
 	if err = cfg.Populate(&BuildConfig.Msx, configRootMsx); err != nil {
 		return
 	}
 
 	if err = cfg.Populate(&BuildConfig.Executable, configRootExecutable); err != nil {
-		return
-	}
-
-	if err = cfg.Populate(&BuildConfig.Go, configRootGo); err != nil {
 		return
 	}
 
@@ -305,12 +282,58 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		return
 	}
 
+	if err = cfg.Populate(&BuildConfig.Resources, configRootResources); err != nil {
+		return
+	}
+
+	return cfg, nil
+}
+
+func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
+	var providers = []config.Provider{
+		config.NewStatic("defaults", defaultConfigs),
+	}
+
+	defaultFiles := appconfig.FindConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
+	defaultFilesProviders := newHttpFileProviders("Defaults", resource.Defaults, defaultFiles)
+	providers = append(providers, defaultFilesProviders...)
+
+	for _, configFile := range configFiles {
+		fileProvider := config.NewFileProvider("Build", configFile)
+		providers = append(providers, fileProvider)
+	}
+
+	envProvider := config.NewEnvironment("Environment")
+	providers = append(providers, envProvider)
+
+	cliProvider := pflagprovider.NewPflagSource("CommandLine", cli.RootCmd().Flags(), "cli.flag.")
+	providers = append(providers, cliProvider)
+
+	cfg := config.NewConfig(providers...)
+	if err = cfg.Load(ctx); err != nil {
+		return
+	}
+
+	BuildConfig.Timestamp = time.Now().UTC()
+
+	if err = cfg.Populate(&BuildConfig.Library, configRootLibrary); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Go, configRootGo); err != nil {
+		return
+	}
+
 	if err = cfg.Populate(&BuildConfig.Generate, configRootGenerate); err != nil {
 		return
 	}
 
-	if err = cfg.Populate(&BuildConfig.Resources, configRootResources); err != nil {
-		return
+	if BuildConfig.Library.Name == "" {
+		if newCfg, err := LoadAppBuildConfig(ctx, cfg, providers); err != nil {
+			return err
+		} else {
+			cfg = newCfg
+		}
 	}
 
 	if BuildConfig.Fs, err = fs.NewFileSystemConfig(cfg); err != nil {
