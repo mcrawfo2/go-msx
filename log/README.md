@@ -26,7 +26,7 @@ To use a logger with a custom name:
 var logger = log.NewLogger("alert.api")
 ```
 
-To create a levelled logger, which outputs Print at the defined log level:
+To create a levelled logger, which outputs print at the defined log level:
 
 ```go
 debugLogger := logger.Level(log.DebugLevel)
@@ -80,13 +80,54 @@ func HandleGetTenantRequest(tenantId string) {
 
 ## Configuration
 
-Output configuration is done directly with logrus:
+### Logging Levels
+
+MSX Logging defines the following log levels:
+
+- Trace
+- Debug
+- Info
+- Warn
+- Error
+- Panic
+- Fatal
+
+A logging level filter can be set globally:
 
 ```go
-import "github.com/sirupsen/logrus"
+log.SetLevel(log.WarnLevelName)
+```
 
-// Log as JSON instead of the default ASCII formatter.
-logrus.SetFormatter(&logrus.JSONFormatter{})
+This will ensure all loggers not configured at a more strict level only output messages with a level of `WARN` or above.
+
+An individual logger (and its sub-loggers) can be set to a minimum level:
+
+```go
+logger = log.NewLogger("msx.beats")
+logger.SetLevel(log.LevelByName(log.InfoLevelName)))
+```
+
+Configuration (eg. command line options) can be used to set a logger minimum level:
+
+```bash
+myapp --logger.msx.beats=debug
+```
+
+This will set the minimum level of the `msx.beats` logger tree to `DEBUG` after
+the application configuration has been loaded.
+
+### Output Format
+
+Output can be switched to JSON formatting:
+
+```go
+log.SetFormat(log.LogFormatJson)
+```
+
+And back to LogFmt formatting:
+
+```go
+log.SetFormat(log.LogFormatLogFmt)
 ```
 
 By default, all output is sent to standard output, with high-resolution

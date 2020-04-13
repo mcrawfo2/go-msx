@@ -3,7 +3,13 @@ package log
 import (
 	"github.com/sirupsen/logrus"
 	"os"
+	"strings"
 	"time"
+)
+
+const (
+	LogFormatJson = "json"
+	LogFormatLogFmt = "logfmt"
 )
 
 func init() {
@@ -11,27 +17,13 @@ func init() {
 }
 
 func SetLevel(level string) {
-	switch level {
-	case "trace":
-		logrus.SetLevel(logrus.TraceLevel)
-	case "debug":
-		logrus.SetLevel(logrus.DebugLevel)
-	case "info":
-		logrus.SetLevel(logrus.InfoLevel)
-	case "warn":
-		logrus.SetLevel(logrus.WarnLevel)
-	case "error":
-		logrus.SetLevel(logrus.ErrorLevel)
-	case "fatal":
-		logrus.SetLevel(logrus.FatalLevel)
-	case "panic":
-		logrus.SetLevel(logrus.PanicLevel)
-	}
+	logLevel := LevelFromName(strings.ToUpper(level))
+	logrus.SetLevel(logLevel)
 }
 
 func SetFormat(format string) {
 	switch format {
-	case "json":
+	case LogFormatJson:
 		logrus.SetFormatter(&logrus.JSONFormatter{
 			PrettyPrint:     true,
 			TimestampFormat: time.RFC3339Nano,
