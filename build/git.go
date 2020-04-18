@@ -16,12 +16,12 @@ func GitTag(args []string) error {
 
 	return exec.ExecutePipes(
 		exec.Info("Removing existing remote tag (if exists)"),
-		pipe.Exec("git", "push", "origin", ":refs/tags/" + tag),
+		pipe.Exec("git", "push", "origin", ":refs/tags/"+tag),
 
 		exec.Info("Recreating local tag"),
 		pipe.Exec("git", "tag", "-fa", tag, "-m", "automatic build tag"),
 
 		exec.Info("Pushing local tag to remote repository"),
-		pipe.Exec("git", "push", "origin", "refs/tags/" + tag),
+		pipe.Exec("git", "push", "origin", "refs/tags/"+tag),
 	)
 }

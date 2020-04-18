@@ -108,16 +108,16 @@ func (d AppRegistrationDetails) Tags() []string {
 func (d AppRegistrationDetails) Meta() map[string]string {
 	return map[string]string{
 		"buildDateTime": d.BuildDateTime,
-		"buildNumber": d.BuildNumber,
-		"context": d.contextPath(),
-		"description": d.Description,
-		"instanceUuid": d.InstanceUuid,
-		"name": d.DisplayName,
-		"parent": d.Parent,
-		"serviceName": d.Name,
-		"type": d.Type,
-		"version": d.BuildVersion,
-		"application": d.Application,
+		"buildNumber":   d.BuildNumber,
+		"context":       d.contextPath(),
+		"description":   d.Description,
+		"instanceUuid":  d.InstanceUuid,
+		"name":          d.DisplayName,
+		"parent":        d.Parent,
+		"serviceName":   d.Name,
+		"type":          d.Type,
+		"version":       d.BuildVersion,
+		"application":   d.Application,
 	}
 }
 

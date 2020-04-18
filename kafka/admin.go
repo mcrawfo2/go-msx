@@ -54,4 +54,3 @@ func CreateTopics(ctx context.Context, conn *Connection, topics ...string) (err 
 
 	return nil
 }
-

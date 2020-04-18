@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	LogFormatJson = "json"
+	LogFormatJson   = "json"
 	LogFormatLogFmt = "logfmt"
 )
 

@@ -12,8 +12,8 @@ type key int
 const (
 	logContextKey key = 0
 
-	FieldSpanId = "spanid"
-	FieldTraceId = "traceid"
+	FieldSpanId   = "spanid"
+	FieldTraceId  = "traceid"
 	FieldParentId = "parentid"
 )
 
