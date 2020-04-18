@@ -21,7 +21,10 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 	}
 
 	operationName := fmt.Sprintf("%s.receive.%s", a.cfg.Binder, a.cfg.Destination)
-	ctx, span := trace.NewSpan(msg.Context(), operationName, ext.RPCServerOption(incomingContext))
+
+	ctx, span := trace.NewSpan(msg.Context(), operationName,
+		opentracing.FollowsFrom(incomingContext),
+		ext.SpanKindConsumer)
 	defer span.Finish()
 	msg.SetContext(ctx)
 
@@ -55,7 +58,7 @@ func (t *TracePublisher) Publish(msg *message.Message) error {
 	}
 
 	operationName := fmt.Sprintf("%s.send.%s", t.cfg.Binder, t.cfg.Destination)
-	ctx, span := trace.NewSpan(msg.Context(), operationName)
+	ctx, span := trace.NewSpan(msg.Context(), operationName, ext.SpanKindProducer)
 	span.SetTag(trace.FieldDirection, "send")
 	span.SetTag(trace.FieldTopic, t.cfg.Destination)
 	span.SetTag(trace.FieldTransport, t.cfg.Binder)
