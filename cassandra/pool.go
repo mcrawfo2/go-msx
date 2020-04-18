@@ -14,16 +14,39 @@ var poolMtx sync.Mutex
 type ConnectionPool struct {
 	cfg     *ClusterConfig
 	cluster *Cluster
+	session *gocql.Session
+	sessionMtx sync.Mutex
 }
 
-func (p *ConnectionPool) WithSession(action func(*gocql.Session) error) error {
+func (p *ConnectionPool) withFreshSession(action func (*gocql.Session) error) (err error) {
 	session, err := p.cluster.CreateSession()
 	if err != nil {
 		return err
 	}
-	defer session.Close()
 
 	return action(session)
+}
+
+func (p *ConnectionPool) withPersistentSession(action func (*gocql.Session) error) (err error) {
+	p.sessionMtx.Lock()
+	defer p.sessionMtx.Unlock()
+
+	if p.session == nil || p.session.Closed() {
+		p.session, err = p.cluster.CreateSession()
+		if err != nil {
+			return err
+		}
+	}
+
+	return action(p.session)
+}
+
+func (p *ConnectionPool) WithSession(action func(*gocql.Session) error) (err error) {
+	if p.cfg.PersistentSessions {
+		return p.withPersistentSession(action)
+	} else {
+		return p.withFreshSession(action)
+	}
 }
 
 func (p *ConnectionPool) WithSessionRetry(ctx context.Context, action func(*gocql.Session) error) error {

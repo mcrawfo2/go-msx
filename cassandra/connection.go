@@ -50,16 +50,17 @@ func (o KeyspaceOptions) ReplicationOptions() map[string]string {
 }
 
 type ClusterConfig struct {
-	Enabled         bool          `config:"default=false"`
-	KeyspaceName    string        `config:"default=system"`
-	ContactPoints   string        `config:"default=localhost"` // comma separated
-	Port            int           `config:"default=9042"`
-	Username        string        `config:"default=cassandra"`
-	Password        string        `config:"default=cassandra"`
-	Timeout         time.Duration `config:"default=15s"`
-	Consistency     string        `config:"default=LOCAL_QUORUM"`
-	FullConsistency string        `config:"default=ONE"`
-	KeyspaceOptions KeyspaceOptions
+	Enabled            bool          `config:"default=false"`
+	KeyspaceName       string        `config:"default=system"`
+	ContactPoints      string        `config:"default=localhost"` // comma separated
+	Port               int           `config:"default=9042"`
+	Username           string        `config:"default=cassandra"`
+	Password           string        `config:"default=cassandra"`
+	Timeout            time.Duration `config:"default=15s"`
+	Consistency        string        `config:"default=LOCAL_QUORUM"`
+	FullConsistency    string        `config:"default=ONE"`
+	PersistentSessions bool          `config:"default=false"`
+	KeyspaceOptions    KeyspaceOptions
 }
 
 func (c ClusterConfig) Hosts() []string {
