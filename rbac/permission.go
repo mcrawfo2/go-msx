@@ -24,6 +24,8 @@ const (
 	PermissionViewScheduledTask     = "VIEW_SCHEDULE_TASK"
 	PermissionManageScheduledTask   = "MANAGE_SCHEDULE_TASK"
 	PermissionManageBulkImport      = "MANAGE_BULK_IMPORT"
+	PermissionViewAlertService      = "VIEW_ALERT_SERVICE"
+	PermissionManageAlertService    = "MANAGE_ALERT_SERVICE"
 	PermissionViewThemes            = "VIEW_THEMES"
 	PermissionManageThemes          = "MANAGE_THEMES"
 )
