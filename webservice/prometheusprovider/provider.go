@@ -9,12 +9,13 @@ import (
 
 type Provider struct{}
 
+const endpointName = "prometheus"
+
 func (h Provider) Actuate(webService *restful.WebService) error {
 	webService.Consumes(restful.MIME_JSON)
 	webService.Produces(restful.MIME_JSON)
 
-	// Not under context path
-	webService.Path("/metrics")
+	webService.Path(webService.RootPath() + "/admin/" + endpointName)
 
 	// Unsecured routes for admin
 	webService.Route(webService.GET("").
