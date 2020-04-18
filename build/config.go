@@ -59,7 +59,7 @@ var (
 		"docker.password":              "",
 		"go.env.all.GOPRIVATE":         "cto-github.cisco.com/NFV-BU",
 		"go.env.all.GOPROXY":           "https://proxy.golang.org,direct",
-		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro"`,
+		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro" -ldflags=-s -ldflags=-w`,
 		"go.env.darwin.GOFLAGS":        `-i`,
 		"library.name":                 "",
 	}
