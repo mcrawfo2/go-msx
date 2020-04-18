@@ -9,7 +9,13 @@ type LogContext logrus.Fields
 
 type key int
 
-const logContextKey key = 0
+const (
+	logContextKey key = 0
+
+	FieldSpanId = "spanid"
+	FieldTraceId = "traceid"
+	FieldParentId = "parentid"
+)
 
 func NewContextWithLogContext(ctx context.Context, logCtx LogContext) context.Context {
 	return context.WithValue(ctx, logContextKey, logCtx)
