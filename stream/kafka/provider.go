@@ -1,12 +1,14 @@
 package kafka
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	msxKafka "cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"github.com/Shopify/sarama"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -37,6 +39,15 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 
 	if bindingConfig.Producer.Sync == false {
 		saramaConfig.Producer.Return.Successes = false
+	}
+
+	if connectionConfig.AutoCreateTopics {
+		err = msxKafka.Pool().WithConnection(context.Background(), func(connection *msxKafka.Connection) error {
+			return msxKafka.CreateTopics(context.Background(), connection, streamBinding.Destination)
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to create topic")
+		}
 	}
 
 	publisher, err := kafka.NewPublisher(

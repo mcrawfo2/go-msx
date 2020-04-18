@@ -41,7 +41,9 @@ func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
 		return nil, err
 	}
 
-	conn := new(Connection)
+	conn := &Connection{
+		cfg: cfg,
+	}
 
 	if saramaClient, err := sarama.NewClient(cfg.BrokerAddresses(), saramaConfig); err != nil {
 		return nil, err
