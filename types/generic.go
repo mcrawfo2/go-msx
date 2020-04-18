@@ -58,6 +58,10 @@ func GetTypeName(instanceType reflect.Type) string {
 	case reflect.Map:
 		typeNamePrefix = "Map«" + GetTypeName(instanceType.Key()) + ","
 		typeNameSuffix = "»"
+		instanceType = instanceType.Elem()
+	}
+
+	switch instanceType.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Bool, reflect.String:
