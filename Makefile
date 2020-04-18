@@ -30,3 +30,6 @@ clean:
 precommit:
 	$(BUILDER) generate
 	$(BUILDER) go-fmt
+
+install-skel:
+	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
