@@ -89,3 +89,18 @@ func CheckDuration(value interface{}) error {
 	_, err := time.ParseDuration(valueString)
 	return err
 }
+
+func ExactlyOneOptional(err error, values ...interface{}) RuleFunc {
+	return func(value interface{}) error {
+		nonNilValues := 0
+		for _, value := range values {
+			if value != nil {
+				nonNilValues++
+			}
+		}
+		if nonNilValues != 1 {
+			return err
+		}
+		return nil
+	}
+}
