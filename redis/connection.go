@@ -17,6 +17,7 @@ const (
 
 var (
 	ErrDisabled = errors.New("Redis connection disabled")
+	ErrNotFound = redis.Nil
 	logger      = log.NewLogger("msx.redis")
 )
 
