@@ -25,6 +25,7 @@ const (
 	InstanceIdUuid     = "uuid"
 	InstanceIdHostname = "hostname"
 
+	ConfigKeyInfoAppName                  = "info.app.name"
 	ConfigKeyInfoAppDescription           = "info.app.description"
 	ConfigKeyInfoAppAttributesDisplayName = "info.app.attributes.displayName"
 	ConfigKeyInfoAppAttributesParent      = "info.app.attributes.parent"
@@ -67,6 +68,7 @@ type AppRegistrationDetails struct {
 	ContextPath    string
 	SwaggerPath    string
 	Name           string
+	Application    string
 	DisplayName    string
 	Description    string
 	Parent         string
@@ -91,15 +93,40 @@ func (d AppRegistrationDetails) Tags() []string {
 		"buildDateTime=" + d.BuildDateTime,
 		"buildNumber=" + d.BuildNumber,
 		"secure=false",
+		"application=" + d.Application,
 		"componentAttributes=" + marshalComponentAttributes(map[string]string{
 			"serviceName": d.Name,
-			"context":     strings.TrimPrefix(d.ContextPath, "/"),
+			"context":     d.contextPath(),
 			"name":        d.DisplayName,
 			"description": d.Description,
 			"parent":      d.Parent,
 			"type":        d.Type,
 		}),
 	}
+}
+
+func (d AppRegistrationDetails) Meta() map[string]string {
+	return map[string]string{
+		"buildDateTime": d.BuildDateTime,
+		"buildNumber": d.BuildNumber,
+		"context": d.contextPath(),
+		"description": d.Description,
+		"instanceUuid": d.InstanceUuid,
+		"name": d.DisplayName,
+		"parent": d.Parent,
+		"serviceName": d.Name,
+		"type": d.Type,
+		"version": d.BuildVersion,
+		"application": d.Application,
+	}
+}
+
+func (d AppRegistrationDetails) contextPath() string {
+	contextPath := path.Clean(d.ContextPath)
+	if contextPath == "/" || contextPath == "." {
+		contextPath = ""
+	}
+	return contextPath
 }
 
 type RegistrationProvider struct {
@@ -118,6 +145,10 @@ func (c *RegistrationProvider) tags() []string {
 	tags = append(tags, c.details.Tags()...)
 
 	return tags
+}
+
+func (c *RegistrationProvider) meta() map[string]string {
+	return c.details.Meta()
 }
 
 func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
@@ -142,6 +173,7 @@ func (c *RegistrationProvider) serviceRegistration() *api.AgentServiceRegistrati
 		Address: c.details.ServiceAddress,
 		Port:    c.config.Port,
 		Tags:    c.tags(),
+		Meta:    c.meta(),
 	}
 
 	if c.config.RegisterHealthCheck {
@@ -243,6 +275,10 @@ func detailsFromConfig(cfg *config.Config, rpConfig *RegistrationProviderConfig)
 	}
 
 	result.InstanceId = instanceIdPrefix + "-" + instanceIdSuffix
+
+	if result.Application, err = cfg.String(ConfigKeyInfoAppName); err != nil {
+		return nil, err
+	}
 
 	if result.Description, err = cfg.String(ConfigKeyInfoAppDescription); err != nil {
 		return nil, err
