@@ -114,6 +114,8 @@ func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, er
 		httpClientDo = discoveryinterceptor.NewInterceptor(httpClientDo)
 	case ServiceTypeResourceProvider:
 		httpClientDo = rpinterceptor.NewInterceptor(httpClientDo)
+	case ServiceTypeProbe:
+		// Integration is tied to the particular discovery.ServiceInstance
 	default:
 		return nil, errors.Errorf("Unknown service type %q")
 	}

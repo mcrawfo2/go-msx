@@ -36,7 +36,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
-			modTime: time.Date(2020, 4, 18, 21, 28, 4, 364853936, time.UTC),
+			modTime: time.Date(2020, 4, 18, 21, 30, 23, 665207549, time.UTC),
 		},
 		"/discovery/consulprovider/defaults-discovery.properties": &vfsgen۰FileInfo{
 			name:    "defaults-discovery.properties",

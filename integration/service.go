@@ -2,7 +2,9 @@ package integration
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"fmt"
 	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
@@ -28,6 +30,7 @@ type ServiceType string
 
 const (
 	ServiceTypeMicroservice     ServiceType = "managedMicroservice"
+	ServiceTypeProbe            ServiceType = "probe"
 	ServiceTypeResourceProvider ServiceType = "resourceProvider"
 )
 
@@ -37,25 +40,39 @@ type MsxServiceEndpoint struct {
 }
 
 type MsxService struct {
-	serviceName string
-	endpoints   map[string]MsxServiceEndpoint
-	serviceType ServiceType
-	ctx         context.Context
+	serviceName     string
+	endpoints       map[string]MsxServiceEndpoint
+	serviceType     ServiceType
+	serviceInstance *discovery.ServiceInstance
+	ctx             context.Context
 }
 
-func (v *MsxService) Target(endpointName string) (Target, error) {
+func (v *MsxService) Target(endpointName string) (target Target, err error) {
 	endpoint, ok := v.endpoints[endpointName]
 	if !ok {
-		return Target{}, errors.Errorf("Endpoint %q not found for service %q", endpointName, v.serviceName)
+		err = errors.Errorf("Endpoint %q not found for service %q", endpointName, v.serviceName)
+		return
 	}
 
-	return Target{
-		ServiceName:  v.serviceName,
-		ServiceType:  v.serviceType,
-		EndpointName: endpointName,
-		Method:       endpoint.Method,
-		Path:         endpoint.Path,
-	}, nil
+	if v.serviceInstance != nil {
+		target = Target{
+			ServiceName:  fmt.Sprintf("%s:%d", v.serviceInstance.Host, v.serviceInstance.Port),
+			ServiceType:  v.serviceType,
+			EndpointName: endpointName,
+			Method:       endpoint.Method,
+			Path:         endpoint.Path,
+		}
+	} else {
+		target = Target{
+			ServiceName:  v.serviceName,
+			ServiceType:  v.serviceType,
+			EndpointName: endpointName,
+			Method:       endpoint.Method,
+			Path:         endpoint.Path,
+		}
+	}
+
+	return
 }
 
 func (v *MsxService) ServiceRequest(request *MsxEndpointRequest) (*MsxRequest, error) {
@@ -112,5 +129,14 @@ func NewMsxServiceResourceProvider(ctx context.Context, serviceName string, endp
 		endpoints:   endpoints,
 		serviceType: ServiceTypeResourceProvider,
 		ctx:         ctx,
+	}
+}
+
+func NewProbeService(ctx context.Context, serviceInstance *discovery.ServiceInstance, endpoints map[string]MsxServiceEndpoint) *MsxService {
+	return &MsxService{
+		serviceInstance: serviceInstance,
+		endpoints:       endpoints,
+		serviceType:     ServiceTypeProbe,
+		ctx:             ctx,
 	}
 }
