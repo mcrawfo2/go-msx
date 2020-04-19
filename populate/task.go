@@ -9,8 +9,8 @@ import (
 type Task interface {
 	Description() string
 	During() []string
-	Populate(context.Context) error
 	Order() int
+	Populate(context.Context) error
 }
 
 type Tasks []Task
