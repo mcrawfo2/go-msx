@@ -12,7 +12,7 @@ const (
 	FieldDirection     = "stream.direction"
 	FieldSpanKind      = "span.kind"
 	FieldStatus        = "status"
-	FieldDeviceId      = "device.id"
-	FieldDeviceAddress = "device.address"
-	FieldServiceId     = "service.id"
+	FieldDeviceId      = "beat.device.id"
+	FieldDeviceAddress = "beat.device.address"
+	FieldServiceId     = "beat.service.id"
 )
