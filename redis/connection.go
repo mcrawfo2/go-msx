@@ -40,13 +40,7 @@ func (c ConnectionConfig) Address() string {
 
 type SentinelConfig struct {
 	Enable bool     `config:"default=false"`
-	Host   string   `config:"default="`
-	Port   int      `config:"default=26379"`
-	Nodes  []string `config:"default="`
-}
-
-func (c SentinelConfig) Address() string {
-	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+	Nodes  []string `config:"default=localhost:26379"`
 }
 
 type Connection struct {
@@ -64,14 +58,13 @@ func (c *Connection) Version() string {
 }
 
 func newSentinelClient(cfg *ConnectionConfig) *redis.Client {
-	address := cfg.Sentinel.Address()
-	logger.Infof("Connecting to redis sentinel address: %s", address)
+	logger.Infof("Connecting to redis sentinel address: %v", cfg.Sentinel.Nodes)
 
 	options := redis.FailoverOptions{
 		Password:      cfg.Password,
 		DB:            cfg.DB,
 		MasterName:    cfg.Master,
-		SentinelAddrs: []string{address},
+		SentinelAddrs: cfg.Sentinel.Nodes,
 		MaxRetries:    cfg.MaxRetries,
 		IdleTimeout:   time.Duration(cfg.IdleTimeout) * time.Minute,
 	}
