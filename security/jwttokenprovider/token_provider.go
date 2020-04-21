@@ -9,12 +9,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"encoding/base64"
+	"encoding/pem"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pavel-v-chernykh/keystore-go"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 const (
@@ -104,24 +104,12 @@ func (j *TokenProvider) pemSigningKey(token *jwt.Token) (interface{}, error) {
 		return nil, err
 	}
 
-	pemLines := strings.Fields(string(pemBytes))
-
-	for firstLine := 0; firstLine < len(pemLines); firstLine++ {
-		if pemLines[firstLine] == pemBeginPublicKey {
-			pemLines = pemLines[firstLine+1:]
-			break
-		}
+	pemBlock, _ := pem.Decode(pemBytes)
+	if pemBlock == nil || pemBlock.Type != "PUBLIC KEY" {
+		return nil, errors.New("JWT PEM file does not contain valid public key")
 	}
 
-	for lastLine := 0; lastLine < len(pemLines); lastLine++ {
-		if pemLines[lastLine] == pemEndPublicKey {
-			pemLines = pemLines[:lastLine]
-			break
-		}
-	}
-
-	pem := strings.Join(pemLines, "")
-	re, err := x509.ParsePKIXPublicKey([]byte(pem))
+	re, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
 	return re, err
 }
 
