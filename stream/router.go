@@ -33,8 +33,6 @@ func StartRouter(ctx context.Context) error {
 		return errors.New("Failed to retrieve config from context")
 	}
 
-	ctx = trace.UntracedContextFromContext(ctx)
-
 	routerConfig := message.RouterConfig{}
 
 	var err error
@@ -70,6 +68,7 @@ func StartRouter(ctx context.Context) error {
 	var exited = make(chan struct{})
 	var finished = false
 	go func() {
+		ctx = trace.UntracedContextFromContext(ctx)
 		err = router.Run(ctx)
 		close(exited)
 		if finished && err != nil {

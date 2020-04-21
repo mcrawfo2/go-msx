@@ -27,7 +27,7 @@ type ConnectionConfig struct {
 	MinPartitionCount      int      `config:"default=1"`
 	ReplicationFactor      int      `config:"default=1"`
 	AutoCreateTopics       bool     `config:"default=true"`
-	DefaultPartitions      int      `config:"default=12"`
+	DefaultPartitions      int      `config:"default=1"`
 	Version                string   `config:"default=2.0.1"`
 	ClientId               string   `config:"default=sarama"`
 	Enabled                bool     `config:"default=false"`

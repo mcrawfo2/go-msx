@@ -67,6 +67,9 @@ func (t *TracePublisher) Publish(msg *message.Message) error {
 	msg.SetContext(ctx)
 
 	// Decorate all of the messages with the trace metadata
+	if msg.Metadata == nil {
+		msg.Metadata = make(message.Metadata)
+	}
 
 	err := opentracing.GlobalTracer().Inject(
 		span.Context(),
