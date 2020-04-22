@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -30,13 +31,17 @@ func init() {
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		RegisterProviderFactory(SourceCommandLine, func(name string, cfg *config.Config) ([]config.Provider, error) {
+
+			appInstance := types.RandString(5)
+
 			return []config.Provider{
 				config.NewCachedLoader(
 					cobraprovider.NewCobraSource(name, cmd, "cli.flag."),
 				),
 				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
-					"spring.application.name": strings.Fields(cli.RootCmd().Use)[0],
-					"info.app.name":           strings.Fields(cli.RootCmd().Use)[0],
+					"spring.application.name":     strings.Fields(cli.RootCmd().Use)[0],
+					"spring.application.instance": appInstance,
+					"info.app.name":               strings.Fields(cli.RootCmd().Use)[0],
 				})),
 			}, nil
 		})

@@ -53,3 +53,5 @@ require (
 	gopkg.in/yaml.v2 v2.2.8
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
+
+replace github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1

@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
@@ -13,7 +12,6 @@ import (
 const (
 	configRootKafka       = "spring.cloud.stream.kafka.binder"
 	configKeyAppName      = "spring.application.name"
-	configDefaultClientId = "sarama"
 )
 
 type ConnectionConfig struct {
@@ -28,16 +26,18 @@ type ConnectionConfig struct {
 	ReplicationFactor      int      `config:"default=1"`
 	AutoCreateTopics       bool     `config:"default=true"`
 	DefaultPartitions      int      `config:"default=1"`
-	Version                string   `config:"default=2.0.1"`
-	ClientId               string   `config:"default=sarama"`
+	Version                string   `config:"default=2.0.0"`
+	ClientId               string   `config:"default=${spring.application.name}"`
+	ClientIdSuffix         string   `config:"default=${spring.application.instance}"`
 	Enabled                bool     `config:"default=false"`
 	Partitioner            string   `config:"default=hash"`
 }
 
 func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
 	saramaConfig := sarama.NewConfig()
-	saramaConfig.ClientID = c.ClientId + "-" + types.RandString(5)
+	saramaConfig.ClientID = c.ClientId + "-" + c.ClientIdSuffix
 	saramaConfig.Consumer.Fetch.Default = 1024 * 1024
+	saramaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
 	saramaConfig.Consumer.MaxWaitTime = 500 * time.Millisecond
 	saramaConfig.Consumer.MaxProcessingTime = 15 * time.Second
 	saramaConfig.Consumer.Return.Errors = true
@@ -103,15 +103,6 @@ func NewConnectionConfig(cfg *config.Config) (*ConnectionConfig, error) {
 	connectionConfig := new(ConnectionConfig)
 	if err := cfg.Populate(connectionConfig, configRootKafka); err != nil {
 		return nil, err
-	}
-
-	// Override the ClientID
-	if connectionConfig.ClientId == configDefaultClientId {
-		if appName, err := cfg.String(configKeyAppName); err != nil {
-			return nil, err
-		} else {
-			connectionConfig.ClientId = appName
-		}
 	}
 
 	return connectionConfig, nil

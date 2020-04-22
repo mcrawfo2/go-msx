@@ -29,6 +29,7 @@ const (
 	SourceDefault          = "Default"
 
 	configKeyAppName = "spring.application.name"
+	configKeyAppInstance = "spring.application.instance"
 	configRootConfig = "config"
 )
 

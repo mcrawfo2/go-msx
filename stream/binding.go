@@ -17,6 +17,7 @@ type BindingConfiguration struct {
 	Group       string `config:"default="`                 // Consumer group id
 	ContentType string `config:"default=application/json"` // Content-Type Header
 	Binder      string `config:"default=kafka"`            // Stream Provider
+	BindingId   string `config:"default=${spring.application.instance}"`
 	Retry       retry.RetryConfig
 }
 
