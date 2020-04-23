@@ -31,7 +31,7 @@ func options() *pflag.FlagSet {
 func main() {
 	flagSet := options()
 
-	iniProvider := config.NewINIFile("config", "config.ini")
+	iniProvider := config.NewINIFile("config", "config.ini", config.FileContentReader("config.ini"))
 	cliProvider := cliConfig.NewPflagSource("CommandLine", flagSet, "cli.flag.")
 
 	cfg := config.NewConfig(iniProvider, cliProvider)

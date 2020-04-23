@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	configRootKafka       = "spring.cloud.stream.kafka.binder"
-	configKeyAppName      = "spring.application.name"
+	configRootKafka  = "spring.cloud.stream.kafka.binder"
+	configKeyAppName = "spring.application.name"
 )
 
 type ConnectionConfig struct {

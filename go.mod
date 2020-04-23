@@ -7,7 +7,7 @@ require (
 	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
-	github.com/ThreeDotsLabs/watermill v1.0.0
+	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a // indirect
 	github.com/axw/gocov v1.0.0 // indirect
@@ -34,6 +34,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
+	github.com/renstrom/shortuuid v3.0.0+incompatible // indirect
 	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749

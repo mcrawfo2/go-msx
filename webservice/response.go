@@ -77,7 +77,7 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 		logger.
 			WithContext(req.Request.Context()).
 			WithError(err).
-			Error("Response serialization failed - invalid error payload type %q", reflect.TypeOf(payload).String())
+			Errorf("Response serialization failed - invalid error payload type %q", reflect.TypeOf(payload).String())
 		WriteErrorRaw(req, resp, status, err, new(integration.ErrorDTO))
 	}
 }

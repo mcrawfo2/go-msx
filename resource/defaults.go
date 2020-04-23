@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 4, 18, 21, 28, 4, 365055454, time.UTC),
+			modTime: time.Date(2020, 4, 22, 14, 25, 15, 956381817, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 4, 12, 22, 37, 54, 245016723, time.UTC),
+			modTime: time.Date(2020, 4, 23, 0, 1, 46, 415390449, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -91,7 +91,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 4, 13, 14, 38, 14, 962413950, time.UTC),
+			modTime: time.Date(2020, 4, 23, 0, 1, 57, 143493790, time.UTC),
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",

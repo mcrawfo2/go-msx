@@ -28,9 +28,9 @@ const (
 	SourceDefaults         = "Defaults"
 	SourceDefault          = "Default"
 
-	configKeyAppName = "spring.application.name"
+	configKeyAppName     = "spring.application.name"
 	configKeyAppInstance = "spring.application.instance"
-	configRootConfig = "config"
+	configRootConfig     = "config"
 )
 
 var (
@@ -223,7 +223,7 @@ func watchConfig(ctx context.Context) error {
 			logger.Warnf("Configuration changed: %s", k)
 		}
 		if err := application.Refresh(); err != nil {
-			logger.Errorf("Failed to refresh: ", err)
+			logger.WithError(err).Error("Failed to refresh")
 		}
 	}
 

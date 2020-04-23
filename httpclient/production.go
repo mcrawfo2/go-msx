@@ -47,7 +47,7 @@ func getRootCAs(cfg *ClientConfig) (*x509.CertPool, error) {
 	if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
 		logger.Warn("No certs appended, using system certs only")
 	} else {
-		logger.Info("Added certificates from %q to RootCAs", cfg.LocalCaFile)
+		logger.Infof("Added certificates from %q to RootCAs", cfg.LocalCaFile)
 	}
 
 	return rootCAs, nil

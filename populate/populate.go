@@ -32,7 +32,7 @@ func CustomizeCommand(cmd *cobra.Command) {
 		for _, arg := range args {
 			if !jobSet.Contains(arg) {
 				return errors.Errorf(
-					"Unknown populate job %q.  Must be one of: ",
+					"Unknown populate job %q.  Must be one of: %s",
 					arg,
 					strings.Join(jobSet.Values(), ", "))
 			}

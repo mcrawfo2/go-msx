@@ -117,7 +117,7 @@ func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, er
 	case ServiceTypeProbe:
 		// Integration is tied to the particular discovery.ServiceInstance
 	default:
-		return nil, errors.Errorf("Unknown service type %q")
+		return nil, errors.Errorf("Unknown service type %q", v.Target.ServiceType)
 	}
 	httpClientDo = traceinterceptor.NewInterceptor(httpClientDo)
 
