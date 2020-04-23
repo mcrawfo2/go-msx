@@ -57,8 +57,8 @@ func StandardDelete(b *restful.RouteBuilder) {
 }
 
 func ResponseTypeName(t reflect.Type) (string, bool) {
-	typeName := types.GetTypeName(t)
-	return typeName, true
+	typeName := types.GetTypeName(t, true)
+	return typeName, typeName != ""
 }
 
 func newGenericResponse(structType reflect.Type, structFieldName string, payloadInstance interface{}) interface{} {

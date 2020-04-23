@@ -22,7 +22,7 @@ func NewParameterizedStruct(structType reflect.Type, payloadField string, payloa
 		structFields = append(structFields, structField)
 	}
 
-	structName := GetTypeName(structType)
+	structName := GetTypeName(structType, false)
 	payloadTypeName := GetInstanceTypeName(payload)
 
 	parameterizedStructType := reflect.StructOf(structFields)
@@ -36,10 +36,10 @@ func GetInstanceTypeName(instance interface{}) string {
 	}
 
 	instanceType := reflect.TypeOf(instance)
-	return GetTypeName(instanceType)
+	return GetTypeName(instanceType, true)
 }
 
-func GetTypeName(instanceType reflect.Type) string {
+func GetTypeName(instanceType reflect.Type, root bool) string {
 	if instanceType.Kind() == reflect.Ptr {
 		instanceType = instanceType.Elem()
 	}
@@ -52,23 +52,29 @@ func GetTypeName(instanceType reflect.Type) string {
 
 	switch instanceType.Kind() {
 	case reflect.Array, reflect.Slice:
-		typeNamePrefix = "List«"
-		typeNameSuffix = "»"
-		instanceType = instanceType.Elem()
+		if root {
+			return GetTypeName(instanceType.Elem(), false)
+		} else {
+			typeNamePrefix = "List«"
+			typeNameSuffix = "»"
+			typeName = GetTypeName(instanceType.Elem(), false)
+			return typeNamePrefix + typeName + typeNameSuffix
+		}
+
 	case reflect.Map:
-		typeNamePrefix = "Map«" + GetTypeName(instanceType.Key()) + ","
+		typeNamePrefix = "Map«" + GetTypeName(instanceType.Key(), false) + ","
 		typeNameSuffix = "»"
-		instanceType = instanceType.Elem()
+		typeName = GetTypeName(instanceType.Elem(), false)
+		return typeNamePrefix + typeName + typeNameSuffix
 	}
 
 	switch instanceType.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Bool, reflect.String:
-		typeName = instanceType.Name()
-	}
+		return instanceType.Name()
 
-	if typeName == "" {
+	default:
 		instanceTypePackagePath := instanceType.PkgPath()
 		instanceTypePackageName := ""
 		if instanceTypePackagePath != "" {
@@ -76,9 +82,9 @@ func GetTypeName(instanceType reflect.Type) string {
 			if instanceTypePackageName != "" {
 				instanceTypePackageName += "."
 			}
+		} else {
+			return ""
 		}
-		typeName = instanceTypePackageName + instanceType.Name()
+		return instanceTypePackageName + instanceType.Name()
 	}
-
-	return typeNamePrefix + typeName + typeNameSuffix
 }
