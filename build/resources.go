@@ -18,7 +18,8 @@ func InstallResources(args []string) error {
 	}
 
 	for _, inputFilePath := range files {
-		outputFilePath := filepath.Join(BuildConfig.OutputResourcesPath(), inputFilePath)
+		mappedInputFilePath := getResourcePathMapping(inputFilePath)
+		outputFilePath := filepath.Join(BuildConfig.OutputResourcesPath(), mappedInputFilePath)
 		logger.Infof("Copying %s to %s", inputFilePath, outputFilePath)
 		if err := copypkg.Copy(inputFilePath, outputFilePath); err != nil {
 			return err
@@ -71,4 +72,25 @@ func excludeFilteredResource(included string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func getResourcePathMapping(resourcePath string) string {
+	if !strings.HasPrefix(resourcePath, "/") {
+		resourcePath = "/" + resourcePath
+	}
+	for _, pathMapping := range BuildConfig.Resources.Mappings {
+		pathFrom, pathTo := pathMapping.From, pathMapping.To
+		if !strings.HasSuffix(pathFrom, "/") {
+			pathFrom += "/"
+		}
+		if !strings.HasSuffix(pathTo, "/") {
+			pathTo += "/"
+		}
+		if strings.HasPrefix(resourcePath, pathFrom) {
+			resourcePath = strings.TrimPrefix(resourcePath, pathFrom)
+			resourcePath = pathTo + resourcePath
+			return resourcePath
+		}
+	}
+	return resourcePath
 }

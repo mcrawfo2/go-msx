@@ -45,7 +45,7 @@ func generateCodePathCommand(p Generate) error {
 }
 
 func generateCodePathVfs(p Generate) (err error) {
-	root, err := rootDir(p)
+	root, err := getGenerateRootDir(p)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func generateCodePathVfs(p Generate) (err error) {
 	})
 }
 
-func rootDir(p Generate) (string, error) {
+func getGenerateRootDir(p Generate) (string, error) {
 	abs, err := filepath.Abs(p.Path)
 	if err != nil {
 		return "", err

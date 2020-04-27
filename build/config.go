@@ -162,9 +162,16 @@ type GenerateVfs struct {
 	Excludes     []string `config:"default="`
 }
 
+// TODO: 1.0 : Move to format similar to Generate
 type Resources struct {
 	Includes []string
 	Excludes []string
+	Mappings []PathMapping
+}
+
+type PathMapping struct {
+	From string
+	To   string
 }
 
 type Config struct {
