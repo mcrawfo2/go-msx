@@ -1,6 +1,8 @@
 def REPO_NAME = '${app.name}'
 def VMSBLD_CREDENTIALS = '06702990-d4e7-4a80-beaa-6d407896feff'
 def GITHUB_CREDENTIALS = 'bbac707a-a6ff-43eb-8907-840ef4227f02'
+def GITHUB_APP_ID_SONARQUBE = '7'
+def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
@@ -86,7 +88,6 @@ pipeline {
 
                     publishCoverage adapters: [coberturaAdapter('test/cobertura-coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
 
-
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                         withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
                             script {
@@ -95,12 +96,21 @@ pipeline {
                                     'links.ci': env.JOB_URL,
                                     'branch.name': env.BRANCH_NAME,
                                     'github.oauth': env.GITHUB_ACCESS_TOKEN,
+                                    'sonar.alm.github.app.id': env.GITHUB_APP_ID_SONARQUBE,
+                                    'sonar.alm.github.app.name': env.GITHUB_APP_NAME_SONARQUBE,
                                 ]
 
                                 if (env.BRANCH_NAME != 'develop' && env.BRANCH_NAME != 'master') {
-                                    sonarProperties['analysis.mode'] = 'preview'
-                                    sonarProperties['preview.excludePlugins'] = 'devcockpit,jira,pdfreport,views,report,buildstability,scmactivity'
-                                    sonarProperties['branch.target'] = env.ghprbTargetBranch
+                                    if (env.ghprbTargetBranch) {
+                                        sonarProperties['branch.target'] = env.ghprbTargetBranch
+                                        sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
+                                        sonarProperties['pullrequest.provider'] = "github"
+                                        sonarProperties['pullrequest.key'] = env.ghprbPullId
+                                        sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
+                                        sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
+                                    } else {
+                                        sonarProperties['branch.target'] = 'develop'
+                                    }
                                 }
 
                                 def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
