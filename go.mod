@@ -13,6 +13,7 @@ require (
 	github.com/axw/gocov v1.0.0 // indirect
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
+	github.com/dave/jennifer v1.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/emicklei/go-restful v2.11.1+incompatible

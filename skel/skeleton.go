@@ -23,8 +23,10 @@ func init() {
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
 	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
+	AddTarget("generate-webservices", "Create web services from swagger manifest", GenerateWebservices)
 }
 
+// Root command
 func GenerateSkeleton(args []string) error {
 	var generators []string
 
