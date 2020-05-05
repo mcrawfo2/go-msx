@@ -15,7 +15,7 @@ type DiscoveryProviderConfig struct {
 }
 
 type DiscoveryProvider struct {
-	cfg *DiscoveryProviderConfig
+	cfg  *DiscoveryProviderConfig
 	conn *consul.Connection
 }
 
@@ -77,7 +77,7 @@ func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProv
 	}
 
 	return &DiscoveryProvider{
-		cfg: &discoveryConfig,
+		cfg:  &discoveryConfig,
 		conn: conn,
 	}, nil
 }
