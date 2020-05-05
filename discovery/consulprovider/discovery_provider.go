@@ -8,12 +8,22 @@ import (
 	"github.com/hashicorp/consul/api"
 )
 
+const configRootDiscoveryProvider = "spring.cloud.consul.discovery"
+
+type DiscoveryProviderConfig struct {
+	DefaultQueryTag string `config:"default="`
+}
+
 type DiscoveryProvider struct {
+	cfg *DiscoveryProviderConfig
 	conn *consul.Connection
 }
 
 func (p *DiscoveryProvider) Discover(ctx context.Context, service string, passingOnly bool, tags ...string) (result discovery.ServiceInstances, err error) {
 	var serviceEntries []*api.ServiceEntry
+	if p.cfg.DefaultQueryTag != "" {
+		tags = append(tags, p.cfg.DefaultQueryTag)
+	}
 	if serviceEntries, err = p.conn.GetServiceInstances(ctx, service, passingOnly, tags...); err != nil {
 		return nil, err
 	}
@@ -23,6 +33,9 @@ func (p *DiscoveryProvider) Discover(ctx context.Context, service string, passin
 
 func (p *DiscoveryProvider) DiscoverAll(ctx context.Context, passingOnly bool, tags ...string) (result discovery.ServiceInstances, err error) {
 	var serviceEntries []*api.ServiceEntry
+	if p.cfg.DefaultQueryTag != "" {
+		tags = append(tags, p.cfg.DefaultQueryTag)
+	}
 	if serviceEntries, err = p.conn.GetAllServiceInstances(ctx, passingOnly, tags...); err != nil {
 		return nil, err
 	}
@@ -49,6 +62,11 @@ func convertToServiceInstance(sourceEntry *api.ServiceEntry) *discovery.ServiceI
 }
 
 func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProvider, err error) {
+	var discoveryConfig DiscoveryProviderConfig
+	if err := cfg.Populate(&discoveryConfig, configRootDiscoveryProvider); err != nil {
+		return nil, err
+	}
+
 	var conn *consul.Connection
 	if conn, err = consul.NewConnectionFromConfig(cfg); err != nil && err != consul.ErrDisabled {
 		return nil, err
@@ -59,6 +77,7 @@ func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProv
 	}
 
 	return &DiscoveryProvider{
+		cfg: &discoveryConfig,
 		conn: conn,
 	}, nil
 }

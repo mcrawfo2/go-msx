@@ -46,6 +46,10 @@ func (t *TokenDetailsProvider) IsTokenActive(ctx context.Context) (active bool, 
 		active = activeInterface.(bool)
 	}
 
+	if err != nil {
+		logger.WithContext(ctx).WithError(err).Error("Failed to load token details")
+	}
+
 	return active, nil
 }
 
