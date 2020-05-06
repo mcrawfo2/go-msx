@@ -19,7 +19,7 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 5, 5, 16, 49, 39, 721184848, time.UTC),
+			modTime: time.Date(2020, 5, 6, 13, 16, 11, 334657080, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
@@ -36,7 +36,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
-			modTime: time.Date(2020, 5, 5, 16, 55, 54, 948263358, time.UTC),
+			modTime: time.Date(2020, 5, 6, 12, 3, 8, 514064328, time.UTC),
 		},
 		"/discovery/consulprovider/defaults-discovery.properties": &vfsgen۰FileInfo{
 			name:    "defaults-discovery.properties",
@@ -71,7 +71,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
-			modTime: time.Date(2020, 5, 5, 17, 4, 18, 214535263, time.UTC),
+			modTime: time.Date(2020, 5, 6, 12, 3, 8, 514396809, time.UTC),
 		},
 		"/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties": &vfsgen۰FileInfo{
 			name:    "defaults-security-idmdetailsprovider.properties",
@@ -91,7 +91,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 5, 5, 16, 49, 39, 719834785, time.UTC),
+			modTime: time.Date(2020, 5, 6, 13, 16, 11, 334261063, time.UTC),
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",

@@ -6,6 +6,7 @@ def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
+def TRUNK = 'develop'
 
 pipeline {
 
@@ -94,22 +95,21 @@ pipeline {
                                 def sonarProperties = [
                                     'userHome': env.WORKSPACE,
                                     'links.ci': env.JOB_URL,
-                                    'branch.name': env.BRANCH_NAME,
                                     'github.oauth': env.GITHUB_ACCESS_TOKEN,
                                     'sonar.alm.github.app.id': env.GITHUB_APP_ID_SONARQUBE,
                                     'sonar.alm.github.app.name': env.GITHUB_APP_NAME_SONARQUBE,
                                 ]
 
-                                if (env.BRANCH_NAME != 'develop' && env.BRANCH_NAME != 'master') {
+                                if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
                                     if (env.ghprbTargetBranch) {
-                                        sonarProperties['branch.target'] = env.ghprbTargetBranch
                                         sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
                                         sonarProperties['pullrequest.provider'] = "github"
                                         sonarProperties['pullrequest.key'] = env.ghprbPullId
                                         sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
                                         sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
                                     } else {
-                                        sonarProperties['branch.target'] = 'develop'
+                                        sonarProperties['branch.name'] = env.BRANCH_NAME
+                                        sonarProperties['branch.target'] = TRUNK
                                     }
                                 }
 
