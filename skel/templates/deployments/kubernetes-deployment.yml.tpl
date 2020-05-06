@@ -21,6 +21,29 @@ spec:
       annotations:
         fluentbit.io/parser: gomsx
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ${app.name}
+              topologyKey: kubernetes.io/hostname
+{% if cloud == 'aws' %}
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ${app.name}
+              topologyKey: topology.kubernetes.io/zone
+{% endif %}
       containers:
         - name: consul
           image: {{ consul_image }}:{{ consul_version }}
@@ -57,15 +80,24 @@ spec:
           resources:
             requests:
               memory: "64Mi"
-              cpu: "1"
+              cpu: "500m"
             limits:
               memory: "256Mi"
-              cpu: "2"
+              cpu: "2000m"
           env:
+            - name: PROFILE
+              value: production
             - name: SPRING_CLOUD_CONSUL_HOST
-              value: "{{ vault_scheme }}://localhost"
+              value: "localhost"
+            - name: SPRING_CLOUD_CONSUL_SCHEME
+              value: "{{ vault_scheme }}"
             - name: SPRING_CLOUD_CONSUL_PORT
               value: "8500"
+            - name: SPRING_CLOUD_CONSUL_CONFIG_ACLTOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: msxconsul
+                  key: token
             - name: SPRING_CLOUD_VAULT_HOST
               value: "vault.service.consul"
             - name: SPRING_CLOUD_VAULT_PORT
@@ -77,6 +109,8 @@ spec:
                 secretKeyRef:
                   name: msxvault
                   key: token
+            - name: SPRING_REDIS_SENTINEL_ENABLE
+              value: "true"
           ports:
             - containerPort: ${server.port}
           volumeMounts:

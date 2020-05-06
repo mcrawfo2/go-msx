@@ -96,8 +96,8 @@ pipeline {
                                     'userHome': env.WORKSPACE,
                                     'links.ci': env.JOB_URL,
                                     'github.oauth': env.GITHUB_ACCESS_TOKEN,
-                                    'sonar.alm.github.app.id': env.GITHUB_APP_ID_SONARQUBE,
-                                    'sonar.alm.github.app.name': env.GITHUB_APP_NAME_SONARQUBE,
+                                    'sonar.alm.github.app.id': GITHUB_APP_ID_SONARQUBE,
+                                    'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
                                 ]
 
                                 if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {

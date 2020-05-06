@@ -27,7 +27,7 @@ spec:
           value: "8500"
         - name: SPRING_CLOUD_CONSUL_SCHEME
           value: "{{ vault_scheme }}"
-        - name: SPRING_CLOUD_CONSUL_TOKEN
+        - name: SPRING_CLOUD_CONSUL_CONFIG_ACLTOKEN
           valueFrom:
             secretKeyRef:
               name: msxconsul
