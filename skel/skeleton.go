@@ -123,6 +123,10 @@ func AddGoMsxDependency(args []string) error {
 				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx"))),
 		exec.WithDir(targetDirectory,
 			pipe.Line(
+				exec.Info("- Adding go-msx-build to modules"),
+				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-build"))),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
 				exec.Info("- Tidying go modules"),
 				pipe.Exec("go", "mod", "tidy")),
 		))

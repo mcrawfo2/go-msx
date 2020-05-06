@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/build"
+	build "cto-github.cisco.com/NFV-BU/go-msx-build/pkg"
 )
 
 func main() {

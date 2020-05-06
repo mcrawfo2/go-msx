@@ -23,6 +23,10 @@ func loadConfig(cmd *cobra.Command, args []string) error {
 }
 
 func Run() {
+	// TODO: 1.0.0 : Error, Exit
+	logger.Warn("NOTE: cto-github.cisco.com/NFV-BU/go-msx/build package is deprecated.")
+	logger.Warn("NOTE: please switch to cto-github.cisco.com/NFV-BU/go-msx-build/pkg")
+
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
 	cli.Run("build")
