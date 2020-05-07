@@ -61,6 +61,10 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 
 func WriteError(req *restful.Request, resp *restful.Response, status int, err error) {
 	payload := req.Attribute(AttributeErrorPayload)
+	logger.
+		WithContext(req.Request.Context()).WithError(err).
+		WithField("Status", status).
+		Error("An error was threw by controller")
 	if payload == nil {
 		WriteErrorEnvelope(req, resp, status, err)
 		return
