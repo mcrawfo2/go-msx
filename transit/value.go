@@ -151,7 +151,7 @@ func NewSecureValue(keyName types.UUID, securePayload string) Value {
 
 func ParseValue(value string) (Value, error) {
 	parts := strings.SplitN(value, valueFieldSeparator, valueFieldCount)
-	if len(parts) != valueFieldCount {
+	if len(parts) < valueFieldCount {
 		return Value{}, ErrValueSerializationInvalid
 	}
 
