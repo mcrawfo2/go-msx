@@ -48,10 +48,14 @@ func StartRouter(ctx context.Context) error {
 	registered := 0
 	for topic, topicListeners := range listeners {
 		for _, topicListener := range topicListeners {
-			if err = addListener(cfg, topic, topicListener); err != nil && err != ErrBinderNotEnabled {
-				return err
-			} else if err != ErrBinderNotEnabled {
+			err = addListener(cfg, topic, topicListener)
+			switch err {
+			case ErrBinderNotEnabled, ErrConsumerNotEnabled:
+				// Ignore
+			case nil:
 				registered++
+			default:
+				return err
 			}
 		}
 	}

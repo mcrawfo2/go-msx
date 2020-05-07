@@ -19,6 +19,21 @@ type BindingConfiguration struct {
 	Binder      string `config:"default=kafka"`            // Stream Provider
 	BindingId   string `config:"default=${spring.application.instance}"`
 	Retry       retry.RetryConfig
+	Consumer    ConsumerConfiguration
+}
+
+type ConsumerConfiguration struct {
+	AutoStartup            bool    `config:"default=${spring.cloud.stream.default.consumer.auto-startup:true}"`
+	Concurrency            int     `config:"default=${spring.cloud.stream.default.consumer.concurrency:1}"`
+	Partitioned            bool    `config:"default=${spring.cloud.stream.default.consumer.partitioned:false}"`
+	HeaderMode             string  `config:"default=${spring.cloud.stream.default.consumer.header-mode:none}"`
+	MaxAttempts            int     `config:"default=${spring.cloud.stream.default.consumer.max-attempts:3}"`
+	BackOffInitialInterval int     `config:"default=${spring.cloud.stream.default.consumer.backoff-initial-interval:1000}"`
+	BackOffMaxInterval     int     `config:"default=${spring.cloud.stream.default.consumer.backoff-max-interval:10000}"`
+	BackOffMultiplier      float32 `config:"default=${spring.cloud.stream.default.consumer.backoff-multiplier:2.0}"`
+	DefaultRetryable       bool    `config:"default=${spring.cloud.stream.default.consumer.default-retryable:true}"`
+	InstanceIndex          int     `config:"default=${spring.cloud.stream.default.consumer.instance-index:-1}"`
+	InstanceCount          int     `config:"default=${spring.cloud.stream.default.consumer.instance-count:-1}"`
 }
 
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string) (*BindingConfiguration, error) {

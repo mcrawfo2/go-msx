@@ -12,8 +12,9 @@ type Provider interface {
 }
 
 var (
-	providers           = make(map[string]Provider)
-	ErrBinderNotEnabled = errors.New("Binder not enabled")
+	providers             = make(map[string]Provider)
+	ErrBinderNotEnabled   = errors.New("Binder not enabled")
+	ErrConsumerNotEnabled = errors.New("Consumer not enabled")
 )
 
 func RegisterProvider(name string, provider Provider) {
@@ -43,6 +44,10 @@ func NewSubscriber(cfg *config.Config, name string) (message.Subscriber, error) 
 	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name)
 	if err != nil {
 		return nil, err
+	}
+
+	if bindingConfig.Consumer.AutoStartup == false {
+		return nil, ErrConsumerNotEnabled
 	}
 
 	provider, ok := providers[bindingConfig.Binder]
