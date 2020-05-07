@@ -61,7 +61,7 @@ func (v Value) UsesKey(key types.UUID) bool {
 }
 
 func (v Value) IsEmpty() bool {
-	return len(v.payload) > 0
+	return len(v.payload) == 0
 }
 
 func (v Value) Payload() (map[string]*string, error) {
@@ -152,19 +152,16 @@ func NewSecureValue(keyName types.UUID, securePayload string) Value {
 func ParseValue(value string) (Value, error) {
 	parts := strings.SplitN(value, valueFieldSeparator, valueFieldCount)
 	if len(parts) != valueFieldCount {
-		return Value{}, errors.Wrap(ErrValueSerializationInvalid,
-			"Invalid serialization of value: Insufficient number of fields")
+		return Value{}, ErrValueSerializationInvalid
 	}
 
 	if parts[0] != valueVersion1 {
-		return Value{}, errors.Wrap(ErrValueSerializationInvalid,
-			"Invalid serialization of value: Version not supported")
+		return Value{}, ErrValueSerializationInvalid
 	}
 
 	keyName, err := types.ParseUUID(parts[1])
 	if err != nil {
-		return Value{}, errors.Wrap(ErrValueSerializationInvalid,
-			"Invalid UUID")
+		return Value{}, ErrValueSerializationInvalid
 	}
 
 	if len(parts[2]) == 0 && len(parts[3]) == 0 {
@@ -178,13 +175,11 @@ func ParseValue(value string) (Value, error) {
 
 	if (parts[2] != valueTypeEncrypted) &&
 		(parts[2] != valueTypePlain) {
-		return Value{}, errors.Wrap(ErrValueSerializationInvalid,
-			"Invalid serialization of value: Invalid value type")
+		return Value{}, ErrValueSerializationInvalid
 	}
 
 	if len(parts[3]) == 0 {
-		return Value{}, errors.Wrap(ErrValueSerializationInvalid,
-			"Invalid serialization of value: Value is empty")
+		return Value{}, ErrValueSerializationInvalid
 	}
 
 	return Value{
