@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
-	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
+	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -49,4 +49,4 @@ require (
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
 
-replace github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
+replace github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
