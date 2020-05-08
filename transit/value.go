@@ -61,7 +61,7 @@ func (v Value) UsesKey(key types.UUID) bool {
 }
 
 func (v Value) IsEmpty() bool {
-	return len(v.payload) > 0
+	return len(v.payload) == 0
 }
 
 func (v Value) Payload() (map[string]*string, error) {

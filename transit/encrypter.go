@@ -64,12 +64,7 @@ func (e encrypter) Decrypt(value string) (map[string]*string, error) {
 		return nil, err
 	}
 
-	secureValue, err := ParseValue(value)
-	if err != nil {
-		return nil, err
-	}
-
-	insecureValue, err := p.Decrypt(e.ctx, secureValue)
+	insecureValue, err := p.Decrypt(e.ctx, NewSecureValue(e.keyId, value))
 	if err != nil {
 		return nil, err
 	}

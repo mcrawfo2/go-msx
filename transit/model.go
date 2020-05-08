@@ -100,3 +100,7 @@ func (s *SecureData) SetKeyId(ctx context.Context, keyId types.UUID) *SecureData
 	s.dirty = true
 	return s
 }
+
+func (s *SecureData) KeyId() types.UUID {
+	return s.keyId
+}
