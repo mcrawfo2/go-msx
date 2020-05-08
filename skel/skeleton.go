@@ -59,7 +59,7 @@ func GenerateBuild(args []string) error {
 	return renderTemplates(map[string]Template{
 		"Creating Makefile":             {SourceFile: "Makefile"},
 		"Creating build descriptor":     {SourceFile: "cmd/build/build.yml"},
-		"Creating build command source": {SourceFile: "cmd/build/build.go"},
+		"Creating build command source": {SourceFile: "cmd/build/build.go.tpl", DestFile: "cmd/build/build.go"},
 	})
 }
 

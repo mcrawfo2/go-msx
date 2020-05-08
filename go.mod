@@ -3,12 +3,12 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.12
 
 require (
-	cto-github.cisco.com/NFV-BU/go-msx-build v0.1.1
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.0.1
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/go-restful v2.11.1+incompatible
@@ -35,6 +35,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.4.2
+	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1
@@ -42,6 +43,7 @@ require (
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	github.com/yosuke-furukawa/json5 v0.1.1
 	go.uber.org/atomic v1.4.0
+	gopkg.in/ini.v1 v1.48.0 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.2.8
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
