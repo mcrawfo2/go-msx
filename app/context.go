@@ -40,6 +40,10 @@ func init() {
 	})
 }
 
+func RegisterContextInjector(injector types.ContextInjector) {
+	contextInjectors.Register(injector)
+}
+
 type configHandler func(cfg *config.Config) error
 
 func withConfig(handler configHandler) Observer {
