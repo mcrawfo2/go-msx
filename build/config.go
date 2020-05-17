@@ -2,7 +2,6 @@ package build
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/app/appconfig"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
@@ -10,7 +9,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"fmt"
-	"net/http"
 	"path"
 	"runtime"
 	"strconv"
@@ -230,14 +228,6 @@ func (p Config) OutputStaticPath() string {
 
 var BuildConfig = new(Config)
 
-func newHttpFileProviders(name string, fs http.FileSystem, files []string) []config.Provider {
-	var providers []config.Provider
-	for _, file := range files {
-		providers = append(providers, config.NewHttpFileProvider(name, fs, file))
-	}
-	return providers
-}
-
 func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []config.Provider) (finalConfig *config.Config, err error) {
 	if err = cfg.Populate(&BuildConfig.Msx, configRootMsx); err != nil {
 		return
@@ -301,8 +291,7 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		config.NewStatic("defaults", defaultConfigs),
 	}
 
-	defaultFiles := appconfig.FindConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
-	defaultFilesProviders := newHttpFileProviders("Defaults", resource.Defaults, defaultFiles)
+	defaultFilesProviders := config.NewHttpFileProvidersFromGlob("Defaults", resource.Defaults, "**/defaults-*")
 	providers = append(providers, defaultFilesProviders...)
 
 	for _, configFile := range configFiles {

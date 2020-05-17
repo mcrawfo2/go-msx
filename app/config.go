@@ -2,14 +2,13 @@ package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/app/appconfig"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"github.com/pkg/errors"
-	"net/http"
+	"path"
 	"strings"
 	"time"
 )
@@ -30,7 +29,7 @@ const (
 
 	configKeyAppName     = "spring.application.name"
 	configKeyAppInstance = "spring.application.instance"
-	configRootConfig     = "config"
+	configKeyFsConfigs   = "fs.configs"
 )
 
 var (
@@ -99,18 +98,15 @@ func newDefaultsProvider() config.Provider {
 }
 
 func newDefaultsResourcesProviders() []config.Provider {
-	files := appconfig.FindConfigHttpFilesGlob(resource.Defaults, "**/defaults-*")
-	return newHttpFileProviders(SourceDefaultResources, resource.Defaults, files)
+	return config.NewHttpFileProvidersFromGlob(SourceDefaultResources, resource.Defaults, "**/defaults-*")
 }
 
-func newDefaultsFilesProviders(cfg *config.Config) []config.Provider {
-	files := appconfig.FindConfigFilesGlob(cfg, "defaults-*")
-	return newFileProviders(SourceDefaults, files)
+func newDefaultsFilesProviders(_ *config.Config) []config.Provider {
+	return config.NewFileProvidersFromGlob(SourceDefaults, "defaults-*")
 }
 
-func newBootstrapProviders(cfg *config.Config) []config.Provider {
-	files := appconfig.FindConfigFiles(cfg, "bootstrap")
-	return newFileProviders(SourceBootStrap, files)
+func newBootstrapProviders(_ *config.Config) []config.Provider {
+	return config.NewFileProvidersFromBaseName(SourceBootStrap, "bootstrap")
 }
 
 func newEnvironmentProvider() config.Provider {
@@ -122,16 +118,16 @@ func newOverrideProvider(static map[string]string) config.Provider {
 }
 
 func newApplicationProviders(name string, cfg *config.Config) ([]config.Provider, error) {
-	files := appconfig.FindConfigFiles(cfg, "application")
+	providers := config.NewFileProvidersFromBaseName(name, "application")
 	if appName, err := cfg.String(configKeyAppName); err == nil {
-		files = append(files, appconfig.FindConfigFiles(cfg, appName)...)
+		namedProviders := config.NewFileProvidersFromBaseName(name, appName)
+		providers = append(providers, namedProviders...)
 	}
-	return newFileProviders(SourceApplication, files), nil
+	return providers, nil
 }
 
-func newBuildProvider(cfg *config.Config) []config.Provider {
-	files := appconfig.FindConfigFiles(cfg, "buildinfo")
-	return newFileProviders(SourceBuild, files)
+func newBuildProvider(_ *config.Config) []config.Provider {
+	return config.NewFileProvidersFromBaseName(SourceBuild, "buildinfo")
 }
 
 func newProfileProvider(name string, cfg *config.Config) ([]config.Provider, error) {
@@ -150,24 +146,7 @@ func newProfileProvider(name string, cfg *config.Config) ([]config.Provider, err
 		parts = append(parts, profile)
 	}
 
-	files := appconfig.FindConfigFiles(cfg, strings.Join(parts, "."))
-	return newFileProviders(SourceProfile, files), nil
-}
-
-func newFileProviders(name string, files []string) []config.Provider {
-	var providers []config.Provider
-	for _, file := range files {
-		providers = append(providers, config.NewFileProvider(SourceApplication, file)) // TODO: name?
-	}
-	return providers
-}
-
-func newHttpFileProviders(name string, fs http.FileSystem, files []string) []config.Provider {
-	var providers []config.Provider
-	for _, file := range files {
-		providers = append(providers, config.NewHttpFileProvider(name, fs, file))
-	}
-	return providers
+	return config.NewFileProvidersFromBaseName(SourceProfile, strings.Join(parts, ".")), nil
 }
 
 func newProviders(name string, cfg *config.Config) ([]config.Provider, error) {
@@ -254,12 +233,30 @@ func loadConfig(ctx context.Context) (err error) {
 		return err
 	}
 
-	if err := cfg.Populate(&appconfig.Config, configRootConfig); err != nil {
+	// Add any config paths from the command line
+	config.AddConfigFoldersFromPathConfig(cfg)
+	// Support single-folder installs
+	config.AddConfigFolders("./etc")
+	// Support global installs
+	appName, err := cfg.String(configKeyAppName)
+	if err == nil && appName != "" {
+		config.AddConfigFolders(path.Join("/etc", appName))
+	}
+	// Allow the build to specify the config folder in fs.configs
+	sources.BuildFiles = newBuildProvider(cfg)
+
+	// Reload the config
+	cfg = config.NewConfig(sources.Providers()...)
+	if err := mustLoadConfig(ctx, cfg); err != nil {
 		return err
 	}
 
-	paths := appconfig.FindConfigFolders(cfg)
-	logger.WithContext(ctx).Infof("Config Search Path: %v", paths)
+	fsConfigs, err := cfg.String(configKeyFsConfigs)
+	if err == nil && fsConfigs != "" {
+		config.AddConfigFolders(fsConfigs)
+	}
+
+	logger.WithContext(ctx).Infof("Config Search Path: %v", config.ConfigFolders())
 
 	sources.DefaultsFiles = newDefaultsFilesProviders(cfg)
 	sources.BootstrapFiles = newBootstrapProviders(cfg)
@@ -271,8 +268,6 @@ func loadConfig(ctx context.Context) (err error) {
 	if sources.ProfileFiles, err = newProviders(SourceProfile, cfg); err != nil {
 		return err
 	}
-
-	sources.BuildFiles = newBuildProvider(cfg)
 
 	cfg = config.NewConfig(sources.Providers()...)
 	if err := mustLoadConfig(ctx, cfg); err != nil {

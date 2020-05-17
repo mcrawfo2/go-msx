@@ -21,6 +21,7 @@ var (
 	configFileExtensions = []string{".yaml", ".yml", ".ini", ".json", ".json5", ".properties", ".toml"}
 )
 
+// Deprecated
 func FindConfigFiles(cfg *config.Config, baseName string) []string {
 	folders := FindConfigFolders(cfg)
 
@@ -44,6 +45,7 @@ func FindConfigFiles(cfg *config.Config, baseName string) []string {
 	return results
 }
 
+// Deprecated
 func FindConfigFolders(cfg *config.Config) []string {
 	folders := []string{"."}
 	if cfg != nil {
@@ -64,6 +66,7 @@ func FindConfigFolders(cfg *config.Config) []string {
 	return folders
 }
 
+// Deprecated
 func FindConfigFilesGlob(cfg *config.Config, glob string) []string {
 	folders := FindConfigFolders(cfg)
 
@@ -83,6 +86,7 @@ func FindConfigFilesGlob(cfg *config.Config, glob string) []string {
 	return results
 }
 
+// Deprecated
 func FindConfigHttpFilesGlob(fs http.FileSystem, glob string) []string {
 	var configFiles = make(types.StringSet)
 	_ = vfsutil.Walk(fs, "/", func(path string, info os.FileInfo, err error) error {
