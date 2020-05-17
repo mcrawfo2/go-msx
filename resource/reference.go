@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -24,6 +25,10 @@ func (r Ref) String() string {
 
 func (r Ref) ReadAll() (data []byte, err error) {
 	return load(string(r))
+}
+
+func (r Ref) Open() (http.File, error) {
+	return open(string(r))
 }
 
 func (r Ref) Unmarshal(target interface{}) (err error) {
@@ -58,7 +63,7 @@ func sourcePath(path string) (string, error) {
 	return path, nil
 }
 
-func load(resourcePath string) ([]byte, error) {
+func open(resourcePath string) (http.File, error) {
 	fileSystem, err := FileSystem()
 	if err != nil {
 		return nil, err
@@ -68,6 +73,16 @@ func load(resourcePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return reader, err
+}
+
+func load(resourcePath string) ([]byte, error) {
+	reader, err := open(resourcePath)
+	if err != nil {
+		return nil, err
+	}
+
 	defer reader.Close()
 
 	return ioutil.ReadAll(reader)
