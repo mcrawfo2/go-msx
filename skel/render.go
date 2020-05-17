@@ -78,11 +78,10 @@ func renderTemplates(templates map[string]Template) error {
 	return nil
 }
 
-func renderTemplate(template Template) error {
-	sourceFile := template.SourceFile
+func readTemplate(sourceFile string) ([]byte, error) {
 	f, ok := staticFiles[sourceFile]
 	if !ok {
-		return errors.Errorf("Template file not found: %s", sourceFile)
+		return nil, errors.Errorf("Template file not found: %s", sourceFile)
 	}
 
 	var reader io.Reader
@@ -90,13 +89,18 @@ func renderTemplate(template Template) error {
 		var err error
 		reader, err = gzip.NewReader(strings.NewReader(f.data))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		reader = strings.NewReader(f.data)
 	}
 
-	bytes, err := ioutil.ReadAll(reader)
+	return ioutil.ReadAll(reader)
+}
+
+func renderTemplate(template Template) error {
+	sourceFile := template.SourceFile
+	bytes, err := readTemplate(template.SourceFile)
 	if err != nil {
 		return err
 	}
