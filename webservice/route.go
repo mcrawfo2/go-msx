@@ -140,6 +140,14 @@ func ConsumesJson(b *restful.RouteBuilder) {
 	b.Consumes(MIME_JSON)
 }
 
+func ProducesTextPlain(b *restful.RouteBuilder) {
+	b.Produces(MIME_TEXT_PLAIN)
+}
+
+func ConsumesTextPlain(b *restful.RouteBuilder) {
+	b.Consumes(MIME_TEXT_PLAIN)
+}
+
 func DefaultReturns(code int) RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
 		b.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
