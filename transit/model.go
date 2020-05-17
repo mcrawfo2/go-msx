@@ -104,3 +104,33 @@ func (s *SecureData) SetKeyId(ctx context.Context, keyId types.UUID) *SecureData
 func (s *SecureData) KeyId() types.UUID {
 	return s.keyId
 }
+
+type WithSecureData struct {
+	SecureData *SecureData `db:"secure_data"`
+}
+
+func (g *WithSecureData) SecureValue(ctx context.Context, fieldName string) (string, error) {
+	value, err := g.SecureData.Field(ctx, fieldName)
+	if err != nil {
+		return "", err
+	}
+	return types.NewOptionalString(value).OrElse(""), nil
+}
+
+func (g *WithSecureData) SetSecureValue(ctx context.Context, keyId types.UUID, fieldName string, value *string) error {
+	if keyId == nil || keyId.IsEmpty() {
+		return ErrKeyNotSet
+	}
+	if err := keyId.Validate(); err != nil {
+		return err
+	}
+
+	if g.SecureData == nil {
+		g.SecureData = new(SecureData)
+	}
+	g.SecureData.
+		SetKeyId(ctx, keyId).
+		SetField(ctx, fieldName, value)
+
+	return nil
+}
