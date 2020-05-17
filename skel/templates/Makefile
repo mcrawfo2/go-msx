@@ -1,6 +1,7 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
 .PHONY: test dist docker docker-publish publish clean precommit tag
+.PHONY: update-go-msx update-go-msx
 
 test:
 	$(BUILDER) download-test-deps
@@ -38,3 +39,11 @@ precommit:
 
 tag:
 	$(BUILDER) git-tag
+
+update-go-msx:
+	go get cto-github.cisco.com/NFV-BU/go-msx
+	go mod tidy
+
+update-go-msx-build:
+	go get cto-github.cisco.com/NFV-BU/go-msx-build
+	go mod tidy
