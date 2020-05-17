@@ -13,27 +13,15 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 - Go 1.13+
 
     - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
-      ```bash
-      GOPATH=$HOME/go
-      PATH=$PATH:$GOPATH/bin
-      ``` 
-        
-      Execute the following commands:
         ```bash
         export GOPATH=~/go
         export PATH=$PATH:$GOPATH/bin
         ```
 
     - Be sure to set your Go proxy settings correctly.  For example:
-      ```bash
-      GOPRIVATE="cto-github.cisco.com/NFV-BU"
-      GOPROXY="https://proxy.golang.org,direct"
-      ```
-      
-      An other way to set the above is to run the command below.
-      ```
-      go env -w GOPRIVATE=cto-github.cisco.com/NFV-BU
-      ```
+        ```bash
+        go env -w GOPRIVATE=cto-github.cisco.com/NFV-BU
+        ```
 
 - Git SSH configuration for `cto-github.cisco.com`
 
