@@ -33,6 +33,7 @@ func GenerateSkeleton(args []string) error {
 		"generate-manifest",
 		"generate-dockerfile",
 		"generate-goland",
+		"generate-vscode",
 		"generate-kubernetes",
 		"generate-jenkins",
 		"generate-git")
@@ -155,6 +156,14 @@ func GenerateGoland(args []string) error {
 			SourceFile: "idea/runConfigurations/make_clean.xml",
 			DestFile:   ".idea/runConfigurations/make_clean.xml",
 		},
+		"Creating run configuration: make test": {
+			SourceFile: "idea/runConfigurations/make_test.xml",
+			DestFile:   ".idea/runConfigurations/make_test.xml",
+		},
+		"Creating run configuration: make precommit": {
+			SourceFile: "idea/runConfigurations/make_precommit.xml",
+			DestFile:   ".idea/runConfigurations/make_precommit.xml",
+		},
 		"Creating run configuration: make dist": {
 			SourceFile: "idea/runConfigurations/make_dist.xml",
 			DestFile:   ".idea/runConfigurations/make_dist.xml",
@@ -163,13 +172,25 @@ func GenerateGoland(args []string) error {
 			SourceFile: "idea/runConfigurations/make_docker.xml",
 			DestFile:   ".idea/runConfigurations/make_docker.xml",
 		},
-		"Creating run configuration: local": {
+		"Creating run configuration: make docker-publish": {
+			SourceFile: "idea/runConfigurations/make_docker_publish.xml",
+			DestFile:   ".idea/runConfigurations/make_docker_publish.xml",
+		},
+		"Creating run configuration: (local)": {
 			SourceFile: "idea/runConfigurations/project__local_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__local_.xml",
 		},
-		"Creating run configuration: remote": {
+		"Creating run configuration: migrate (local)": {
+			SourceFile: "idea/runConfigurations/project_migrate__local_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}_migrate__local_.xml",
+		},
+		"Creating run configuration: (remote)": {
 			SourceFile: "idea/runConfigurations/project__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__remote_.xml",
+		},
+		"Creating run configuration: migrate (remote)": {
+			SourceFile: "idea/runConfigurations/project_migrate__remote_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}_migrate__remote_.xml",
 		},
 	})
 }

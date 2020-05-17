@@ -72,6 +72,22 @@
       }
     },
     {
+      "label": "make docker-publish",
+      "group": "build",
+      "command": "make",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "args": [
+        "docker-publish"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "clear": true
+      }
+    },
+    {
       "label": "make publish",
       "group": "build",
       "command": "make",

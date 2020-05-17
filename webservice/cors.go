@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	MIME_XML  = restful.MIME_XML  // Accept or Content-Type used in Consumes() and/or Produces()
-	MIME_JSON = restful.MIME_JSON // Accept or Content-Type used in Consumes() and/or Produces()
-	MIME_TEXT_PLAIN = "text/plain" // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_XML        = restful.MIME_XML  // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_JSON       = restful.MIME_JSON // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_TEXT_PLAIN = "text/plain"      // Accept or Content-Type used in Consumes() and/or Produces()
 
 	HEADER_ContentEncoding             = "Content-Encoding"
 	HEADER_AccessControlRequestHeaders = "Access-Control-Request-Headers"

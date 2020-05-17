@@ -28,6 +28,7 @@ _testmain.go
 *.iws
 
 .idea/
+.vscode/
 dist/
 vendor/
 local/
