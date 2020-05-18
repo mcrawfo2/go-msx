@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 )
 
 type SkeletonConfig struct {
@@ -19,6 +20,14 @@ type SkeletonConfig struct {
 
 func (c SkeletonConfig) TargetDirectory() string {
 	return path.Join(c.TargetParent, c.AppName)
+}
+
+func (c SkeletonConfig) AppMigrateVersion() string {
+	return "V" + strings.ReplaceAll(c.AppVersion, ".", "_")
+}
+
+func (c SkeletonConfig) AppPackageUrl() string {
+	return path.Join("cto-github.cisco.com", "NFV-BU", c.AppName)
 }
 
 var skeletonConfig = &SkeletonConfig{

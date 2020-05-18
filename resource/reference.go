@@ -15,6 +15,32 @@ var logger = log.NewLogger("msx.resource")
 
 type Ref string
 
+func References(resourceGlob string) (refs []Ref) {
+	absGlob := abs(resourceGlob)
+	resourceFs, err := FileSystem()
+	if err != nil {
+		logger.WithError(err).Error("Failed to open resource FileSystem")
+		return nil
+	}
+
+	globFs, err := fs.NewGlobFileSystem(resourceFs, []string{absGlob}, nil)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create glob filesystem")
+		return nil
+	}
+
+	files, err := fs.ListFiles(globFs)
+	if err != nil {
+		logger.WithError(err).Error("Failed to list files from glob filesystem")
+		return nil
+	}
+
+	for _, file := range files {
+		refs = append(refs, Ref(file))
+	}
+	return refs
+}
+
 func Reference(resourceName string) (ref Ref) {
 	return Ref(abs(resourceName))
 }

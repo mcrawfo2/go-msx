@@ -12,6 +12,7 @@ func init() {
 	AddTarget("generate-skel-json", "Create the skel configuration file", GenerateSkelJson)
 	AddTarget("generate-build", "Create the build command and configuration", GenerateBuild)
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
+	AddTarget("generate-migrate", "Create the migrate package", GenerateMigrate)
 	AddTarget("generate-local", "Create the local profiles", GenerateLocal)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
@@ -28,6 +29,7 @@ func GenerateSkeleton(args []string) error {
 		"generate-skel-json",
 		"generate-build",
 		"generate-app",
+		"generate-migrate",
 		"generate-local",
 		"add-go-msx-dependency",
 		"generate-manifest",
@@ -110,6 +112,35 @@ func GenerateApp(args []string) error {
 		},
 		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
 	})
+}
+
+func GenerateMigrate(args []string) error {
+	logger.Info("Generating migration scanner")
+	err := renderTemplates(map[string]Template{
+		"Creating migration root sources": {
+			SourceFile: "internal/migrate/migrate.go.tpl",
+			DestFile:   "internal/migrate/migrate.go",
+		},
+		"Creating migration version sources": {
+			SourceFile: "internal/migrate/version/migrate.go.tpl",
+			DestFile:   "internal/migrate/${app.migrateVersion}/migrate.go",
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd/app/main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal/migrate"))
+	if err != nil {
+		return err
+	}
+
+	err = initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "internal/migrate/migrate.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal/migrate/"+skeletonConfig.AppMigrateVersion()))
+	return err
 }
 
 func AddGoMsxDependency(args []string) error {

@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -206,6 +207,27 @@ func (m *Manifest) AddCreateIndexMigration(version string, index ddl.Index, ifNo
 	description := fmt.Sprintf("Create %s index on %s", index.Name, index.Table)
 	stmt := new(ddl.CreateIndexQueryBuilder).CreateIndex(index, ifNotExists)
 	return m.AddCqlStringMigration(version, description, stmt)
+}
+
+func (m *Manifest) AddCqlResourceMigrations(refs ...resource.Ref) error {
+	regExFilename := regexp.MustCompile(`^V(\d+)_(\d+)_(\d+)_(\d+)__(.*)\.cql$`)
+
+	for _, ref := range refs {
+		fileName := path.Base(ref.String())
+		matches := regExFilename.FindStringSubmatch(fileName)
+		if len(matches) != 6 {
+			return errors.Errorf("Invalid filename format: %q", fileName)
+		}
+
+		version := fmt.Sprintf("%s.%s.%s.%s", matches[1], matches[2], matches[3], matches[4])
+		description := strings.Title(strings.ReplaceAll(matches[5], "_", " "))
+
+		if err := m.AddCqlResourceMigration(version, description, ref); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func script(filename string) string {

@@ -8,13 +8,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
-	"strings"
+	pathpkg "path"
 )
 
 func NewGlobFileSystem(source http.FileSystem, includes []string, excludes []string) (http.FileSystem, error) {
 	var keepFiles = make(types.StringSet)
-	// TODO: keepDirs
+	var keepDirs = make(types.StringSet)
 	err := vfsutil.WalkFiles(source, "/", func(path string, info os.FileInfo, rs io.ReadSeeker, err error) (err2 error) {
 		included := false
 		for _, inc := range includes {
@@ -40,6 +39,11 @@ func NewGlobFileSystem(source http.FileSystem, includes []string, excludes []str
 
 		if !excluded {
 			keepFiles.Add(path)
+			dir := pathpkg.Dir(path)
+			for dir != "/" && !keepDirs.Contains(dir) {
+				keepDirs.Add(dir)
+				dir = pathpkg.Dir(dir)
+			}
 		}
 
 		return nil
@@ -59,12 +63,23 @@ func NewGlobFileSystem(source http.FileSystem, includes []string, excludes []str
 		if p == "/" {
 			return true
 		}
-		keepPrefix := path.Clean(path.Join("/", p)) + "/"
-		for keepFile := range keepFiles {
-			if strings.HasPrefix(keepFile, keepPrefix) {
-				return true
-			}
+		if keepDirs.Contains(p) {
+			return true
 		}
 		return false
 	}), nil
+}
+
+func ListFiles(source http.FileSystem) ([]string, error) {
+	var results []string
+	err := vfsutil.WalkFiles(source, "/", func(path string, info os.FileInfo, rs io.ReadSeeker, e error) (err error) {
+		if !info.IsDir() {
+			results = append(results, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }

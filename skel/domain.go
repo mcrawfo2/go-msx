@@ -2,26 +2,35 @@ package skel
 
 import (
 	"bufio"
+	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"fmt"
 	"github.com/gedex/inflector"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
+	"io/ioutil"
 	"path"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 const (
-	inflectionTitleSingular        = "Title Singular"
-	inflectionTitlePlural          = "Title Plural"
-	inflectionUpperCamelSingular   = "UpperCamelSingular"
-	inflectionUpperCamelPlural     = "UpperCamelPlural"
-	inflectionLowerCamelSingular   = "lowerCamelSingular"
-	inflectionLowerCamelPlural     = "lowerCamelPlural"
-	inflectionLowerSnakeSingular   = "lower_snake_singular"
-	inflectionScreamingSnakePlural = "SCREAMING_SNAKE_PLURAL"
-	inflectionLowerSingular        = "lowersingular"
-	inflectionLowerPlural          = "lowerplural"
+	inflectionTitleSingular          = "Title Singular"
+	inflectionTitlePlural            = "Title Plural"
+	inflectionUpperCamelSingular     = "UpperCamelSingular"
+	inflectionUpperCamelPlural       = "UpperCamelPlural"
+	inflectionLowerCamelSingular     = "lowerCamelSingular"
+	inflectionLowerCamelPlural       = "lowerCamelPlural"
+	inflectionLowerSnakeSingular     = "lower_snake_singular"
+	inflectionScreamingSnakePlural   = "SCREAMING_SNAKE_PLURAL"
+	inflectionScreamingSnakeSingular = "SCREAMING_SNAKE_SINGULAR"
+	inflectionLowerSingular          = "lowersingular"
+	inflectionLowerPlural            = "lowerplural"
 )
 
 func init() {
@@ -65,19 +74,21 @@ func inflect(title string) map[string]string {
 	lowerSingular := strings.ToLower(lowerCamelSingular)
 	lowerPlural := strings.ToLower(lowerCamelPlural)
 	lowerSnakeSingular := strcase.ToSnake(titleSingular)
+	screamingSnakeSingular := strcase.ToScreamingSnake(titleSingular)
 	screamingSnakePlural := strcase.ToScreamingSnake(titlePlural)
 
 	return map[string]string{
-		inflectionTitleSingular:        titleSingular,
-		inflectionTitlePlural:          titlePlural,
-		inflectionUpperCamelSingular:   upperCamelSingular,
-		inflectionUpperCamelPlural:     upperCamelPlural,
-		inflectionLowerCamelSingular:   lowerCamelSingular,
-		inflectionLowerCamelPlural:     lowerCamelPlural,
-		inflectionLowerSingular:        lowerSingular,
-		inflectionLowerPlural:          lowerPlural,
-		inflectionLowerSnakeSingular:   lowerSnakeSingular,
-		inflectionScreamingSnakePlural: screamingSnakePlural,
+		inflectionTitleSingular:          titleSingular,
+		inflectionTitlePlural:            titlePlural,
+		inflectionUpperCamelSingular:     upperCamelSingular,
+		inflectionUpperCamelPlural:       upperCamelPlural,
+		inflectionLowerCamelSingular:     lowerCamelSingular,
+		inflectionLowerCamelPlural:       lowerCamelPlural,
+		inflectionLowerSingular:          lowerSingular,
+		inflectionLowerPlural:            lowerPlural,
+		inflectionLowerSnakeSingular:     lowerSnakeSingular,
+		inflectionScreamingSnakeSingular: screamingSnakeSingular,
+		inflectionScreamingSnakePlural:   screamingSnakePlural,
 	}
 }
 
@@ -95,6 +106,12 @@ func generateDomain(name string, conditions map[string]bool) error {
 	apiPackagePath := path.Join("pkg", "api")
 	apiPackageSource := path.Join("code", "domain", "api")
 	apiPackageUrl := path.Join("cto-github.cisco.com/NFV-BU", skeletonConfig.AppName, apiPackagePath)
+	migratePackageSource := path.Join("code", "domain", "migrate", "version")
+	migratePackagePath := path.Join("internal", "migrate", "V"+strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_"))
+	migratePrefix, err := nextMigrationPrefix(migratePackagePath)
+	if err != nil {
+		return err
+	}
 
 	files := []domainDefinitionFile{
 		{
@@ -153,6 +170,16 @@ func generateDomain(name string, conditions map[string]bool) error {
 				DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s.go"), inflections[inflectionLowerSingular]),
 			},
 		},
+		{
+			Name: inflections[inflectionTitleSingular] + " Migration",
+			Template: Template{
+				SourceFile: path.Join(migratePackageSource, "table.cql"),
+				DestFile: fmt.Sprintf(
+					path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.cql"),
+					migratePrefix,
+					inflections[inflectionScreamingSnakeSingular]),
+			},
+		},
 	}
 
 	variableValues := variables()
@@ -198,13 +225,27 @@ func generateDomain(name string, conditions map[string]bool) error {
 		}
 
 		destFile := path.Join(skeletonConfig.TargetDirectory(), file.Template.DestFile)
-		err = exec.ExecutePipes(exec.ExecSimple("go", "fmt", destFile))
-		if err != nil {
-			return err
+		if path.Ext(destFile) == ".go" {
+			err = exec.ExecutePipes(exec.ExecSimple("go", "fmt", destFile))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func nextMigrationPrefix(folder string) (string, error) {
+	prefix := "V" + strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_")
+	for i := 0; i < 128; i++ {
+		matches, _ := filepath.Glob(folder + "/" + prefix + "_" + strconv.Itoa(i) + "__*.cql")
+		if len(matches) == 0 {
+			return prefix + "_" + strconv.Itoa(i), nil
+		}
+	}
+
+	return "", errors.Errorf("More than 128 migrations found for %q", prefix)
 }
 
 func processConditionalBlocks(data, condition string, output bool) (result string, err error) {
@@ -240,4 +281,44 @@ func processConditionalBlocks(data, condition string, output bool) (result strin
 	}
 
 	return sb.String(), nil
+}
+
+func initializePackageFromFile(fileName, packageUrl string) error {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, fileName, nil, 0)
+	if err != nil {
+		return err
+	}
+
+	// Add the imports
+	for i := 0; i < len(f.Decls); i++ {
+		d := f.Decls[i]
+
+		switch d.(type) {
+		case *ast.GenDecl:
+			dd := d.(*ast.GenDecl)
+
+			// IMPORT Declarations
+			if dd.Tok == token.IMPORT {
+				// Add the new import
+				iSpec := &ast.ImportSpec{
+					Path: &ast.BasicLit{Value: strconv.Quote(packageUrl)},
+					Name: ast.NewIdent("_"),
+				}
+
+				dd.Specs = append(dd.Specs, iSpec)
+			}
+		}
+	}
+
+	// Sort the imports
+	ast.SortImports(fset, f)
+
+	var output []byte
+	buffer := bytes.NewBuffer(output)
+	if err := printer.Fprint(buffer, fset, f); err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(fileName, buffer.Bytes(), 0644)
 }
