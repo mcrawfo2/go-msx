@@ -226,7 +226,9 @@ func generateDomain(name string, conditions map[string]bool) error {
 
 		destFile := path.Join(skeletonConfig.TargetDirectory(), file.Template.DestFile)
 		if path.Ext(destFile) == ".go" {
-			err = exec.ExecutePipes(exec.ExecSimple("go", "fmt", destFile))
+			err = exec.ExecutePipes(
+				exec.Info("Reformatting %q", path.Base(destFile)),
+				exec.ExecSimple("go", "fmt", destFile))
 			if err != nil {
 				return err
 			}

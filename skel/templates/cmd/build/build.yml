@@ -16,3 +16,7 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: ${app.version}-EDGE
     includeGroups: "com.cisco.**"
+
+resources:
+  - includes:
+      - "/**/*.cql"
