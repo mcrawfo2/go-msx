@@ -233,7 +233,9 @@ func generateDomain(name string, conditions map[string]bool) error {
 		}
 	}
 
-	return nil
+	return initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", domainPackageName))
 }
 
 func nextMigrationPrefix(folder string) (string, error) {

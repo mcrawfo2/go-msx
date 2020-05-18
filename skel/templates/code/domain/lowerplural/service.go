@@ -2,7 +2,9 @@ package lowerplural
 
 import (
 	"context"
+	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/repository"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
 	"github.com/pkg/errors"

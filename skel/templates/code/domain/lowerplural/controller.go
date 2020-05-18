@@ -3,7 +3,9 @@ package lowerplural
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
