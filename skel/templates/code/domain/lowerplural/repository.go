@@ -15,6 +15,9 @@ var tableUpperCamelSingular = ddl.Table{
 	Name: "lower_snake_singular",
 	Columns: []ddl.Column{
 		{columnUpperCamelSingularName, ddl.DataTypeText},
+		//#if TENANT_DOMAIN
+		{"tenant_id", ddl.DataTypeUuid},
+		//#endif TENANT_DOMAIN
 		{"data", ddl.DataTypeText},
 	},
 	PartitionKeys: []string{columnUpperCamelSingularName},
@@ -37,27 +40,30 @@ func (r *lowerCamelSingularCassandraRepository) FindAll(ctx context.Context) (re
 	return
 }
 
-func (r *lowerCamelSingularCassandraRepository) FindByKey(ctx context.Context, themeName string) (result *lowerCamelSingular, err error) {
-	logger.WithContext(ctx).Infof("Retrieving Title Singular by key %q", themeName)
+func (r *lowerCamelSingularCassandraRepository) FindByKey(ctx context.Context, name string) (result *lowerCamelSingular, err error) {
+	logger.WithContext(ctx).Infof("Retrieving Title Singular by key %q", name)
+	var res lowerCamelSingular
 	err = r.CrudRepositoryApi.FindOneBy(ctx, map[string]interface{}{
-		columnUpperCamelSingularName: themeName,
-	}, &result)
+		columnUpperCamelSingularName: name,
+	}, &res)
 	if err == cassandra.ErrNotFound {
 		err = repository.ErrNotFound
+	} else if err == nil {
+		result = &res
 	}
 	return
 }
 
-func (r *lowerCamelSingularCassandraRepository) Save(ctx context.Context, theme lowerCamelSingular) (err error) {
-	logger.WithContext(ctx).Infof("Storing Title Singular with key %q", theme.Name)
-	err = r.CrudRepositoryApi.Save(ctx, theme)
+func (r *lowerCamelSingularCassandraRepository) Save(ctx context.Context, lowerCamelSingular lowerCamelSingular) (err error) {
+	logger.WithContext(ctx).Infof("Storing Title Singular with key %q", lowerCamelSingular.Name)
+	err = r.CrudRepositoryApi.Save(ctx, lowerCamelSingular)
 	return err
 }
 
-func (r *lowerCamelSingularCassandraRepository) Delete(ctx context.Context, themeName string) (err error) {
-	logger.WithContext(ctx).Infof("Deleting Title Singular by key %q", themeName)
+func (r *lowerCamelSingularCassandraRepository) Delete(ctx context.Context, name string) (err error) {
+	logger.WithContext(ctx).Infof("Deleting Title Singular by key %q", name)
 	err = r.CrudRepositoryApi.DeleteBy(ctx, map[string]interface{}{
-		columnUpperCamelSingularName: themeName,
+		columnUpperCamelSingularName: name,
 	})
 	return
 }

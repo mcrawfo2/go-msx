@@ -5,3 +5,6 @@ CREATE TABLE lower_snake_singular (
 //#endif TENANT_DOMAIN
     data text
 );
+//#if TENANT_DOMAIN
+CREATE INDEX ON lower_snake_singular(tenant_id);
+//#endif TENANT_DOMAIN

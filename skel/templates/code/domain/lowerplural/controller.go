@@ -44,9 +44,9 @@ func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebServ
 		Operation("listUpperCamelPlural").
 		Doc("List all the Title Plural").
 		Do(webservice.StandardList).
-		Do(webservice.ResponsePayload([]api.UpperCamelSingularResponse{})).
+		Do(webservice.ResponseRawPayload([]api.UpperCamelSingularResponse{})).
 		Filter(viewPermissionFilter).
-		To(webservice.Controller(
+		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
 				lowerCamelPlural, err := c.lowerCamelSingularService.ListUpperCamelPlural(req.Request.Context())
 				if err != nil {
