@@ -253,29 +253,53 @@ func nextMigrationPrefix(folder string) (string, error) {
 }
 
 func processConditionalBlocks(data, condition string, output bool) (result string, err error) {
+	type parserState int
+	const outside parserState = 0
+	const insideIf parserState = 1
+	const insideElse parserState = 2
+
 	sb := strings.Builder{}
-	insideCondition := false
+	write := func(out bool, line string) {
+		if !out {
+			return
+		}
+		sb.WriteString(line)
+		sb.WriteRune('\n')
+	}
+	insideCondition := outside
 	startMarker := "//#if " + condition
+	middleMarker := "//#else " + condition
 	endMarker := "//#endif " + condition
 
 	scanner := bufio.NewScanner(strings.NewReader(data))
 	for scanner.Scan() {
 		line := scanner.Text()
+		lineTrimmed := strings.TrimSpace(line)
 		switch insideCondition {
-		case false:
-			if strings.TrimSpace(line) == startMarker {
-				insideCondition = true
-			} else {
-				sb.WriteString(line)
-				sb.WriteRune('\n')
+		case outside:
+			switch lineTrimmed {
+			case startMarker:
+				insideCondition = insideIf
+			default:
+				write(true, line)
 			}
 
-		case true:
-			if strings.TrimSpace(line) == endMarker {
-				insideCondition = false
-			} else if output {
-				sb.WriteString(line)
-				sb.WriteRune('\n')
+		case insideIf:
+			switch lineTrimmed {
+			case endMarker:
+				insideCondition = outside
+			case middleMarker:
+				insideCondition = insideElse
+			default:
+				write(output, line)
+			}
+
+		case insideElse:
+			switch lineTrimmed {
+			case endMarker:
+				insideCondition = outside
+			default:
+				write(!output, line)
 			}
 		}
 	}

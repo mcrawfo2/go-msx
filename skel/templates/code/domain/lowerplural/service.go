@@ -4,6 +4,7 @@ import (
 	"context"
 	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/repository"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
@@ -16,7 +17,11 @@ var (
 )
 
 type lowerCamelSingularServiceApi interface {
-	ListUpperCamelPlural(ctx context.Context) ([]lowerCamelSingular, error)
+	ListUpperCamelPlural(ctx context.Context,
+		//#if TENANT_DOMAIN
+		tenantId types.UUID,
+		//#endif TENANT_DOMAIN
+	) ([]lowerCamelSingular, error)
 	GetUpperCamelSingular(ctx context.Context, name string) (lowerCamelSingular, error)
 	CreateUpperCamelSingular(ctx context.Context, request api.UpperCamelSingularCreateRequest) (lowerCamelSingular, error)
 	UpdateUpperCamelSingular(ctx context.Context, name string, request api.UpperCamelSingularUpdateRequest) (lowerCamelSingular, error)
@@ -28,8 +33,19 @@ type lowerCamelSingularService struct {
 	lowerCamelSingularConverter  lowerCamelSingularConverter
 }
 
-func (s *lowerCamelSingularService) ListUpperCamelPlural(ctx context.Context) ([]lowerCamelSingular, error) {
+func (s *lowerCamelSingularService) ListUpperCamelPlural(ctx context.Context,
+	//#if TENANT_DOMAIN
+	tenantId types.UUID,
+	//#endif TENANT_DOMAIN
+) ([]lowerCamelSingular, error) {
+	//#if TENANT_DOMAIN
+	if err := rbac.HasTenant(ctx, tenantId); err != nil {
+		return nil, err
+	}
+	return s.lowerCamelSingularRepository.FindAllByIndexTenantId(ctx, tenantId.ToByteArray())
+	//#else TENANT_DOMAIN
 	return s.lowerCamelSingularRepository.FindAll(ctx)
+	//#endif TENANT_DOMAIN
 }
 
 func (s *lowerCamelSingularService) GetUpperCamelSingular(ctx context.Context, name string) (result lowerCamelSingular, err error) {

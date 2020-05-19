@@ -3,6 +3,8 @@ package lowerplural
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+
 	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	//#endif TENANT_DOMAIN
@@ -15,6 +17,7 @@ const (
 	pathRoot                            = "/api/v1/lowerplural"
 	pathSuffixUpperCamelSingularName    = "/{lowerCamelSingularName}"
 	pathParamNameUpperCamelSingularName = "lowerCamelSingularName"
+	queryParamNameTenantId              = "tenantId"
 )
 
 var (
@@ -40,18 +43,48 @@ func (c *lowerCamelSingularController) Routes(svc *restful.WebService) {
 }
 
 func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebService) *restful.RouteBuilder {
+	//#if TENANT_DOMAIN
+	var paramTenantId = restful.QueryParameter(queryParamNameTenantId, "Tenant Id")
+
+	type params struct {
+		TenantId types.UUID `req:"query"`
+	}
+	//#endif TENANT_DOMAIN
+
 	return svc.GET("").
 		Operation("listUpperCamelPlural").
 		Doc("List all the Title Plural").
 		Do(webservice.StandardList).
 		Do(webservice.ResponseRawPayload([]api.UpperCamelSingularResponse{})).
+		//#if TENANT_DOMAIN
+		Param(paramTenantId).
+		Do(webservice.PopulateParams(params{})).
+		//#endif TENANT_DOMAIN
 		Filter(viewPermissionFilter).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
-				lowerCamelPlural, err := c.lowerCamelSingularService.ListUpperCamelPlural(req.Request.Context())
+				//#if TENANT_DOMAIN
+				var params = webservice.Params(req).(*params)
+				//#endif TENANT_DOMAIN
+
+				lowerCamelPlural, err := c.lowerCamelSingularService.ListUpperCamelPlural(
+					req.Request.Context(),
+					//#if TENANT_DOMAIN
+					params.TenantId,
+				//#endif TENANT_DOMAIN
+				)
+
+				//#if TENANT_DOMAIN
+				if err == rbac.ErrUserDoesNotHaveTenantAccess {
+					return nil, webservice.NewForbiddenError(err)
+				} else if err != nil {
+					return nil, err
+				}
+				//#else TENANT_DOMAIN
 				if err != nil {
 					return nil, err
 				}
+				//#endif TENANT_DOMAIN
 
 				return c.lowerCamelSingularConverter.ToUpperCamelSingularListResponse(lowerCamelPlural), nil
 			}))
