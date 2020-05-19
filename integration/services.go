@@ -5,7 +5,7 @@ const (
 	ServiceNameAlert            = "alertservice"
 	ServiceNameAuditing         = "auditingservice"
 	ServiceNameBilling          = "billingservice"
-	ServiceNameConsume          = "consumservice"
+	ServiceNameConsume          = "consumeservice"
 	ServiceNameManage           = "manageservice"
 	ServiceNameMonitor          = "monitorservice"
 	ServiceNameNotification     = "notificationservice"
