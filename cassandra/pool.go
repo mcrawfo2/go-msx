@@ -23,6 +23,7 @@ func (p *ConnectionPool) withFreshSession(action func(*gocql.Session) error) (er
 	if err != nil {
 		return err
 	}
+	defer session.Close()
 
 	return action(session)
 }
