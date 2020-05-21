@@ -42,6 +42,13 @@ func HasPermission(ctx context.Context, required []string) error {
 
 	permissions := userContextDetails.Permissions
 
+	// bypass permission check if user has permission: IS_API_ADMIN
+	for _, permission := range permissions {
+		if PermissionIsApiAdmin == permission {
+			return nil
+		}
+	}
+
 	for _, p := range required {
 		for _, permission := range permissions {
 			if p == permission {
