@@ -36,6 +36,23 @@ func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
 
+func BackgroundOperation(ctx context.Context, operationName string, operation func(context.Context) error) {
+	newCtx := UntracedContextFromContext(ctx)
+	go func() {
+		defer func() {
+			c := recover()
+			if c != nil {
+				logger.WithContext(newCtx).Error("Operation %q paniced: %+v", operationName, c)
+			}
+		}()
+
+		err := Operation(newCtx, operationName, operation)
+		if err != nil {
+			logger.WithContext(newCtx).WithError(err).Error("Operation %q failed", operationName)
+		}
+	}()
+}
+
 func Operation(ctx context.Context, operationName string, operation func(context.Context) error) (err error) {
 	ctx, span := NewSpan(ctx, operationName)
 	defer span.Finish()
