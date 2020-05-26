@@ -36,6 +36,23 @@ func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
 
+func BackgroundOperation(ctx context.Context, operationName string, operation func(context.Context) error) {
+	newCtx := UntracedContextFromContext(ctx)
+	go func() {
+		defer func() {
+			c := recover()
+			if c != nil {
+				logger.WithContext(newCtx).Error("Operation %q panicked: %+v", operationName, c)
+			}
+		}()
+
+		err := Operation(newCtx, operationName, operation)
+		if err != nil {
+			logger.WithContext(newCtx).WithError(err).Error("Operation %q failed", operationName)
+		}
+	}()
+}
+
 func Operation(ctx context.Context, operationName string, operation func(context.Context) error) (err error) {
 	ctx, span := NewSpan(ctx, operationName)
 	defer span.Finish()
@@ -72,5 +89,10 @@ func ContextWithUntracedContext(ctx context.Context) context.Context {
 }
 
 func UntracedContextFromContext(ctx context.Context) context.Context {
-	return ctx.Value(contextKeyUntracedContext).(context.Context)
+	untracedContext, ok := ctx.Value(contextKeyUntracedContext).(context.Context)
+	if !ok {
+		logger.WithContext(ctx).Error("Context does not have untraced context stored")
+		return nil
+	}
+	return ContextWithUntracedContext(untracedContext)
 }
