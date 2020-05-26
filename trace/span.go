@@ -42,7 +42,7 @@ func BackgroundOperation(ctx context.Context, operationName string, operation fu
 		defer func() {
 			c := recover()
 			if c != nil {
-				logger.WithContext(newCtx).Error("Operation %q paniced: %+v", operationName, c)
+				logger.WithContext(newCtx).Error("Operation %q panicked: %+v", operationName, c)
 			}
 		}()
 
@@ -91,7 +91,7 @@ func ContextWithUntracedContext(ctx context.Context) context.Context {
 func UntracedContextFromContext(ctx context.Context) context.Context {
 	untracedContext, ok := ctx.Value(contextKeyUntracedContext).(context.Context)
 	if !ok {
-		logger.Error("Context does not have untraced context stored")
+		logger.WithContext(ctx).Error("Context does not have untraced context stored")
 		return nil
 	}
 	return ContextWithUntracedContext(untracedContext)
