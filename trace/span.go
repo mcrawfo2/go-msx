@@ -72,5 +72,10 @@ func ContextWithUntracedContext(ctx context.Context) context.Context {
 }
 
 func UntracedContextFromContext(ctx context.Context) context.Context {
-	return ctx.Value(contextKeyUntracedContext).(context.Context)
+	untracedContext, ok := ctx.Value(contextKeyUntracedContext).(context.Context)
+	if !ok {
+		logger.Error("Context does not have untraced context stored")
+		return nil
+	}
+	return ContextWithUntracedContext(untracedContext)
 }
