@@ -1,12 +1,15 @@
 package webservice
 
 import (
+	"bytes"
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"github.com/emicklei/go-restful"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"reflect"
 	"strconv"
@@ -132,6 +135,70 @@ func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value
 }
 
 func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value) error {
+	contentType := req.Request.Header.Get("Content-Type")
+	baseContentType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return err
+	}
+
+	switch baseContentType {
+	case MIME_MULTIPART_FORM:
+		return r.populateMultipartForm(req, fieldValue)
+	case MIME_APPLICATION_FORM:
+		// TODO: Support for url-encoded forms
+		return errors.Errorf("Content-Type %q currently unsupported", baseContentType)
+	default:
+		if r.Options["file"] == "true" {
+			return r.populateRestFormFile(req, fieldValue)
+		} else {
+			return r.populateQuery(req, fieldValue)
+		}
+	}
+}
+
+func (r RouteParam) populateRestFormFile(req *restful.Request, fieldValue reflect.Value) error {
+	// Populate a Multipart Form with one file containing the request body
+	body := bytes.NewBuffer(make([]byte, 0, 32768))
+	w := multipart.NewWriter(body)
+
+	contentType := w.FormDataContentType()
+	boundary := strings.TrimPrefix(contentType, "multipart/form-data; boundary=")
+	boundary = strings.Trim(boundary, "\"")
+
+	// Add file from the body
+	part, err := w.CreateFormFile(r.Name, "body")
+	if req.Request.Body != nil {
+		var bodyBytes []byte
+		bodyBytes, err = ioutil.ReadAll(req.Request.Body)
+		if err != nil {
+			return err
+		}
+		_, err = part.Write(bodyBytes)
+		if err != nil {
+			return err
+		}
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	reader := multipart.NewReader(body, boundary)
+	multipartForm, err := reader.ReadForm(32 << 20)
+	if err != nil {
+		return err
+	}
+
+	formFiles, ok := multipartForm.File[r.Name]
+	if ok {
+		return r.populateFile(fieldValue, formFiles[0])
+	} else {
+		err = errors.New("Failed to retrieve multipart form file")
+	}
+	return err
+}
+
+func (r RouteParam) populateMultipartForm(req *restful.Request, fieldValue reflect.Value) error {
 	if req.Request.PostForm == nil {
 		err := req.Request.ParseMultipartForm(32 << 20)
 		if err != nil {
@@ -145,6 +212,11 @@ func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value)
 	}
 
 	formValues, ok := req.Request.MultipartForm.Value[r.Name]
+	if !ok || len(formValues) == 0 {
+		// Attempt a lookup in the query values
+		queryValues := req.Request.URL.Query()
+		formValues, ok = queryValues[r.Name]
+	}
 	if !ok || len(formValues) == 0 {
 		if fieldValue.Kind() != reflect.Ptr {
 			return errors.Errorf("Missing non-optional form field %q", r.Name)
