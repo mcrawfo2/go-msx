@@ -43,8 +43,14 @@ func (m *Message) AddDetail(key, value string) {
 	m.Details[key] = value
 }
 
+func (m *Message) AddDetails(kv map[string]string) {
+	for k, v := range kv {
+		m.Details[k] = v
+	}
+}
+
 type MessageProducer interface {
-	Message(context.Context) Message
+	Message(context.Context) (Message, error)
 }
 
 func NewMessage(ctx context.Context) (Message, error) {
