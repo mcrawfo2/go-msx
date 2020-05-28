@@ -38,6 +38,7 @@ type UserContext struct {
 	Jti         string     `json:"jti"`
 	Email       string     `json:"email"`
 	Token       string     `json:"-"`
+	ClientId    string     `json:"client_id"`
 }
 
 func (c *UserContext) Clone() *UserContext {

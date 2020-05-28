@@ -154,16 +154,23 @@ func (t *slowDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 	// Fill in User Details and Roles
 	personalInfoResponse, err := userManagementApi.GetMyPersonalInfo()
 	if err != nil {
-		return nil, err
+		var locale = "en_US"
+		userContext := security.UserContextFromContext(ctx)
+		details.Username = &userContext.UserName
+		details.Email = &userContext.Email
+		details.GivenName = &userContext.FirstName
+		details.FamilyName = &userContext.LastName
+		details.Locale = &locale
+		details.Roles = userContext.Roles
+	} else {
+		personalInfo := personalInfoResponse.Payload.(*usermanagement.UserPersonalInfoResponse)
+		details.Username = &personalInfo.UserId
+		details.Email = personalInfo.Email
+		details.GivenName = personalInfo.FirstName
+		details.FamilyName = personalInfo.LastName
+		details.Locale = personalInfo.Locale
+		details.Roles = personalInfo.Roles
 	}
-
-	personalInfo := personalInfoResponse.Payload.(*usermanagement.UserPersonalInfoResponse)
-	details.Username = &personalInfo.UserId
-	details.Email = personalInfo.Email
-	details.GivenName = personalInfo.FirstName
-	details.FamilyName = personalInfo.LastName
-	details.Locale = personalInfo.Locale
-	details.Roles = personalInfo.Roles
 
 	// Fill in User Id
 	userIdResponse, err := userManagementApi.GetMyUserId()
@@ -181,6 +188,7 @@ func (t *slowDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 	details.IssuedAt = &userContext.IssuedAt
 	details.Jti = &userContext.Jti
 	details.AuthTime = &userContext.IssuedAt
+	details.ClientId = &userContext.ClientId
 
 	// TODO: details.Currency
 	// TODO: details.ClientId
