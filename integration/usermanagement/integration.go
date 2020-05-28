@@ -62,7 +62,7 @@ var (
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
 		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
-		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/checkToken"},
+		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 
 		endpointNameGetMyCapabilities:   {Method: "GET", Path: "/api/v1/users/capabilities"},
 		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
