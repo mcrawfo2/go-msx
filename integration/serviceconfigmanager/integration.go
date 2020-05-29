@@ -3,14 +3,12 @@ package serviceconfigmanager
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"encoding/json"
 	"strconv"
 )
 
 const (
-	endpointNameGetAdminHealth = "getAdminHealth"
-
+	endpointNameGetAdminHealth                           = "getAdminHealth"
 	endpointNameGetServiceConfigurations                 = "getServiceConfigurations"
 	endpointNameGetServiceConfigurationByServiceConfigId = "getServiceConfigurationByServiceConfigId"
 	endpointNameCreateServiceConfiguration               = "createServiceConfiguration"
@@ -22,10 +20,8 @@ const (
 )
 
 var (
-	logger    = log.NewLogger("msx.integration.usermanagement")
 	endpoints = map[string]integration.MsxServiceEndpoint{
-		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
-
+		endpointNameGetAdminHealth:                           {Method: "GET", Path: "/admin/health"},
 		endpointNameGetServiceConfigurations:                 {Method: "GET", Path: "/api/v1/serviceconfigurations"},
 		endpointNameGetServiceConfigurationByServiceConfigId: {Method: "GET", Path: "/api/v1/serviceconfigurations/{{.serviceConfigId}}"},
 		endpointNameCreateServiceConfiguration:               {Method: "POST", Path: "/api/v1/serviceconfigurations"},
@@ -84,7 +80,6 @@ func (i *Integration) GetServiceConfigurationByServiceConfigId(serviceConfigId s
 
 func (i *Integration) CreateServiceConfiguration(configuration ServiceConfigurationRequest) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(configuration)
-
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +95,6 @@ func (i *Integration) CreateServiceConfiguration(configuration ServiceConfigurat
 
 func (i *Integration) UpdateServiceConfiguration(configuration ServiceConfigurationUpdateRequest) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(configuration)
-
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +109,6 @@ func (i *Integration) UpdateServiceConfiguration(configuration ServiceConfigurat
 }
 
 func (i *Integration) DeleteServiceConfiguration(serviceConfigId string) (*integration.MsxResponse, error) {
-
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteServiceConfiguration,
 		EndpointParameters: map[string]string{
@@ -127,7 +120,6 @@ func (i *Integration) DeleteServiceConfiguration(serviceConfigId string) (*integ
 
 func (i *Integration) UpdateServiceConfigurationStatus(serviceConfigId string, serviceConfigurationStatus ServiceConfigurationStatusRequest) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(serviceConfigurationStatus)
-
 	if err != nil {
 		return nil, err
 	}
