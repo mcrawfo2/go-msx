@@ -27,7 +27,6 @@ func SeedRecords(ctx context.Context, session *gocql.Session, table string, reco
 		err := gocqlx.Query(session.Query(stmt), names).
 			WithContext(ctx).
 			BindMap(record).
-			Consistency(gocql.All).
 			ExecRelease()
 
 		if err != nil {
@@ -42,7 +41,7 @@ type RecordFunc func(ctx context.Context, session *gocql.Session, record interfa
 
 func ScanTable(ctx context.Context, session *gocql.Session, table string, columns []string, record interface{}, action RecordFunc) (err error) {
 	stmt, names := qb.Select(table).Columns(columns...).ToCql()
-	query := gocqlx.Query(session.Query(stmt), names).WithContext(ctx).Consistency(gocql.All)
+	query := gocqlx.Query(session.Query(stmt), names).WithContext(ctx)
 	defer query.Release()
 
 	iter := query.Iter()
@@ -62,5 +61,5 @@ func ScanTable(ctx context.Context, session *gocql.Session, table string, column
 
 func DeleteRecord(ctx context.Context, session *gocql.Session, table string, where ...qb.Cmp) error {
 	stmt, names := qb.Delete(table).Where(where...).ToCql()
-	return gocqlx.Query(session.Query(stmt), names).WithContext(ctx).Consistency(gocql.All).ExecRelease()
+	return gocqlx.Query(session.Query(stmt), names).WithContext(ctx).ExecRelease()
 }
