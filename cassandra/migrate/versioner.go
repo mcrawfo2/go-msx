@@ -79,6 +79,7 @@ func (v *Versioner) RecordAppliedMigration(appliedMigration AppliedMigration) er
 
 	return gocqlx.
 		Query(v.session.Query(stmt), names).
+		Consistency(gocql.All).
 		BindStruct(appliedMigration).
 		ExecRelease()
 }
