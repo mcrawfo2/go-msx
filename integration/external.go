@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"io"
@@ -76,6 +77,7 @@ type ExternalService struct {
 	scheme       string
 	authority    string
 	interceptors []httpclient.RequestInterceptor
+	retry        *retry.Retry
 }
 
 func (v *ExternalService) AddInterceptor(interceptor httpclient.RequestInterceptor) {
@@ -88,6 +90,7 @@ func (v *ExternalService) Request(endpoint Endpoint, uriVariables map[string]str
 		return nil, err
 	}
 
+	body = body[:]
 	var buf io.Reader
 	if body != nil {
 		buf = bytes.NewBuffer(body)
@@ -106,6 +109,16 @@ func (v *ExternalService) Request(endpoint Endpoint, uriVariables map[string]str
 		}
 	}
 
+	req.GetBody = func() (io.ReadCloser, error) {
+		var buf io.Reader
+		if body != nil {
+			buf = bytes.NewBuffer(body)
+		} else {
+			buf = http.NoBody
+		}
+		return ioutil.NopCloser(buf), nil
+	}
+
 	req = req.WithContext(v.ctx)
 
 	return req, nil
@@ -122,6 +135,28 @@ func (v *ExternalService) Do(req *http.Request, responseBody interface{}) (*http
 		httpClientDo = interceptor(httpClientDo)
 	}
 
+	if v.retry != nil {
+		var resp *http.Response
+		var responseBodyBytes []byte
+		err := v.retry.Retry(func() (err error) {
+			resp, responseBodyBytes, err = v.doOnce(httpClientDo, req, responseBody)
+			if err == nil {
+				return
+			}
+			if statusError, ok := err.(StatusError); !ok || statusError.Code < 500 {
+				return &retry.PermanentError{
+					Cause: err,
+				}
+			}
+			return
+		})
+		return resp, responseBodyBytes, err
+	} else {
+		return v.doOnce(httpClientDo, req, responseBody)
+	}
+}
+
+func (v *ExternalService) doOnce(httpClientDo func(*http.Request) (*http.Response, error), req *http.Request, responseBody interface{}) (*http.Response, []byte, error) {
 	resp, err := httpClientDo(req)
 	if err != nil {
 		return resp, nil, errors.Wrap(err, "Failed to execute request")
@@ -136,7 +171,7 @@ func (v *ExternalService) Do(req *http.Request, responseBody interface{}) (*http
 	}
 
 	if resp.StatusCode > 399 {
-		return nil, responseBodyBytes, StatusError{
+		return resp, responseBodyBytes, StatusError{
 			Code: resp.StatusCode,
 			Body: string(responseBodyBytes),
 			Err:  errors.Errorf("Response code %d", resp.StatusCode),
