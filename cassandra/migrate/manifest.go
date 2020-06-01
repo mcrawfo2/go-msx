@@ -52,6 +52,7 @@ func CqlMigration(cql string) MigrationContextFunc {
 			}
 			err := session.Query(query).
 				WithContext(ctx).
+				Consistency(gocql.All).
 				Exec()
 			if err != nil {
 				return err
