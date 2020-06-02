@@ -60,7 +60,7 @@ const (
 )
 
 var (
-	logger    = log.NewLogger("msx.integration.usermanagement")
+	logger    = log.NewLogger("msx.integration.manage")
 	endpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
