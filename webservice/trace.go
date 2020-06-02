@@ -40,6 +40,11 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 		"code":      resp.StatusCode(),
 	}
 
+	traceContext, _ := log.LogContextFromContext(ctx)
+	for k, v := range traceContext {
+		logContext[k] = v
+	}
+
 	span.LogFields(trace.Int(trace.FieldHttpCode, resp.StatusCode()))
 	if resp.Error() != nil {
 		span.LogFields(trace.Error(resp.Error()))
