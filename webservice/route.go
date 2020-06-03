@@ -26,6 +26,7 @@ const (
 	MetadataTagDefinition       = "TagDefinition"
 	AttributeDefaultReturnCode  = "DefaultReturnCode"
 	AttributeErrorPayload       = "ErrorPayload"
+	AttributeError              = "Error"
 	AttributeParams             = "Params"
 	AttributeStandard           = "Standard"
 	AttributeParamsValidator    = "ParamsValidator"

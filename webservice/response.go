@@ -2,6 +2,7 @@ package webservice
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"reflect"
@@ -60,6 +61,9 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 }
 
 func WriteError(req *restful.Request, resp *restful.Response, status int, err error) {
+	trace.SpanFromContext(req.Request.Context()).LogFields(trace.Error(resp.Error()))
+	req.SetAttribute(AttributeError, err)
+
 	logger.
 		WithContext(req.Request.Context()).
 		WithError(err).
