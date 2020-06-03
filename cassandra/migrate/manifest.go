@@ -65,11 +65,20 @@ func CqlMigration(cql string) MigrationContextFunc {
 
 type ManifestConfig struct {
 	CqlFilePath string `config:"default=migrate"`
+	PostUpgrade string `config:"default="`
 }
 
 type Manifest struct {
-	migrations []*Migration
-	cfg        *ManifestConfig
+	migrations  []*Migration
+	cfg         *ManifestConfig
+}
+
+func (m *Manifest) PostUpgradeVersion() (types.Version, error) {
+	if m.cfg.PostUpgrade == "" {
+		return nil, nil
+	}
+
+	return types.NewVersion(m.cfg.PostUpgrade)
 }
 
 func (m *Manifest) Migrations() []*Migration {

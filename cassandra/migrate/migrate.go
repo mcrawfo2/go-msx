@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"time"
 )
 
@@ -25,8 +26,19 @@ type Migrator struct {
 	versioner Versioner
 }
 
-func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration) error {
+func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpgrade bool) error {
 	logger.WithContext(m.ctx).Info("Validating previously applied migrations")
+
+
+	postUpgradeVersion, err := m.manifest.PostUpgradeVersion()
+	if err != nil {
+		return errors.Wrap(err, "Failed to parse Post-Upgrade Version")
+	}
+
+	if postUpgradeVersion == nil {
+		// No post-upgrade version set, run all migrations
+		preUpgrade = false
+	}
 
 	n := 0
 	var migration *Migration
@@ -34,9 +46,19 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration) error 
 		if n == len(appliedMigrations) {
 			break
 		}
+		appliedMigration := appliedMigrations[n]
+
+		if preUpgrade && !migration.Version.Lt(postUpgradeVersion) {
+			logger.WithContext(m.ctx).
+				WithField("version", migration.Version).
+				Infof("Skipping verification of post-upgrade %s migration %s: %s",
+					migration.Type,
+					migration.Version,
+					migration.Description)
+			continue
+		}
 
 		// Ensure manifest migration matches applied migration
-		appliedMigration := appliedMigrations[n]
 		if appliedMigration.InstalledRank != n+1 {
 			return errors.Errorf("Incorrect installed rank: %+v", appliedMigration)
 		}
@@ -63,12 +85,33 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration) error 
 	return nil
 }
 
-func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) error {
+func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string, preUpgrade bool) (err error) {
 	logger.WithContext(m.ctx).Info("Applying new migrations")
+
+	postUpgradeVersion, err := m.manifest.PostUpgradeVersion()
+	if err != nil {
+		return errors.Wrap(err, "Failed to parse Post-Upgrade Version")
+	}
+
+	if postUpgradeVersion == nil {
+		// No post-upgrade version set, run all migrations
+		preUpgrade = false
+	}
 
 	migrations := m.manifest.Migrations()
 	for n := lastAppliedMigration; n < len(migrations); n++ {
 		migration := migrations[n]
+
+		if preUpgrade && !migration.Version.Lt(postUpgradeVersion) {
+			logger.WithContext(m.ctx).
+				WithField("version", migration.Version).
+				Infof("Skipping post-upgrade %s migration %s: %s",
+					migration.Type,
+					migration.Version,
+					migration.Description)
+			continue
+		}
+
 		appliedMigration := AppliedMigration{
 			Version:       migration.Version.String(),
 			Description:   migration.Description,
@@ -87,7 +130,7 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) er
 				migration.Version,
 				migration.Description)
 
-		err := migration.Func(m.ctx, m.session)
+		err = migration.Func(m.ctx, m.session)
 		if err != nil {
 			return errors.Wrap(err, "Migration failed")
 		}
@@ -102,7 +145,7 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string) er
 	return nil
 }
 
-func (m *Migrator) Migrate() error {
+func (m *Migrator) Migrate(preUpgrade bool) error {
 	if err := m.versioner.CreateVersionTables(); err != nil {
 		return err
 	}
@@ -112,7 +155,7 @@ func (m *Migrator) Migrate() error {
 		return err
 	}
 
-	if err = m.ValidateManifest(appliedMigrations); err != nil {
+	if err = m.ValidateManifest(appliedMigrations, preUpgrade); err != nil {
 		return err
 	}
 
@@ -121,7 +164,7 @@ func (m *Migrator) Migrate() error {
 		return err
 	}
 
-	if err = m.ApplyMigrations(len(appliedMigrations), userName); err != nil {
+	if err = m.ApplyMigrations(len(appliedMigrations), userName, preUpgrade); err != nil {
 		return err
 	}
 
@@ -140,12 +183,18 @@ func NewMigrator(ctx context.Context, session *gocql.Session) *Migrator {
 }
 
 func Migrate(ctx context.Context, _ []string) error {
+	preUpgrade, _ := config.FromContext(ctx).BoolOr("cli.flag.preupgrade", false)
+
 	cassandraPool, err := cassandra.PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return cassandraPool.WithSession(func(session *gocql.Session) error {
-		return NewMigrator(ctx, session).Migrate()
+		return NewMigrator(ctx, session).Migrate(preUpgrade)
 	})
+}
+
+func CustomizeCommand(cmd *cobra.Command) {
+	cmd.Flags().Bool("pre-upgrade", false, "Execute only the pre-upgrade migrations")
 }

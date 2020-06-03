@@ -51,9 +51,10 @@ func init() {
 		return application.Run(CommandRoot)
 	}
 
-	if _, err := AddCommand(CommandMigrate, "Migrate database schema", migrate.Migrate, commandMigrateInit); err != nil {
+	if migrateCommand, err := AddCommand(CommandMigrate, "Migrate database schema", migrate.Migrate, commandMigrateInit); err != nil {
 		cli.Fatal(err)
 	} else {
+		migrate.CustomizeCommand(migrateCommand)
 	}
 
 	if populateCommand, err := AddCommand(CommandPopulate, "Populate data", populate.Populate, commandPopulateInit); err != nil {
