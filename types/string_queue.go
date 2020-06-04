@@ -7,7 +7,7 @@ type StringQueue struct {
 }
 
 func (s StringQueue) Contains(value string) bool {
-	for e := s.Front(); e != nil; e = e.Next(){
+	for e := s.Front(); e != nil; e = e.Next() {
 		if e.Value.(string) == value {
 			return true
 		}
