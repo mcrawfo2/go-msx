@@ -218,10 +218,14 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		info: spec.Info{
 			InfoProps: spec.InfoProps{
 				Title: "MSX API Documentation for " + appInfo.Name,
-				Description: "This is the REST API documentation for " + appInfo.Name + "\n" +
+				Description: "<h3>This is the REST API documentation for " + appInfo.Name + "</h3>\n \n" +
+					appInfo.Description + "\n" +
+					"" +
 					"+ API Authorization \n" +
 					"    + Authorization header is <b>required</b>. \n" +
-					"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
+					"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n" +
+					"" +
+					"",
 				TermsOfService: "http://www.cisco.com",
 				Contact: &spec.ContactInfo{
 					Name:  "Cisco Systems Inc.",
