@@ -8,6 +8,7 @@ import (
 const (
 	configRootDocumentation = "swagger"
 	configKeyAppName        = "info.app.name"
+	configKeyAppDescription = "info.app.description"
 	configKeyBuildVersion   = "info.build.version"
 )
 
@@ -49,14 +50,18 @@ func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, er
 }
 
 type AppInfo struct {
-	Name    string
-	Version string
+	Name        string
+	Description string
+	Version     string
 }
 
 func AppInfoFromConfig(cfg *config.Config) (*AppInfo, error) {
 	var appInfo AppInfo
 	var err error
 	if appInfo.Name, err = cfg.String(configKeyAppName); err != nil {
+		return nil, err
+	}
+	if appInfo.Description, err = cfg.String(configKeyAppDescription); err != nil {
 		return nil, err
 	}
 	if appInfo.Version, err = cfg.String(configKeyBuildVersion); err != nil {
