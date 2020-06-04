@@ -27,4 +27,5 @@ const (
 	ServiceNameResource = "resourceservice"
 
 	ResourceProviderNameDnac = "dnac"
+	ResourceProviderNameAws  = "aws"
 )

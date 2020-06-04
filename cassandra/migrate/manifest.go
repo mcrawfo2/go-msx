@@ -69,8 +69,8 @@ type ManifestConfig struct {
 }
 
 type Manifest struct {
-	migrations  []*Migration
-	cfg         *ManifestConfig
+	migrations []*Migration
+	cfg        *ManifestConfig
 }
 
 func (m *Manifest) PostUpgradeVersion() (types.Version, error) {

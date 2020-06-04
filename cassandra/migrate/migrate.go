@@ -29,7 +29,6 @@ type Migrator struct {
 func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpgrade bool) error {
 	logger.WithContext(m.ctx).Info("Validating previously applied migrations")
 
-
 	postUpgradeVersion, err := m.manifest.PostUpgradeVersion()
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse Post-Upgrade Version")
