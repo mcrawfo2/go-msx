@@ -24,6 +24,14 @@ type Endpoint struct {
 }
 
 func (e Endpoint) Url(scheme, authority string, variables map[string]string, queryParameters url.Values) (string, error) {
+	var pathBuffer bytes.Buffer
+	pathBuffer.WriteString(scheme)
+	pathBuffer.WriteString("://")
+	pathBuffer.WriteString(authority)
+	return e.UrlWithBase(pathBuffer.String(), variables, queryParameters)
+}
+
+func (e Endpoint) UrlWithBase(baseUrl string, variables map[string]string, queryParameters url.Values) (string, error) {
 	path := normalizePathTemplate(e.Path)
 
 	subPathTemplate, err := template.New(e.Name).Parse(path)
@@ -32,10 +40,7 @@ func (e Endpoint) Url(scheme, authority string, variables map[string]string, que
 	}
 
 	var pathBuffer bytes.Buffer
-	pathBuffer.WriteString(scheme)
-	pathBuffer.WriteString("://")
-	pathBuffer.WriteString(authority)
-
+	pathBuffer.WriteString(baseUrl)
 	if !strings.HasPrefix(path, "/") {
 		pathBuffer.WriteRune('/')
 	}
@@ -74,8 +79,7 @@ func normalizePathTemplate(path string) string {
 
 type ExternalService struct {
 	ctx          context.Context
-	scheme       string
-	authority    string
+	baseUrl      string
 	interceptors []httpclient.RequestInterceptor
 	retry        *retry.Retry
 }
@@ -85,7 +89,7 @@ func (v *ExternalService) AddInterceptor(interceptor httpclient.RequestIntercept
 }
 
 func (v *ExternalService) Request(endpoint Endpoint, uriVariables map[string]string, queryVariables url.Values, headers http.Header, body []byte) (req *http.Request, err error) {
-	fullUrl, err := endpoint.Url(v.scheme, v.authority, uriVariables, queryVariables)
+	fullUrl, err := endpoint.UrlWithBase(v.baseUrl, uriVariables, queryVariables)
 	if err != nil {
 		return nil, err
 	}
@@ -188,10 +192,25 @@ func (v *ExternalService) doOnce(httpClientDo func(*http.Request) (*http.Respons
 }
 
 func NewExternalService(ctx context.Context, scheme, authority string) *ExternalService {
+	var pathBuffer bytes.Buffer
+	pathBuffer.WriteString(scheme)
+	pathBuffer.WriteString("://")
+	pathBuffer.WriteString(authority)
+
 	return &ExternalService{
-		ctx:       ctx,
-		scheme:    scheme,
-		authority: authority,
+		ctx:     ctx,
+		baseUrl: pathBuffer.String(),
+		interceptors: []httpclient.RequestInterceptor{
+			loginterceptor.NewInterceptor,
+			traceinterceptor.NewInterceptor,
+		},
+	}
+}
+
+func NewExternalServiceFromUrl(ctx context.Context, baseUrl string) *ExternalService {
+	return &ExternalService{
+		ctx:     ctx,
+		baseUrl: baseUrl,
 		interceptors: []httpclient.RequestInterceptor{
 			loginterceptor.NewInterceptor,
 			traceinterceptor.NewInterceptor,
