@@ -28,15 +28,28 @@ type Api interface {
 	UpdateSite(siteId string, siteType, displayName *string, siteAttributes, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error)
 	DeleteSite(siteId string) (*integration.MsxResponse, error)
 
+	//Deprecated: User v4 Endpoint Instead
 	CreateManagedDevice(tenantId string, deviceModel, deviceOnboardType string, deviceOnboardInfo map[string]string) (*integration.MsxResponse, error)
+	//Deprecated: User v4 Endpoint Instead
 	DeleteManagedDevice(deviceInstanceId string) (*integration.MsxResponse, error)
 	GetDeviceConfig(deviceInstanceId string) (*integration.MsxResponse, error)
-
+	//Deprecated: User v4 Endpoint Instead
 	GetDevice(deviceInstanceId string) (*integration.MsxResponse, error)
+	//Deprecated: User v4 Endpoint Instead
 	GetDevices(deviceInstanceId, subscriptionId, serialKey, tenantId *string, page, pageSize int) (*integration.MsxResponse, error)
+	//Deprecated: User v4 Endpoint Instead
 	CreateDevice(subscriptionId string, deviceInstanceId *string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error)
+	//Deprecated: User v4 Endpoint Instead
 	UpdateDevice(deviceInstanceId string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error)
+	//Deprecated: User v4 Endpoint Instead
 	DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error)
+
+
+	CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integration.MsxResponse, error)
+	DeleteDeviceV4(deviceId string, force string) (*integration.MsxResponse, error)
+	GetDevicesV4(requestQuery map[string][]string,  page int, pageSize int) (*integration.MsxResponse, error)
+	GetDeviceV4(deviceId string) (*integration.MsxResponse, error)
+	UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 
 	GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error)
 	// AttachDeviceTemplates
