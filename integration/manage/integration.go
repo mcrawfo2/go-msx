@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"net/url"
@@ -567,7 +568,9 @@ func (i *Integration) GetDevicesV4(requestQuery map[string][]string,  page, page
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetDevicesV4,
 		QueryParameters: queryParameters,
-		Payload:        new(DevicesResponse),
+		Payload:        paging.PaginatedResponse{
+			Content: []DeviceResponse{},
+		},
 		ExpectEnvelope:  true,
 	})
 }

@@ -116,9 +116,6 @@ type DeviceResponse struct {
 	ModifiedOn					string			  `json:"modifiedOn"`
 }
 
-type DevicesResponse struct {
-	Content []DeviceResponse `json:"content"`
-}
 
 type DeviceStatusDetail struct {
 	Type   				string	`json:"type"`
