@@ -67,3 +67,67 @@ type ServiceInstanceResponse struct {
 	ServiceDefAttribute interface{} `json:"serviceDefAttribute"`
 	ServiceAttribute    interface{} `json:"serviceAttribute"`
 }
+
+type DeviceCreateRequest struct {
+	Name          				string            `json:"name"`
+	TenantId          			string            `json:"tenantId"`
+	SubscriptionId				string			  `json:"subscriptionId"`
+	ServiceInstanceId			string			  `json:"serviceInstanceId"`
+	ServiceType          		string            `json:"serviceType"`
+	Model          				string            `json:"model"`
+	Type         				string            `json:"type"`
+	SubType       				string            `json:"subType"`
+	SerialKey        			string            `json:"serialKey"`
+	DeviceOnboardingType 		string            `json:"deviceOnboardingType"`
+	Managed          			bool         	  `json:"managed"`
+	Version          			string            `json:"version"`
+	Tags    					map[string]string `json:"tags"`
+	Attributes    				map[string]string `json:"attributes"`
+	DeviceOnboardInformation    map[string]string `json:"deviceOnboardInformation"`
+}
+
+type DeviceResponse struct {
+	Id          				string            `json:"id"`
+	Name          				string            `json:"name"`
+	Model          				string            `json:"model"`
+	Type         				string            `json:"type"`
+	SubType       				string            `json:"subType"`
+	Tags    					map[string]string `json:"tags"`
+	SerialKey        			string            `json:"serialKey"`
+	Version          			string            `json:"version"`
+	ServiceInstanceId			string			  `json:"serviceInstanceId"`
+	SubscriptionId				string 			  `json:"subscriptionId"`
+	ServiceType          		string            `json:"serviceType"`
+	Managed          			bool         	  `json:"managed"`
+	DeviceOnboardingType 		string            `json:"deviceOnboardingType"`
+	Attributes    				map[string]string `json:"attributes"`
+	DeviceOnboardInformation    map[string]string `json:"deviceOnboardInformation"`
+	StatusDetails    			struct{
+		HealthStatus			DeviceStatusDetail
+		PnpStatus				DeviceStatusDetail
+		LifeCycleStatus			DeviceStatusDetail
+		SyncStatus				DeviceStatusDetail
+		TunnelStatus			DeviceStatusDetail
+	} `json:"statusDetails"`
+	TenantId          			string            `json:"tenantId"`
+	ProviderId          		string            `json:"providerId"`
+	UserId          			string            `json:"userId"`
+	CreatedOn					string			  `json:"createdOn"`
+	ModifiedOn					string			  `json:"modifiedOn"`
+}
+
+
+type DeviceStatusDetail struct {
+	Type   				string	`json:"type"`
+	Name					string	`json:"name"`
+	Value					string	`json:"value"`
+	Severity    			string	`json:"severity"`
+	LastUpdated			string	`json:"lastUpdated"`
+	LastUpdatedMessage		string	`json:"lastUpdatedMessage"`
+}
+
+type DeviceStatusUpdateRequest struct {
+	Message   				string	`json:"message"`
+	Type   					string	`json:"type"`
+	Value   				string	`json:"value"`
+}
