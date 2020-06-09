@@ -31,6 +31,15 @@ const (
 	endpointNameUpdateSite = "updateSite"
 	endpointNameDeleteSite = "deleteSite"
 
+	endpointNameCreateSiteV3 			= "createSiteV3"
+	endpointNameGetSitesV3	 			= "getSitesV3"
+	endpointNameGetSiteV3 				= "getSiteV3"
+	endpointNameUpdateSiteV3			= "updateSiteV3"
+	endpointNameDeleteSiteV3			= "deleteSiteV3"
+	endpointNameAddDevicetoSiteV3		= "addDeviceToSiteV3"
+	endpointNameDeleteDeviceFromSiteV3	= "deleteDeviceFromSiteV3"
+	endpointNameUpdateSiteStatusV3		= "updateSiteStatusV3"
+
 	endpointNameGetDevice    = "getDevice"
 	endpointNameGetDevices   = "getDevices"
 	endpointNameCreateDevice = "createDevice"
@@ -87,6 +96,16 @@ var (
 		endpointNameCreateSite: {Method: "POST", Path: "/api/v1/sites/subscriptions/{{.subscriptionId}}"},
 		endpointNameUpdateSite: {Method: "PUT", Path: "/api/v1/sites/{{.siteId}}"},
 		endpointNameDeleteSite: {Method: "DELETE", Path: "/api/v1/site/{{.siteId}}"},
+
+		endpointNameCreateSiteV3: 			{Method: "POST", Path: "/api/v3/sites"},
+		endpointNameGetSitesV3: 			{Method: "GET", Path: "/api/v3/sites"},
+		endpointNameGetSiteV3: 				{Method: "GET", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameUpdateSiteV3:			{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameDeleteSiteV3:			{Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameAddDevicetoSiteV3:		{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
+		endpointNameDeleteDeviceFromSiteV3:	{Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
+		endpointNameUpdateSiteStatusV3:		{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/status"},
+
 
 		endpointNameGetDevice:    {Method: "GET", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
 		endpointNameGetDevices:   {Method: "GET", Path: "/api/v2/devices"},
@@ -299,6 +318,7 @@ func (i *Integration) DeleteServiceInstance(serviceInstanceId string) (*integrat
 	})
 }
 
+// Deprecated: Use v3 Endpoint Instead
 func (i *Integration) GetSite(siteId string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSite,
@@ -310,6 +330,7 @@ func (i *Integration) GetSite(siteId string) (*integration.MsxResponse, error) {
 	})
 }
 
+// Deprecated: Use v3 Endpoint Instead
 func (i *Integration) CreateSite(subscriptionId, serviceInstanceId string, siteId, siteName, siteType, displayName *string,
 	siteAttributes, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(&Pojo{
@@ -338,6 +359,7 @@ func (i *Integration) CreateSite(subscriptionId, serviceInstanceId string, siteI
 	})
 }
 
+// Deprecated: Use v3 Endpoint Instead
 func (i *Integration) UpdateSite(siteId string, siteType, displayName *string,
 	siteAttributes, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(&Pojo{
@@ -363,6 +385,7 @@ func (i *Integration) UpdateSite(siteId string, siteType, displayName *string,
 	})
 }
 
+// Deprecated: Use v3 Endpoint Instead
 func (i *Integration) DeleteSite(siteId string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteSite,
@@ -370,6 +393,144 @@ func (i *Integration) DeleteSite(siteId string) (*integration.MsxResponse, error
 			"siteId": siteId,
 		},
 		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetSitesV3(siteFilters SiteQueryFilter, page, pageSize int) (*integration.MsxResponse, error) {
+	pageString := strconv.Itoa(page)
+	pageSizeString := strconv.Itoa(pageSize)
+
+	searchParameters := map[string]*string{
+		"deviceInstanceId":       	siteFilters.DeviceInstanceId,
+		"parentId":      			siteFilters.ParentId,
+		"serviceInstanceId": 		siteFilters.ServiceInstanceId,
+		"serviceType":       		siteFilters.ServiceType,
+		"showImage":       			siteFilters.ShowImage,
+		"tenantId":       			siteFilters.TenantId,
+		"type":       				siteFilters.Type,
+		"page":           			&pageString,
+		"pageSize":       			&pageSizeString,
+	}
+
+	// Convert optional search queries into query parameters
+	queryParameters := make(url.Values)
+	for k, v := range searchParameters {
+		if v != nil && *v != "" {
+			queryParameters[k] = []string{*v}
+		}
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetSitesV3,
+		QueryParameters: queryParameters,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetSiteV3(siteId string, showImage string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetSiteV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+		},
+		QueryParameters: map[string][]string{
+			"showImage": {showImage},
+		},
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) CreateSiteV3(siteRequest SiteCreateRequest) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(siteRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   	endpointNameCreateSiteV3,
+		Body:           	bodyBytes,
+		Payload:            new(Pojo),
+		ExpectEnvelope: 	true,
+	})
+}
+
+func (i *Integration) UpdateSiteV3(siteRequest SiteUpdateRequest, siteId string, notification string) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(siteRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   	endpointNameUpdateSiteV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+		},
+		QueryParameters: map[string][]string{
+			"notification": {notification},
+		},
+		Body:           	bodyBytes,
+		Payload:            new(Pojo),
+		ExpectEnvelope: 	true,
+	})
+}
+
+func (i *Integration) DeleteSiteV3(siteId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDeleteSiteV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+		},
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) AddDeviceToSiteV3(deviceId string, siteId string, notification string) (*integration.MsxResponse, error) {
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   	endpointNameAddDevicetoSiteV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+			"deviceId": deviceId,
+		},
+		QueryParameters: map[string][]string{
+			"notification": {notification},
+		},
+		Payload:            new(Pojo),
+		ExpectEnvelope: 	true,
+	})
+}
+
+func (i *Integration) DeleteDeviceFromSiteV3(deviceId string, siteId string) (*integration.MsxResponse, error) {
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   	endpointNameDeleteDeviceFromSiteV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+			"deviceId": deviceId,
+		},
+		Payload:            new(Pojo),
+		ExpectEnvelope: 	true,
+	})
+}
+
+func (i *Integration) UpdateSiteStatusV3(siteStatus SiteStatusUpdateRequest, siteId string) (*integration.MsxResponse, error) {
+
+	bodyBytes, err := json.Marshal(siteStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   	endpointNameUpdateSiteStatusV3,
+		EndpointParameters: map[string]string{
+			"siteId": siteId,
+		},
+		Body:           	bodyBytes,
+		Payload:            new(Pojo),
+		ExpectEnvelope: 	true,
 	})
 }
 

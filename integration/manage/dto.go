@@ -118,16 +118,90 @@ type DeviceResponse struct {
 
 
 type DeviceStatusDetail struct {
-	Type   				string	`json:"type"`
+	Type   					string	`json:"type"`
 	Name					string	`json:"name"`
 	Value					string	`json:"value"`
 	Severity    			string	`json:"severity"`
-	LastUpdated			string	`json:"lastUpdated"`
+	LastUpdated				string	`json:"lastUpdated"`
 	LastUpdatedMessage		string	`json:"lastUpdatedMessage"`
 }
 
 type DeviceStatusUpdateRequest struct {
 	Message   				string	`json:"message"`
 	Type   					string	`json:"type"`
+	Value   				string	`json:"value"`
+}
+
+type SiteQueryFilter struct {
+	DeviceInstanceId   		*string	`json:"deviceInstanceId"`
+	ParentId   				*string	`json:"parentId"`
+	ServiceInstanceId   	*string	`json:"serviceInstanceId"`
+	ServiceType			   	*string	`json:"serviceType"`
+	ShowImage				*string `json:"showImage"`
+	TenantId			   	*string	`json:"tenantId"`
+	Type					*string  `json:"type"`
+}
+
+type SiteCreateRequest struct {
+	Address struct{
+		Name			string	`json:"name"`
+		Company			string	`json:"company"`
+		Address1		string	`json:"address1"`
+		Address2		string	`json:"address2"`
+		City			string	`json:"city"`
+		State			string	`json:"state"`
+		Country			string	`json:"country"`
+		PostCode		string	`json:"postCode"`
+	} `json:"address"`
+	Attributes			map[string]string `json:"attributes"`
+	Contact struct {
+		Name			string	`json:"name"`
+		Email			string	`json:"email"`
+		Phone			string	`json:"phone"`
+	} `json:"contact"`
+	Description			string		`json:"description"`
+	DeviceInstanceIds	[]string 	`json:"deviceInstanceIds,omitempty"`
+	Image				string		`json:"image"`
+	Location struct {
+		Latitude			float64	`json:"latitude"`
+		Longitude			float64	`json:"longitude"`
+	} `json:"location"`
+	Name				string		`json:"name"`
+	ParentId			string		`json:"parentId"`
+	TenantId			string		`json:"tenantId"`
+	Type				string		`json:"type"`
+}
+
+type SiteUpdateRequest struct {
+	Address struct{
+		Name			string	`json:"name"`
+		Company			string	`json:"company"`
+		Address1		string	`json:"address1"`
+		Address2		string	`json:"address2"`
+		City			string	`json:"city"`
+		State			string	`json:"state"`
+		Country			string	`json:"country"`
+		PostCode		string	`json:"postCode"`
+	} `json:"address"`
+	Attributes			map[string]string `json:"attributes"`
+	Contact struct {
+		Name			string	`json:"name"`
+		Email			string	`json:"email"`
+		Phone			string	`json:"phone"`
+	} `json:"contact"`
+	Description			string		`json:"description"`
+	Image				string		`json:"image"`
+	Location struct {
+		Latitude			float64	`json:"latitude"`
+		Longitude			float64	`json:"longitude"`
+	} `json:"location"`
+	Name				string		`json:"name"`
+	ParentId			string		`json:"parentId"`
+	Type				string		`json:"type"`
+}
+
+type SiteStatusUpdateRequest struct {
+	LastUpdatedMessage   	string	`json:"lastUpdatedMessage"`
+	Severity   				string	`json:"severity"`
 	Value   				string	`json:"value"`
 }
