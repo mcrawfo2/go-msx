@@ -31,14 +31,14 @@ const (
 	endpointNameUpdateSite = "updateSite"
 	endpointNameDeleteSite = "deleteSite"
 
-	endpointNameCreateSiteV3 			= "createSiteV3"
-	endpointNameGetSitesV3	 			= "getSitesV3"
-	endpointNameGetSiteV3 				= "getSiteV3"
-	endpointNameUpdateSiteV3			= "updateSiteV3"
-	endpointNameDeleteSiteV3			= "deleteSiteV3"
-	endpointNameAddDevicetoSiteV3		= "addDeviceToSiteV3"
-	endpointNameDeleteDeviceFromSiteV3	= "deleteDeviceFromSiteV3"
-	endpointNameUpdateSiteStatusV3		= "updateSiteStatusV3"
+	endpointNameCreateSiteV3           = "createSiteV3"
+	endpointNameGetSitesV3             = "getSitesV3"
+	endpointNameGetSiteV3              = "getSiteV3"
+	endpointNameUpdateSiteV3           = "updateSiteV3"
+	endpointNameDeleteSiteV3           = "deleteSiteV3"
+	endpointNameAddDevicetoSiteV3      = "addDeviceToSiteV3"
+	endpointNameDeleteDeviceFromSiteV3 = "deleteDeviceFromSiteV3"
+	endpointNameUpdateSiteStatusV3     = "updateSiteStatusV3"
 
 	endpointNameGetDevice    = "getDevice"
 	endpointNameGetDevices   = "getDevices"
@@ -50,12 +50,11 @@ const (
 	endpointNameDeleteManagedDevice = "deleteManagedDevice"
 	endpointNameGetDeviceConfig     = "getDeviceConfig"
 
-	endpointNameGetDevicesV4   = "getDevicesV4"
-	endpointNameGetDeviceV4    = "getDeviceV4"
-	endpointNameCreateDeviceV4 = "createDeviceV4"
-	endpointNameDeleteDeviceV4 = "deleteDeviceV4"
+	endpointNameGetDevicesV4         = "getDevicesV4"
+	endpointNameGetDeviceV4          = "getDeviceV4"
+	endpointNameCreateDeviceV4       = "createDeviceV4"
+	endpointNameDeleteDeviceV4       = "deleteDeviceV4"
 	endpointNameUpdateDeviceStatusV4 = "updateDeviceStatusV4"
-
 
 	endpointNameGetDeviceTemplateHistory = "getDeviceTemplateHistory"
 	endpointNameAttachDeviceTemplates    = "attachDeviceTemplates"
@@ -97,29 +96,28 @@ var (
 		endpointNameUpdateSite: {Method: "PUT", Path: "/api/v1/sites/{{.siteId}}"},
 		endpointNameDeleteSite: {Method: "DELETE", Path: "/api/v1/site/{{.siteId}}"},
 
-		endpointNameCreateSiteV3: 			{Method: "POST", Path: "/api/v3/sites"},
-		endpointNameGetSitesV3: 			{Method: "GET", Path: "/api/v3/sites"},
-		endpointNameGetSiteV3: 				{Method: "GET", Path: "/api/v3/sites/{{.siteId}}"},
-		endpointNameUpdateSiteV3:			{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}"},
-		endpointNameDeleteSiteV3:			{Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}"},
-		endpointNameAddDevicetoSiteV3:		{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
-		endpointNameDeleteDeviceFromSiteV3:	{Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
-		endpointNameUpdateSiteStatusV3:		{Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/status"},
+		endpointNameCreateSiteV3:           {Method: "POST", Path: "/api/v3/sites"},
+		endpointNameGetSitesV3:             {Method: "GET", Path: "/api/v3/sites"},
+		endpointNameGetSiteV3:              {Method: "GET", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameUpdateSiteV3:           {Method: "PUT", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameDeleteSiteV3:           {Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}"},
+		endpointNameAddDevicetoSiteV3:      {Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
+		endpointNameDeleteDeviceFromSiteV3: {Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
+		endpointNameUpdateSiteStatusV3:     {Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/status"},
 
-
-		endpointNameGetDevice:    {Method: "GET", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
-		endpointNameGetDevices:   {Method: "GET", Path: "/api/v2/devices"},
-		endpointNameCreateDevice: {Method: "POST", Path: "/api/v1/devices/subscriptions/{{.subscriptionId}}"},
-		endpointNameUpdateDevice: {Method: "PUT", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
-		endpointNameDeleteDevice: {Method: "DELETE", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
+		endpointNameGetDevice:           {Method: "GET", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
+		endpointNameGetDevices:          {Method: "GET", Path: "/api/v2/devices"},
+		endpointNameCreateDevice:        {Method: "POST", Path: "/api/v1/devices/subscriptions/{{.subscriptionId}}"},
+		endpointNameUpdateDevice:        {Method: "PUT", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
+		endpointNameDeleteDevice:        {Method: "DELETE", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
 		endpointNameCreateManagedDevice: {Method: "POST", Path: "/api/v3/devices"},
 		endpointNameDeleteManagedDevice: {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}"},
 		endpointNameGetDeviceConfig:     {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/config"},
 
-		endpointNameGetDevicesV4:   {Method: "GET", Path: "/api/v4/devices"},
-		endpointNameGetDeviceV4:    {Method: "GET", Path: "/api/v4/devices/{{.deviceId}}"},
-		endpointNameCreateDeviceV4: {Method: "POST", Path: "/api/v4/devices"},
-		endpointNameDeleteDeviceV4: {Method: "DELETE", Path: "/api/v4/devices/{{.deviceId}}"},
+		endpointNameGetDevicesV4:         {Method: "GET", Path: "/api/v4/devices"},
+		endpointNameGetDeviceV4:          {Method: "GET", Path: "/api/v4/devices/{{.deviceId}}"},
+		endpointNameCreateDeviceV4:       {Method: "POST", Path: "/api/v4/devices"},
+		endpointNameDeleteDeviceV4:       {Method: "DELETE", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameUpdateDeviceStatusV4: {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}/status"},
 
 		endpointNameGetDeviceTemplateHistory: {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
@@ -401,15 +399,15 @@ func (i *Integration) GetSitesV3(siteFilters SiteQueryFilter, page, pageSize int
 	pageSizeString := strconv.Itoa(pageSize)
 
 	searchParameters := map[string]*string{
-		"deviceInstanceId":       	siteFilters.DeviceInstanceId,
-		"parentId":      			siteFilters.ParentId,
-		"serviceInstanceId": 		siteFilters.ServiceInstanceId,
-		"serviceType":       		siteFilters.ServiceType,
-		"showImage":       			siteFilters.ShowImage,
-		"tenantId":       			siteFilters.TenantId,
-		"type":       				siteFilters.Type,
-		"page":           			&pageString,
-		"pageSize":       			&pageSizeString,
+		"deviceInstanceId":  siteFilters.DeviceInstanceId,
+		"parentId":          siteFilters.ParentId,
+		"serviceInstanceId": siteFilters.ServiceInstanceId,
+		"serviceType":       siteFilters.ServiceType,
+		"showImage":         siteFilters.ShowImage,
+		"tenantId":          siteFilters.TenantId,
+		"type":              siteFilters.Type,
+		"page":              &pageString,
+		"pageSize":          &pageSizeString,
 	}
 
 	// Convert optional search queries into query parameters
@@ -421,10 +419,10 @@ func (i *Integration) GetSitesV3(siteFilters SiteQueryFilter, page, pageSize int
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetSitesV3,
+		EndpointName:    endpointNameGetSitesV3,
 		QueryParameters: queryParameters,
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
+		Payload:         new(Pojo),
+		ExpectEnvelope:  true,
 	})
 }
 
@@ -449,10 +447,10 @@ func (i *Integration) CreateSiteV3(siteRequest SiteCreateRequest) (*integration.
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameCreateSiteV3,
-		Body:           	bodyBytes,
-		Payload:            new(Pojo),
-		ExpectEnvelope: 	true,
+		EndpointName:   endpointNameCreateSiteV3,
+		Body:           bodyBytes,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
 	})
 }
 
@@ -463,16 +461,16 @@ func (i *Integration) UpdateSiteV3(siteRequest SiteUpdateRequest, siteId string,
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameUpdateSiteV3,
+		EndpointName: endpointNameUpdateSiteV3,
 		EndpointParameters: map[string]string{
 			"siteId": siteId,
 		},
 		QueryParameters: map[string][]string{
 			"notification": {notification},
 		},
-		Body:           	bodyBytes,
-		Payload:            new(Pojo),
-		ExpectEnvelope: 	true,
+		Body:           bodyBytes,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
 	})
 }
 
@@ -490,29 +488,29 @@ func (i *Integration) DeleteSiteV3(siteId string) (*integration.MsxResponse, err
 func (i *Integration) AddDeviceToSiteV3(deviceId string, siteId string, notification string) (*integration.MsxResponse, error) {
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameAddDevicetoSiteV3,
+		EndpointName: endpointNameAddDevicetoSiteV3,
 		EndpointParameters: map[string]string{
-			"siteId": siteId,
+			"siteId":   siteId,
 			"deviceId": deviceId,
 		},
 		QueryParameters: map[string][]string{
 			"notification": {notification},
 		},
-		Payload:            new(Pojo),
-		ExpectEnvelope: 	true,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
 	})
 }
 
 func (i *Integration) DeleteDeviceFromSiteV3(deviceId string, siteId string) (*integration.MsxResponse, error) {
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameDeleteDeviceFromSiteV3,
+		EndpointName: endpointNameDeleteDeviceFromSiteV3,
 		EndpointParameters: map[string]string{
-			"siteId": siteId,
+			"siteId":   siteId,
 			"deviceId": deviceId,
 		},
-		Payload:            new(Pojo),
-		ExpectEnvelope: 	true,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
 	})
 }
 
@@ -524,13 +522,13 @@ func (i *Integration) UpdateSiteStatusV3(siteStatus SiteStatusUpdateRequest, sit
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameUpdateSiteStatusV3,
+		EndpointName: endpointNameUpdateSiteStatusV3,
 		EndpointParameters: map[string]string{
 			"siteId": siteId,
 		},
-		Body:           	bodyBytes,
-		Payload:            new(Pojo),
-		ExpectEnvelope: 	true,
+		Body:           bodyBytes,
+		Payload:        new(Pojo),
+		ExpectEnvelope: true,
 	})
 }
 
@@ -691,11 +689,11 @@ func (i *Integration) CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integr
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   	endpointNameCreateDeviceV4,
+		EndpointName:       endpointNameCreateDeviceV4,
 		EndpointParameters: map[string]string{},
-		Body:           	bodyBytes,
+		Body:               bodyBytes,
 		Payload:            new(DeviceResponse),
-		ExpectEnvelope: 	true,
+		ExpectEnvelope:     true,
 	})
 }
 
@@ -713,7 +711,7 @@ func (i *Integration) DeleteDeviceV4(deviceId string, force string) (*integratio
 	})
 }
 
-func (i *Integration) GetDevicesV4(requestQuery map[string][]string,  page, pageSize int) (*integration.MsxResponse, error) {
+func (i *Integration) GetDevicesV4(requestQuery map[string][]string, page, pageSize int) (*integration.MsxResponse, error) {
 
 	// Convert optional search queries into query parameters
 	queryParameters := make(url.Values)
@@ -729,10 +727,10 @@ func (i *Integration) GetDevicesV4(requestQuery map[string][]string,  page, page
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetDevicesV4,
 		QueryParameters: queryParameters,
-		Payload:        paging.PaginatedResponse{
+		Payload: paging.PaginatedResponse{
 			Content: []DeviceResponse{},
 		},
-		ExpectEnvelope:  true,
+		ExpectEnvelope: true,
 	})
 }
 
@@ -749,9 +747,9 @@ func (i *Integration) GetDeviceV4(deviceId string) (*integration.MsxResponse, er
 
 func (i *Integration) UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(&Pojo{
-		"message":    deviceStatus.Message,
-		"type": 	  deviceStatus.Type,
-		"value":      deviceStatus.Value,
+		"message": deviceStatus.Message,
+		"type":    deviceStatus.Type,
+		"value":   deviceStatus.Value,
 	})
 
 	if err != nil {

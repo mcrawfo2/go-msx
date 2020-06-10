@@ -57,10 +57,9 @@ type Api interface {
 	//Deprecated: User v4 Endpoint Instead
 	DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error)
 
-
 	CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integration.MsxResponse, error)
 	DeleteDeviceV4(deviceId string, force string) (*integration.MsxResponse, error)
-	GetDevicesV4(requestQuery map[string][]string,  page int, pageSize int) (*integration.MsxResponse, error)
+	GetDevicesV4(requestQuery map[string][]string, page int, pageSize int) (*integration.MsxResponse, error)
 	GetDeviceV4(deviceId string) (*integration.MsxResponse, error)
 	UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 
