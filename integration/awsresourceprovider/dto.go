@@ -1,8 +1,7 @@
 package awsresourceprovider
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"time"
+  "time"
 )
 
 type ControlPlaneAuthenticationType string
@@ -45,5 +44,3 @@ type VpnConnection struct {
 	VpnConnectionId              *string `json:"vpnConnectionId"`
 	VpnGatewayId                 *string `json:"vpnGatewayId"`
 }
-
-type Pojo integration.Pojo
