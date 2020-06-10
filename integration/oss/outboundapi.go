@@ -28,7 +28,7 @@ type OutboundApi struct {
 }
 
 func (o OutboundApi) Interceptor(next httpclient.DoFunc) httpclient.DoFunc {
-	return OutboundApiInterceptor{OutboundApi:o}.intercept(next)
+	return OutboundApiInterceptor{OutboundApi: o}.intercept(next)
 }
 
 type OutboundApiInterceptor struct {
