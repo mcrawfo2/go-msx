@@ -1,4 +1,4 @@
-package aws
+package awsresourceprovider
 
 import (
 	"context"
@@ -13,6 +13,7 @@ const (
 	endpointNameGetRegions           = "getRegions"
 	endpointNameGetAvailabilityZones = "getAvailabilityZones"
 	endpointNameGetResources         = "getResources"
+	endpointNameGetVpnConnections    = "getVpnConnections"
 
 	serviceName = integration.ResourceProviderNameAws
 )
@@ -24,6 +25,7 @@ var (
 		endpointNameGetRegions:           {Method: "GET", Path: "/api/v1/regions"},
 		endpointNameGetAvailabilityZones: {Method: "GET", Path: "/api/v1/availabilityzones"},
 		endpointNameGetResources:         {Method: "GET", Path: "/api/v1/resources"},
+		endpointNameGetVpnConnections:    {Method: "GET", Path: "/api/v1/vpnconnection"},
 	}
 )
 
@@ -83,5 +85,20 @@ func (i *Integration) GetResources(serviceConfigurationApplicationId types.UUID)
 			"serviceConfigurationApplicationId": {serviceConfigurationApplicationId.String()},
 		},
 		ExpectEnvelope: true,
+		Payload:        &[]Resource{},
+	})
+}
+
+func (i *Integration) GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error) {
+	queryParams := map[string][]string{
+		"controlPlaneId":   {controlPlaneId.String()},
+		"region":           {region},
+		"vpnConnectionIds": vpnConnectionIds,
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameGetVpnConnections,
+		QueryParameters: queryParams,
+		ExpectEnvelope:  true,
+		Payload:         &[]VpnConnection{},
 	})
 }
