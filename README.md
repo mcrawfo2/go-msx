@@ -61,6 +61,29 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
         skel
         ```
 
+## Contributing
+
+- Ensure you create a meaningfully named topic branch for your code:
+
+    `feature/sql-transactions`
+    
+    `bugfix/populate-error-handling`
+    
+- Make your code changes
+
+- Run `make precommit` to regenerate and reformat.  You will likely need to
+  install the `staticfiles` package the first time:
+  
+    `go get bou.ke/staticfiles`
+
+- Commit your code to your topic branch
+
+- Rebase your topic branch onto develop (do not reverse merge develop into your branch)
+
+- Ensure your commits are cohesive, or just squash them
+
+- Create a Pull Request with a meaningful title similar to your topic branch name
+
 ## Documentation
 
 ### Cross-Cutting Concerns
