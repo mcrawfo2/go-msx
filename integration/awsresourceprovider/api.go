@@ -1,4 +1,4 @@
-package aws
+package awsresourceprovider
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
@@ -10,4 +10,5 @@ type Api interface {
 	GetRegions(controlPlaneId types.UUID) (*integration.MsxResponse, error)
 	GetAvailabilityZones(controlPlaneId types.UUID, region string) (*integration.MsxResponse, error)
 	GetResources(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
+	GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error)
 }
