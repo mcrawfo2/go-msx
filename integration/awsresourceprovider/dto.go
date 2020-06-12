@@ -1,7 +1,7 @@
 package awsresourceprovider
 
 import (
-  "time"
+	"time"
 )
 
 type ControlPlaneAuthenticationType string

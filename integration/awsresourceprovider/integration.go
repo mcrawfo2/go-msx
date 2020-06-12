@@ -110,8 +110,8 @@ func (i *Integration) GetEc2InstanceStatus(controlPlaneId types.UUID, region str
 		EndpointName: endpointNameGetEc2InstanceStatus,
 		QueryParameters: map[string][]string{
 			"controlPlaneId": {controlPlaneId.String()},
-			"region": {region},
-			"instanceId": {instanceId},
+			"region":         {region},
+			"instanceId":     {instanceId},
 		},
 		ExpectEnvelope: true,
 		Payload:        &AwsEc2InstanceStatuses{},
