@@ -46,24 +46,22 @@ type VpnConnection struct {
 }
 
 type AwsEc2InstanceStatuses struct {
-	AvailabilityZone string `json:"availabilityzone"`
-	InstanceId       string `json:"instanceid"`
+	AvailabilityZone string `json:"availabilityZone"`
+	InstanceId       string `json:"instanceId"`
 	InstanceState    struct {
 		Code int64  `json:"code"`
 		Name string `json:"name"`
-	} `json:"instancestate"`
-	InstanceStatus struct {
-		Details struct {
-			Name   string `json:"name"`
-			Status string `json:"status"`
-		} `json:"details"`
-		Status string `json:"status"`
-	} `json:"instancestatus"`
-	SystemStatus struct {
-		Details struct {
-			Name   string `json:"name"`
-			Status string `json:"status"`
-		} `json:"details"`
-		Status string `json:"status"`
-	} `json:"systemstatus"`
+	} `json:"instanceState"`
+	InstanceStatus AwsEc2InstanceSubStatus `json:"instanceStatus"`
+	SystemStatus   AwsEc2InstanceSubStatus `json:"systemStatus"`
+}
+
+type AwsEc2InstanceSubStatus struct {
+	Details AwsEc2InstanceSubStatusDetails `json:"details"`
+	Status  string                         `json:"status"`
+}
+
+type AwsEc2InstanceSubStatusDetails struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
 }
