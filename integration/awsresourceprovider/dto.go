@@ -1,7 +1,7 @@
 package awsresourceprovider
 
 import (
-  "time"
+	"time"
 )
 
 type ControlPlaneAuthenticationType string
@@ -43,4 +43,25 @@ type VpnConnection struct {
 	CustomerGatewayId            *string `json:"customerGatewayId"`
 	VpnConnectionId              *string `json:"vpnConnectionId"`
 	VpnGatewayId                 *string `json:"vpnGatewayId"`
+}
+
+type AwsEc2InstanceStatuses struct {
+	AvailabilityZone string `json:"availabilityZone"`
+	InstanceId       string `json:"instanceId"`
+	InstanceState    struct {
+		Code int64  `json:"code"`
+		Name string `json:"name"`
+	} `json:"instanceState"`
+	InstanceStatus AwsEc2InstanceSubStatus `json:"instanceStatus"`
+	SystemStatus   AwsEc2InstanceSubStatus `json:"systemStatus"`
+}
+
+type AwsEc2InstanceSubStatus struct {
+	Details AwsEc2InstanceSubStatusDetails `json:"details"`
+	Status  string                         `json:"status"`
+}
+
+type AwsEc2InstanceSubStatusDetails struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
 }
