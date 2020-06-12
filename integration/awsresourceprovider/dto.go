@@ -49,7 +49,7 @@ type AwsEc2InstanceStatuses struct {
 	AvailabilityZone string `json:"availabilityZone"`
 	InstanceId       string `json:"instanceId"`
 	InstanceState    struct {
-		Code int64  `json:"code"`
+		Code string `json:"code"`
 		Name string `json:"name"`
 	} `json:"instanceState"`
 	InstanceStatus AwsEc2InstanceSubStatus `json:"instanceStatus"`
