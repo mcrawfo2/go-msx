@@ -14,6 +14,7 @@ const (
 	endpointNameGetAvailabilityZones = "getAvailabilityZones"
 	endpointNameGetResources         = "getResources"
 	endpointNameGetVpnConnections    = "getVpnConnections"
+	endpointNameGetEc2InstanceStatus = "getEc2InstanceStatus"
 
 	serviceName = integration.ResourceProviderNameAws
 )
@@ -26,6 +27,7 @@ var (
 		endpointNameGetAvailabilityZones: {Method: "GET", Path: "/api/v1/availabilityzones"},
 		endpointNameGetResources:         {Method: "GET", Path: "/api/v1/resources"},
 		endpointNameGetVpnConnections:    {Method: "GET", Path: "/api/v1/vpnconnection"},
+		endpointNameGetEc2InstanceStatus: {Method: "GET", Path: "/api/v1/ec2instance/status"},
 	}
 )
 
@@ -85,7 +87,7 @@ func (i *Integration) GetResources(serviceConfigurationApplicationId types.UUID)
 			"serviceConfigurationApplicationId": {serviceConfigurationApplicationId.String()},
 		},
 		ExpectEnvelope: true,
-		Payload:        &[]Resource{},
+		Payload:        &[]AwsEc2InstanceStatuses{},
 	})
 }
 
@@ -100,5 +102,18 @@ func (i *Integration) GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConn
 		QueryParameters: queryParams,
 		ExpectEnvelope:  true,
 		Payload:         &[]VpnConnection{},
+	})
+}
+
+func (i *Integration) GetEc2InstanceStatus(controlPlaneId types.UUID, region string, instanceId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetEc2InstanceStatus,
+		QueryParameters: map[string][]string{
+			"controlPlaneId": {controlPlaneId.String()},
+			"region": {region},
+			"instanceId": {instanceId},
+		},
+		ExpectEnvelope: true,
+		Payload:        &AwsEc2InstanceStatuses{},
 	})
 }

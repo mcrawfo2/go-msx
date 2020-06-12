@@ -11,4 +11,5 @@ type Api interface {
 	GetAvailabilityZones(controlPlaneId types.UUID, region string) (*integration.MsxResponse, error)
 	GetResources(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
 	GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error)
+	GetEc2InstanceStatus(controlPlaneId types.UUID, region string, instanceId string) (*integration.MsxResponse, error)
 }
