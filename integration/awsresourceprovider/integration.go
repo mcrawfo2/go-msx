@@ -87,7 +87,7 @@ func (i *Integration) GetResources(serviceConfigurationApplicationId types.UUID)
 			"serviceConfigurationApplicationId": {serviceConfigurationApplicationId.String()},
 		},
 		ExpectEnvelope: true,
-		Payload:        &[]AwsEc2InstanceStatuses{},
+		Payload:        &[]Resource{},
 	})
 }
 
