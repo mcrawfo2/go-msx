@@ -8,9 +8,9 @@ import (
 const configRootSpringDatasourceConfig = "spring.datasource"
 
 type Config struct {
-	Driver         string `json:"default=${sql.driver}"`
-	DataSourceName string `json:"default=${sql.data-source-name}"`
-	Enabled        bool   `json:"default=false"`
+	Driver         string `config:"default=${sql.driver}"`
+	DataSourceName string `config:"default=${sql.data-source-name}"`
+	Enabled        bool   `config:"default=false"`
 }
 
 func NewSqlConfig(ctx context.Context) (*Config, error) {

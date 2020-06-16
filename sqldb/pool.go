@@ -116,6 +116,8 @@ func ConfigurePool(ctx context.Context) error {
 	sqlConfig, err := NewSqlConfig(ctx)
 	if err != nil {
 		return err
+	} else if !sqlConfig.Enabled {
+		return ErrDisabled
 	}
 
 	pool = &ConnectionPool{

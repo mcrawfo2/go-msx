@@ -114,7 +114,7 @@ func configureCassandraPool(cfg *config.Config) error {
 func configureSqlDbPool(ctx context.Context) error {
 	if err := sqldb.ConfigurePool(ctx); err != nil && err != sqldb.ErrDisabled {
 		return err
-	} else if err != cassandra.ErrDisabled {
+	} else if err != sqldb.ErrDisabled {
 		RegisterContextInjector(sqldb.ContextWithPool)
 		//health.RegisterCheck("sqldb", sqldbcheck.Check)
 	}
