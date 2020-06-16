@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/migrate"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
+	"cto-github.cisco.com/NFV-BU/go-msx/repository/migrate"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/spf13/cobra"
 	"os"
@@ -102,17 +102,6 @@ func commandMigrateInit(context.Context) error {
 		configKeyLeaderEnable:          "false",
 	})
 
-	OnEvent(EventStart, PhaseBefore, func(ctx context.Context) error {
-		manifest, err := migrate.NewManifest(config.FromContext(ctx))
-		if err != nil {
-			return err
-		}
-
-		contextInjectors.Register(func(ctx context.Context) context.Context {
-			return migrate.ContextWithManifest(ctx, manifest)
-		})
-		return nil
-	})
 	return nil
 }
 

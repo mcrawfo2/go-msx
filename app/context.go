@@ -15,6 +15,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/redis"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
@@ -29,6 +30,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
 	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
+	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(fs.ConfigureFileSystem))
@@ -104,6 +106,17 @@ func configureCassandraPool(cfg *config.Config) error {
 	} else if err != cassandra.ErrDisabled {
 		contextInjectors.Register(cassandra.ContextWithPool)
 		health.RegisterCheck("cassandra", cassandracheck.Check)
+	}
+
+	return nil
+}
+
+func configureSqlDbPool(ctx context.Context) error {
+	if err := sqldb.ConfigurePool(ctx); err != nil && err != sqldb.ErrDisabled {
+		return err
+	} else if err != cassandra.ErrDisabled {
+		RegisterContextInjector(sqldb.ContextWithPool)
+		//health.RegisterCheck("sqldb", sqldbcheck.Check)
 	}
 
 	return nil
