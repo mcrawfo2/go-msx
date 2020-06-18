@@ -35,6 +35,19 @@ func SeedRecords(ctx context.Context, db *sqlx.DB, table string, records []inter
 	return err
 }
 
+func UpdateRecord(ctx context.Context, db *sqlx.DB, table string, where goqu.Ex, record interface{}) error {
+
+	dialect := goqu.Dialect(db.DriverName())
+
+	stmt, _, err := dialect.Update(table).Set(record).Where(where).ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.ExecContext(ctx, stmt)
+	return err
+}
+
 type RecordFunc func(ctx context.Context, db *sqlx.DB, record interface{}) error
 
 func ScanTable(ctx context.Context, db *sqlx.DB, table string, columns []string, record interface{}, action RecordFunc) error {

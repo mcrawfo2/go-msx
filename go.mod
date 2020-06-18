@@ -28,7 +28,6 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
 	github.com/magiconair/properties v1.8.1
-	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/otiai10/copy v1.0.2
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
