@@ -2,6 +2,7 @@ package sqldb
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb/sqldbobserver"
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -18,7 +19,8 @@ type SqlxAction func(ctx context.Context, conn *sqlx.DB) error
 type SqlAction func(ctx context.Context, conn *sql.DB) error
 
 type ConnectionPool struct {
-	cfg *Config
+	cfg                *Config
+	observerDriverName string
 }
 
 func (p *ConnectionPool) Config() *Config {
@@ -26,7 +28,12 @@ func (p *ConnectionPool) Config() *Config {
 }
 
 func (p *ConnectionPool) WithSqlxConnection(ctx context.Context, action SqlxAction) error {
-	db, err := sqlx.ConnectContext(ctx, p.cfg.Driver, p.cfg.DataSourceName)
+	driverName, err := observerDriverName(p.cfg.Driver)
+	if err != nil {
+		return err
+	}
+
+	db, err := sqlx.ConnectContext(ctx, driverName, p.cfg.DataSourceName)
 	if err != nil {
 		return err
 	}
@@ -41,7 +48,12 @@ func (p *ConnectionPool) WithSqlxConnection(ctx context.Context, action SqlxActi
 }
 
 func (p *ConnectionPool) WithSqlConnection(ctx context.Context, action SqlAction) error {
-	db, err := sql.Open(p.cfg.Driver, p.cfg.DataSourceName)
+	driverName, err := observerDriverName(p.cfg.Driver)
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open(driverName, p.cfg.DataSourceName)
 	if err != nil {
 		return err
 	}
@@ -53,6 +65,28 @@ func (p *ConnectionPool) WithSqlConnection(ctx context.Context, action SqlAction
 	}()
 
 	return action(ctx, db)
+}
+
+func observerDriverName(driverName string) (string, error) {
+	if strings.HasPrefix(driverName, "observer-") {
+		return driverName, nil
+	}
+
+	baseDriver, ok := drivers[driverName]
+	if !ok {
+		return "", errors.Errorf("Uninitialized driver: %s", driverName)
+	}
+
+	observerDriverName := "observer-" + driverName
+	observerDriver, ok := drivers[observerDriverName]
+	if ok {
+		return observerDriverName, nil
+	}
+
+	observerDriver = sqldbobserver.NewObserverDriver(baseDriver)
+	drivers[observerDriverName] = observerDriver
+	sql.Register(observerDriverName, observerDriver)
+	return observerDriverName, nil
 }
 
 func CreateDatabaseForPool(ctx context.Context) error {
@@ -87,7 +121,12 @@ func CreateDatabaseForPool(ctx context.Context) error {
 
 	dbUrl.Path = "/"
 
-	db, err := sql.Open(cfg.Driver, dbUrl.String())
+	driverName, err := observerDriverName(cfg.Driver)
+	if err != nil {
+		return err
+	}
+
+	db, err := sql.Open(driverName, dbUrl.String())
 	if err != nil {
 		return err
 	}
