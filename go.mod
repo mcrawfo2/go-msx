@@ -11,6 +11,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/emicklei/go-restful v2.11.1+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
@@ -24,6 +25,8 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
+	github.com/jmoiron/sqlx v1.2.0
+	github.com/lib/pq v1.2.0
 	github.com/magiconair/properties v1.8.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/otiai10/copy v1.0.2

@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/gocql/gocql"
 	"github.com/opentracing/opentracing-go"
+	"strings"
 )
 
 type TraceObserver struct{}
@@ -14,7 +15,7 @@ func (s *TraceObserver) ObserveQuery(ctx context.Context, query gocql.ObservedQu
 		ctx,
 		"cassandra.query",
 		opentracing.StartTime(query.Start))
-	span.SetTag(trace.FieldOperation, query.Statement)
+	span.SetTag(trace.FieldOperation, strings.Fields(query.Statement)[0])
 	span.SetTag(trace.FieldKeyspace, query.Keyspace)
 	if query.Err != nil {
 		span.LogFields(trace.Error(query.Err))

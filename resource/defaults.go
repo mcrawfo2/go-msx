@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 6, 10, 15, 11, 13, 524884352, time.UTC),
+			modTime: time.Date(2020, 6, 15, 19, 48, 56, 105203493, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 6, 10, 15, 28, 40, 902867088, time.UTC),
+			modTime: time.Date(2020, 6, 16, 14, 28, 8, 525335789, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -78,6 +78,17 @@ var Defaults = func() http.FileSystem {
 			modTime: time.Date(2020, 3, 16, 22, 38, 32, 803682492, time.UTC),
 			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a"),
 		},
+		"/sqldb": &vfsgen۰DirInfo{
+			name:    "sqldb",
+			modTime: time.Date(2020, 6, 17, 18, 9, 58, 517396649, time.UTC),
+		},
+		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
+			name:             "defaults-sqldb.properties",
+			modTime:          time.Date(2020, 6, 16, 13, 53, 53, 405061920, time.UTC),
+			uncompressedSize: 358,
+
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\xc1\xca\x83\x30\x10\x84\xef\x79\x8a\x1c\xbc\xaa\x20\xfc\x7f\x21\x20\xed\xab\x6c\x93\x45\xa5\xd1\x4d\x77\x63\x7b\x10\xdf\xbd\x44\x91\x22\xa4\xb7\x21\xdf\x64\x66\x19\x4b\xf6\xc1\x04\xb6\xaf\x7a\x92\xa8\x5b\xed\xc9\x82\x4f\x5a\x7d\x51\x20\x4e\xa8\xf9\x6f\xfe\x2e\x4a\x49\xe0\x61\xea\x2a\x07\x11\x84\x66\xb6\x58\x39\x1e\x5e\xc8\x46\x07\x92\xd8\x31\x4a\xc6\x32\xc1\x88\x26\xf3\x3e\x0b\xf2\xc6\x34\x13\xc5\x8c\x21\x80\xc8\x9b\xd8\xe5\x3e\x27\x59\xee\xba\xdc\x43\x8e\x0b\x9e\xde\xd4\x75\xb1\xfc\xee\x5b\x4d\x8e\x1e\x65\xeb\xad\x58\xce\xcb\x24\xff\x79\x90\x35\x9b\xbf\x65\x5f\x45\xfc\x48\x0e\x5b\x37\x08\xdc\x3d\xaa\x4f\x00\x00\x00\xff\xff\x98\x4b\xb7\x4f\x66\x01\x00\x00"),
+		},
 		"/transit": &vfsgen۰DirInfo{
 			name:    "transit",
 			modTime: time.Date(2020, 5, 18, 13, 44, 28, 908368981, time.UTC),
@@ -107,6 +118,7 @@ var Defaults = func() http.FileSystem {
 		fs["/fs"].(os.FileInfo),
 		fs["/leader"].(os.FileInfo),
 		fs["/security"].(os.FileInfo),
+		fs["/sqldb"].(os.FileInfo),
 		fs["/transit"].(os.FileInfo),
 		fs["/webservice"].(os.FileInfo),
 	}
@@ -130,6 +142,9 @@ var Defaults = func() http.FileSystem {
 	}
 	fs["/security/idmdetailsprovider"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties"].(os.FileInfo),
+	}
+	fs["/sqldb"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
+		fs["/sqldb/defaults-sqldb.properties"].(os.FileInfo),
 	}
 	fs["/transit"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/transit/defaults-transit.properties"].(os.FileInfo),

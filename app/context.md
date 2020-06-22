@@ -7,6 +7,7 @@ MSX Application provides a `Context` object to event `Observer`s so they may inj
 By default, the following dependencies are added to the MSX Application context:
 - Configuration
 - Cassandra client pool
+- Cockroach client pool
 - Consul client pool
 - Vault client pool
 - Redis client pool

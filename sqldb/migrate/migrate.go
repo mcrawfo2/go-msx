@@ -2,26 +2,26 @@ package migrate
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"github.com/gocql/gocql"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"time"
 )
 
 const (
-	configKeyCassandraUsername = "spring.data.cassandra.username"
+	configKeySqlUsername = "spring.datasource.username"
 )
 
 var (
-	logger = log.NewLogger("msx.cassandra.migrate")
+	logger = log.NewLogger("msx.repository.sql.migrate")
 )
 
 type Migrator struct {
 	ctx       context.Context
 	manifest  *Manifest
-	session   *gocql.Session
+	db        *sqlx.DB
 	versioner Versioner
 }
 
@@ -60,15 +60,21 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 		if appliedMigration.InstalledRank != n+1 {
 			return errors.Errorf("Incorrect installed rank: %+v", appliedMigration)
 		}
-		if appliedMigration.VersionRank != n+1 {
-			return errors.Errorf("Incorrect version rank: %+v", appliedMigration)
-		}
 		if !appliedMigration.Success {
 			return errors.Errorf("Failed migration recorded: %+v", appliedMigration)
 		}
 
 		if appliedMigration.Description != migration.Description {
 			return errors.Errorf("Mismatched description: %+v", appliedMigration)
+		}
+
+		if appliedMigration.Checksum == nil && migration.Checksum != nil ||
+			appliedMigration.Checksum != nil && migration.Checksum == nil {
+			return errors.Errorf("Mismatched checksum: %+v vs %+v", appliedMigration.Checksum, migration.Checksum)
+		} else if appliedMigration.Checksum != nil &&
+			migration.Checksum != nil &&
+			*appliedMigration.Checksum != *migration.Checksum {
+			return errors.Errorf("Mismatched checksum: %f vs %f", *appliedMigration.Checksum, *migration.Checksum)
 		}
 
 		logger.WithContext(m.ctx).
@@ -115,9 +121,9 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string, pr
 			Description:   migration.Description,
 			Script:        migration.Script,
 			Type:          migration.Type,
+			Checksum:      migration.Checksum,
 			InstalledOn:   time.Now(),
 			InstalledBy:   userName,
-			VersionRank:   n + 1,
 			InstalledRank: n + 1,
 		}
 
@@ -128,15 +134,14 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string, pr
 				migration.Version,
 				migration.Description)
 
-		err = migration.Func(m.ctx, m.session)
-		if err != nil {
+		if err := migration.Func(m.ctx, m.db); err != nil {
 			return errors.Wrap(err, "Migration failed")
 		}
 
 		appliedMigration.Success = true
 		appliedMigration.ExecutionTime = int(time.Since(appliedMigration.InstalledOn) / time.Millisecond)
 
-		if err = m.versioner.RecordAppliedMigration(appliedMigration); err != nil {
+		if err := m.versioner.RecordAppliedMigration(appliedMigration); err != nil {
 			return errors.Wrap(err, "Failed to record applied migration")
 		}
 	}
@@ -157,7 +162,7 @@ func (m *Migrator) Migrate(preUpgrade bool) error {
 		return err
 	}
 
-	userName, err := config.FromContext(m.ctx).StringOr(configKeyCassandraUsername, "cassandra")
+	userName, err := config.FromContext(m.ctx).StringOr(configKeySqlUsername, "root")
 	if err != nil {
 		return err
 	}
@@ -171,29 +176,38 @@ func (m *Migrator) Migrate(preUpgrade bool) error {
 	return nil
 }
 
-func NewMigrator(ctx context.Context, session *gocql.Session) *Migrator {
+func NewMigrator(ctx context.Context, db *sqlx.DB) (*Migrator, error) {
+	versioner, err := NewVersioner(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Migrator{
 		ctx:       ctx,
 		manifest:  ManifestFromContext(ctx),
-		session:   session,
-		versioner: NewVersioner(ctx, session),
-	}
+		db:        db,
+		versioner: versioner,
+	}, nil
 }
 
 func Migrate(ctx context.Context) error {
-	logger.WithContext(ctx).Info("Executing Cassandra migration")
+	logger.WithContext(ctx).Info("Executing SQL db migrate")
 
 	preUpgrade, _ := config.FromContext(ctx).BoolOr("cli.flag.preupgrade", false)
 
-	cassandraPool, err := cassandra.PoolFromContext(ctx)
-	if err == cassandra.ErrDisabled {
-		logger.WithContext(ctx).WithError(err).Warn("Skipping Cassandra migration.")
+	sqlPool, err := sqldb.PoolFromContext(ctx)
+	if err == sqldb.ErrDisabled {
+		logger.WithContext(ctx).WithError(err).Warn("Skipping SQL db migration.")
 		return nil
 	} else if err != nil {
 		return err
 	}
 
-	return cassandraPool.WithSession(func(session *gocql.Session) error {
-		return NewMigrator(ctx, session).Migrate(preUpgrade)
+	return sqlPool.WithSqlxConnection(ctx, func(ctx context.Context, db *sqlx.DB) error {
+		migrator, err := NewMigrator(ctx, db)
+		if err != nil {
+			return err
+		}
+		return migrator.Migrate(preUpgrade)
 	})
 }
