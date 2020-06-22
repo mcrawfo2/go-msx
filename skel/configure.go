@@ -31,6 +31,14 @@ func (c SkeletonConfig) AppPackageUrl() string {
 	return path.Join("cto-github.cisco.com", "NFV-BU", c.AppName)
 }
 
+func (c SkeletonConfig) RepositoryQueryFileExtension() string {
+	queryFileExtension := "cql"
+	if skeletonConfig.Repository == "cockroach" {
+		queryFileExtension = "sql"
+	}
+	return queryFileExtension
+}
+
 var skeletonConfig = &SkeletonConfig{
 	TargetParent:      path.Join(os.Getenv("HOME"), "msx"),
 	AppName:           "someservice",

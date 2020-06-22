@@ -117,10 +117,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 		return err
 	}
 
-	queryFileExtension := "cql"
-	if skeletonConfig.Repository == "cockroach" {
-		queryFileExtension = "sql"
-	}
+	queryFileExtension := skeletonConfig.RepositoryQueryFileExtension()
 
 	files := []domainDefinitionFile{
 		{
@@ -253,7 +250,12 @@ func generateDomain(name string, conditions map[string]bool) error {
 func nextMigrationPrefix(folder string) (string, error) {
 	prefix := "V" + strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_")
 	for i := 0; i < 128; i++ {
-		matches, _ := filepath.Glob(folder + "/" + prefix + "_" + strconv.Itoa(i) + "__*.cql")
+		glob := fmt.Sprintf("%s/%s_%d__*.%s",
+			folder,
+			prefix,
+			i,
+			skeletonConfig.RepositoryQueryFileExtension())
+		matches, _ := filepath.Glob(glob)
 		if len(matches) == 0 {
 			return prefix + "_" + strconv.Itoa(i), nil
 		}
