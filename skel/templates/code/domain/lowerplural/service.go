@@ -56,7 +56,7 @@ func (s *lowerCamelSingularService) GetUpperCamelSingular(ctx context.Context, n
 	if err == nil {
 		result = *optionalResult
 		//#if TENANT_DOMAIN
-		if err = rbac.HasTenant(ctx, result.TenantId.Bytes()); err != nil {
+		if err = rbac.HasTenant(ctx, result.TenantId[:]); err != nil {
 			return
 		}
 		//#endif TENANT_DOMAIN
@@ -69,7 +69,7 @@ func (s *lowerCamelSingularService) CreateUpperCamelSingular(ctx context.Context
 	result = s.lowerCamelSingularConverter.FromCreateRequest(request)
 
 	//#if TENANT_DOMAIN
-	if err = rbac.HasTenant(ctx, result.TenantId.Bytes()); err != nil {
+	if err = rbac.HasTenant(ctx, result.TenantId[:]); err != nil {
 		return
 	}
 	//#endif TENANT_DOMAIN
@@ -94,7 +94,7 @@ func (s *lowerCamelSingularService) UpdateUpperCamelSingular(ctx context.Context
 	}
 
 	//#if TENANT_DOMAIN
-	if err = rbac.HasTenant(ctx, a.TenantId.Bytes()); err != nil {
+	if err = rbac.HasTenant(ctx, a.TenantId[:]); err != nil {
 		return
 	}
 	//#endif TENANT_DOMAIN
@@ -115,7 +115,7 @@ func (s *lowerCamelSingularService) DeleteUpperCamelSingular(ctx context.Context
 		return
 	}
 
-	if err = rbac.HasTenant(ctx, a.TenantId.Bytes()); err != nil {
+	if err = rbac.HasTenant(ctx, a.TenantId[:]); err != nil {
 		return
 	}
 	//#endif TENANT_DOMAIN

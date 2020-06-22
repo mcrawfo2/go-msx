@@ -16,6 +16,7 @@ type SkeletonConfig struct {
 	ServerPort        int    `survey:"serverPort" json:"serverPort"`
 	ServerContextPath string `survey:"serverContextPath" json:"serverContextPath"`
 	AppVersion        string `survey:"appVersion" json:"appVersion"`
+	Repository        string `survey:"repository" json:"repository"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -38,6 +39,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppVersion:        "3.9.0",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
+	Repository:        "cassandra",
 }
 
 var surveyQuestions = []*survey.Question{
@@ -94,6 +96,18 @@ var surveyQuestions = []*survey.Question{
 		Prompt: &survey.Input{
 			Message: "Web server context path:",
 			Default: skeletonConfig.ServerContextPath,
+		},
+		Validate: survey.Required,
+	},
+	{
+		Name: "repository",
+		Prompt: &survey.Select{
+			Message: "Repository:",
+			Options: []string{
+				"cassandra",
+				"cockroach",
+			},
+			Default: skeletonConfig.Repository,
 		},
 		Validate: survey.Required,
 	},

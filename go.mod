@@ -21,6 +21,7 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
+	github.com/google/uuid v1.1.1
 	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/vault/api v1.0.4

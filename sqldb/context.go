@@ -9,6 +9,7 @@ type contextKey int
 
 const (
 	contextKeySqlPool contextKey = iota
+	contextKeyCrudRepositoryFactory
 )
 
 var ErrDisabled = errors.New("Sql connection disabled")
@@ -23,4 +24,13 @@ func PoolFromContext(ctx context.Context) (*ConnectionPool, error) {
 		return nil, ErrDisabled
 	}
 	return connectionPoolInterface.(*ConnectionPool), nil
+}
+
+func ContextWithCrudRepositoryFactory(ctx context.Context, factory CrudRepositoryFactoryApi) context.Context {
+	return context.WithValue(ctx, contextKeyCrudRepositoryFactory, factory)
+}
+
+func CrudRepositoryFactoryFromContext(ctx context.Context) CrudRepositoryFactoryApi {
+	api, _ := ctx.Value(contextKeyCrudRepositoryFactory).(CrudRepositoryFactoryApi)
+	return api
 }

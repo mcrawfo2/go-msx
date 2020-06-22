@@ -45,7 +45,9 @@ func GenerateSystemDomain(args []string) error {
 
 	domainName := strings.Join(args, " ")
 	conditionals := map[string]bool{
-		"TENANT_DOMAIN": false,
+		"TENANT_DOMAIN":        false,
+		"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
+		"REPOSITORY_CASSANDRA": skeletonConfig.Repository == "cassandra",
 	}
 
 	return generateDomain(domainName, conditionals)
@@ -58,7 +60,9 @@ func GenerateTenantDomain(args []string) error {
 
 	domainName := strings.Join(args, " ")
 	conditionals := map[string]bool{
-		"TENANT_DOMAIN": true,
+		"TENANT_DOMAIN":        true,
+		"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
+		"REPOSITORY_CASSANDRA": skeletonConfig.Repository == "cassandra",
 	}
 
 	return generateDomain(domainName, conditionals)
@@ -113,6 +117,11 @@ func generateDomain(name string, conditions map[string]bool) error {
 		return err
 	}
 
+	queryFileExtension := "cql"
+	if skeletonConfig.Repository == "cockroach" {
+		queryFileExtension = "sql"
+	}
+
 	files := []domainDefinitionFile{
 		{
 			Name: inflections[inflectionTitleSingular] + " Log",
@@ -159,7 +168,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 		{
 			Name: inflections[inflectionTitleSingular] + " Repository",
 			Template: Template{
-				SourceFile: path.Join(domainPackageSource, "repository.go"),
+				SourceFile: fmt.Sprintf(path.Join(domainPackageSource, "repository_%s.go"), skeletonConfig.Repository),
 				DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "repository_%s.go"), inflections[inflectionLowerSingular]),
 			},
 		},
@@ -175,9 +184,10 @@ func generateDomain(name string, conditions map[string]bool) error {
 			Template: Template{
 				SourceFile: path.Join(migratePackageSource, "table.cql"),
 				DestFile: fmt.Sprintf(
-					path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.cql"),
+					path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.%s"),
 					migratePrefix,
-					inflections[inflectionScreamingSnakeSingular]),
+					inflections[inflectionScreamingSnakeSingular],
+					queryFileExtension),
 			},
 		},
 	}

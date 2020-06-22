@@ -31,15 +31,11 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
 	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
+	OnEvent(EventConfigure, PhaseAfter, configureSqlDbCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
 	OnEvent(EventConfigure, PhaseAfter, withConfig(fs.ConfigureFileSystem))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
-	OnEvent(EventCommand, CommandMigrate, func(ctx context.Context) error {
-		// Only during migrate command
-		OnEvent(EventConfigure, PhaseAfter, createCassandraKeyspace)
-		return nil
-	})
 }
 
 func RegisterContextInjector(injector types.ContextInjector) {
@@ -64,7 +60,7 @@ func configureHttpClientFactory(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	contextInjectors.Register(func(ctx context.Context) context.Context {
+	RegisterContextInjector(func(ctx context.Context) context.Context {
 		return httpclient.ContextWithFactory(ctx, httpClientFactory)
 	})
 	return nil
@@ -72,8 +68,16 @@ func configureHttpClientFactory(ctx context.Context) error {
 
 func configureCassandraCrudRepositoryFactory(context.Context) error {
 	crudRepositoryFactory := cassandra.NewProductionCrudRepositoryFactory()
-	contextInjectors.Register(func(ctx context.Context) context.Context {
+	RegisterContextInjector(func(ctx context.Context) context.Context {
 		return cassandra.ContextWithCrudRepositoryFactory(ctx, crudRepositoryFactory)
+	})
+	return nil
+}
+
+func configureSqlDbCrudRepositoryFactory(context.Context) error {
+	crudRepositoryFactory := sqldb.NewProductionCrudRepositoryFactory()
+	RegisterContextInjector(func(ctx context.Context) context.Context {
+		return sqldb.ContextWithCrudRepositoryFactory(ctx, crudRepositoryFactory)
 	})
 	return nil
 }
@@ -82,7 +86,7 @@ func configureConsulPool(cfg *config.Config) error {
 	if err := consul.ConfigurePool(cfg); err != nil && err != consul.ErrDisabled {
 		return err
 	} else if err != consul.ErrDisabled {
-		contextInjectors.Register(consul.ContextWithPool)
+		RegisterContextInjector(consul.ContextWithPool)
 		health.RegisterCheck("consul", consulcheck.Check)
 	}
 
@@ -93,7 +97,7 @@ func configureVaultPool(cfg *config.Config) error {
 	if err := vault.ConfigurePool(cfg); err != nil && err != vault.ErrDisabled {
 		return err
 	} else if err != vault.ErrDisabled {
-		contextInjectors.Register(vault.ContextWithPool)
+		RegisterContextInjector(vault.ContextWithPool)
 		health.RegisterCheck("vault", vaultcheck.Check)
 	}
 
@@ -104,7 +108,7 @@ func configureCassandraPool(cfg *config.Config) error {
 	if err := cassandra.ConfigurePool(cfg); err != nil && err != cassandra.ErrDisabled {
 		return err
 	} else if err != cassandra.ErrDisabled {
-		contextInjectors.Register(cassandra.ContextWithPool)
+		RegisterContextInjector(cassandra.ContextWithPool)
 		health.RegisterCheck("cassandra", cassandracheck.Check)
 	}
 
@@ -116,7 +120,7 @@ func configureSqlDbPool(ctx context.Context) error {
 		return err
 	} else if err != sqldb.ErrDisabled {
 		RegisterContextInjector(sqldb.ContextWithPool)
-		//health.RegisterCheck("sqldb", sqldbcheck.Check)
+		// TODO: health.RegisterCheck("sqldb", sqldbcheck.Check)
 	}
 
 	return nil
@@ -126,7 +130,7 @@ func configureRedisPool(cfg *config.Config) error {
 	if err := redis.ConfigurePool(cfg); err != nil && err != redis.ErrDisabled {
 		return err
 	} else if err != redis.ErrDisabled {
-		contextInjectors.Register(redis.ContextWithPool)
+		RegisterContextInjector(redis.ContextWithPool)
 		health.RegisterCheck("redis", redischeck.Check)
 	}
 
@@ -137,7 +141,7 @@ func configureKafkaPool(cfg *config.Config) error {
 	if err := kafka.ConfigurePool(cfg); err != nil && err != kafka.ErrDisabled {
 		return err
 	} else if err != kafka.ErrDisabled {
-		contextInjectors.Register(kafka.ContextWithPool)
+		RegisterContextInjector(kafka.ContextWithPool)
 		health.RegisterCheck("kafka", kafkacheck.Check)
 	}
 
@@ -149,15 +153,11 @@ func configureWebService(ctx context.Context) error {
 		if err := webservice.ConfigureWebServer(cfg, ctx); err != nil && err != webservice.ErrDisabled {
 			return err
 		} else if err == nil {
-			contextInjectors.Register(webservice.ContextWithWebServer)
+			RegisterContextInjector(webservice.ContextWithWebServer)
 		} else {
 			logger.Warn(err.Error())
 		}
 
 		return nil
 	})(ctx)
-}
-
-func createCassandraKeyspace(ctx context.Context) error {
-	return cassandra.CreateKeyspaceForPool(ctx)
 }

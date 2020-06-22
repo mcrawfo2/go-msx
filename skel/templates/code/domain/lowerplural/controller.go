@@ -3,12 +3,13 @@ package lowerplural
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
-
 	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
+	//#if TENANT_DOMAIN
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
 )
@@ -17,7 +18,9 @@ const (
 	pathRoot                            = "/api/v1/lowerplural"
 	pathSuffixUpperCamelSingularName    = "/{lowerCamelSingularName}"
 	pathParamNameUpperCamelSingularName = "lowerCamelSingularName"
-	queryParamNameTenantId              = "tenantId"
+	//#if TENANT_DOMAIN
+	queryParamNameTenantId = "tenantId"
+	//#endif TENANT_DOMAIN
 )
 
 var (
