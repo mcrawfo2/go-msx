@@ -3,6 +3,7 @@ package skel
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"encoding/json"
+	"fmt"
 	"gopkg.in/pipe.v2"
 	"os"
 	"path"
@@ -122,7 +123,7 @@ func GenerateMigrate(args []string) error {
 			DestFile:   "internal/migrate/migrate.go",
 		},
 		"Creating migration version sources": {
-			SourceFile: "internal/migrate/version/migrate.go.tpl",
+			SourceFile: fmt.Sprintf("internal/migrate/version/migrate_%s.go.tpl", skeletonConfig.Repository),
 			DestFile:   "internal/migrate/${app.migrateVersion}/migrate.go",
 		},
 	})

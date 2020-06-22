@@ -45,7 +45,9 @@ func GenerateSystemDomain(args []string) error {
 
 	domainName := strings.Join(args, " ")
 	conditionals := map[string]bool{
-		"TENANT_DOMAIN": false,
+		"TENANT_DOMAIN":        false,
+		"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
+		"REPOSITORY_CASSANDRA": skeletonConfig.Repository == "cassandra",
 	}
 
 	return generateDomain(domainName, conditionals)
@@ -58,7 +60,9 @@ func GenerateTenantDomain(args []string) error {
 
 	domainName := strings.Join(args, " ")
 	conditionals := map[string]bool{
-		"TENANT_DOMAIN": true,
+		"TENANT_DOMAIN":        true,
+		"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
+		"REPOSITORY_CASSANDRA": skeletonConfig.Repository == "cassandra",
 	}
 
 	return generateDomain(domainName, conditionals)
@@ -113,6 +117,8 @@ func generateDomain(name string, conditions map[string]bool) error {
 		return err
 	}
 
+	queryFileExtension := skeletonConfig.RepositoryQueryFileExtension()
+
 	files := []domainDefinitionFile{
 		{
 			Name: inflections[inflectionTitleSingular] + " Log",
@@ -159,7 +165,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 		{
 			Name: inflections[inflectionTitleSingular] + " Repository",
 			Template: Template{
-				SourceFile: path.Join(domainPackageSource, "repository.go"),
+				SourceFile: fmt.Sprintf(path.Join(domainPackageSource, "repository_%s.go"), skeletonConfig.Repository),
 				DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "repository_%s.go"), inflections[inflectionLowerSingular]),
 			},
 		},
@@ -175,9 +181,10 @@ func generateDomain(name string, conditions map[string]bool) error {
 			Template: Template{
 				SourceFile: path.Join(migratePackageSource, "table.cql"),
 				DestFile: fmt.Sprintf(
-					path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.cql"),
+					path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.%s"),
 					migratePrefix,
-					inflections[inflectionScreamingSnakeSingular]),
+					inflections[inflectionScreamingSnakeSingular],
+					queryFileExtension),
 			},
 		},
 	}
@@ -243,7 +250,12 @@ func generateDomain(name string, conditions map[string]bool) error {
 func nextMigrationPrefix(folder string) (string, error) {
 	prefix := "V" + strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_")
 	for i := 0; i < 128; i++ {
-		matches, _ := filepath.Glob(folder + "/" + prefix + "_" + strconv.Itoa(i) + "__*.cql")
+		glob := fmt.Sprintf("%s/%s_%d__*.%s",
+			folder,
+			prefix,
+			i,
+			skeletonConfig.RepositoryQueryFileExtension())
+		matches, _ := filepath.Glob(glob)
 		if len(matches) == 0 {
 			return prefix + "_" + strconv.Itoa(i), nil
 		}

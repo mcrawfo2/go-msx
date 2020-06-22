@@ -22,7 +22,11 @@ server:
 
 spring.data.cassandra:
   keyspace-name: ${app.name}
-  enabled: true
+  enabled: ${repository.cassandra.enabled}
+
+spring.datasource:
+  name: ${app.name}
+  enabled: ${repository.cockroach.enabled}
 
 spring.cloud.consul:
   enabled: true

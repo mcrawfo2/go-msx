@@ -31,7 +31,7 @@ func (c *lowerCamelSingularConverter) ToUpperCamelSingularResponse(source lowerC
 	return api.UpperCamelSingularResponse{
 		Name: source.Name,
 		//#if TENANT_DOMAIN
-		TenantId: source.TenantId.Bytes(),
+		TenantId: source.TenantId[:],
 		//#endif TENANT_DOMAIN
 		Data: source.Data,
 	}

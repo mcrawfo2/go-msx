@@ -26,16 +26,18 @@ type StaticFile struct {
 
 func variables() map[string]string {
 	return map[string]string{
-		"app.name":           skeletonConfig.AppName,
-		"app.description":    skeletonConfig.AppDescription,
-		"app.displayname":    skeletonConfig.AppDisplayName,
-		"app.version":        skeletonConfig.AppVersion,
-		"app.migrateversion": skeletonConfig.AppMigrateVersion(),
-		"app.packageurl":     skeletonConfig.AppPackageUrl(),
-		"server.port":        strconv.Itoa(skeletonConfig.ServerPort),
-		"server.contextpath": path.Clean("/" + skeletonConfig.ServerContextPath),
-		"kubernetes.group":   "platformms",
-		"target.dir":         skeletonConfig.TargetDirectory(),
+		"app.name":                     skeletonConfig.AppName,
+		"app.description":              skeletonConfig.AppDescription,
+		"app.displayname":              skeletonConfig.AppDisplayName,
+		"app.version":                  skeletonConfig.AppVersion,
+		"app.migrateversion":           skeletonConfig.AppMigrateVersion(),
+		"app.packageurl":               skeletonConfig.AppPackageUrl(),
+		"server.port":                  strconv.Itoa(skeletonConfig.ServerPort),
+		"server.contextpath":           path.Clean("/" + skeletonConfig.ServerContextPath),
+		"kubernetes.group":             "platformms",
+		"target.dir":                   skeletonConfig.TargetDirectory(),
+		"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
+		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
 	}
 }
 
