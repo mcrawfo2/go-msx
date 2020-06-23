@@ -2,7 +2,6 @@ package lowerplural
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/repository"
 	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
 
@@ -53,7 +52,7 @@ func (r *lowerCamelSingularSqlRepository) FindByKey(ctx context.Context, name st
 	err = r.CrudRepositoryApi.FindOneBy(ctx, map[string]interface{}{
 		columnUpperCamelSingularName: name,
 	}, &res)
-	if err == cassandra.ErrNotFound {
+	if err == sqldb.ErrNotFound {
 		err = repository.ErrNotFound
 	} else if err == nil {
 		result = &res

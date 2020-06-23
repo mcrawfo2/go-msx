@@ -23,7 +23,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 6, 22, 12, 33, 16, 244595656, time.UTC),
+			modTime: time.Date(2020, 6, 22, 23, 28, 1, 358364374, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -80,7 +80,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
-			modTime: time.Date(2020, 6, 22, 13, 1, 50, 703181430, time.UTC),
+			modTime: time.Date(2020, 6, 23, 15, 59, 41, 901967778, time.UTC),
 		},
 		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-sqldb.properties",
