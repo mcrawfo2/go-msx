@@ -16,7 +16,7 @@ type HealthProvider struct{}
 func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) {
 	ctx := req.Request.Context()
 	userContext := security.UserContextFromContext(ctx)
-	if userContext != nil {
+	if userContext != nil && userContext.Token != "" {
 		return health.GenerateReport(ctx), nil
 	} else {
 		return health.GenerateSummary(ctx), nil
