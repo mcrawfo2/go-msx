@@ -11,6 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/health/consulcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/kafkacheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/redischeck"
+	"cto-github.cisco.com/NFV-BU/go-msx/health/sqldbcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/vaultcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/kafka"
@@ -120,7 +121,7 @@ func configureSqlDbPool(ctx context.Context) error {
 		return err
 	} else if err != sqldb.ErrDisabled {
 		RegisterContextInjector(sqldb.ContextWithPool)
-		// TODO: health.RegisterCheck("sqldb", sqldbcheck.Check)
+		health.RegisterCheck("sqldb", sqldbcheck.Check)
 	}
 
 	return nil

@@ -10,6 +10,7 @@ const (
 	statsSubsystemSql          = "sql"
 	statsCounterSqlQueries     = "queries"
 	statsGaugeActiveSqlQueries = "active_queries"
+	statsCounterConnections    = "connections"
 	statsCounterSqlQueryErrors = "query_errors"
 	statsTimerSqlQueryTime     = "query_time"
 )
@@ -17,6 +18,7 @@ const (
 var (
 	countVecSqlQueries       = stats.NewCounterVec(statsSubsystemSql, statsCounterSqlQueries, "action")
 	gaugeVecActiveSqlQueries = stats.NewGaugeVec(statsSubsystemSql, statsGaugeActiveSqlQueries, "action")
+	countConnections         = stats.NewGauge(statsSubsystemSql, statsCounterConnections)
 	countSqlQueryErrors      = stats.NewCounter(statsSubsystemSql, statsCounterSqlQueryErrors)
 	histVecSqlQueryTime      = stats.NewHistogramVec(statsSubsystemSql, statsTimerSqlQueryTime, nil, "action")
 )
@@ -47,4 +49,9 @@ func observeStats(query string, action errorFunc) (err error) {
 
 	err = action()
 	return err
+}
+
+func ObserveConnection(action errorFunc) (err error) {
+	countConnections.Inc()
+	return action()
 }
