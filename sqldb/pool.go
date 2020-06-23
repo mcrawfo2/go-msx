@@ -44,7 +44,9 @@ func (p *ConnectionPool) WithSqlxConnection(ctx context.Context, action SqlxActi
 		}
 	}()
 
-	return action(ctx, db)
+	return sqldbobserver.ObserveConnection(func() error {
+		return action(ctx, db)
+	})
 }
 
 func (p *ConnectionPool) WithSqlConnection(ctx context.Context, action SqlAction) error {
@@ -64,7 +66,9 @@ func (p *ConnectionPool) WithSqlConnection(ctx context.Context, action SqlAction
 		}
 	}()
 
-	return action(ctx, db)
+	return sqldbobserver.ObserveConnection(func() error {
+		return action(ctx, db)
+	})
 }
 
 func observerDriverName(driverName string) (string, error) {
