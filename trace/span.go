@@ -42,13 +42,13 @@ func BackgroundOperation(ctx context.Context, operationName string, operation fu
 		defer func() {
 			c := recover()
 			if c != nil {
-				logger.WithContext(newCtx).Error("Operation %q panicked: %+v", operationName, c)
+				logger.WithContext(newCtx).Errorf("Operation %q panicked: %+v", operationName, c)
 			}
 		}()
 
 		err := Operation(newCtx, operationName, operation)
 		if err != nil {
-			logger.WithContext(newCtx).WithError(err).Error("Operation %q failed", operationName)
+			logger.WithContext(newCtx).WithError(err).Errorf("Operation %q failed", operationName)
 		}
 	}()
 }
