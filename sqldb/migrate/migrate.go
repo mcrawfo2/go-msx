@@ -74,7 +74,7 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 		} else if appliedMigration.Checksum != nil &&
 			migration.Checksum != nil &&
 			*appliedMigration.Checksum != *migration.Checksum {
-			return errors.Errorf("Mismatched checksum: %f vs %f", *appliedMigration.Checksum, *migration.Checksum)
+			return errors.Errorf("Mismatched checksum: %d vs %d", *appliedMigration.Checksum, *migration.Checksum)
 		}
 
 		logger.WithContext(m.ctx).
