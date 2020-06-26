@@ -59,7 +59,7 @@ var (
 
 		endpointNameCreateServiceConfigurationApplication:                                                {Method: "POST", Path: "/api/v1/serviceconfigurations/applications"},
 		endpointNameUpdateServiceConfigurationApplicationStatus:                                          {Method: "POST", Path: "/api/v1/serviceconfigurations/{{.serviceConfigId}}/applications/{{.applicationId}}/status"},
-		endpointNameDeleteServiceConfigurationApplication:                                                {Method: "Delete", Path: "/api/v1/serviceconfigurations/applications/{{.id}}"},
+		endpointNameDeleteServiceConfigurationApplication:                                                {Method: "DELETE", Path: "/api/v1/serviceconfigurations/applications/{{.id}}"},
 		endpointNameGetServiceConfigurationApplications:                                                  {Method: "GET", Path: "/api/v1/serviceconfigurations/applications"},
 		endpointNameGetServiceConfigurationApplicationById:                                               {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.id}}"},
 		endpointNameGetServiceConfigurationApplicationByServiceConfigIdTargetEntityTypeAndTargetEntityId: {Method: "GET", Path: "/api/v1/serviceconfigurations/{(.serviceConfigId}}/applications/target/{(.targetEntityType}}/{{.targetEntityId}}"},
