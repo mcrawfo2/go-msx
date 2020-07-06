@@ -1,3 +1,3 @@
-//go:generate mockery -output mockdetailsprovider -name TokenDetailsProvider
+//go:generate mockery -inpkg -name Token.*Provider -case underscore
 
 package security

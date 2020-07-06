@@ -30,8 +30,16 @@ func (s OptionalString) String() string {
 	return s.OrElse("<nil>")
 }
 
+func (s OptionalString) Ptr() *string {
+	return s.Value
+}
+
 func NewOptionalString(value *string) OptionalString {
 	return OptionalString{Value: value}
+}
+
+func NewOptionalStringFromString(value string) OptionalString {
+	return OptionalString{Value: &value}
 }
 
 type Optional struct {

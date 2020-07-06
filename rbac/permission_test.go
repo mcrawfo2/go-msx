@@ -3,7 +3,6 @@ package rbac
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
-	"cto-github.cisco.com/NFV-BU/go-msx/security/mocks"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -12,13 +11,13 @@ import (
 func mockUserContextDetails(tenants []types.UUID, permissions []string) *security.UserContextDetails {
 	return &security.UserContextDetails{
 		Permissions: permissions,
-		Tenants: tenants,
+		Tenants:     tenants,
 	}
 }
 
 func setMockTokenDetailsProvider(ctx context.Context, tenants []types.UUID, permissions []string) {
 	userContextDetails := mockUserContextDetails(tenants, permissions)
-	mockTokenDetailsProvider := new(mocks.TokenDetailsProvider)
+	mockTokenDetailsProvider := new(security.MockTokenDetailsProvider)
 	mockTokenDetailsProvider.
 		On("TokenDetails", ctx).
 		Return(userContextDetails, nil)
