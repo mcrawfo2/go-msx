@@ -62,4 +62,3 @@ func TestIsTokenActive(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isActive)
 }
-

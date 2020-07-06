@@ -11,7 +11,7 @@ import (
 func mockUserContextDetails(tenants []types.UUID, permissions []string) *security.UserContextDetails {
 	return &security.UserContextDetails{
 		Permissions: permissions,
-		Tenants: tenants,
+		Tenants:     tenants,
 	}
 }
 
