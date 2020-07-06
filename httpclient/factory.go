@@ -12,4 +12,8 @@ type Client interface {
 
 type DoFunc func(req *http.Request) (*http.Response, error)
 
+func (d DoFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return d(request)
+}
+
 type RequestInterceptor func(fn DoFunc) DoFunc

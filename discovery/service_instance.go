@@ -44,11 +44,11 @@ type ServiceInstance struct {
 	Port int
 }
 
-func (i *ServiceInstance) Address() string {
+func (i ServiceInstance) Address() string {
 	return fmt.Sprintf("%s:%d", i.Host, i.Port)
 }
 
-func (i *ServiceInstance) HasTag(tag string) bool {
+func (i ServiceInstance) HasTag(tag string) bool {
 	for _, v := range i.Tags {
 		if v == tag {
 			return true
@@ -57,7 +57,7 @@ func (i *ServiceInstance) HasTag(tag string) bool {
 	return false
 }
 
-func (i *ServiceInstance) ContextPath() string {
+func (i ServiceInstance) ContextPath() string {
 	for _, v := range i.Tags {
 		if strings.HasPrefix(v, "contextPath=") {
 			return strings.TrimPrefix(v, "contextPath=")
