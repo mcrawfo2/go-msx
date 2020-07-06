@@ -57,5 +57,6 @@ func (c *UserContext) Clone() *UserContext {
 		Jti:         c.Jti,
 		Email:       c.Email,
 		Token:       c.Token,
+		ClientId:    c.ClientId,
 	}
 }
