@@ -19,7 +19,7 @@ func TestNewUserContextFromToken(t *testing.T) {
 
 	mockTokenProvider := new(MockTokenProvider)
 	mockTokenProvider.
-		On("NewUserContextFromToken", ctx, "").
+		On("UserContextFromToken", ctx, "").
 		Return(mockUserContext, nil)
 
 	tokenProvider = mockTokenProvider
