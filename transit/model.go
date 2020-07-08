@@ -34,7 +34,9 @@ func (s *SecureData) MarshalCQL(_ gocql.TypeInfo) (data []byte, err error) {
 
 	// Lazy encrypt on dirty write
 	if s.dirty {
-		payload, encrypted, err := NewEncrypter(s.ctx, s.keyId).Encrypt(s.payload)
+		payload, encrypted, err := encrypterFactory.
+			Create(s.ctx, s.keyId).
+			Encrypt(s.payload)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +60,9 @@ func (s *SecureData) Field(ctx context.Context, name string) (value *string, err
 	if s.payload == nil {
 		s.payload, err = s.secure.Payload()
 		if err == ErrValueEncrypted {
-			s.payload, err = NewEncrypter(s.ctx, s.keyId).Decrypt(s.secure.payload)
+			s.payload, err = encrypterFactory.
+				Create(s.ctx, s.keyId).
+				Decrypt(s.secure.payload)
 		}
 		if err != nil {
 			return nil, err
@@ -71,18 +75,51 @@ func (s *SecureData) Field(ctx context.Context, name string) (value *string, err
 	return value, nil
 }
 
-func (s *SecureData) SetField(ctx context.Context, name string, value *string) *SecureData {
+func (s *SecureData) SetField(ctx context.Context, name string, value *string) (*SecureData, error) {
 	s.ctx = ctx
+
 	if s.payload == nil {
-		s.payload = make(map[string]*string)
-	}
-	if cur, ok := s.payload[name]; ok {
-		if cur == value {
-			return s
+		// Initialize payload
+		switch {
+		case s.secure.encrypted:
+			payload, err := encrypterFactory.
+				Create(ctx, s.secure.keyId).
+				Decrypt(s.secure.RawPayload())
+			if err != nil {
+				return nil, err
+			}
+
+			decryptedValue, err := NewValue(s.secure.keyId, payload)
+			if err != nil {
+				return nil, err
+			}
+
+			s.payload = payload
+			s.secure = decryptedValue
+
+		case !s.secure.IsEmpty():
+			payload, err := s.secure.Payload()
+			if err != nil {
+				return nil, err
+			}
+
+			s.payload = payload
+
+		default:
+			s.payload = make(map[string]*string)
 		}
+	}
+
+	if cur, ok := s.payload[name]; ok {
+		// Matching pointers
+		if cur == value {
+			return s, nil
+		}
+		// Mismatched nils
 		if cur == nil || value == nil {
 			s.payload[name] = value
 			s.dirty = true
+		// Mismatched values
 		} else if *cur != *value {
 			s.payload[name] = value
 			s.dirty = true
@@ -91,7 +128,7 @@ func (s *SecureData) SetField(ctx context.Context, name string, value *string) *
 		s.payload[name] = value
 		s.dirty = true
 	}
-	return s
+	return s, nil
 }
 
 func (s *SecureData) SetKeyId(ctx context.Context, keyId types.UUID) *SecureData {
@@ -110,11 +147,19 @@ type WithSecureData struct {
 }
 
 func (g *WithSecureData) SecureValue(ctx context.Context, fieldName string) (string, error) {
-	value, err := g.SecureData.Field(ctx, fieldName)
+	optionalValue, err := g.SecureOptionalValue(ctx, fieldName)
 	if err != nil {
 		return "", err
 	}
-	return types.NewOptionalString(value).OrElse(""), nil
+	return optionalValue.OrElse(""), nil
+}
+
+func (g *WithSecureData) SecureOptionalValue(ctx context.Context, fieldName string) (types.OptionalString, error) {
+	value, err := g.SecureData.Field(ctx, fieldName)
+	if err != nil {
+		return types.NewOptionalString(nil), err
+	}
+	return types.NewOptionalString(value), nil
 }
 
 func (g *WithSecureData) SetSecureValue(ctx context.Context, keyId types.UUID, fieldName string, value *string) error {
@@ -128,9 +173,9 @@ func (g *WithSecureData) SetSecureValue(ctx context.Context, keyId types.UUID, f
 	if g.SecureData == nil {
 		g.SecureData = new(SecureData)
 	}
-	g.SecureData.
+	_, err := g.SecureData.
 		SetKeyId(ctx, keyId).
 		SetField(ctx, fieldName, value)
 
-	return nil
+	return err
 }

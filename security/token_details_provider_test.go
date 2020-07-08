@@ -13,7 +13,7 @@ func TestSetTokenDetailsProvider(t *testing.T) {
 	ctx := context.Background()
 
 	userContextDetails := new(UserContextDetails)
-	userContextDetails.Username = types.NewOptionalStringFromString(testUserName).Ptr()
+	userContextDetails.Username = types.NewStringPtr(testUserName)
 
 	tokenDetailsProvider := new(MockTokenDetailsProvider)
 	tokenDetailsProvider.
@@ -31,7 +31,7 @@ func TestNewUserContextDetails(t *testing.T) {
 	ctx := context.Background()
 
 	userContextDetails := new(UserContextDetails)
-	userContextDetails.Username = types.NewOptionalStringFromString(testUserName).Ptr()
+	userContextDetails.Username = types.NewStringPtr(testUserName)
 
 	mockTokenDetailsProvider := new(MockTokenDetailsProvider)
 	mockTokenDetailsProvider.
@@ -49,7 +49,7 @@ func TestIsTokenActive(t *testing.T) {
 	ctx := context.Background()
 
 	userContextDetails := new(UserContextDetails)
-	userContextDetails.Username = types.NewOptionalStringFromString(testUserName).Ptr()
+	userContextDetails.Username = types.NewStringPtr(testUserName)
 
 	mockTokenDetailsProvider := new(MockTokenDetailsProvider)
 	mockTokenDetailsProvider.

@@ -69,6 +69,10 @@ func (v Value) Payload() (map[string]*string, error) {
 		return nil, ErrValueEncrypted
 	}
 
+	if v.IsEmpty() {
+		return nil, nil
+	}
+
 	return deserializePayload(v.payload)
 }
 

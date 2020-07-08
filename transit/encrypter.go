@@ -77,7 +77,21 @@ func (e encrypter) Decrypt(value string) (map[string]*string, error) {
 	return payload, nil
 }
 
-func NewEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
+type EncrypterFactory func(ctx context.Context, keyName types.UUID) Encrypter
+
+func (f EncrypterFactory) Create(ctx context.Context, keyName types.UUID) Encrypter {
+	return f(ctx, keyName)
+}
+
+var encrypterFactory EncrypterFactory = newEncrypter
+
+func SetEncrypterFactory(factory EncrypterFactory) {
+	if factory != nil {
+		encrypterFactory = factory
+	}
+}
+
+func newEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
 	return &encrypter{
 		ctx:   ctx,
 		keyId: keyName,
