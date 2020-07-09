@@ -25,7 +25,6 @@ pipeline {
                 deleteDir()
 
                 script {
-                    assert env.PUBLISH
                     assert env.BUILD_NUMBER
                     assert env.WORKSPACE
 
