@@ -1,5 +1,11 @@
 def REPO_NAME = 'go-msx'
 def VMSBLD_CREDENTIALS = '06702990-d4e7-4a80-beaa-6d407896feff'
+def GITHUB_CREDENTIALS = 'bbac707a-a6ff-43eb-8907-840ef4227f02'
+def GITHUB_APP_ID_SONARQUBE = '7'
+def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
+def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
+def SONARQUBE_INSTALLATION = 'GPK SonarQube'
+def TRUNK = 'master'
 
 pipeline {
 
@@ -19,19 +25,19 @@ pipeline {
                 deleteDir()
 
                 script {
-                    assert env.BRANCH_NAME
+                    assert env.PUBLISH
                     assert env.BUILD_NUMBER
                     assert env.WORKSPACE
 
-                    if (env.sha1) {
+                    if (env.BRANCH_NAME) {
+                        currentBuild.description = env.BRANCH_NAME + " (Manual)"
+                    } else if (env.sha1) {
                         // When called from GitHub PR Builder
                         env.BRANCH_NAME = env.sha1
                     } else if (env.GIT_BRANCH) {
                         // When called from GitHub Push Notifier
                         env.BRANCH_NAME = env.GIT_BRANCH.replaceAll("origin/", "")
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
-                    } else {
-                        currentBuild.description = env.BRANCH_NAME + " (Manual)"
                     }
                 }
             }
@@ -42,7 +48,7 @@ pipeline {
 
                 checkout([
                     $class                           : 'GitSCM',
-                    branches                         : [[name: env.BRANCH_NAME]],
+                    branches                         : [[name: env.BRANCH_NAME ?: TRUNK]],
                     doGenerateSubmoduleConfigurations: false,
                     extensions                       : [[
                         $class: 'RelativeTargetDirectory',
@@ -82,6 +88,40 @@ pipeline {
                     junit 'test/junit-report.xml'
 
                     publishCoverage adapters: [coberturaAdapter('test/cobertura-coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
+
+
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                        withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
+                            script {
+                                def sonarProperties = [
+                                    'userHome': env.WORKSPACE,
+                                    'links.ci': env.JOB_URL,
+                                    'github.oauth': env.GITHUB_ACCESS_TOKEN,
+                                    'sonar.alm.github.app.id': GITHUB_APP_ID_SONARQUBE,
+                                    'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
+                                ]
+
+                                if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
+                                    if (env.ghprbTargetBranch) {
+                                        sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
+                                        sonarProperties['pullrequest.provider'] = "github"
+                                        sonarProperties['pullrequest.key'] = env.ghprbPullId
+                                        sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
+                                        sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
+                                    } else {
+                                        sonarProperties['branch.name'] = env.BRANCH_NAME
+                                        sonarProperties['branch.target'] = TRUNK
+                                    }
+                                }
+
+                                def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                                def sonarCommand = "$sonarHome/bin/sonar-scanner"
+                                sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
+                                sonarCommand = sonarCommand + " -Dproject.settings=sonar-project.properties"
+                                sh sonarCommand
+                            }
+                        }
+                    }
 
                 }}
             }
