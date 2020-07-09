@@ -34,12 +34,26 @@ func (s OptionalString) Ptr() *string {
 	return s.Value
 }
 
+func (s OptionalString) Equals(other OptionalString) bool {
+	if s.Value == other.Value {
+		return true
+	} else if s.Value == nil || other.Value == nil {
+		return false
+	} else {
+		return *s.Value == *other.Value
+	}
+}
+
 func NewOptionalString(value *string) OptionalString {
 	return OptionalString{Value: value}
 }
 
 func NewOptionalStringFromString(value string) OptionalString {
 	return OptionalString{Value: &value}
+}
+
+func NewStringPtr(value string) *string {
+	return &value
 }
 
 type Optional struct {
