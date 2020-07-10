@@ -3,7 +3,7 @@ package sqldbobserver
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
+	"github.com/pkg/errors"
 	"runtime"
 
 	"github.com/opentracing/opentracing-go"
