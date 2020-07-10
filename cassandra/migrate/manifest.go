@@ -85,13 +85,20 @@ func (m *Manifest) Migrations() []*Migration {
 	return m.migrations[:]
 }
 
+func validateVersion(version types.Version) error {
+	if len(version) < 3 {
+		return errors.Errorf("Invalid version: %s", version)
+	}
+	return nil
+}
+
 func (m *Manifest) AddCqlStringMigration(version, description, cql string) error {
 	parsedVersion, err := types.NewVersion(version)
 	if err != nil {
 		return err
 	}
-	if len(parsedVersion) < 3 {
-		return errors.Errorf("Invalid version: %s", version)
+	if err = validateVersion(parsedVersion); err != nil {
+		return err
 	}
 
 	return m.addMigration(&Migration{
@@ -118,8 +125,8 @@ func (m *Manifest) AddCqlFileMigration(version, description, filename string) er
 	if err != nil {
 		return err
 	}
-	if len(parsedVersion) < 3 {
-		return errors.Errorf("Invalid version: %s", version)
+	if err = validateVersion(parsedVersion); err != nil {
+		return err
 	}
 
 	return m.addMigration(&Migration{
@@ -141,8 +148,8 @@ func (m *Manifest) AddCqlResourceMigration(version, description string, res reso
 	if err != nil {
 		return err
 	}
-	if len(parsedVersion) < 3 {
-		return errors.Errorf("Invalid version: %s", version)
+	if err = validateVersion(parsedVersion); err != nil {
+		return err
 	}
 
 	return m.addMigration(&Migration{
@@ -160,8 +167,8 @@ func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc)
 	if err != nil {
 		return err
 	}
-	if len(parsedVersion) < 3 {
-		return errors.Errorf("Invalid version: %s", version)
+	if err = validateVersion(parsedVersion); err != nil {
+		return err
 	}
 
 	return m.addMigration(&Migration{
@@ -178,8 +185,8 @@ func (m *Manifest) AddGoContextMigration(version, description string, fn Migrati
 	if err != nil {
 		return err
 	}
-	if len(parsedVersion) < 3 {
-		return errors.Errorf("Invalid version: %s", version)
+	if err = validateVersion(parsedVersion); err != nil {
+		return err
 	}
 
 	return m.addMigration(&Migration{
