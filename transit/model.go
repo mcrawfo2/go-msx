@@ -119,7 +119,7 @@ func (s *SecureData) SetField(ctx context.Context, name string, value *string) (
 		if cur == nil || value == nil {
 			s.payload[name] = value
 			s.dirty = true
-		// Mismatched values
+			// Mismatched values
 		} else if *cur != *value {
 			s.payload[name] = value
 			s.dirty = true

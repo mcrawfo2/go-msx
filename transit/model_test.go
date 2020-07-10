@@ -617,20 +617,20 @@ func TestWithSecureData_SetSecureValue(t *testing.T) {
 		},
 		{
 			name:    "InvalidKey",
-			keyId:   types.UUID([]byte{1,2,3}),
+			keyId:   types.UUID([]byte{1, 2, 3}),
 			wantErr: true,
 		},
 		{
-			name:  "CreateSecureData",
-			keyId: keyId,
-			fieldName: "key1",
+			name:       "CreateSecureData",
+			keyId:      keyId,
+			fieldName:  "key1",
 			fieldValue: types.NewStringPtr("value1"),
 			want: WithSecureData{
 				SecureData: &SecureData{
-					ctx:     ctx,
-					dirty:   true,
-					keyId:   keyId,
-					secure:  Value{},
+					ctx:    ctx,
+					dirty:  true,
+					keyId:  keyId,
+					secure: Value{},
 					payload: map[string]*string{
 						"key1": types.NewStringPtr("value1"),
 					},
@@ -661,23 +661,23 @@ func TestWithSecureData_SecureValue(t *testing.T) {
 	keyId := types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`)
 
 	tests := []struct {
-		name       string
-		value      WithSecureData
-		keyId      types.UUID
-		fieldName  string
-		want       string
-		wantErr    bool
+		name      string
+		value     WithSecureData
+		keyId     types.UUID
+		fieldName string
+		want      string
+		wantErr   bool
 	}{
 		{
-			name:  "ValueExists",
-			keyId: keyId,
+			name:      "ValueExists",
+			keyId:     keyId,
 			fieldName: "key1",
 			value: WithSecureData{
 				SecureData: &SecureData{
-					ctx:     ctx,
-					dirty:   true,
-					keyId:   keyId,
-					secure:  Value{},
+					ctx:    ctx,
+					dirty:  true,
+					keyId:  keyId,
+					secure: Value{},
 					payload: map[string]*string{
 						"key1": types.NewStringPtr("value1"),
 					},
@@ -686,8 +686,8 @@ func TestWithSecureData_SecureValue(t *testing.T) {
 			want: "value1",
 		},
 		{
-			name:  "ValueNotExists",
-			keyId: keyId,
+			name:      "ValueNotExists",
+			keyId:     keyId,
 			fieldName: "key1",
 			value: WithSecureData{
 				SecureData: &SecureData{
@@ -725,23 +725,23 @@ func TestWithSecureData_SecureOptionalValue(t *testing.T) {
 	keyId := types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`)
 
 	tests := []struct {
-		name       string
-		value      WithSecureData
-		keyId      types.UUID
-		fieldName  string
-		want       types.OptionalString
-		wantErr    bool
+		name      string
+		value     WithSecureData
+		keyId     types.UUID
+		fieldName string
+		want      types.OptionalString
+		wantErr   bool
 	}{
 		{
-			name:  "ValueExists",
-			keyId: keyId,
+			name:      "ValueExists",
+			keyId:     keyId,
 			fieldName: "key1",
 			value: WithSecureData{
 				SecureData: &SecureData{
-					ctx:     ctx,
-					dirty:   true,
-					keyId:   keyId,
-					secure:  Value{},
+					ctx:    ctx,
+					dirty:  true,
+					keyId:  keyId,
+					secure: Value{},
 					payload: map[string]*string{
 						"key1": types.NewStringPtr("value1"),
 					},
@@ -750,8 +750,8 @@ func TestWithSecureData_SecureOptionalValue(t *testing.T) {
 			want: types.NewOptionalStringFromString("value1"),
 		},
 		{
-			name:  "ValueNotExists",
-			keyId: keyId,
+			name:      "ValueNotExists",
+			keyId:     keyId,
 			fieldName: "key1",
 			value: WithSecureData{
 				SecureData: &SecureData{
