@@ -81,8 +81,10 @@ func NewConfigProvidersFromConfig(name string, cfg *config.Config) ([]config.Pro
 			return nil, err
 		}
 		conn = vault.Pool().Connection()
-	} else if conn, err = vault.NewConnectionFromConfig(cfg); err != nil {
+	} else if conn, err = vault.NewConnectionFromConfig(cfg); err != nil && err != vault.ErrDisabled {
 		return nil, err
+	} else if err == vault.ErrDisabled {
+		return nil, nil
 	}
 
 	return []config.Provider{
