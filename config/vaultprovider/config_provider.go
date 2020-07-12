@@ -3,7 +3,6 @@ package vaultprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"fmt"
@@ -77,7 +76,7 @@ func NewConfigProvidersFromConfig(name string, cfg *config.Config) ([]config.Pro
 
 	var conn *vault.Connection
 	if providerConfig.Pool {
-		if err = consul.ConfigurePool(cfg); err != nil {
+		if err = vault.ConfigurePool(cfg); err != nil {
 			return nil, err
 		}
 		conn = vault.Pool().Connection()

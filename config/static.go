@@ -2,7 +2,10 @@ package config
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
+	yaml3 "gopkg.in/yaml.v3"
 )
 
 type Static struct {
@@ -39,4 +42,31 @@ func NewStatic(name string, settings map[string]string) *Static {
 		name:     name,
 		settings: settings,
 	}
+}
+
+func NewStaticFromMap(name string, values map[string]interface{}) (*Static, error) {
+	valuesBytes, err := yaml3.Marshal(values)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonBytes, err := yaml.YAMLToJSON(valuesBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(jsonBytes, &values)
+	if err != nil {
+		return nil, err
+	}
+
+ 	settings, err := FlattenJSON(values, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Static{
+		name: name,
+		settings: settings,
+	}, nil
 }
