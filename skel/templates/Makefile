@@ -1,7 +1,7 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
 .PHONY: test dist docker docker-publish publish clean precommit tag
-.PHONY: update-go-msx update-go-msx
+.PHONY: update-go-msx update-go-msx-build
 
 test:
 	$(BUILDER) download-test-deps

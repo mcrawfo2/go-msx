@@ -19,7 +19,7 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 7, 9, 23, 57, 55, 197484351, time.UTC),
+			modTime: time.Date(2020, 7, 10, 14, 25, 59, 292493495, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
@@ -32,7 +32,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
-			modTime: time.Date(2020, 7, 6, 18, 11, 14, 821692779, time.UTC),
+			modTime: time.Date(2020, 7, 10, 14, 25, 59, 285762430, time.UTC),
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
@@ -67,7 +67,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/security": &vfsgen۰DirInfo{
 			name:    "security",
-			modTime: time.Date(2020, 7, 9, 23, 37, 42, 749714301, time.UTC),
+			modTime: time.Date(2020, 7, 10, 14, 28, 24, 637312969, time.UTC),
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
@@ -91,7 +91,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/transit": &vfsgen۰DirInfo{
 			name:    "transit",
-			modTime: time.Date(2020, 7, 9, 23, 37, 42, 752028758, time.UTC),
+			modTime: time.Date(2020, 7, 10, 14, 25, 59, 295551098, time.UTC),
 		},
 		"/transit/defaults-transit.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-transit.properties",
