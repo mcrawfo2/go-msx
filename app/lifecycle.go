@@ -146,6 +146,7 @@ func (a *MsxApplication) Run(command string) error {
 	logger.WithContext(a.ctx).Infof("Command selected: %s", command)
 	if err := a.triggerPhase(a.ctx, EventCommand, command); err != nil {
 		logger.WithContext(a.ctx).WithError(err).Error("Command initialization failed")
+		logger.WithContext(a.ctx).Errorf("%+v", err)
 	}
 
 	if err := a.startupEvents(a.ctx); err == nil {
@@ -155,6 +156,7 @@ func (a *MsxApplication) Run(command string) error {
 			case <-a.refresh:
 				if err = a.refreshEvents(a.ctx); err != nil {
 					logger.Error(errors.Wrap(err, "Refresh failed"))
+					logger.WithContext(a.ctx).Errorf("%+v", err)
 					break
 				}
 
@@ -164,6 +166,7 @@ func (a *MsxApplication) Run(command string) error {
 		}
 	} else {
 		logger.WithContext(a.ctx).WithError(err).Error("Startup failed")
+		logger.WithContext(a.ctx).Errorf("%+v", err)
 	}
 
 	// Shutdown gracefully
