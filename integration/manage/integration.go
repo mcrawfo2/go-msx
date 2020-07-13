@@ -16,6 +16,7 @@ const (
 	endpointNameGetAdminHealth = "getAdminHealth"
 
 	endpointNameGetSubscription    = "getSubscription"
+	endpointNameGetSubscriptionsV3    = "getSubscriptionsV3"
 	endpointNameCreateSubscription = "createSubscription"
 	endpointNameUpdateSubscription = "updateSubscription"
 	endpointNameDeleteSubscription = "deleteSubscription"
@@ -81,6 +82,8 @@ var (
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
 		endpointNameGetSubscription:    {Method: "GET", Path: "/api/v2/subscriptions/{{.subscriptionId}}"},
+		endpointNameGetSubscriptionsV3:    {Method: "GET", Path: "/api/v3/subscriptions"},
+
 		endpointNameCreateSubscription: {Method: "POST", Path: "/api/v2/subscriptions/tenants/{{.tenantId}}"},
 		endpointNameUpdateSubscription: {Method: "PUT", Path: "/api/v2/subscriptions/{{.subscriptionId}}"},
 		endpointNameDeleteSubscription: {Method: "DELETE", Path: "/api/v2/subscriptions/{{.subscriptionId}}"},
@@ -170,6 +173,32 @@ func (i *Integration) GetSubscription(subscriptionId string) (*integration.MsxRe
 		},
 		Payload:        new(Pojo),
 		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetSubscriptionsV3(serviceType string, page, pageSize int) (*integration.MsxResponse, error) {
+	pageString := strconv.Itoa(page)
+	pageSizeString := strconv.Itoa(pageSize)
+
+	searchParameters := map[string]*string{
+		"serviceType":  	 &serviceType,
+		"page":              &pageString,
+		"pageSize":          &pageSizeString,
+	}
+
+	// Convert optional search queries into query parameters
+	queryParameters := make(url.Values)
+	for k, v := range searchParameters {
+		if v != nil && *v != "" {
+			queryParameters[k] = []string{*v}
+		}
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameGetSubscriptionsV3,
+		QueryParameters: queryParameters,
+		Payload:         new(Pojo),
+		ExpectEnvelope:  true,
 	})
 }
 

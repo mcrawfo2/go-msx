@@ -6,19 +6,52 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
-	"net/http"
+	"github.com/pkg/errors"
 )
 
+var ErrEndpointNotFound = errors.New("Endpoint not defined")
+
 type Integration struct {
-	*integration.ExternalService
-	ctx      context.Context
-	endpoint integration.Endpoint
+	ctx       context.Context
+	services  map[string]*integration.ExternalService
+	endpoints map[string]integration.Endpoint
+}
+
+func (i *Integration) GetAccessibleServices() (response ServicesResponse, err error) {
+	service, endpoint, err := i.getServiceAndEndpoint(OutboundApiServiceAccess)
+	if err != nil {
+		return
+	}
+
+	tenantId, userName := i.getTenantIdAndUserIdFromContext()
+
+	uriVariables := map[string]string{
+		"tenantId": tenantId.String(),
+		"userId":   userName,
+	}
+
+	req, err := service.Request(
+		endpoint,
+		uriVariables,
+		nil,
+		nil,
+		nil)
+
+	if err != nil {
+		return
+	}
+
+	_, _, err = service.Do(req, &response)
+	return
 }
 
 func (i *Integration) GetPricePlanOptions(serviceId, offerId types.UUID, options PricingOptionsRequest) (response PricingOptionsResponse, err error) {
-	userContext := security.UserContextFromContext(i.ctx)
-	userName := userContext.UserName
-	tenantId := userContext.TenantId
+	service, endpoint, err := i.getServiceAndEndpoint(OutboundApiPricingOptions)
+	if err != nil {
+		return
+	}
+
+	tenantId, userName := i.getTenantIdAndUserIdFromContext()
 
 	uriVariables := map[string]string{
 		"serviceId": serviceId.String(),
@@ -32,8 +65,8 @@ func (i *Integration) GetPricePlanOptions(serviceId, offerId types.UUID, options
 		return
 	}
 
-	req, err := i.ExternalService.Request(
-		i.endpoint,
+	req, err := service.Request(
+		endpoint,
 		uriVariables,
 		nil,
 		nil,
@@ -42,21 +75,81 @@ func (i *Integration) GetPricePlanOptions(serviceId, offerId types.UUID, options
 		return
 	}
 
-	_, _, err = i.ExternalService.Do(req, &response)
+	_, _, err = service.Do(req, &response)
 
 	return
 }
 
-func NewPricePlanOptionsIntegration(ctx context.Context, outboundApi OutboundApi) Api {
-	externalService := integration.NewExternalService(ctx, "http", "oss")
-	externalService.AddInterceptor(outboundApi.Interceptor)
-	return &Integration{
-		ExternalService: externalService,
-		ctx:             ctx,
-		endpoint: integration.Endpoint{
-			Name:   OutboundApiPricingOptions,
-			Method: http.MethodPost,
+func (i *Integration) GetAllowedValues(serviceId, propertyName string) (response AllowedValuesResponse, err error) {
+	service, endpoint, err := i.getServiceAndEndpoint(OutboundApiAllowedValues)
+	if err != nil {
+		return
+	}
+
+	tenantId, userName := i.getTenantIdAndUserIdFromContext()
+	uriVariables := map[string]string{
+		"serviceId":    serviceId,
+		"propertyName": propertyName,
+		"tenantId":     tenantId.String(),
+		"userId":       userName,
+	}
+	req, err := service.Request(
+		endpoint,
+		uriVariables,
+		nil,
+		nil,
+		nil)
+	if err != nil {
+		return
+	}
+
+	_, _, err = service.Do(req, &response)
+
+	return
+}
+
+func (i *Integration) getTenantIdAndUserIdFromContext() (tenantId types.UUID, userName string) {
+	userContext := security.UserContextFromContext(i.ctx)
+	userName = userContext.UserName
+	tenantId = userContext.TenantId
+	return
+}
+
+func (i *Integration) getServiceAndEndpoint(apiName string) (*integration.ExternalService, integration.Endpoint, error) {
+	service, ok := i.services[apiName]
+	if !ok {
+		return nil, integration.Endpoint{}, ErrEndpointNotFound
+	}
+	endpoint := i.endpoints[apiName]
+	return service, endpoint, nil
+}
+
+func NewIntegration(ctx context.Context, outboundApi OutboundApi) Api {
+	return NewOssIntegration(ctx, []OutboundApi{outboundApi})
+}
+
+func NewOssIntegration(ctx context.Context, outboundApis []OutboundApi) Api {
+	services := map[string]*integration.ExternalService{}
+	endpoints := map[string]integration.Endpoint{}
+
+	for _, outboundApi := range outboundApis {
+		apiName := outboundApi.ApiName
+
+		externalService := integration.NewExternalService(ctx, "http", "oss")
+		externalService.AddInterceptor(outboundApi.Interceptor)
+		services[apiName] = externalService
+
+		endpoint := integration.Endpoint{
+			Name:   outboundApi.ApiName,
+			Method: outboundApi.HttpMethod,
 			Path:   outboundApi.Url,
-		},
+		}
+		endpoints[apiName] = endpoint
+	}
+
+	return &Integration{
+		ctx:       ctx,
+		services:  services,
+		endpoints: endpoints,
 	}
 }
