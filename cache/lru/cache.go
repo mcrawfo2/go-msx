@@ -1,11 +1,10 @@
 package lru
 
 import (
+	"github.com/benbjohnson/clock"
 	"sync"
 	"time"
 )
-
-type TimeSource func() time.Time
 
 type Cache interface {
 	Get(key string) (interface{}, bool)
@@ -20,7 +19,7 @@ type HeapMapCache struct {
 	heap            entryHeap         // entries ordered by expiry
 	collected       []string          // temp garbage collection space
 	expireFrequency time.Duration     // garbage collection frequency
-	timeSource      TimeSource        // for test double
+	timeSource      clock.Clock       // for test double
 }
 
 func (c *HeapMapCache) Get(key string) (interface{}, bool) {
@@ -33,7 +32,7 @@ func (c *HeapMapCache) Get(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	if e.expires < c.timeSource().UnixNano() {
+	if e.expires < c.timeSource.Now().UnixNano() {
 		return nil, false
 	}
 
@@ -43,7 +42,7 @@ func (c *HeapMapCache) Get(key string) (interface{}, bool) {
 func (c *HeapMapCache) Set(key string, value interface{}) {
 	c.Lock()
 	defer c.Unlock()
-	expires := c.timeSource().Add(c.ttl).UnixNano()
+	expires := c.timeSource.Now().Add(c.ttl).UnixNano()
 	e, exists := c.index[key]
 	if exists {
 		e.value = value
@@ -70,7 +69,7 @@ func (c *HeapMapCache) Clear() {
 
 func (c *HeapMapCache) collect() {
 	for {
-		time.Sleep(c.expireFrequency)
+		c.timeSource.Sleep(c.expireFrequency)
 		c.expire()
 	}
 }
@@ -78,26 +77,26 @@ func (c *HeapMapCache) collect() {
 func (c *HeapMapCache) expire() {
 	c.Lock()
 	defer c.Unlock()
-	now := c.timeSource().UnixNano()
+	now := c.timeSource.Now().UnixNano()
 	expiredCount := c.heap.expire(now, c.collected)
 	for i := 0; i < expiredCount; i++ {
 		delete(c.index, c.collected[i])
 	}
 }
 
-func NewCache(ttl time.Duration, expireLimit int, expireFrequency time.Duration) *HeapMapCache {
+func NewCache(ttl time.Duration, expireLimit int, expireFrequency time.Duration, timeSource clock.Clock) *HeapMapCache {
 	c := &HeapMapCache{
 		ttl:             ttl,
 		index:           make(map[string]*entry),
 		heap:            make(entryHeap, 0),
 		collected:       make([]string, expireLimit),
 		expireFrequency: expireFrequency,
-		timeSource:      time.Now,
+		timeSource:      timeSource,
 	}
 	go c.collect()
 	return c
 }
 
 func NewCacheFromConfig(cfg *CacheConfig) *HeapMapCache {
-	return NewCache(cfg.Ttl, cfg.ExpireLimit, cfg.ExpireFrequency)
+	return NewCache(cfg.Ttl, cfg.ExpireLimit, cfg.ExpireFrequency, clock.New())
 }
