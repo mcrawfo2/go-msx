@@ -12,7 +12,14 @@ import (
 const CredentialTypeNone = "none"
 const CredentialTypeBasic = "basic"
 
-const OutboundApiPricingOptions = "pricingoptions"
+const (
+	OutboundApiServiceCancellationCharge = "serviceCancellationCharge"
+	OutboundApiNotificationUrl           = "notificationUrl"
+	OutboundApiPricingOptions = "pricingoptions"
+	OutboundApiServiceAccess = "serviceAccess"
+	OutboundApiAllowedValues = "allowedValues"
+)
+
 
 var OutboundApiErrDisabled = errors.New("Outbound API endpoint disabled")
 

@@ -4,8 +4,18 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
+const (
+	endpointServiceCancellationCharge = "serviceCancellationCharge"
+	endpointNotificationUrl           = "notificationUrl"
+	endpointServiceAccess             = "serviceAccess"
+	endpointPricingOptions            = "pricingoptions"
+	endpointAllowedValues             = "allowedValues"
+)
+
 type Api interface {
 	GetPricePlanOptions(serviceId, offerId types.UUID, options PricingOptionsRequest) (PricingOptionsResponse, error)
+	GetAccessibleServices() (ServicesResponse, error)
+	GetAllowedValues(serviceId string, propertyName string) (AllowedValuesResponse, error)
 }
 
 type PricingOptionsRequest struct {
@@ -24,6 +34,7 @@ type PricingOptionResponse struct {
 	Name             string                           `json:"name"`
 	PricePlanDetails map[string]PricePlanOptionDetail `json:"pricePlanDetails"`
 }
+
 type PricePlanOptionDetail struct {
 	Value                   string `json:"value"`
 	OneTimePrice            int    `json:"oneTimePrice"`
@@ -33,4 +44,16 @@ type PricePlanOptionDetail struct {
 	AdditionalOneTimePrice  int    `json:"additionalOneTimePrice"`
 	AdditionalPeriodicPrice int    `json:"additionalOneTimePrice"`
 	AdditionalQuantity      int    `json:"additionalOneTimePrice"`
+}
+
+type ServicesResponse struct {
+	Services []Service `json:"services"`
+}
+
+type Service struct {
+	Id string `json:"id"`
+}
+
+type AllowedValuesResponse struct {
+	AllowedValues []map[string]interface{} `json:"allowedValues"`
 }
