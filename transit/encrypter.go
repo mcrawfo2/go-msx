@@ -97,3 +97,7 @@ func newEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
 		keyId: keyName,
 	}
 }
+
+func NewEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
+	return encrypterFactory.Create(ctx, keyName)
+}
