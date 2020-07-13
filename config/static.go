@@ -60,13 +60,13 @@ func NewStaticFromMap(name string, values map[string]interface{}) (*Static, erro
 		return nil, err
 	}
 
- 	settings, err := FlattenJSON(values, "")
+	settings, err := FlattenJSON(values, "")
 	if err != nil {
 		return nil, err
 	}
 
 	return &Static{
-		name: name,
+		name:     name,
 		settings: settings,
 	}, nil
 }
