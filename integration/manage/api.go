@@ -8,6 +8,7 @@ type Api interface {
 	GetAdminHealth() (*HealthResult, error)
 
 	GetSubscription(subscriptionId string) (*integration.MsxResponse, error)
+	GetSubscriptionsV3(serviceType string, page, pageSize int) (*integration.MsxResponse, error)
 	CreateSubscription(tenantId, serviceType string, subscriptionName *string,
 		subscriptionAttribute, offerDefAttribute, offerSelectionDetail, costAttribute map[string]string) (*integration.MsxResponse, error)
 	UpdateSubscription(subscriptionId, serviceType string, subscriptionName *string,
