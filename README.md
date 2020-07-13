@@ -107,7 +107,20 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     * [Integration](#)
     * [Streaming](#)
 
+### Utilities
 
+* [Audit Events](#)
+* [Auditable Models](#)
+* [Cache](#)
+* [Executing Commands](#)
+* [Health Checks](#)
+* [Http Client](#)
+* [Leader Election](#)
+* [Pagination](#)
+* [Resources](#)
+* [Retry](#)
+* [Transit Encryption](#)
+* [Validation](#)
 
 ## License
 
