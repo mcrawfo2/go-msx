@@ -20,6 +20,7 @@ type ProductionHttpClientFactory struct {
 
 type ClientConfig struct {
 	Timeout     time.Duration `config:"default=30s"`
+	IdleTimeout time.Duration `config:"default=1s"`
 	TlsInsecure bool          `config:"default=true"`
 	LocalCaFile string        `config:"default="`
 	CertFile    string        `config:"default="`
@@ -109,6 +110,7 @@ func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: f.tlsConfig,
+			IdleConnTimeout: f.clientConfig.IdleTimeout,
 		},
 		Timeout: f.clientConfig.Timeout,
 	}
