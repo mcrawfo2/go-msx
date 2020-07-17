@@ -25,6 +25,7 @@ type WebServerConfig struct {
 	ContextPath  string `config:"default=/app"`
 	StaticPath   string `config:"default=/www"`
 	TraceEnabled bool   `config:"default=false"`
+	DebugEnabled bool   `config:"default=false"`
 }
 
 //TLSConfig represents the configuration to be applied to a secure listener.

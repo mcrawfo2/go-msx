@@ -106,6 +106,12 @@ func RegisterLink(name, href string, templated bool) {
 	}
 }
 
+func HttpHandlerController(fn http.HandlerFunc) restful.RouteFunction {
+	return func(req *restful.Request, resp *restful.Response) {
+		fn(resp.ResponseWriter, req.Request)
+	}
+}
+
 func RawAdminController(fn webservice.ControllerFunction) restful.RouteFunction {
 	return func(req *restful.Request, resp *restful.Response) {
 		body, err := fn(req)

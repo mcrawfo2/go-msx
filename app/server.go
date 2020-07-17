@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/debugprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
@@ -28,6 +29,7 @@ func registerRegistrations(cfg *config.Config) error {
 	if serverEnabled {
 		OnEvent(EventStart, PhaseBefore, registerAuthenticationProvider)
 		OnEvent(EventStart, PhaseBefore, registerAdminWebServices)
+		OnEvent(EventStart, PhaseBefore, registerDebugWebServices)
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
 		OnEvent(EventStop, PhaseBefore, webservice.Stop)
@@ -52,6 +54,19 @@ func registerAdminWebServices(ctx context.Context) error {
 		loggersprovider.RegisterProvider(ctx),
 	}
 	return err.Filter()
+}
+
+func registerDebugWebServices(ctx context.Context) error {
+	debugEnabled, _ := config.FromContext(ctx).BoolOr("server.debug-enabled", false)
+	if !debugEnabled {
+		logger.Info("Debug endpoints disabled")
+		return nil
+	}
+
+	logger.Info("Registering debug endpoints")
+	return types.ErrorList{
+		debugprovider.RegisterProvider(ctx),
+	}.Filter()
 }
 
 func registerSwaggerWebService(ctx context.Context) error {
