@@ -30,6 +30,8 @@ const (
 	PermissionManageThemes          = "MANAGE_THEMES"
 	PermissionViewSlm               = "VIEW_SLM"
 	PermissionManageSlm             = "MANAGE_SLM"
+	PermissionViewNotification      = "MANAGE_NOTIFICATION"
+	PermissionManageNotification    = "VIEW_NOTIFICATION"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
