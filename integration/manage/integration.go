@@ -846,7 +846,7 @@ func (i *Integration) CreateControlPlane(tenantId, name, url, resourceProvider, 
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameCreateControlPlane,
 		Body:           bodyBytes,
-		Payload:        new(Pojo),
+		Payload:        new(ControlPlaneResponse),
 		ExpectEnvelope: true,
 	})
 }

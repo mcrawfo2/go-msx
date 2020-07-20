@@ -1,6 +1,9 @@
 package manage
 
-import "cto-github.cisco.com/NFV-BU/go-msx/integration"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
 
 type Pojo integration.Pojo
 type PojoArray integration.PojoArray
@@ -203,4 +206,15 @@ type SiteStatusUpdateRequest struct {
 	LastUpdatedMessage string `json:"lastUpdatedMessage"`
 	Severity           string `json:"severity"`
 	Value              string `json:"value"`
+}
+
+type ControlPlaneResponse struct {
+	ControlPlaneId     types.UUID        `json:"controlPlaneId"`
+	ResourceProvider   string            `json:"resourceProvider"`
+	TenantId           types.UUID        `json:"tenantId"`
+	AuthenticationType string            `json:"authenticationType"`
+	Url                string            `json:"url"`
+	Name               string            `json:"name"`
+	TlsInsecure        bool              `json:"tlsInsecure"`
+	Attributes         map[string]string `json:"attributes"`
 }
