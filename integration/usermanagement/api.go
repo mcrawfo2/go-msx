@@ -2,6 +2,7 @@ package usermanagement
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 )
 
 type Api interface {
@@ -39,4 +40,18 @@ type Api interface {
 	EncryptTenantSecrets(tenantId, scope string, names []string, encrypt EncryptSecretsDTO) (*integration.MsxResponse, error)
 	RemoveTenantSecrets(tenantId, scope string) (*integration.MsxResponse, error)
 	GenerateTenantSecrets(tenantId, scope string, names []string, save bool) (*integration.MsxResponse, error)
+
+	GetSecretPolicy(name string) (*integration.MsxResponse, error)
+	StoreSecretPolicy(name string, policy SecretPolicySetRequest) (*integration.MsxResponse, error)
+	DeleteSecretPolicy(name string)  (*integration.MsxResponse, error)
+
+	GetRoles(resolvePermissionNames bool, p paging.Request) (*integration.MsxResponse, error)
+	CreateRole(dbinstaller bool, body RoleCreateRequest) (*integration.MsxResponse, error)
+	UpdateRole(dbinstaller bool, body RoleUpdateRequest) (*integration.MsxResponse, error)
+	DeleteRole(roleName string) (*integration.MsxResponse, error)
+
+	GetCapabilities(p paging.Request) (*integration.MsxResponse, error)
+	BatchCreateCapabilities(populator bool, owner string, capabilities []CapabilityCreateRequest) (*integration.MsxResponse, error)
+	BatchUpdateCapabilities(populator bool, owner string, capabilities []CapabilityUpdateRequest) (*integration.MsxResponse, error)
+	DeleteCapability(populator bool, owner string, name string) (*integration.MsxResponse, error)
 }

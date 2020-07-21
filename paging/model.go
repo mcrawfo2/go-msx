@@ -1,6 +1,10 @@
 package paging
 
-import "reflect"
+import (
+	"net/url"
+	"reflect"
+	"strconv"
+)
 
 type Response struct {
 	Content interface{}
@@ -43,6 +47,13 @@ type Request struct {
 func (r Request) WithState(state *string) Request {
 	r.State = state
 	return r
+}
+
+func (r Request) QueryParameters() url.Values {
+	var result = make(url.Values)
+	result.Set("page", strconv.FormatUint(uint64(r.Page), 10))
+	result.Set("pageSize", strconv.FormatUint(uint64(r.Size), 10))
+	return result
 }
 
 func NewRequestFromQuery(page uint, pageSize uint) Request {
