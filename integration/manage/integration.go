@@ -16,7 +16,7 @@ const (
 	endpointNameGetAdminHealth = "getAdminHealth"
 
 	endpointNameGetSubscription    = "getSubscription"
-	endpointNameGetSubscriptionsV3    = "getSubscriptionsV3"
+	endpointNameGetSubscriptionsV3 = "getSubscriptionsV3"
 	endpointNameCreateSubscription = "createSubscription"
 	endpointNameUpdateSubscription = "updateSubscription"
 	endpointNameDeleteSubscription = "deleteSubscription"
@@ -82,7 +82,7 @@ var (
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
 		endpointNameGetSubscription:    {Method: "GET", Path: "/api/v2/subscriptions/{{.subscriptionId}}"},
-		endpointNameGetSubscriptionsV3:    {Method: "GET", Path: "/api/v3/subscriptions"},
+		endpointNameGetSubscriptionsV3: {Method: "GET", Path: "/api/v3/subscriptions"},
 
 		endpointNameCreateSubscription: {Method: "POST", Path: "/api/v2/subscriptions/tenants/{{.tenantId}}"},
 		endpointNameUpdateSubscription: {Method: "PUT", Path: "/api/v2/subscriptions/{{.subscriptionId}}"},
@@ -181,9 +181,9 @@ func (i *Integration) GetSubscriptionsV3(serviceType string, page, pageSize int)
 	pageSizeString := strconv.Itoa(pageSize)
 
 	searchParameters := map[string]*string{
-		"serviceType":  	 &serviceType,
-		"page":              &pageString,
-		"pageSize":          &pageSizeString,
+		"serviceType": &serviceType,
+		"page":        &pageString,
+		"pageSize":    &pageSizeString,
 	}
 
 	// Convert optional search queries into query parameters

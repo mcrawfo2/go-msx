@@ -15,11 +15,10 @@ const CredentialTypeBasic = "basic"
 const (
 	OutboundApiServiceCancellationCharge = "serviceCancellationCharge"
 	OutboundApiNotificationUrl           = "notificationUrl"
-	OutboundApiPricingOptions = "pricingoptions"
-	OutboundApiServiceAccess = "serviceAccess"
-	OutboundApiAllowedValues = "allowedValues"
+	OutboundApiPricingOptions            = "pricingoptions"
+	OutboundApiServiceAccess             = "serviceAccess"
+	OutboundApiAllowedValues             = "allowedValues"
 )
-
 
 var OutboundApiErrDisabled = errors.New("Outbound API endpoint disabled")
 

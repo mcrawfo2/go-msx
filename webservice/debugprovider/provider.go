@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	endpointName        = "debug"
+	endpointName = "debug"
 )
 
 type Provider struct{}
@@ -45,4 +45,3 @@ func RegisterProvider(ctx context.Context) error {
 	}
 	return nil
 }
-
