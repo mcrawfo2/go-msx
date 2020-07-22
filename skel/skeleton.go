@@ -25,31 +25,22 @@ func init() {
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
 
-func GenerateSkeletonApp(args []string) error {
-	return ExecTargets(
-		"generate-skel-json",
-		"generate-build",
-		"generate-app",
-		"generate-migrate",
-		"generate-local",
-		"add-go-msx-dependency",
-		"generate-manifest",
-		"generate-dockerfile",
-		"generate-goland",
-		"generate-vscode",
-		"generate-kubernetes",
-		"generate-jenkins",
-		"generate-git")
-}
+func GenerateSkeleton(args []string) error {
+	var generators []string
 
-func GenerateSkeletonBeat(args []string) error {
-	return ExecTargets(
+	// Common pre-generators
+	generators = append(generators,
 		"generate-skel-json",
 		"generate-build",
-		"generate-app",
-		"generate-domain-beats",
-		"generate-local",
+		"generate-app")
+
+	// Archetype-specific generators
+	generators = append(generators, archetypes.Generators(skeletonConfig.Archetype)...)
+
+	// Common post-generators
+	generators = append(generators,
 		"add-go-msx-dependency",
+		"generate-local",
 		"generate-manifest",
 		"generate-dockerfile",
 		"generate-goland",
@@ -57,6 +48,8 @@ func GenerateSkeletonBeat(args []string) error {
 		"generate-kubernetes",
 		"generate-jenkins",
 		"generate-git")
+
+	return ExecTargets(generators...)
 }
 
 func GenerateSkelJson(args []string) error {
@@ -194,7 +187,7 @@ func AddGoMsxDependency(args []string) error {
 				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-build"))),
 	}
 
-	if skeletonConfig.Generator == "beat" {
+	if skeletonConfig.Archetype == "beat" {
 		pipes = append(pipes,
 			exec.WithDir(targetDirectory,
 				pipe.Line(

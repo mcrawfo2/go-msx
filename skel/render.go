@@ -38,7 +38,7 @@ func variables() map[string]string {
 		"target.dir":                   skeletonConfig.TargetDirectory(),
 		"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
 		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
-		"generator":                    skeletonConfig.Generator,
+		"generator":                    skeletonConfig.Archetype,
 		"beat.protocol":                skeletonConfig.BeatProtocol,
 	}
 }

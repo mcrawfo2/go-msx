@@ -4,7 +4,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"encoding/json"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -20,13 +19,7 @@ var logger = log.NewLogger("msx.skel")
 func init() {
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		switch skeletonConfig.Generator {
-		case "app":
-			return GenerateSkeletonApp(args)
-		case "beat":
-			return GenerateSkeletonBeat(args)
-		}
-		return errors.Errorf("Unknown generator %q", skeletonConfig.Generator)
+		return GenerateSkeleton(args)
 	}
 	rootCmd.PersistentPreRunE = configure
 }

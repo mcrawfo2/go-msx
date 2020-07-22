@@ -9,7 +9,7 @@ import (
 )
 
 type SkeletonConfig struct {
-	Generator         string `survey:"generator" json:"generator"`
+	Archetype         string `survey:"generator" json:"generator"`
 	TargetParent      string `survey:"targetParent" json:"-"`
 	AppName           string `survey:"appName" json:"appName"`
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
@@ -42,7 +42,7 @@ func (c SkeletonConfig) RepositoryQueryFileExtension() string {
 }
 
 var skeletonConfig = &SkeletonConfig{
-	Generator:         "app",
+	Archetype:         archetypeKeyApp,
 	TargetParent:      path.Join(os.Getenv("HOME"), "msx"),
 	AppName:           "someservice",
 	AppDisplayName:    "Some Microservice",
@@ -54,8 +54,8 @@ var skeletonConfig = &SkeletonConfig{
 	BeatProtocol:      "",
 }
 
-var generatorSurveyQuestions = map[string][]*survey.Question{
-	"app": {
+var archetypeSurveyQuestions = map[string][]*survey.Question{
+	archetypeKeyApp: {
 		{
 			Name: "targetParent",
 			Prompt: &survey.Input{
@@ -126,7 +126,7 @@ var generatorSurveyQuestions = map[string][]*survey.Question{
 			Validate: survey.Required,
 		},
 	},
-	"beat": {
+	archetypeKeyBeat: {
 		{
 			Name: "targetParent",
 			Prompt: &survey.Input{
@@ -154,34 +154,34 @@ var generatorSurveyQuestions = map[string][]*survey.Question{
 	},
 }
 
-var generatorTypeQuestions = []*survey.Question{
+var archetypeQuestions = []*survey.Question{
 	{
 		Name: "generator",
 		Prompt: &survey.Select{
-			Message: "Generate type:",
-			Options: []string{
-				"app",
-				"beat",
-			},
-			Default: "app",
+			Message: "Generate archetype:",
+			Options: archetypes.DisplayNames(),
+			Default: 0,
 		},
 	},
 }
 
 func ConfigureInteractive(args []string) error {
-	err := survey.Ask(generatorTypeQuestions, skeletonConfig)
+	var archetypeIndex int
+	err := survey.Ask(archetypeQuestions, &archetypeIndex)
 	if err != nil {
 		return err
 	}
 
-	var questions = generatorSurveyQuestions[skeletonConfig.Generator]
+	// Configure the archetype
+	skeletonConfig.Archetype = archetypes.Key(archetypeIndex)
+	var questions = archetypeSurveyQuestions[skeletonConfig.Archetype]
 	err = survey.Ask(questions, skeletonConfig)
 	if err != nil {
 		return err
 	}
 
-	// Post-Process
-	switch skeletonConfig.Generator {
+	// Post-Process answers
+	switch skeletonConfig.Archetype {
 	case "app":
 		// No post-processing required
 
