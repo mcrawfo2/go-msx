@@ -1,6 +1,5 @@
 package populate
 
-
 import (
 	"context"
 	api "cto-github.cisco.com/NFV-BU/go-msx/integration/serviceconfigmanager"
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	manifestDir = "/platform-common/serviceconfig"
+	manifestDir  = "/platform-common/serviceconfig"
 	manifestFile = "manifest.json"
 
 	artifactKeyServiceConfigs = "serviceconfigs"
@@ -21,7 +20,7 @@ const (
 
 var logger = log.NewLogger("msx.integration.serviceconfigmanager.populate")
 
-type ServiceConfigPopulator struct {}
+type ServiceConfigPopulator struct{}
 
 func (p ServiceConfigPopulator) Populate(ctx context.Context) error {
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {

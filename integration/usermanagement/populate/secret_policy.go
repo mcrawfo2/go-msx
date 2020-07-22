@@ -14,7 +14,7 @@ const (
 	artifactKeySecretPolicies = "secretPolicies"
 )
 
-type SecretPolicyPopulator struct {}
+type SecretPolicyPopulator struct{}
 
 func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api.Api, artifact populate.Artifact) error {
 	logger.WithContext(ctx).Infof("Loading policy from %q", artifact.TemplateFileName)

@@ -43,7 +43,7 @@ type Api interface {
 
 	GetSecretPolicy(name string) (*integration.MsxResponse, error)
 	StoreSecretPolicy(name string, policy SecretPolicySetRequest) (*integration.MsxResponse, error)
-	DeleteSecretPolicy(name string)  (*integration.MsxResponse, error)
+	DeleteSecretPolicy(name string) (*integration.MsxResponse, error)
 
 	GetRoles(resolvePermissionNames bool, p paging.Request) (*integration.MsxResponse, error)
 	CreateRole(dbinstaller bool, body RoleCreateRequest) (*integration.MsxResponse, error)
