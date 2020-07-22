@@ -17,8 +17,6 @@ const configFileName = ".skel.json"
 
 var logger = log.NewLogger("msx.skel")
 
-var generateBeat bool
-
 func init() {
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
@@ -31,7 +29,6 @@ func init() {
 		return errors.Errorf("Unknown generator %q", skeletonConfig.Generator)
 	}
 	rootCmd.PersistentPreRunE = configure
-	rootCmd.Flags().BoolVar(&generateBeat, "beat", false, "Generate a beat app skeleton")
 }
 
 func configure(cmd *cobra.Command, args []string) error {

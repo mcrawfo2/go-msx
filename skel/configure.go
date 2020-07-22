@@ -9,7 +9,7 @@ import (
 )
 
 type SkeletonConfig struct {
-	Generator         string `json:"generator"`
+	Generator         string `survey:"generator" json:"generator"`
 	TargetParent      string `survey:"targetParent" json:"-"`
 	AppName           string `survey:"appName" json:"appName"`
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
@@ -54,8 +54,8 @@ var skeletonConfig = &SkeletonConfig{
 	BeatProtocol:      "",
 }
 
-func appSurveyQuestions() []*survey.Question {
-	return []*survey.Question{
+var generatorSurveyQuestions = map[string][]*survey.Question{
+	"app": {
 		{
 			Name: "targetParent",
 			Prompt: &survey.Input{
@@ -70,6 +70,7 @@ func appSurveyQuestions() []*survey.Question {
 				Message: "Version:",
 				Default: skeletonConfig.AppVersion,
 			},
+			Validate: survey.Required,
 		},
 		{
 			Name: "appName",
@@ -124,21 +125,8 @@ func appSurveyQuestions() []*survey.Question {
 			},
 			Validate: survey.Required,
 		},
-	}
-}
-
-func beatsSurveyQuestions() []*survey.Question {
-	skeletonConfig.Generator = "beat"
-	skeletonConfig.AppName = "heartbeat"
-	skeletonConfig.AppDisplayName = "ICMP Probe"
-	skeletonConfig.AppDescription = "MSX ICMP probe"
-	skeletonConfig.ServerPort = 8080
-	skeletonConfig.ServerContextPath = ""
-	skeletonConfig.BeatProtocol = "icmp"
-	skeletonConfig.Repository = ""
-
-	return []*survey.Question{
-
+	},
+	"beat": {
 		{
 			Name: "targetParent",
 			Prompt: &survey.Input{
@@ -153,47 +141,59 @@ func beatsSurveyQuestions() []*survey.Question {
 				Message: "Version:",
 				Default: skeletonConfig.AppVersion,
 			},
-		},
-		{
-			Name: "appName",
-			Prompt: &survey.Input{
-				Message: "App name:",
-				Default: skeletonConfig.AppName,
-			},
-			Validate:  survey.Required,
-			Transform: survey.ToLower,
-		},
-		{
-			Name: "appDisplayName",
-			Prompt: &survey.Input{
-				Message: "App display name:",
-				Default: skeletonConfig.AppDisplayName,
-			},
 			Validate: survey.Required,
 		},
 		{
 			Name: "protocol",
 			Prompt: &survey.Input{
-				Message: "Network protocol:",
-				Default: skeletonConfig.BeatProtocol,
+				Message: "Protocol:",
+				Default: "icmp",
 			},
 			Validate: survey.Required,
 		},
-		{
-			Name: "appDescription",
-			Prompt: &survey.Input{
-				Message: "App description:",
-				Default: skeletonConfig.AppDescription,
-			},
-			Validate: survey.Required,
-		},
-	}
+	},
 }
+
+var generatorTypeQuestions = []*survey.Question{
+	{
+		Name: "generator",
+		Prompt: &survey.Select{
+			Message: "Generate type:",
+			Options: []string{
+				"app",
+				"beat",
+			},
+			Default: "app",
+		},
+	},
+}
+
 func ConfigureInteractive(args []string) error {
-	questions := appSurveyQuestions()
-	if generateBeat {
-		questions = beatsSurveyQuestions()
+	err := survey.Ask(generatorTypeQuestions, skeletonConfig)
+	if err != nil {
+		return err
 	}
 
-	return survey.Ask(questions, skeletonConfig)
+	var questions = generatorSurveyQuestions[skeletonConfig.Generator]
+	err = survey.Ask(questions, skeletonConfig)
+	if err != nil {
+		return err
+	}
+
+	// Post-Process
+	switch skeletonConfig.Generator {
+	case "app":
+		// No post-processing required
+
+	case "beat":
+		skeletonConfig.BeatProtocol = strings.ToLower(skeletonConfig.BeatProtocol)
+		skeletonConfig.AppName = skeletonConfig.BeatProtocol + "beat"
+		skeletonConfig.AppDescription = "Probes " + skeletonConfig.BeatProtocol
+		skeletonConfig.AppDisplayName = strings.Title(skeletonConfig.AppName)
+		skeletonConfig.ServerPort = 8080
+		skeletonConfig.ServerContextPath = ""
+		skeletonConfig.Repository = ""
+	}
+
+	return nil
 }

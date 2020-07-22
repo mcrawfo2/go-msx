@@ -52,28 +52,28 @@ func GenerateBeatsDomain(args []string) error {
 		{
 			Name: inflections[inflectionAppTitle] + " Beater Init",
 			Template: Template{
-				SourceFile: path.Join(beaterPackageSource, "init.go"),
+				SourceFile: path.Join(beaterPackageSource, "init.go.tpl"),
 				DestFile:   path.Join(beaterPackagePath, "init.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Beater Config",
 			Template: Template{
-				SourceFile: path.Join(beaterPackageSource, "config.go"),
+				SourceFile: path.Join(beaterPackageSource, "config.go.tpl"),
 				DestFile:   path.Join(beaterPackagePath, "config.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Beater State",
 			Template: Template{
-				SourceFile: path.Join(beaterPackageSource, "state.go"),
+				SourceFile: path.Join(beaterPackageSource, "state.go.tpl"),
 				DestFile:   path.Join(beaterPackagePath, "state.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Beater Implementation",
 			Template: Template{
-				SourceFile: path.Join(beaterPackageSource, "beater.go"),
+				SourceFile: path.Join(beaterPackageSource, "beater.go.tpl"),
 				DestFile:   path.Join(beaterPackagePath, "beater.go"),
 			},
 		},

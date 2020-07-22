@@ -19,4 +19,4 @@ msx:
 
 resources:
   - includes:
-      - "/**/*.cql"
+      - "/**/fields.yml"
