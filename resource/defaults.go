@@ -19,7 +19,7 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 7, 22, 12, 0, 44, 622224408, time.UTC),
+			modTime: time.Date(2020, 7, 22, 15, 35, 47, 31030330, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",

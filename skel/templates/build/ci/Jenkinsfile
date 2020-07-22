@@ -5,6 +5,7 @@ def GITHUB_APP_ID_SONARQUBE = '7'
 def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
+def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
 def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
 def TRUNK = 'develop'
 
@@ -130,16 +131,25 @@ pipeline {
 
         stage('Publish Artifacts') {
             steps {
-                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") {
-
-                    script {
-                        if (env.PUBLISH == 'true') {
-                            sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
-                            sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
-                        }
-                    }
-
-                }}
+                sshagent([VMSBLD_CREDENTIALS]) {
+                    withEnv([
+                        "GOPATH=${env.WORKSPACE}/go",
+                        "GOPRIVATE=cto-github.cisco.com/NFV-BU",
+                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "PATH+GOBIN=${env.WORKSPACE}/go/bin",
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                    ]) { dir ("$WORKSPACE") {
+                        script { withCredentials([usernamePassword(
+                            credentialsId: 'DOCKER_CREDENTIALS',
+                            passwordVariable: 'DOCKER_USERPASSWORD',
+                            usernameVariable: 'DOCKER_USERNAME')]) {
+                                if (env.PUBLISH == 'true') {
+                                    sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
+                                    sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
+                                }
+                        }}
+                    }}
+                }
             }
         }
 
