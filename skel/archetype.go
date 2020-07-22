@@ -9,7 +9,7 @@ const (
 type Archetype struct {
 	Key         string
 	DisplayName string
-	Generators   []string
+	Generators  []string
 }
 
 type Archetypes []Archetype
@@ -39,22 +39,20 @@ var archetypes = Archetypes{
 	{
 		Key:         archetypeKeyApp,
 		DisplayName: "Generic Microservice",
-		Generators:  []string{
+		Generators: []string{
 			"generate-migrate",
 		},
 	},
 	{
 		Key:         archetypeKeyBeat,
 		DisplayName: "Beat",
-		Generators:  []string{
+		Generators: []string{
 			"generate-domain-beats",
 		},
 	},
 	{
 		Key:         archetypeKeyServicePack,
 		DisplayName: "Service Pack Microservice",
-		Generators:  []string{
-
-		},
+		Generators:  []string{},
 	},
 }
