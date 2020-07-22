@@ -1,0 +1,14 @@
+security.keys.jwt:
+  key-source: pem
+  key-path: /keystore/jwt-pubkey.pem
+
+spring.cloud.consul.discovery:
+  instanceId: hostname
+
+http.client.tlsInsecure: false
+
+probe.host-name: ""
+
+${app.name}:
+  period: 60s
+  timeout: 5s

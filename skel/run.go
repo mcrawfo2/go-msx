@@ -4,6 +4,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -16,12 +17,21 @@ const configFileName = ".skel.json"
 
 var logger = log.NewLogger("msx.skel")
 
+var generateBeat bool
+
 func init() {
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		return GenerateSkeleton(args)
+		switch skeletonConfig.Generator {
+		case "app":
+			return GenerateSkeletonApp(args)
+		case "beat":
+			return GenerateSkeletonBeat(args)
+		}
+		return errors.Errorf("Unknown generator %q", skeletonConfig.Generator)
 	}
 	rootCmd.PersistentPreRunE = configure
+	rootCmd.Flags().BoolVar(&generateBeat, "beat", false, "Generate a beat app skeleton")
 }
 
 func configure(cmd *cobra.Command, args []string) error {
@@ -31,8 +41,8 @@ func configure(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Configuration a new project if no project was found
-	return ConfigureInteractive(nil)
+	// Configure a new project if no project was found
+	return ConfigureInteractive(args)
 }
 
 func loadConfig() (bool, error) {

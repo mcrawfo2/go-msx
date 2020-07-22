@@ -21,16 +21,33 @@ func init() {
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
-	AddTarget("add-go-msx-dependency", "Add go-msx dependency", AddGoMsxDependency)
+	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 }
 
-func GenerateSkeleton(args []string) error {
+func GenerateSkeletonApp(args []string) error {
 	return ExecTargets(
 		"generate-skel-json",
 		"generate-build",
 		"generate-app",
 		"generate-migrate",
+		"generate-local",
+		"add-go-msx-dependency",
+		"generate-manifest",
+		"generate-dockerfile",
+		"generate-goland",
+		"generate-vscode",
+		"generate-kubernetes",
+		"generate-jenkins",
+		"generate-git")
+}
+
+func GenerateSkeletonBeat(args []string) error {
+	return ExecTargets(
+		"generate-skel-json",
+		"generate-build",
+		"generate-app",
+		"generate-domain-beats",
 		"generate-local",
 		"add-go-msx-dependency",
 		"generate-manifest",
@@ -60,11 +77,20 @@ func GenerateSkelJson(args []string) error {
 
 func GenerateBuild(args []string) error {
 	logger.Info("Generating build command")
-	return renderTemplates(map[string]Template{
-		"Creating Makefile":             {SourceFile: "Makefile"},
-		"Creating build descriptor":     {SourceFile: "cmd/build/build.yml"},
-		"Creating build command source": {SourceFile: "cmd/build/build.go.tpl", DestFile: "cmd/build/build.go"},
-	})
+
+	templates := map[string]Template{
+		"Creating Makefile": {SourceFile: "Makefile"},
+		"Creating build descriptor": {
+			SourceFile: "cmd/build/build-${generator}.yml",
+			DestFile:   "cmd/build/build.yml",
+		},
+		"Creating build command source": {
+			SourceFile: "cmd/build/build.go.tpl",
+			DestFile:   "cmd/build/build.go",
+		},
+	}
+
+	return renderTemplates(templates)
 }
 
 func GenerateInstallerManifest(args []string) error {
@@ -105,13 +131,21 @@ func GenerateApp(args []string) error {
 			SourceFile: "go.mod.tpl",
 			DestFile:   "go.mod",
 		},
-		"Creating README":                  {SourceFile: "README.md"},
-		"Creating bootstrap configuration": {SourceFile: "cmd/app/bootstrap.yml"},
+		"Creating README": {
+			SourceFile: "README.md",
+		},
+		"Creating bootstrap configuration": {
+			SourceFile: "cmd/app/bootstrap-${generator}.yml",
+			DestFile:   "cmd/app/bootstrap.yml",
+		},
 		"Creating production profile": {
-			SourceFile: "cmd/app/profile.production.yml",
+			SourceFile: "cmd/app/profile-${generator}.production.yml",
 			DestFile:   "cmd/app/${app.name}.production.yml",
 		},
-		"Creating application entrypoint source": {SourceFile: "cmd/app/main.go"},
+		"Creating beat application entrypoint source": {
+			SourceFile: "cmd/app/main-${generator}.go.tpl",
+			DestFile:   "cmd/app/main.go",
+		},
 	})
 }
 
@@ -149,7 +183,7 @@ func AddGoMsxDependency(args []string) error {
 
 	targetDirectory := skeletonConfig.TargetDirectory()
 
-	return exec.ExecutePipes(
+	pipes := []pipe.Pipe{
 		exec.WithDir(targetDirectory,
 			pipe.Line(
 				exec.Info("- Adding go-msx to modules"),
@@ -158,11 +192,25 @@ func AddGoMsxDependency(args []string) error {
 			pipe.Line(
 				exec.Info("- Adding go-msx-build to modules"),
 				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-build"))),
+	}
+
+	if skeletonConfig.Generator == "beat" {
+		pipes = append(pipes,
+			exec.WithDir(targetDirectory,
+				pipe.Line(
+					exec.Info("- Adding go-msx-beats to modules"),
+					pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-beats"))),
+		)
+	}
+
+	pipes = append(pipes,
 		exec.WithDir(targetDirectory,
 			pipe.Line(
 				exec.Info("- Tidying go modules"),
 				pipe.Exec("go", "mod", "tidy")),
 		))
+
+	return exec.ExecutePipes(pipes...)
 }
 
 func GenerateGoland(args []string) error {
@@ -253,15 +301,15 @@ func GenerateKubernetes(args []string) error {
 	return renderTemplates(map[string]Template{
 		"Creating deployment template": {
 			SourceFile: "deployments/kubernetes-deployment.yml.tpl",
-			DestFile:   "deployments/${app.name}-rc.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
 		},
 		"Creating init template": {
 			SourceFile: "deployments/kubernetes-init.yml.tpl",
-			DestFile:   "deployments/${app.name}-pod.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
 		},
 		"Creating pdb template": {
 			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
-			DestFile:   "deployments/${app.name}-pdb.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
 		},
 	})
 }

@@ -38,6 +38,8 @@ func variables() map[string]string {
 		"target.dir":                   skeletonConfig.TargetDirectory(),
 		"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
 		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
+		"generator":                    skeletonConfig.Generator,
+		"beat.protocol":                skeletonConfig.BeatProtocol,
 	}
 }
 
@@ -103,13 +105,14 @@ func readTemplate(sourceFile string) ([]byte, error) {
 }
 
 func renderTemplate(template Template) error {
+	variableValues := variables()
+
 	sourceFile := template.SourceFile
-	bytes, err := readTemplate(template.SourceFile)
+	sourceFile = substituteVariables(sourceFile, variableValues)
+	bytes, err := readTemplate(sourceFile)
 	if err != nil {
 		return err
 	}
-
-	variableValues := variables()
 
 	destFile := template.DestFile
 	if destFile == "" {

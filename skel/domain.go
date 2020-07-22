@@ -189,11 +189,27 @@ func generateDomain(name string, conditions map[string]bool) error {
 		},
 	}
 
+	packagePaths := map[string]string{
+		"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api": apiPackageUrl,
+	}
+
+	err = renderDomain(files, inflections, conditions, packagePaths)
+	if err != nil {
+		return err
+	}
+
+	return initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", domainPackageName))
+}
+
+func renderDomain(files []domainDefinitionFile, inflections map[string]string, conditions map[string]bool, packagePaths map[string]string) error {
 	variableValues := variables()
 
 	for _, file := range files {
 		// Load the target
-		bytes, err := readTemplate(file.Template.SourceFile)
+		sourceFile := substituteVariables(file.Template.SourceFile, variableValues)
+		bytes, err := readTemplate(sourceFile)
 		if err != nil {
 			return err
 		}
@@ -205,9 +221,9 @@ func generateDomain(name string, conditions map[string]bool) error {
 		}
 
 		// Substitute API package path
-		fileData = strings.ReplaceAll(fileData,
-			"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api",
-			apiPackageUrl)
+		for sourcePath, destPath := range packagePaths {
+			fileData = strings.ReplaceAll(fileData, sourcePath, destPath)
+		}
 
 		// Substitute generator variables
 		fileData = substituteVariables(fileData, variableValues)
@@ -242,9 +258,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 		}
 	}
 
-	return initializePackageFromFile(
-		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
-		path.Join(skeletonConfig.AppPackageUrl(), "internal", domainPackageName))
+	return nil
 }
 
 func nextMigrationPrefix(folder string) (string, error) {

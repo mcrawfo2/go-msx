@@ -1,0 +1,22 @@
+executable:
+  cmd: app
+  configFiles:
+    - bootstrap.yml
+    - ${app.name}.production.yml
+
+docker.dockerfile: build/package/Dockerfile
+
+msx:
+  release: ${app.version}
+  platform:
+    parentArtifacts:
+      - com.cisco.vms:vms-service-starter
+      - com.cisco.vms:vms-service-starter-core
+      - com.cisco.vms:vms-service-starter-kafka
+      - com.cisco.nfv:nfv-integration-consul-leader
+    version: ${app.version}-EDGE
+    includeGroups: "com.cisco.**"
+
+resources:
+  - includes:
+      - "/**/fields.yml"

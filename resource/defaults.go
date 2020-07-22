@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 7, 13, 17, 36, 59, 229971867, time.UTC),
+			modTime: time.Date(2020, 7, 22, 1, 18, 5, 134553246, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 7, 11, 14, 39, 10, 854857750, time.UTC),
+			modTime: time.Date(2020, 7, 17, 13, 33, 29, 542543873, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,7 +32,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
-			modTime: time.Date(2020, 7, 10, 14, 25, 59, 285762430, time.UTC),
+			modTime: time.Date(2020, 7, 14, 14, 22, 18, 251808123, time.UTC),
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
@@ -67,7 +67,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/security": &vfsgen۰DirInfo{
 			name:    "security",
-			modTime: time.Date(2020, 7, 10, 14, 28, 24, 637312969, time.UTC),
+			modTime: time.Date(2020, 7, 14, 14, 22, 18, 259156564, time.UTC),
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
@@ -91,7 +91,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/transit": &vfsgen۰DirInfo{
 			name:    "transit",
-			modTime: time.Date(2020, 7, 10, 14, 25, 59, 295551098, time.UTC),
+			modTime: time.Date(2020, 7, 14, 14, 22, 18, 265874800, time.UTC),
 		},
 		"/transit/defaults-transit.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-transit.properties",
@@ -102,7 +102,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 6, 8, 17, 23, 45, 547169019, time.UTC),
+			modTime: time.Date(2020, 7, 17, 13, 30, 41, 386148147, time.UTC),
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",

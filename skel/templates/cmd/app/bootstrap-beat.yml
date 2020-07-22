@@ -1,0 +1,71 @@
+info.app:
+  name: ${app.name}
+  description: ${app.description}
+  attributes:
+    display-name: ${app.displayName}
+    parent: platform
+    type: platform
+
+info.build:
+  artifact: ${app.name}
+  buildDateTime: "2019-01-01T00:00:00.000000Z"
+  buildNumber: SNAPSHOT
+  release: ${app.version}
+  group: com.cisco.msx
+  name: ${app.description}
+  version: ${info.build.release}-${info.build.buildNumber}
+
+${app.name}:
+  period: 10s
+  timeout: 2s
+
+probe:
+  name: ${info.app.name}
+  version: ${info.build.version}
+  type: ${beat.protocol}
+  outputs:
+    kafka.enabled: true
+    elasticsearch.enabled: true
+
+state-store:
+  target: vault
+  path: beats/${info.app.name}
+
+server:
+  port: 8080
+  context-path: ""
+  enabled: true
+
+spring.data.cassandra:
+  keyspace-name: ${info.app.name}
+  enabled: false
+
+spring.cloud.consul:
+  enabled: true
+  config:
+    enabled: true
+  discovery:
+    enabled: true
+    instanceId: hostname
+    instanceName: ${probe.name}
+    name: probe_${probe.type}
+    tags: "index_prefix=${probe.name}"
+
+spring.cloud.vault:
+  enabled: true
+  generic:
+    enabled: true
+
+spring.cloud.stream.kafka.binder:
+  enabled: true
+
+stats:
+  enabled: true
+
+swagger:
+  enabled: true
+
+trace:
+  enabled: true
+  reporter:
+    name: zipkin

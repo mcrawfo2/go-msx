@@ -27,6 +27,9 @@ clean:
 	rm -Rf dist
 	rm -Rf vendor
 
+generate:
+	$(BUILDER) generate
+
 precommit:
 	$(BUILDER) generate
 	$(BUILDER) go-fmt
