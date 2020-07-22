@@ -140,7 +140,7 @@ pipeline {
                         "WORKSPACE=$WORKSPACE/$REPO_NAME"
                     ]) { dir ("$WORKSPACE") {
                         script { withCredentials([usernamePassword(
-                            credentialsId: 'DOCKER_CREDENTIALS',
+                            credentialsId: DOCKER_CREDENTIALS,
                             passwordVariable: 'DOCKER_USERPASSWORD',
                             usernameVariable: 'DOCKER_USERNAME')]) {
                                 if (env.PUBLISH == 'true') {
