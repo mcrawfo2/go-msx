@@ -19,6 +19,7 @@ type SkeletonConfig struct {
 	AppVersion        string `survey:"appVersion" json:"appVersion"`
 	Repository        string `survey:"repository" json:"repository"`
 	BeatProtocol      string `survey:"protocol" json:"protocol"`
+	ServiceType       string `survey:"serviceType" json:"serviceType"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -52,6 +53,7 @@ var skeletonConfig = &SkeletonConfig{
 	ServerContextPath: "/some",
 	Repository:        "cassandra",
 	BeatProtocol:      "",
+	ServiceType:       "",
 }
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
@@ -152,6 +154,85 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Validate: survey.Required,
 		},
 	},
+	archetypeKeyServicePack: {
+		{
+			Name: "targetParent",
+			Prompt: &survey.Input{
+				Message: "Project Parent Directory:",
+				Default: skeletonConfig.TargetParent,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "appVersion",
+			Prompt: &survey.Input{
+				Message: "Version:",
+				Default: skeletonConfig.AppVersion,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "appName",
+			Prompt: &survey.Input{
+				Message: "App name:",
+				Default: skeletonConfig.AppName,
+			},
+			Validate:  survey.Required,
+			Transform: survey.ToLower,
+		},
+		{
+			Name: "appDisplayName",
+			Prompt: &survey.Input{
+				Message: "App display name:",
+				Default: skeletonConfig.AppDisplayName,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "appDescription",
+			Prompt: &survey.Input{
+				Message: "App description:",
+				Default: skeletonConfig.AppDescription,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "serverPort",
+			Prompt: &survey.Input{
+				Message: "Web server port:",
+				Default: strconv.Itoa(skeletonConfig.ServerPort),
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "serverContextPath",
+			Prompt: &survey.Input{
+				Message: "Web server context path:",
+				Default: skeletonConfig.ServerContextPath,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "repository",
+			Prompt: &survey.Select{
+				Message: "Repository:",
+				Options: []string{
+					"cassandra",
+					"cockroach",
+				},
+				Default: skeletonConfig.Repository,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "serviceType",
+			Prompt: &survey.Input{
+				Message: "Catalog Service Type: ",
+				Default: skeletonConfig.ServiceType,
+			},
+			Validate: survey.Required,
+		},
+	},
 }
 
 var archetypeQuestions = []*survey.Question{
@@ -182,10 +263,10 @@ func ConfigureInteractive(args []string) error {
 
 	// Post-Process answers
 	switch skeletonConfig.Archetype {
-	case "app":
+	case archetypeKeyApp:
 		// No post-processing required
 
-	case "beat":
+	case archetypeKeyBeat:
 		skeletonConfig.BeatProtocol = strings.ToLower(skeletonConfig.BeatProtocol)
 		skeletonConfig.AppName = skeletonConfig.BeatProtocol + "beat"
 		skeletonConfig.AppDescription = "Probes " + skeletonConfig.BeatProtocol
@@ -193,6 +274,9 @@ func ConfigureInteractive(args []string) error {
 		skeletonConfig.ServerPort = 8080
 		skeletonConfig.ServerContextPath = ""
 		skeletonConfig.Repository = ""
+
+	case archetypeKeyServicePack:
+		// No post-processing required
 	}
 
 	return nil

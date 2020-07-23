@@ -40,6 +40,7 @@ func variables() map[string]string {
 		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
 		"generator":                    skeletonConfig.Archetype,
 		"beat.protocol":                skeletonConfig.BeatProtocol,
+		"service.type": 			    skeletonConfig.ServiceType,
 	}
 }
 

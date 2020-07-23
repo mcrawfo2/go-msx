@@ -1,0 +1,8 @@
+security.keys.jwt:
+  key-source: pem
+  key-path: /keystore/jwt-pubkey.pem
+
+spring.cloud.consul.discovery:
+  instanceId: uuid
+
+http.client.tlsInsecure: false
