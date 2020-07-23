@@ -123,3 +123,124 @@ type LoginResponse struct {
 	Email       string      `json:"email"`
 	Username    string      `json:"username"`
 }
+
+type RoleCreateRequest struct {
+	CapabilityAddList    []string `json:"capabilityAddList"`
+	CapabilityRemoveList []string `json:"capabilityRemoveList"`
+	CapabilityList       []string `json:"capabilitylist"`
+	Description          string   `json:"description"`
+	DisplayName          string   `json:"displayName"`
+	IsSeeded             string   `json:"isSeeded"`
+	Owner                string   `json:"owner"`
+	ResourceDescriptor   string   `json:"resourceDescriptor"`
+	RoleName             string   `json:"roleName"`
+	Roleid               string   `json:"roleid"`
+}
+
+type RoleUpdateRequest RoleCreateRequest
+
+type RoleResponse struct {
+	CapabilityList     []string `json:"capabilitylist"`
+	Description        string   `json:"description"`
+	DisplayName        string   `json:"displayName"`
+	Href               string   `json:"href"`
+	IsSeeded           string   `json:"isSeeded"`
+	Owner              string   `json:"owner"`
+	ResourceDescriptor string   `json:"resourceDescriptor"`
+	RoleName           string   `json:"roleName"`
+	RoleId             string   `json:"roleid"`
+	Status             string   `json:"status"`
+}
+
+type RoleListResponse struct {
+	Roles []RoleResponse `json:"roles"`
+}
+
+type CapabilityCreateRequest struct {
+	Category    string `json:"category"`
+	Description string `json:"description"`
+	DisplayName string `json:"displayName"`
+	IsDefault   string `json:"isDefault"`
+	Name        string `json:"name"`
+	ObjectName  string `json:"objectName"`
+	Operation   string `json:"operation"`
+}
+
+type CapabilityBatchCreateRequest struct {
+	Capabilities []CapabilityCreateRequest `json:"capabilities"`
+}
+
+type CapabilityUpdateRequest CapabilityCreateRequest
+
+type CapabilityBatchUpdateRequest struct {
+	Capabilities []CapabilityUpdateRequest `json:"capabilities"`
+}
+
+type CapabilityResponse struct {
+	CapabilityCreateRequest
+	Resources []struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Method      string `json:"method"`
+		Endpoint    string `json:"endpoint"`
+	} `json:"resources"`
+}
+
+type CapabilityListResponse struct {
+	Capabilities []CapabilityResponse `json:"capabilities"`
+}
+
+type SecretPolicySetRequest struct {
+	AgingRule      AgingRule      `json:"agingRule"`
+	CharacterRule  CharacterRule  `json:"characterRule"`
+	DictionaryRule DictionaryRule `json:"dictionaryRule"`
+	HistoryRule    HistoryRule    `json:"historyRule"`
+	KeyRule        KeyRule        `json:"keyRule"`
+	LengthRule     LengthRule     `json:"lengthRule"`
+}
+
+type SecretPolicyResponse struct {
+	SecretPolicySetRequest
+	Name string `json:"name"`
+}
+
+type AgingRule struct {
+	Enabled          bool `json:"enabled"`
+	ExpireWarningSec int  `json:"expireWarningSec"`
+	GraceAuthNLimit  int  `json:"graceAuthNLimit"`
+	MaxAgeSec        int  `json:"maxAgeSec"`
+	MinAgeSec        int  `json:"minAgeSec"`
+}
+
+type CharacterRule struct {
+	ASCIICharactersonly bool   `json:"asciiCharactersonly"`
+	Enabled             bool   `json:"enabled"`
+	MinDigit            int    `json:"minDigit"`
+	MinLowercasechars   int    `json:"minLowercasechars"`
+	MinSpecialchars     int    `json:"minSpecialchars"`
+	MinUppercasechars   int    `json:"minUppercasechars"`
+	SpecialCharacterSet string `json:"specialCharacterSet"`
+}
+
+type DictionaryRule struct {
+	Enabled              bool `json:"enabled"`
+	TestReversedPassword bool `json:"testReversedPassword"`
+}
+
+type HistoryRule struct {
+	Enabled                    bool `json:"enabled"`
+	Passwdhistorycount         int  `json:"passwdhistorycount"`
+	PasswdhistorydurationMonth int  `json:"passwdhistorydurationMonth"`
+}
+
+type KeyRule struct {
+	Algorithm string `json:"algorithm"`
+	Enabled   bool   `json:"enabled"`
+	Format    string `json:"format"`
+}
+
+type LengthRule struct {
+	Enabled   bool `json:"enabled"`
+	MaxLength int  `json:"maxLength"`
+	MinLength int  `json:"minLength"`
+}

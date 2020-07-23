@@ -5,11 +5,13 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 const (
@@ -49,6 +51,20 @@ const (
 	endpointNameReplaceTenantSecrets  = "replaceTenantSecrets"
 	endpointNameRemoveTenantSecrets   = "removeTenantSecrets"
 	endpointNameGenerateTenantSecrets = "generateTenantSecrets"
+
+	endpointNameGetRoles   = "getRoles"
+	endpointNameCreateRole = "createRole"
+	endpointNameUpdateRole = "updateRole"
+	endpointNameDeleteRole = "deleteRole"
+
+	endpointNameGetCapabilities         = "getCapabilities"
+	endpointNameBatchCreateCapabilities = "batchCreateCapabilities"
+	endpointNameBatchUpdateCapabilities = "batchUpdateCapabilities"
+	endpointNameDeleteCapability        = "deleteCapability"
+
+	endpointNameGetSecretPolicy   = "getSecretPolicy"
+	endpointNameSetSecretPolicy   = "setSecretPolicy"
+	endpointNameUnsetSecretPolicy = "unsetSecretPolicy"
 
 	serviceName = integration.ServiceNameUserManagement
 )
@@ -92,6 +108,20 @@ var (
 		endpointNameRemoveTenantSecrets:   {Method: "DELETE", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}"},
 		endpointNameEncryptTenantSecrets:  {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/encrypt"},
 		endpointNameGenerateTenantSecrets: {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/generate"},
+
+		endpointNameGetRoles:   {Method: "GET", Path: "/api/v1/roles"},
+		endpointNameCreateRole: {Method: "POST", Path: "/api/v1/roles"},
+		endpointNameUpdateRole: {Method: "PUT", Path: "/api/v1/roles/{roleName}"},
+		endpointNameDeleteRole: {Method: "DELETE", Path: "/api/v1/roles/{roleName}"},
+
+		endpointNameGetCapabilities:         {Method: "GET", Path: "/api/v1/roles/capabilities"},
+		endpointNameBatchCreateCapabilities: {Method: "POST", Path: "/api/v1/roles/capabilities"},
+		endpointNameBatchUpdateCapabilities: {Method: "PUT", Path: "/api/v1/roles/capabilities"},
+		endpointNameDeleteCapability:        {Method: "DELETE", Path: "/api/v1/roles/capabilities/{capabilityName}"},
+
+		endpointNameGetSecretPolicy:   {Method: "GET", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
 	}
 )
 
@@ -522,6 +552,191 @@ func (i *Integration) GenerateTenantSecrets(tenantId, scope string, names []stri
 		},
 		Body:           bodyBytes,
 		Payload:        new(Pojo),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetRoles(resolvePermissionNames bool, p paging.Request) (result *integration.MsxResponse, err error) {
+	qp := p.QueryParameters()
+	qp.Set("resolvepermissionname", strconv.FormatBool(resolvePermissionNames))
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameGetRoles,
+		QueryParameters: qp,
+		Payload:         new(RoleListResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) CreateRole(populator bool, body RoleCreateRequest) (result *integration.MsxResponse, err error) {
+	var bodyBytes []byte
+	if bodyBytes, err = json.Marshal(body); err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize body")
+	}
+
+	qp := url.Values{}
+	if body.Owner != "" {
+		qp.Set("owner", body.Owner)
+	}
+	if populator {
+		qp.Set("dbinstaller", strconv.FormatBool(populator))
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameCreateRole,
+		QueryParameters: qp,
+		Body:            bodyBytes,
+		Payload:         new(RoleResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) UpdateRole(populator bool, body RoleUpdateRequest) (result *integration.MsxResponse, err error) {
+	var bodyBytes []byte
+	if bodyBytes, err = json.Marshal(body); err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize body")
+	}
+
+	qp := url.Values{}
+	if body.Owner != "" {
+		qp.Set("owner", body.Owner)
+	}
+	if populator {
+		qp.Set("dbinstaller", strconv.FormatBool(populator))
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameUpdateRole,
+		EndpointParameters: map[string]string{
+			"roleName": body.RoleName,
+		},
+		QueryParameters: qp,
+		Body:            bodyBytes,
+		Payload:         new(RoleResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) DeleteRole(roleName string) (result *integration.MsxResponse, err error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDeleteRole,
+		EndpointParameters: map[string]string{
+			"roleName": roleName,
+		},
+		Payload:        new(RoleResponse),
+		ExpectEnvelope: false,
+	})
+}
+
+func (i *Integration) GetCapabilities(p paging.Request) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameGetCapabilities,
+		QueryParameters: p.QueryParameters(),
+		Payload:         new(CapabilityListResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) BatchCreateCapabilities(populator bool, owner string, capabilities []CapabilityCreateRequest) (result *integration.MsxResponse, err error) {
+	var bodyBytes []byte
+	if bodyBytes, err = json.Marshal(CapabilityBatchCreateRequest{capabilities}); err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize body")
+	}
+
+	qp := url.Values{}
+	if owner != "" {
+		qp.Set("owner", owner)
+	}
+	if populator {
+		qp.Set("dbinstaller", strconv.FormatBool(populator))
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameBatchCreateCapabilities,
+		QueryParameters: qp,
+		Body:            bodyBytes,
+		Payload:         new(CapabilityListResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) BatchUpdateCapabilities(populator bool, owner string, capabilities []CapabilityUpdateRequest) (result *integration.MsxResponse, err error) {
+	var bodyBytes []byte
+	if bodyBytes, err = json.Marshal(CapabilityBatchUpdateRequest{capabilities}); err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize body")
+	}
+
+	qp := url.Values{}
+	if owner != "" {
+		qp.Set("owner", owner)
+	}
+	if populator {
+		qp.Set("dbinstaller", strconv.FormatBool(populator))
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameBatchUpdateCapabilities,
+		QueryParameters: qp,
+		Body:            bodyBytes,
+		Payload:         new(CapabilityListResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) DeleteCapability(populator bool, owner string, name string) (*integration.MsxResponse, error) {
+	qp := url.Values{}
+	if owner != "" {
+		qp.Set("owner", owner)
+	}
+	if populator {
+		qp.Set("dbinstaller", strconv.FormatBool(populator))
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDeleteCapability,
+		EndpointParameters: map[string]string{
+			"capabilityName": name,
+		},
+		QueryParameters: qp,
+		Payload:         new(CapabilityResponse),
+		ExpectEnvelope:  false,
+	})
+}
+
+func (i *Integration) GetSecretPolicy(name string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetSecretPolicy,
+		EndpointParameters: map[string]string{
+			"policyName": name,
+		},
+		Payload:        new(SecretPolicyResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) StoreSecretPolicy(name string, policy SecretPolicySetRequest) (result *integration.MsxResponse, err error) {
+	var bodyBytes []byte
+	if bodyBytes, err = json.Marshal(policy); err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize body")
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameSetSecretPolicy,
+		EndpointParameters: map[string]string{
+			"policyName": name,
+		},
+		Body:           bodyBytes,
+		Payload:        new(SecretPolicyResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) DeleteSecretPolicy(name string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameUnsetSecretPolicy,
+		EndpointParameters: map[string]string{
+			"policyName": name,
+		},
 		ExpectEnvelope: true,
 	})
 }

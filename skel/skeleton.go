@@ -176,24 +176,24 @@ func AddGoMsxDependency(args []string) error {
 
 	targetDirectory := skeletonConfig.TargetDirectory()
 
-	pipes := []pipe.Pipe{
-		exec.WithDir(targetDirectory,
+	var addDependency = func(name string) pipe.Pipe {
+		return exec.WithDir(targetDirectory,
 			pipe.Line(
-				exec.Info("- Adding go-msx to modules"),
-				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx"))),
-		exec.WithDir(targetDirectory,
-			pipe.Line(
-				exec.Info("- Adding go-msx-build to modules"),
-				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-build"))),
+				exec.Info(fmt.Sprintf("- Adding %s to modules", name)),
+				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/" + name)))
+
 	}
 
-	if skeletonConfig.Archetype == "beat" {
-		pipes = append(pipes,
-			exec.WithDir(targetDirectory,
-				pipe.Line(
-					exec.Info("- Adding go-msx-beats to modules"),
-					pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/go-msx-beats"))),
-		)
+	pipes := []pipe.Pipe{
+		addDependency("go-msx"),
+		addDependency("go-msx-build"),
+	}
+
+	if skeletonConfig.Archetype == archetypeKeyBeat {
+		pipes = append(pipes, addDependency("go-msx-beats"))
+	} else if skeletonConfig.Archetype == archetypeKeyServicePack {
+		pipes = append(pipes, addDependency("administrationservice"))
+		pipes = append(pipes, addDependency("catalogservice"))
 	}
 
 	pipes = append(pipes,
