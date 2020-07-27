@@ -53,7 +53,7 @@ var archetypes = Archetypes{
 	{
 		Key:         archetypeKeyServicePack,
 		DisplayName: "Service Pack Microservice",
-		Generators:  []string{
+		Generators: []string{
 			"generate-migrate",
 			"generate-service-pack",
 		},

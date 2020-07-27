@@ -79,4 +79,3 @@ func GenerateServicePack(args []string) error {
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", "subscription"))
 }
-

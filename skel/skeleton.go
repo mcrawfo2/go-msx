@@ -180,7 +180,7 @@ func AddGoMsxDependency(args []string) error {
 		return exec.WithDir(targetDirectory,
 			pipe.Line(
 				exec.Info(fmt.Sprintf("- Adding %s to modules", name)),
-				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/" + name)))
+				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/"+name)))
 
 	}
 
