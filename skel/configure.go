@@ -20,6 +20,7 @@ type SkeletonConfig struct {
 	Repository        string `survey:"repository" json:"repository"`
 	BeatProtocol      string `survey:"protocol" json:"protocol"`
 	ServiceType       string `survey:"serviceType" json:"serviceType"`
+	KubernetesGroup   string `json:"kubernetesGroup"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -264,7 +265,7 @@ func ConfigureInteractive(args []string) error {
 	// Post-Process answers
 	switch skeletonConfig.Archetype {
 	case archetypeKeyApp:
-		// No post-processing required
+		skeletonConfig.KubernetesGroup = "platformms"
 
 	case archetypeKeyBeat:
 		skeletonConfig.BeatProtocol = strings.ToLower(skeletonConfig.BeatProtocol)
@@ -274,9 +275,10 @@ func ConfigureInteractive(args []string) error {
 		skeletonConfig.ServerPort = 8080
 		skeletonConfig.ServerContextPath = ""
 		skeletonConfig.Repository = ""
+		skeletonConfig.KubernetesGroup = "dataplatform"
 
 	case archetypeKeyServicePack:
-		// No post-processing required
+		skeletonConfig.KubernetesGroup = "servicepackms"
 	}
 
 	return nil

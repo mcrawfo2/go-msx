@@ -34,7 +34,7 @@ func variables() map[string]string {
 		"app.packageurl":               skeletonConfig.AppPackageUrl(),
 		"server.port":                  strconv.Itoa(skeletonConfig.ServerPort),
 		"server.contextpath":           path.Clean("/" + skeletonConfig.ServerContextPath),
-		"kubernetes.group":             "platformms",
+		"kubernetes.group":             skeletonConfig.KubernetesGroup,
 		"target.dir":                   skeletonConfig.TargetDirectory(),
 		"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
 		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
