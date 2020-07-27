@@ -32,6 +32,12 @@ const (
 	PermissionManageSlm             = "MANAGE_SLM"
 	PermissionViewNotification      = "MANAGE_NOTIFICATION"
 	PermissionManageNotification    = "VIEW_NOTIFICATION"
+	PermissionViewRegion            = "MANAGE_REGION"
+	PermissionManageRegion          = "VIEW_REGION"
+	PermissionViewVpn               = "MANAGE_VPN"
+	PermissionManageVpn             = "VIEW_VPN"
+	PermissionViewPnp               = "MANAGE_PNP"
+	PermissionManagePnp             = "VIEW_PNP"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
