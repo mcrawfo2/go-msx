@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration name="${app.name} populate (local)" default="false" type="GoApplicationRunConfiguration"
+                   factoryName="Go Application" nameIsGenerated="true">
+        <module name="${app.name}"/>
+        <working_directory value="$PROJECT_DIR$/cmd/app"/>
+        <go_parameters value="-i"/>
+        <parameters value="populate"/>
+        <kind value="FILE"/>
+        <filePath value="$PROJECT_DIR$/cmd/app/main.go"/>
+        <package value="cto-github.cisco.com/NFV-BU/${app.name}"/>
+        <directory value="$PROJECT_DIR$"/>
+        <method v="2"/>
+    </configuration>
+</component>

@@ -257,6 +257,10 @@ func GenerateGoland(args []string) error {
 			SourceFile: "idea/runConfigurations/project_migrate__local_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_migrate__local_.xml",
 		},
+		"Creating run configuration: populate (local)": {
+			SourceFile: "idea/runConfigurations/project_populate__local_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}_populate__local_.xml",
+		},
 		"Creating run configuration: (remote)": {
 			SourceFile: "idea/runConfigurations/project__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__remote_.xml",
@@ -264,6 +268,10 @@ func GenerateGoland(args []string) error {
 		"Creating run configuration: migrate (remote)": {
 			SourceFile: "idea/runConfigurations/project_migrate__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_migrate__remote_.xml",
+		},
+		"Creating run configuration: populate (remote)": {
+			SourceFile: "idea/runConfigurations/project_populate__remote_.xml",
+			DestFile:   ".idea/runConfigurations/${app.name}_populate__remote_.xml",
 		},
 	})
 }
