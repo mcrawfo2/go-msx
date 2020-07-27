@@ -28,7 +28,6 @@ type ConnectionConfig struct {
 	Port        int    `config:"default=6379"`
 	Password    string `config:"default="`
 	DB          int    `config:"default=0"`
-	Master      string `config:"default=mymaster"`
 	Sentinel    SentinelConfig
 	MaxRetries  int   `config:"default=2"`
 	IdleTimeout int64 `config:"default=1"`
@@ -40,6 +39,7 @@ func (c ConnectionConfig) Address() string {
 
 type SentinelConfig struct {
 	Enable bool     `config:"default=false"`
+	Master string   `config:"default=mymaster"`
 	Nodes  []string `config:"default=localhost:26379"`
 }
 
@@ -63,7 +63,7 @@ func newSentinelClient(cfg *ConnectionConfig) *redis.Client {
 	options := redis.FailoverOptions{
 		Password:      cfg.Password,
 		DB:            cfg.DB,
-		MasterName:    cfg.Master,
+		MasterName:    cfg.Sentinel.Master,
 		SentinelAddrs: cfg.Sentinel.Nodes,
 		MaxRetries:    cfg.MaxRetries,
 		IdleTimeout:   time.Duration(cfg.IdleTimeout) * time.Minute,
