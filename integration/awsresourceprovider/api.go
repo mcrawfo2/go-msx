@@ -12,4 +12,5 @@ type Api interface {
 	GetResources(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
 	GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error)
 	GetEc2InstanceStatus(controlPlaneId types.UUID, region string, instanceId string) (*integration.MsxResponse, error)
+	GetTransitGatewayStatus(controlPlaneId types.UUID, region string, transitGatewayIds []string) (*integration.MsxResponse, error)
 }

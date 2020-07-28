@@ -65,3 +65,27 @@ type AwsEc2InstanceSubStatusDetails struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
 }
+
+type AwsTransitGatewayStatus struct {
+	CreationTime time.Time `json:"CreationTime"`
+	Description  string    `json:"Description"`
+	Options      struct {
+		AmazonSideAsn                  int         `json:"AmazonSideAsn"`
+		AssociationDefaultRouteTableID string      `json:"AssociationDefaultRouteTableId"`
+		AutoAcceptSharedAttachments    string      `json:"AutoAcceptSharedAttachments"`
+		DefaultRouteTableAssociation   string      `json:"DefaultRouteTableAssociation"`
+		DefaultRouteTablePropagation   string      `json:"DefaultRouteTablePropagation"`
+		DNSSupport                     string      `json:"DnsSupport"`
+		MulticastSupport               interface{} `json:"MulticastSupport"`
+		PropagationDefaultRouteTableID string      `json:"PropagationDefaultRouteTableId"`
+		VpnEcmpSupport                 string      `json:"VpnEcmpSupport"`
+	} `json:"Options"`
+	OwnerID string `json:"OwnerId"`
+	State   string `json:"State"`
+	Tags    []struct {
+		Key   string `json:"Key"`
+		Value string `json:"Value"`
+	} `json:"Tags"`
+	TransitGatewayArn string `json:"TransitGatewayArn"`
+	TransitGatewayID  string `json:"TransitGatewayId"`
+}
