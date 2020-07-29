@@ -203,6 +203,7 @@ func (o OverlayFileSystem) stat(name string, layer http.FileSystem) (os.FileInfo
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	return f.Stat()
 }
 
@@ -211,6 +212,7 @@ func (o OverlayFileSystem) readdir(name string, layer http.FileSystem) ([]os.Fil
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	return f.Readdir(-1)
 }
 
