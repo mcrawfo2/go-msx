@@ -21,13 +21,13 @@ func FileSystem() (result http.FileSystem, err error) {
 func newFileSystem() (http.FileSystem, error) {
 	if fs.Sources() == "" {
 		logger.Info("Using release filesystem")
-		return newReleaseFileSystem(filepath.Join(fs.Root(), fs.Resources())), nil
+		return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources())), nil
 	}
 
 	sourceFileSystem, err := newSourceFileSystem()
 	if err == ErrFilesystemUnavailable {
 		logger.Info("Using release filesystem")
-		return newReleaseFileSystem(filepath.Join(fs.Root(), fs.Resources())), nil
+		return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources())), nil
 	}
 
 	stagingFileSystem, err := newStagingFileSystem()
@@ -37,7 +37,10 @@ func newFileSystem() (http.FileSystem, error) {
 	}
 
 	logger.Info("Using source and staging overlay filesystem")
-	return fs.NewOverlayFileSystem(stagingFileSystem, sourceFileSystem), nil
+	return fs.LoggingFilesystem{
+		Name: "overlay",
+		Fs: fs.NewOverlayFileSystem(stagingFileSystem, sourceFileSystem),
+	}, nil
 }
 
 func newSourceFileSystem() (http.FileSystem, error) {
@@ -48,7 +51,7 @@ func newSourceFileSystem() (http.FileSystem, error) {
 	if os.IsNotExist(err) {
 		return nil, ErrFilesystemUnavailable
 	}
-	return newReleaseFileSystem(fs.Sources()), nil
+	return newReleaseFileSystem("source", fs.Sources()), nil
 }
 
 func newStagingFileSystem() (http.FileSystem, error) {
@@ -59,10 +62,23 @@ func newStagingFileSystem() (http.FileSystem, error) {
 	if os.IsNotExist(err) {
 		return nil, ErrFilesystemUnavailable
 	}
-	parentFileSystem := newReleaseFileSystem(fs.Sources())
-	return fs.NewPrefixFileSystem(parentFileSystem, filepath.Join("/dist/root", fs.Resources()))
+	parentFileSystem := newReleaseFileSystem("source", fs.Sources())
+	stagingFileSystem, err := fs.NewPrefixFileSystem(parentFileSystem, filepath.Join("/dist/root", fs.Resources()))
+	if err != nil {
+		return nil, err
+	}
+	return fs.LoggingFilesystem{
+		Name: "staging",
+		Fs: stagingFileSystem,
+	}, nil
+
 }
 
-func newReleaseFileSystem(root string) http.FileSystem {
-	return http.Dir(root)
+func newReleaseFileSystem(name, root string) http.FileSystem {
+	return fs.LoggingFilesystem{
+		Name: name,
+		Fs:   fs.RootLoggingFilesystem{
+			Fs: http.Dir(root),
+		},
+	}
 }
