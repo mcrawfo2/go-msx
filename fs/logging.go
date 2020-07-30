@@ -22,7 +22,7 @@ func (l RootLoggingFilesystem) Open(name string) (http.File, error) {
 	logger.Debugf("root.Open(%s : %s)", l.Fs, name)
 	f, err := l.Fs.Open(name)
 	if err != nil {
-		logger.WithError(err).Errorf("Failed to open %s : %s", l.Fs, name)
+		logger.WithError(err).Debugf("Failed to open %s : %s", l.Fs, name)
 	}
 	return f, err
 }
