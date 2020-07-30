@@ -21,7 +21,7 @@ const (
 )
 
 type ServiceConfigPopulatorConfig struct {
-	Enabled bool   `config:"default=true"`
+	Enabled bool   `config:"default=false"`
 	Root    string `config:"default=${populate.root}/serviceconfig"`
 }
 

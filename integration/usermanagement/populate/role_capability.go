@@ -48,7 +48,7 @@ type roleArtifact struct {
 type roleMap map[string]api.RoleResponse
 
 type RoleCapabilityPopulatorConfig struct {
-	Enabled bool   `config:"default=true"`
+	Enabled bool   `config:"default=false"`
 	Root    string `config:"default=${populate.root}/usermanagement"`
 }
 
