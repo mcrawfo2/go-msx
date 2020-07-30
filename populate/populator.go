@@ -6,7 +6,7 @@ type Populator interface {
 	Populate(ctx context.Context) error
 }
 
-type PopulatorFactory func(context.Context) Populator
+type PopulatorFactory func(context.Context) (Populator, error)
 
 type PopulatorTask struct {
 	factory     PopulatorFactory
@@ -28,7 +28,11 @@ func (p PopulatorTask) Order() int {
 }
 
 func (p PopulatorTask) Populate(ctx context.Context) error {
-	return p.factory(ctx).Populate(ctx)
+	populator, err := p.factory(ctx)
+	if err != nil {
+		return err
+	}
+	return populator.Populate(ctx)
 }
 
 func NewPopulatorTask(description string, order int, during []string, factory PopulatorFactory) *PopulatorTask {

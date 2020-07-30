@@ -2,6 +2,7 @@ package populate
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	api "cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
@@ -12,9 +13,17 @@ import (
 
 const (
 	artifactKeySecretPolicies = "secretPolicies"
+	secretPolicyPopulatorConfigRoot = "populate.usermanagement"
 )
 
-type SecretPolicyPopulator struct{}
+type SecretPolicyPopulatorConfig struct {
+	Enabled bool   `config:"default=true"`
+	Root    string `config:"default=${populate.root}/usermanagement"`
+}
+
+type SecretPolicyPopulator struct{
+	cfg SecretPolicyPopulatorConfig
+}
 
 func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api.Api, artifact populate.Artifact) error {
 	logger.WithContext(ctx).Infof("Loading policy from %q", artifact.TemplateFileName)
@@ -25,7 +34,7 @@ func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api
 	}
 
 	err := resource.
-		Reference(path.Join(manifestDir, artifact.TemplateFileName)).
+		Reference(path.Join(p.cfg.Root, artifact.TemplateFileName)).
 		Unmarshal(&policy)
 	if err != nil {
 		return errors.Wrapf(err, "Unable to load policy %q", artifact.TemplateFileName)
@@ -40,11 +49,16 @@ func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api
 }
 
 func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
+	if !p.cfg.Enabled {
+		logger.WithContext(ctx).Warn("Secret Policy populator disabled.")
+		return nil
+	}
+
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {
 
 		var manifest populate.Manifest
 		err := resource.
-			Reference(path.Join(manifestDir, manifestFile)).
+			Reference(path.Join(p.cfg.Root, manifestFile)).
 			Unmarshal(&manifest)
 		if err != nil {
 			return err
@@ -52,7 +66,7 @@ func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
 
 		idm, _ := api.NewIntegration(ctx)
 
-		logger.WithContext(ctx).Info("Populating capabilities")
+		logger.WithContext(ctx).Info("Populating secret policies")
 
 		for _, artifact := range manifest[artifactKeySecretPolicies] {
 			err = p.populateSecretPolicy(ctx, idm, artifact)
@@ -68,10 +82,17 @@ func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
 func init() {
 	populate.RegisterPopulationTask(
 		populate.NewPopulatorTask(
-			"Populate roles and capabilities",
+			"Populate secret policies",
 			1000,
-			[]string{"all", "customRolesAndCapabilities", "serviceMetadata"},
-			func(ctx context.Context) populate.Populator {
-				return &RoleCapabilityPopulator{}
+			[]string{"all", "secretPolicies", "serviceMetadata"},
+			func(ctx context.Context) (populate.Populator, error) {
+				var cfg SecretPolicyPopulatorConfig
+				err := config.MustFromContext(ctx).Populate(&cfg, secretPolicyPopulatorConfigRoot)
+				if err != nil {
+					return nil, err
+				}
+				return &SecretPolicyPopulator{
+					cfg: cfg,
+				}, nil
 			}))
 }

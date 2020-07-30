@@ -2,6 +2,7 @@ package populate
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	api "cto-github.cisco.com/NFV-BU/go-msx/integration/serviceconfigmanager"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
@@ -12,23 +13,36 @@ import (
 )
 
 const (
-	manifestDir  = "/platform-common/serviceconfig"
 	manifestFile = "manifest.json"
 
 	artifactKeyServiceConfigs = "serviceconfigs"
+
+	serviceConfigPopulatorConfigRoot = "populate.serviceconfig"
 )
+
+type ServiceConfigPopulatorConfig struct {
+	Enabled bool   `config:"default=true"`
+	Root    string `config:"default=${populate.root}/serviceconfig"`
+}
 
 var logger = log.NewLogger("msx.integration.serviceconfigmanager.populate")
 
-type ServiceConfigPopulator struct{}
+type ServiceConfigPopulator struct{
+	cfg ServiceConfigPopulatorConfig
+}
 
 func (p ServiceConfigPopulator) Populate(ctx context.Context) error {
+	if !p.cfg.Enabled {
+		logger.WithContext(ctx).Warn("Service Config populator disabled.")
+		return nil
+	}
+
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {
 		logger.WithContext(ctx).Info("Populating service configs")
 
 		var manifest populate.Manifest
 		err := resource.
-			Reference(path.Join(manifestDir, manifestFile)).
+			Reference(path.Join(p.cfg.Root, manifestFile)).
 			Unmarshal(&manifest)
 		if err != nil {
 			return err
@@ -55,7 +69,7 @@ func (p ServiceConfigPopulator) populateServiceConfig(ctx context.Context, scm a
 
 	var request api.ServiceConfigurationRequest
 	err = resource.Reference(
-		path.Join(manifestDir, artifact.TemplateFileName)).
+		path.Join(p.cfg.Root, artifact.TemplateFileName)).
 		Unmarshal(&request)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to load service config %q", artifact.TemplateFileName)
@@ -76,7 +90,14 @@ func init() {
 			"Populate service configurations",
 			1000,
 			[]string{"all", "serviceConfig", "serviceMetadata"},
-			func(ctx context.Context) populate.Populator {
-				return &ServiceConfigPopulator{}
+			func(ctx context.Context) (populate.Populator, error) {
+				var cfg ServiceConfigPopulatorConfig
+				err := config.MustFromContext(ctx).Populate(&cfg, serviceConfigPopulatorConfigRoot)
+				if err != nil {
+					return nil, err
+				}
+				return &ServiceConfigPopulator{
+					cfg: cfg,
+				}, nil
 			}))
 }

@@ -2,6 +2,7 @@ package populate
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	api "cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
@@ -14,8 +15,8 @@ import (
 )
 
 const (
-	manifestDir  = "/platform-common/usermanagement"
-	manifestFile = "manifest.json"
+	roleCapabilityPopulatorConfigRoot = "populate.usermanagement"
+	manifestFile                      = "manifest.json"
 )
 
 var logger = log.NewLogger("msx.integration.usermanagement.populate")
@@ -46,7 +47,14 @@ type roleArtifact struct {
 
 type roleMap map[string]api.RoleResponse
 
-type RoleCapabilityPopulator struct{}
+type RoleCapabilityPopulatorConfig struct {
+	Enabled bool   `config:"default=true"`
+	Root    string `config:"default=${populate.root}/usermanagement"`
+}
+
+type RoleCapabilityPopulator struct {
+	cfg RoleCapabilityPopulatorConfig
+}
 
 func (p RoleCapabilityPopulator) depopulateCapability(ctx context.Context, idm api.Api, owner string, name string) error {
 	logger.WithContext(ctx).Infof("Removing capability %q", name)
@@ -151,11 +159,16 @@ func (p RoleCapabilityPopulator) getRoles(ctx context.Context, idm api.Api) (rol
 }
 
 func (p RoleCapabilityPopulator) Populate(ctx context.Context) error {
+	if !p.cfg.Enabled {
+		logger.WithContext(ctx).Warn("Role/Capability populator disabled.")
+		return nil
+	}
+
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {
 
 		var manifest manifest
 		err := resource.
-			Reference(path.Join(manifestDir, manifestFile)).
+			Reference(path.Join(p.cfg.Root, manifestFile)).
 			Unmarshal(&manifest)
 		if err != nil {
 			return err
@@ -206,7 +219,14 @@ func init() {
 			"Populate roles and capabilities",
 			1000,
 			[]string{"all", "customRolesAndCapabilities", "serviceMetadata"},
-			func(ctx context.Context) populate.Populator {
-				return &RoleCapabilityPopulator{}
+			func(ctx context.Context) (populate.Populator, error) {
+				var cfg RoleCapabilityPopulatorConfig
+				err := config.MustFromContext(ctx).Populate(&cfg, roleCapabilityPopulatorConfigRoot)
+				if err != nil {
+					return nil, err
+				}
+				return &RoleCapabilityPopulator{
+					cfg: cfg,
+				}, nil
 			}))
 }
