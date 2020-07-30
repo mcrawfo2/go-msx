@@ -39,7 +39,7 @@ func newFileSystem() (http.FileSystem, error) {
 	logger.Info("Using source and staging overlay filesystem")
 	return fs.LoggingFilesystem{
 		Name: "overlay",
-		Fs: fs.NewOverlayFileSystem(stagingFileSystem, sourceFileSystem),
+		Fs:   fs.NewOverlayFileSystem(stagingFileSystem, sourceFileSystem),
 	}, nil
 }
 
@@ -69,7 +69,7 @@ func newStagingFileSystem() (http.FileSystem, error) {
 	}
 	return fs.LoggingFilesystem{
 		Name: "staging",
-		Fs: stagingFileSystem,
+		Fs:   stagingFileSystem,
 	}, nil
 
 }
@@ -77,7 +77,7 @@ func newStagingFileSystem() (http.FileSystem, error) {
 func newReleaseFileSystem(name, root string) http.FileSystem {
 	return fs.LoggingFilesystem{
 		Name: name,
-		Fs:   fs.RootLoggingFilesystem{
+		Fs: fs.RootLoggingFilesystem{
 			Fs: http.Dir(root),
 		},
 	}

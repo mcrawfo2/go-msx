@@ -6,7 +6,7 @@ import (
 
 type LoggingFilesystem struct {
 	Name string
-	Fs http.FileSystem
+	Fs   http.FileSystem
 }
 
 func (l LoggingFilesystem) Open(name string) (http.File, error) {

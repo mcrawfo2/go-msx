@@ -715,8 +715,16 @@ func (i *Integration) GetSecretPolicy(name string) (*integration.MsxResponse, er
 }
 
 func (i *Integration) StoreSecretPolicy(name string, policy SecretPolicySetRequest) (result *integration.MsxResponse, err error) {
+	var body struct {
+		SecretPolicySetRequest
+		Name string `json:"name"`
+	}
+
+	body.SecretPolicySetRequest = policy
+	body.Name = name
+
 	var bodyBytes []byte
-	if bodyBytes, err = json.Marshal(policy); err != nil {
+	if bodyBytes, err = json.Marshal(body); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 

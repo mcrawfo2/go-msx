@@ -27,7 +27,7 @@ type ServiceConfigPopulatorConfig struct {
 
 var logger = log.NewLogger("msx.integration.serviceconfigmanager.populate")
 
-type ServiceConfigPopulator struct{
+type ServiceConfigPopulator struct {
 	cfg ServiceConfigPopulatorConfig
 }
 

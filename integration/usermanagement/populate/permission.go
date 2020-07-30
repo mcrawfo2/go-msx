@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	roleCapabilityPopulatorConfigRoot = "populate.usermanagement"
-	manifestFile                      = "manifest.json"
+	permissionsPopulatorConfigRoot = "populate.usermanagement.permission"
+	manifestFile                   = "manifest.json"
 )
 
 var logger = log.NewLogger("msx.integration.usermanagement.populate")
@@ -24,7 +24,7 @@ var logger = log.NewLogger("msx.integration.usermanagement.populate")
 type manifest struct {
 	Owner               string               `json:"owner"`
 	DeletedCapabilities []string             `json:"deletedCapabilities"`
-	Capabilities        []capabilityArtifact `json:"capability"`
+	Capabilities        []capabilityArtifact `json:"capabilities"`
 	DeletedRoles        []string             `json:"deletedRoles"`
 	Roles               []roleArtifact       `json:"roles"`
 }
@@ -47,16 +47,16 @@ type roleArtifact struct {
 
 type roleMap map[string]api.RoleResponse
 
-type RoleCapabilityPopulatorConfig struct {
+type PermissionPopulatorConfig struct {
 	Enabled bool   `config:"default=false"`
 	Root    string `config:"default=${populate.root}/usermanagement"`
 }
 
-type RoleCapabilityPopulator struct {
-	cfg RoleCapabilityPopulatorConfig
+type PermissionPopulator struct {
+	cfg PermissionPopulatorConfig
 }
 
-func (p RoleCapabilityPopulator) depopulateCapability(ctx context.Context, idm api.Api, owner string, name string) error {
+func (p PermissionPopulator) depopulateCapability(ctx context.Context, idm api.Api, owner string, name string) error {
 	logger.WithContext(ctx).Infof("Removing capability %q", name)
 
 	response, err := idm.DeleteCapability(true, owner, name)
@@ -72,7 +72,7 @@ func (p RoleCapabilityPopulator) depopulateCapability(ctx context.Context, idm a
 	return nil
 }
 
-func (p RoleCapabilityPopulator) populateCapability(ctx context.Context, idm api.Api, owner string, capability capabilityArtifact) error {
+func (p PermissionPopulator) populateCapability(ctx context.Context, idm api.Api, owner string, capability capabilityArtifact) error {
 	logger.WithContext(ctx).Infof("Removing capability %q", capability.Name)
 
 	_, err := idm.BatchUpdateCapabilities(true, owner, []api.CapabilityUpdateRequest{
@@ -93,7 +93,7 @@ func (p RoleCapabilityPopulator) populateCapability(ctx context.Context, idm api
 	return nil
 }
 
-func (p RoleCapabilityPopulator) depopulateRole(ctx context.Context, idm api.Api, name string, roleMap roleMap) error {
+func (p PermissionPopulator) depopulateRole(ctx context.Context, idm api.Api, name string, roleMap roleMap) error {
 	logger.WithContext(ctx).Infof("Removing role %q", name)
 
 	if _, ok := roleMap[name]; !ok {
@@ -114,13 +114,13 @@ func (p RoleCapabilityPopulator) depopulateRole(ctx context.Context, idm api.Api
 	return nil
 }
 
-func (p RoleCapabilityPopulator) populateRole(ctx context.Context, idm api.Api, owner string, role roleArtifact, roleMap roleMap) (err error) {
+func (p PermissionPopulator) populateRole(ctx context.Context, idm api.Api, owner string, role roleArtifact, roleMap roleMap) (err error) {
 	if _, ok := roleMap[role.RoleName]; ok {
 		logger.WithContext(ctx).Infof("Updating existing role %q", role.RoleName)
 
 		_, err = idm.UpdateRole(true, api.RoleUpdateRequest{
 			CapabilityList: role.CapabilityList,
-			Owner:          owner,
+			Owner:          roleMap[role.RoleName].Owner,
 			RoleName:       role.RoleName,
 		})
 	} else {
@@ -140,7 +140,7 @@ func (p RoleCapabilityPopulator) populateRole(ctx context.Context, idm api.Api, 
 	return nil
 }
 
-func (p RoleCapabilityPopulator) getRoles(ctx context.Context, idm api.Api) (roleMap, error) {
+func (p PermissionPopulator) getRoles(ctx context.Context, idm api.Api) (roleMap, error) {
 	response, err := idm.GetRoles(true, paging.Request{Page: 0, Size: 1000})
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (p RoleCapabilityPopulator) getRoles(ctx context.Context, idm api.Api) (rol
 	return result, nil
 }
 
-func (p RoleCapabilityPopulator) Populate(ctx context.Context) error {
+func (p PermissionPopulator) Populate(ctx context.Context) error {
 	if !p.cfg.Enabled {
 		logger.WithContext(ctx).Warn("Role/Capability populator disabled.")
 		return nil
@@ -220,12 +220,12 @@ func init() {
 			1000,
 			[]string{"all", "customRolesAndCapabilities", "serviceMetadata"},
 			func(ctx context.Context) (populate.Populator, error) {
-				var cfg RoleCapabilityPopulatorConfig
-				err := config.MustFromContext(ctx).Populate(&cfg, roleCapabilityPopulatorConfigRoot)
+				var cfg PermissionPopulatorConfig
+				err := config.MustFromContext(ctx).Populate(&cfg, permissionsPopulatorConfigRoot)
 				if err != nil {
 					return nil, err
 				}
-				return &RoleCapabilityPopulator{
+				return &PermissionPopulator{
 					cfg: cfg,
 				}, nil
 			}))

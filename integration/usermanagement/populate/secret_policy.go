@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	artifactKeySecretPolicies = "secretPolicies"
-	secretPolicyPopulatorConfigRoot = "populate.usermanagement"
+	artifactKeySecretPolicies       = "secretPolicies"
+	secretPolicyPopulatorConfigRoot = "populate.usermanagement.secret-policy"
 )
 
 type SecretPolicyPopulatorConfig struct {
@@ -21,7 +21,11 @@ type SecretPolicyPopulatorConfig struct {
 	Root    string `config:"default=${populate.root}/usermanagement"`
 }
 
-type SecretPolicyPopulator struct{
+type secretPolicyManifest struct {
+	SecretPolicies []populate.Artifact `json:"secretPolicies"`
+}
+
+type SecretPolicyPopulator struct {
 	cfg SecretPolicyPopulatorConfig
 }
 
@@ -30,7 +34,7 @@ func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api
 
 	var policy struct {
 		api.SecretPolicySetRequest
-		Name string
+		Name string `json:"name"`
 	}
 
 	err := resource.
@@ -56,7 +60,7 @@ func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
 
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {
 
-		var manifest populate.Manifest
+		var manifest secretPolicyManifest
 		err := resource.
 			Reference(path.Join(p.cfg.Root, manifestFile)).
 			Unmarshal(&manifest)
@@ -68,7 +72,7 @@ func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
 
 		logger.WithContext(ctx).Info("Populating secret policies")
 
-		for _, artifact := range manifest[artifactKeySecretPolicies] {
+		for _, artifact := range manifest.SecretPolicies {
 			err = p.populateSecretPolicy(ctx, idm, artifact)
 			if err != nil {
 				return err
