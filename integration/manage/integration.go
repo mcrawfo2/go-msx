@@ -817,7 +817,7 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 func (i *Integration) GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error) {
 	queryParameters := url.Values{}
 	if tenantId != nil {
-		queryParameters[*tenantId] = []string{*tenantId}
+		queryParameters["tenantId"] = []string{*tenantId}
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
