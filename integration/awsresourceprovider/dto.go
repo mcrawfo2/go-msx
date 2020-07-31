@@ -89,3 +89,22 @@ type AwsTransitGatewayStatus struct {
 	TransitGatewayArn string `json:"TransitGatewayArn"`
 	TransitGatewayID  string `json:"TransitGatewayId"`
 }
+
+type AwsTransitGatewayAttachmentStatus struct {
+	Association struct {
+		State                      string `json:"State"`
+		TransitGatewayRouteTableID string `json:"TransitGatewayRouteTableId"`
+	} `json:"Association"`
+	CreationTime    time.Time `json:"CreationTime"`
+	ResourceID      string    `json:"ResourceId"`
+	ResourceOwnerID string    `json:"ResourceOwnerId"`
+	ResourceType    string    `json:"ResourceType"`
+	State           string    `json:"State"`
+	Tags            []struct {
+		Key   string `json:"Key"`
+		Value string `json:"Value"`
+	} `json:"Tags"`
+	TransitGatewayAttachmentID string `json:"TransitGatewayAttachmentId"`
+	TransitGatewayID           string `json:"TransitGatewayId"`
+	TransitGatewayOwnerID      string `json:"TransitGatewayOwnerId"`
+}
