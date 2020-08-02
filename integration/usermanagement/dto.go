@@ -244,3 +244,9 @@ type LengthRule struct {
 	MaxLength int  `json:"maxLength"`
 	MinLength int  `json:"minLength"`
 }
+
+type SecretsResponse map[string]string
+
+func (s SecretsResponse) Value(key string) string {
+	return s[key]
+}
