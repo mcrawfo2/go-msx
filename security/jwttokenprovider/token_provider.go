@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 const (
@@ -37,6 +38,12 @@ const (
 var (
 	logger = log.NewLogger("msx.security.jwttokenprovider")
 )
+
+func init() {
+	jwt.TimeFunc = func() time.Time {
+		return time.Now().Add(5 * time.Second)
+	}
+}
 
 type TokenProviderConfig struct {
 	KeySource   string `config:"default=vault"`
