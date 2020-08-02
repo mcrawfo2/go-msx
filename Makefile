@@ -1,6 +1,7 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml
 
-.PHONY: test dist docker publish clean precommit
+.PHONY: test dist docker debug publish generate clean precommit
+.PHONY: skel install-skel
 
 test:
 	$(BUILDER) download-test-deps
@@ -33,6 +34,10 @@ generate:
 precommit:
 	$(BUILDER) generate
 	$(BUILDER) go-fmt
+
+skel:
+	mkdir -p dist/skel
+	go build -o dist/skel/skel cmd/skel/skel.go
 
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
