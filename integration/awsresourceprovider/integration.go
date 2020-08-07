@@ -9,13 +9,14 @@ import (
 )
 
 const (
-	endpointNameConnect                 = "connect"
-	endpointNameGetRegions              = "getRegions"
-	endpointNameGetAvailabilityZones    = "getAvailabilityZones"
-	endpointNameGetResources            = "getResources"
-	endpointNameGetVpnConnections       = "getVpnConnections"
-	endpointNameGetEc2InstanceStatus    = "getEc2InstanceStatus"
-	endpointNameGetTransitGatewayStatus = "getTransitGatewayStatus"
+	endpointNameConnect                           = "connect"
+	endpointNameGetRegions                        = "getRegions"
+	endpointNameGetAvailabilityZones              = "getAvailabilityZones"
+	endpointNameGetResources                      = "getResources"
+	endpointNameGetVpnConnections                 = "getVpnConnections"
+	endpointNameGetEc2InstanceStatus              = "getEc2InstanceStatus"
+	endpointNameGetTransitGatewayStatus           = "getTransitGatewayStatus"
+	endpointNameGetTransitGatewayAttachmentStatus = "getTransitGatewayAttachmentStatus"
 
 	serviceName = integration.ResourceProviderNameAws
 )
@@ -23,13 +24,14 @@ const (
 var (
 	logger    = log.NewLogger("msx.integration.rp.aws")
 	endpoints = map[string]integration.MsxServiceEndpoint{
-		endpointNameConnect:                 {Method: "POST", Path: "/api/v1/connect"},
-		endpointNameGetRegions:              {Method: "GET", Path: "/api/v1/regions"},
-		endpointNameGetAvailabilityZones:    {Method: "GET", Path: "/api/v1/availabilityzones"},
-		endpointNameGetResources:            {Method: "GET", Path: "/api/v1/resources"},
-		endpointNameGetVpnConnections:       {Method: "GET", Path: "/api/v1/vpnconnection"},
-		endpointNameGetTransitGatewayStatus: {Method: "GET", Path: "/api/v1/transitgateway/status"},
-		endpointNameGetEc2InstanceStatus:    {Method: "GET", Path: "/api/v1/ec2instance/status"},
+		endpointNameConnect:                           {Method: "POST", Path: "/api/v1/connect"},
+		endpointNameGetRegions:                        {Method: "GET", Path: "/api/v1/regions"},
+		endpointNameGetAvailabilityZones:              {Method: "GET", Path: "/api/v1/availabilityzones"},
+		endpointNameGetResources:                      {Method: "GET", Path: "/api/v1/resources"},
+		endpointNameGetVpnConnections:                 {Method: "GET", Path: "/api/v1/vpnconnection"},
+		endpointNameGetTransitGatewayStatus:           {Method: "GET", Path: "/api/v1/transitgateway/status"},
+		endpointNameGetTransitGatewayAttachmentStatus: {Method: "GET", Path: "/api/v1/transitgatewayattachment/status"},
+		endpointNameGetEc2InstanceStatus:              {Method: "GET", Path: "/api/v1/ec2instance/status"},
 	}
 )
 
@@ -130,5 +132,18 @@ func (i *Integration) GetTransitGatewayStatus(controlPlaneId types.UUID, region 
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayStatus{},
+	})
+}
+
+func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetTransitGatewayAttachmentStatus,
+		QueryParameters: map[string][]string{
+			"controlPlaneId":             {controlPlaneId.String()},
+			"region":                     {region},
+			"transitGatewayAttachmentId": transitGatewayAttachmentIds,
+		},
+		ExpectEnvelope: true,
+		Payload:        &[]AwsTransitGatewayAttachmentStatus{},
 	})
 }
