@@ -24,6 +24,7 @@ const (
 	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
 	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
 	MetadataTagDefinition       = "TagDefinition"
+	MetadataPermissions         = "Permissions"
 	AttributeDefaultReturnCode  = "DefaultReturnCode"
 	AttributeErrorPayload       = "ErrorPayload"
 	AttributeError              = "Error"
@@ -200,6 +201,14 @@ func auditContextFilter(req *restful.Request, resp *restful.Response, chain *res
 	chain.ProcessFilter(req, resp)
 }
 
+func Permissions(anyOf ...string) RouteBuilderFunc {
+	return func(b *restful.RouteBuilder) {
+		b.Metadata(MetadataPermissions, anyOf)
+		b.Filter(PermissionsFilter(anyOf...))
+	}
+}
+
+// Deprecated
 func PermissionsFilter(anyOf ...string) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		var ctx = req.Request.Context()

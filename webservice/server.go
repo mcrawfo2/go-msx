@@ -24,7 +24,7 @@ type WebServer struct {
 	containerMtx  sync.Mutex
 	router        *restful.CurlyRouter
 	services      []*restful.WebService
-	documentation DocumentationProvider
+	documentation []DocumentationProvider
 	security      AuthenticationProvider
 	actuators     []ServiceProvider
 	aliases       []StaticAlias
@@ -116,7 +116,9 @@ func (s *WebServer) Handler() http.Handler {
 	}
 
 	// Add documentation provider
-	s.actuateDocumentation(s.documentation)
+	for _, documentation := range s.documentation {
+		s.actuateDocumentation(documentation)
+	}
 
 	// Add services
 	for _, provider := range s.actuators {
@@ -174,7 +176,7 @@ func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
 
 	documentationService := new(restful.WebService)
 	documentationService.Path(s.cfg.ContextPath)
-	if err := s.documentation.Actuate(s.container, documentationService); err != nil {
+	if err := provider.Actuate(s.container, documentationService); err != nil {
 		logger.WithError(err).Errorf("Failed to register actuator")
 	} else {
 		s.container.Add(documentationService)
@@ -240,9 +242,9 @@ func (s *WebServer) StopServing(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *WebServer) SetDocumentationProvider(provider DocumentationProvider) {
+func (s *WebServer) AddDocumentationProvider(provider DocumentationProvider) {
 	if provider != nil {
-		s.documentation = provider
+		s.documentation = append(s.documentation, provider)
 	}
 }
 
