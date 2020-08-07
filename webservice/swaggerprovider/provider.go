@@ -212,7 +212,7 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		return err
 	}
 
-	server.SetDocumentationProvider(&SwaggerProvider{
+	server.AddDocumentationProvider(&SwaggerProvider{
 		ctx: ctx,
 		cfg: cfg,
 		info: spec.Info{

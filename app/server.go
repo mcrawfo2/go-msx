@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/apilistprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/debugprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
@@ -31,6 +32,7 @@ func registerRegistrations(cfg *config.Config) error {
 		OnEvent(EventStart, PhaseBefore, registerAdminWebServices)
 		OnEvent(EventStart, PhaseBefore, registerDebugWebServices)
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
+		OnEvent(EventStart, PhaseBefore, registerApiListWebService)
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
 		OnEvent(EventStop, PhaseBefore, webservice.Stop)
 	}
@@ -75,6 +77,15 @@ func registerSwaggerWebService(ctx context.Context) error {
 		return err
 	} else if err == swaggerprovider.ErrDisabled {
 		logger.Info("Swagger documentation provider disabled")
+	}
+
+	return nil
+}
+
+func registerApiListWebService(ctx context.Context) error {
+	logger.Info("Registering apilist documentation provider")
+	if err := apilistprovider.RegisterProvider(ctx); err != nil {
+		return err
 	}
 
 	return nil
