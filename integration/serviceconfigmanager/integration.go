@@ -71,9 +71,13 @@ type Integration struct {
 }
 
 func NewIntegration(ctx context.Context) (Api, error) {
-	return &Integration{
-		MsxService: integration.NewMsxService(ctx, serviceName, endpoints),
-	}, nil
+	integrationInstance := IntegrationFromContext(ctx)
+	if integrationInstance == nil {
+		integrationInstance = &Integration{
+			MsxService: integration.NewMsxService(ctx, serviceName, endpoints),
+		}
+	}
+	return integrationInstance, nil
 }
 
 func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
