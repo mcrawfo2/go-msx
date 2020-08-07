@@ -364,7 +364,7 @@ func (i *Integration) GetSystemSecrets(scope string) (result *integration.MsxRes
 		EndpointParameters: map[string]string{
 			"scope": scope,
 		},
-		Payload:        new(Pojo),
+		Payload:        new(SecretsResponse),
 		ExpectEnvelope: true,
 	})
 }
@@ -461,7 +461,7 @@ func (i *Integration) GetTenantSecrets(tenantId, scope string) (result *integrat
 			"tenantId": tenantId,
 			"scope":    scope,
 		},
-		Payload:        new(Pojo),
+		Payload:        new(SecretsResponse),
 		ExpectEnvelope: true,
 	})
 }
