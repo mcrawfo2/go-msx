@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	managePermissionFilter   = webservice.PermissionsFilter(rbac.PermissionManageServices)
+	managePermission         = webservice.Permissions(rbac.PermissionManageServices)
 	pathParamSubscriptionId  = restful.PathParameter(paramNameSubscriptionId, "Subscription Id")
 	pathSuffixSubscriptionId = "/{subscriptionId}"
 )
@@ -46,7 +46,7 @@ func (c *subscriptionController) createSubscription(svc *restful.WebService) *re
 		Notes("API to create subscription").
 		Do(webservice.StandardCreate).
 		Do(webservice.ResponsePayload(api.SubscriptionCreateResponse{})).
-		Filter(managePermissionFilter).
+		Do(managePermission).
 		Reads(api.SubscriptionCreateRequest{}).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.Controller(
@@ -72,7 +72,7 @@ func (c *subscriptionController) deleteSubscription(svc *restful.WebService) *re
 		Doc("API to start deletion of subscription").
 		Notes("API to start deletion of subscription").
 		Do(webservice.StandardDelete).
-		Filter(managePermissionFilter).
+		Do(managePermission).
 		Param(pathParamSubscriptionId).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.Controller(

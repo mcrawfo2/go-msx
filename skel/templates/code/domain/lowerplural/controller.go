@@ -24,8 +24,8 @@ const (
 )
 
 var (
-	viewPermissionFilter        = webservice.PermissionsFilter("VIEW_SCREAMING_SNAKE_PLURAL")
-	managePermissionFilter      = webservice.PermissionsFilter("MANAGE_SCREAMING_SNAKE_PLURAL")
+	viewPermission              = webservice.Permissions("VIEW_SCREAMING_SNAKE_PLURAL")
+	managePermission            = webservice.Permissions("MANAGE_SCREAMING_SNAKE_PLURAL")
 	paramUpperCamelSingularName = restful.PathParameter(pathParamNameUpperCamelSingularName, "Title Singular Name")
 )
 
@@ -63,7 +63,7 @@ func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebServ
 		Param(paramTenantId).
 		Do(webservice.PopulateParams(params{})).
 		//#endif TENANT_DOMAIN
-		Filter(viewPermissionFilter).
+		Do(viewPermission).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
 				//#if TENANT_DOMAIN
@@ -105,7 +105,7 @@ func (c *lowerCamelSingularController) getUpperCamelSingular(svc *restful.WebSer
 		Do(webservice.ResponseRawPayload(api.UpperCamelSingularResponse{})).
 		Param(paramUpperCamelSingularName).
 		Do(webservice.PopulateParams(params{})).
-		Filter(viewPermissionFilter).
+		Do(viewPermission).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
 				var params = webservice.Params(req).(*params)
@@ -138,7 +138,7 @@ func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.Web
 		Do(webservice.StandardCreate).
 		Do(webservice.ResponseRawPayload(api.UpperCamelSingularResponse{})).
 		Reads(api.UpperCamelSingularCreateRequest{}).
-		Filter(managePermissionFilter).
+		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
@@ -175,7 +175,7 @@ func (c *lowerCamelSingularController) updateUpperCamelSingular(svc *restful.Web
 		Do(webservice.ResponseRawPayload(api.UpperCamelSingularResponse{})).
 		Param(paramUpperCamelSingularName).
 		Reads(api.UpperCamelSingularUpdateRequest{}).
-		Filter(managePermissionFilter).
+		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
@@ -211,7 +211,7 @@ func (c *lowerCamelSingularController) deleteUpperCamelSingular(svc *restful.Web
 		Do(webservice.StandardDelete).
 		Do(webservice.ResponseRawPayload(struct{}{})).
 		Param(paramUpperCamelSingularName).
-		Filter(managePermissionFilter).
+		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {

@@ -8,7 +8,7 @@ import (
 
 type MessageFilter func(ctx context.Context, metadata message.Metadata) bool
 
-func FilterByMetaData(key string, values... string) MessageFilter {
+func FilterByMetaData(key string, values ...string) MessageFilter {
 	return func(ctx context.Context, metadata message.Metadata) bool {
 		metaDataValue := metadata[key]
 		if !types.StringStack(values).Contains(metaDataValue) {

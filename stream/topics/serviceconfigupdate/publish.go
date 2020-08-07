@@ -15,7 +15,6 @@ func PublishApplicationStatusUpdateRequest(ctx context.Context, request Applicat
 		})
 }
 
-
 func PublishApplicationResult(ctx context.Context, sourceEvent serviceconfigevent.ApplicationEvent, err error) error {
 	var status string
 	var statusDetails string
