@@ -125,31 +125,39 @@ func (i *Integration) getServiceAndEndpoint(apiName string) (*integration.Extern
 }
 
 func NewIntegration(ctx context.Context, outboundApi OutboundApi) Api {
-	return NewOssIntegration(ctx, []OutboundApi{outboundApi})
+	integrationInstance := IntegrationFromContext(ctx)
+	if integrationInstance == nil {
+		integrationInstance = NewOssIntegration(ctx, []OutboundApi{outboundApi})
+	}
+	return integrationInstance
 }
 
 func NewOssIntegration(ctx context.Context, outboundApis []OutboundApi) Api {
-	services := map[string]*integration.ExternalService{}
-	endpoints := map[string]integration.Endpoint{}
+	integrationInstance := IntegrationFromContext(ctx)
+	if integrationInstance == nil {
+		services := map[string]*integration.ExternalService{}
+		endpoints := map[string]integration.Endpoint{}
 
-	for _, outboundApi := range outboundApis {
-		apiName := outboundApi.ApiName
+		for _, outboundApi := range outboundApis {
+			apiName := outboundApi.ApiName
 
-		externalService := integration.NewExternalService(ctx, "http", "oss")
-		externalService.AddInterceptor(outboundApi.Interceptor)
-		services[apiName] = externalService
+			externalService := integration.NewExternalService(ctx, "http", "oss")
+			externalService.AddInterceptor(outboundApi.Interceptor)
+			services[apiName] = externalService
 
-		endpoint := integration.Endpoint{
-			Name:   outboundApi.ApiName,
-			Method: outboundApi.HttpMethod,
-			Path:   outboundApi.Url,
+			endpoint := integration.Endpoint{
+				Name:   outboundApi.ApiName,
+				Method: outboundApi.HttpMethod,
+				Path:   outboundApi.Url,
+			}
+			endpoints[apiName] = endpoint
 		}
-		endpoints[apiName] = endpoint
-	}
 
-	return &Integration{
-		ctx:       ctx,
-		services:  services,
-		endpoints: endpoints,
+		integrationInstance = &Integration{
+			ctx:       ctx,
+			services:  services,
+			endpoints: endpoints,
+		}
 	}
+	return integrationInstance
 }
