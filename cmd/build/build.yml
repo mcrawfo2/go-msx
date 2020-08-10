@@ -16,7 +16,6 @@ msx:
 
 generate:
   - path: skel
-    command: staticfiles -o templates.go templates/
   - path: resource
     vfsgen:
       filename: "defaults.go"

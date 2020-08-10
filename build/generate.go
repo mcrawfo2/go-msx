@@ -23,7 +23,7 @@ func GenerateCode(args []string) error {
 		logger.Infof("Generating path '%s'", p.Path)
 		if p.VfsGen != nil {
 			err = generateCodePathVfs(p)
-		} else if p.Command != "" {
+		} else {
 			err = generateCodePathCommand(p)
 		}
 		if err != nil {
