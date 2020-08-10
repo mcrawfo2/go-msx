@@ -31,6 +31,13 @@ type ServiceConfigPopulator struct {
 	cfg ServiceConfigPopulatorConfig
 }
 
+type manifest map[string][]artifact
+
+type artifact struct {
+	api.ServiceConfigurationRequest
+	populate.Artifact
+}
+
 func (p ServiceConfigPopulator) Populate(ctx context.Context) error {
 	if !p.cfg.Enabled {
 		logger.WithContext(ctx).Warn("Service Config populator disabled.")
@@ -40,7 +47,7 @@ func (p ServiceConfigPopulator) Populate(ctx context.Context) error {
 	return service.WithDefaultServiceAccount(ctx, func(ctx context.Context) error {
 		logger.WithContext(ctx).Info("Populating service configs")
 
-		var manifest populate.Manifest
+		var manifest manifest
 		err := resource.
 			Reference(path.Join(p.cfg.Root, manifestFile)).
 			Unmarshal(&manifest)
@@ -64,15 +71,18 @@ func (p ServiceConfigPopulator) Populate(ctx context.Context) error {
 	})
 }
 
-func (p ServiceConfigPopulator) populateServiceConfig(ctx context.Context, scm api.Api, artifact populate.Artifact) (err error) {
+func (p ServiceConfigPopulator) populateServiceConfig(ctx context.Context, scm api.Api, artifact artifact) (err error) {
 	logger.WithContext(ctx).Infof("Populating service config %q", artifact.TemplateFileName)
 
-	var request api.ServiceConfigurationRequest
-	err = resource.Reference(
-		path.Join(p.cfg.Root, artifact.TemplateFileName)).
-		Unmarshal(&request)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to load service config %q", artifact.TemplateFileName)
+	var request = artifact.ServiceConfigurationRequest
+	if artifact.TemplateFileName != "" {
+		configuration, err := resource.Reference(
+			path.Join(p.cfg.Root, artifact.TemplateFileName)).
+			ReadAll()
+		if err != nil {
+			return errors.Wrapf(err, "Failed to load service config %q", artifact.TemplateFileName)
+		}
+		request.Configuration = string(configuration)
 	}
 
 	_, err = scm.CreateServiceConfiguration(request)
