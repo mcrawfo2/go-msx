@@ -3,6 +3,7 @@ package webservice
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"reflect"
@@ -110,6 +111,10 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
 		Throwable:  integration.NewThrowable(err),
+	}
+
+	if errorlist, ok := err.(types.ErrorList); ok {
+		envelope.Errors = errorlist.Strings()
 	}
 
 	logger.
