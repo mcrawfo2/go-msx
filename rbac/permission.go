@@ -38,6 +38,12 @@ const (
 	PermissionManageVpn             = "MANAGE_VPN"
 	PermissionViewPnp               = "VIEW_PNP"
 	PermissionManagePnp             = "MANAGE_PNP"
+	PermissionViewPricePlan			= "VIEW_PRICE_PLAN"
+	PermissionManagePricePlan		= "MANAGE_PRICE_PLAN"
+	PermissionImportService         = "IMPORT_SERVICE"
+	PermissionExportService         = "EXPORT_SERVICE"
+	PermissionViewTermsConditions   = "VIEW_TERMS_CONDITIONS"
+	PermissionManageTermsConditions = "MANAGE_TERMS_CONDITIONS"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
