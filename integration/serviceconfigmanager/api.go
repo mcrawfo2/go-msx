@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=Api --structname=MockServiceConfigManagerApi
+
 package serviceconfigmanager
 
 import (

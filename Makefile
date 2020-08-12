@@ -29,6 +29,7 @@ clean:
 	rm -Rf vendor
 
 generate:
+	$(BUILDER) download-generate-deps
 	$(BUILDER) generate
 
 precommit:

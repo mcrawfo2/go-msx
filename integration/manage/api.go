@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=Api --structname=MockManage
+
 package manage
 
 import (

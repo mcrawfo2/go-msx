@@ -4,6 +4,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"github.com/shurcooL/vfsgen"
+	"gopkg.in/pipe.v2"
 	"net/http"
 	"os"
 	"path"
@@ -14,7 +15,22 @@ import (
 var commandRegexp = regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)'`)
 
 func init() {
+	AddTarget("download-generate-deps", "Download generate dependencies", InstallGenerateDependencies)
 	AddTarget("generate", "Generate code", GenerateCode)
+}
+
+func InstallGenerateDependencies(args []string) error {
+	script := pipe.Script(
+		exec.Info("Downloading generator dependencies"),
+		goInstall("github.com/vektra/mockery/v2/.../"),
+		goInstall("github.com/bouk/staticfiles"),
+		pipe.Write(os.Stdout),
+	)
+	return pipe.Run(script)
+}
+
+func goInstall(packageName string) pipe.Pipe {
+	return pipe.Exec("go", "get", packageName)
 }
 
 func GenerateCode(args []string) error {
