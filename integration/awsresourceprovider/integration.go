@@ -36,9 +36,13 @@ var (
 )
 
 func NewIntegration(ctx context.Context) (Api, error) {
-	return &Integration{
-		MsxService: integration.NewMsxServiceResourceProvider(ctx, serviceName, endpoints),
-	}, nil
+	integrationInstance := IntegrationFromContext(ctx)
+	if integrationInstance == nil {
+		integrationInstance = &Integration{
+			MsxService: integration.NewMsxServiceResourceProvider(ctx, serviceName, endpoints),
+		}
+	}
+	return integrationInstance, nil
 }
 
 type Integration struct {
