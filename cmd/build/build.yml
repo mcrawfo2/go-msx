@@ -16,6 +16,16 @@ msx:
 
 generate:
   - path: skel
+  - path: integration/awsresourceprovider
+    command: mockery --inpackage --name=Api --structname=MockAwsResourceProvider
+  - path: integration/manage
+    command: mockery --inpackage --name=Api --structname=MockManage
+  - path: integration/oss
+    command: mockery --inpackage --name=Api --structname=MockOss
+  - path: integration/serviceconfigmanager
+    command: mockery --inpackage --name=Api --structname=MockServiceConfigManagerApi
+  - path: integration/usermanagement
+    command: mockery --inpackage --name=Api --structname=MockUserManagement
   - path: resource
     vfsgen:
       filename: "defaults.go"
