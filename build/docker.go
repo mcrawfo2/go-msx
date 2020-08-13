@@ -3,6 +3,7 @@ package build
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"fmt"
+	"path"
 )
 
 func init() {
@@ -34,7 +35,8 @@ func DockerPush(args []string) error {
 		err := exec.ExecutePipes(exec.ExecSimple(
 			"docker", "login",
 			"-u", BuildConfig.Docker.Username,
-			"-p", BuildConfig.Docker.Password))
+			"-p", BuildConfig.Docker.Password,
+			path.Dir(BuildConfig.Docker.Repository)))
 		if err != nil {
 			return err
 		}

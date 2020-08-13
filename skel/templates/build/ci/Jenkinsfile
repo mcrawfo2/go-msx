@@ -141,7 +141,7 @@ pipeline {
                     ]) { dir ("$WORKSPACE") {
                         script { withCredentials([usernamePassword(
                             credentialsId: DOCKER_CREDENTIALS,
-                            passwordVariable: 'DOCKER_USERPASSWORD',
+                            passwordVariable: 'DOCKER_PASSWORD',
                             usernameVariable: 'DOCKER_USERNAME')]) {
                                 if (env.PUBLISH == 'true') {
                                     sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
