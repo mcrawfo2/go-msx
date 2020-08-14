@@ -1,13 +1,15 @@
 def REPO_NAME = '${app.name}'
-def VMSBLD_CREDENTIALS = 'msx-jenkins-gen-ssh-key'
+def GIT_CREDENTIALS = 'msx-jenkins-gen-ssh-key'
 def GITHUB_CREDENTIALS = 'msx-jenkins-gen-token-secret-text'
 def GITHUB_APP_ID_SONARQUBE = '7'
 def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
+def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
 def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
 def TRUNK = 'develop'
+def AUTO_PUBLISH_TRUNK = ${jenkins.publish.trunk}
 
 pipeline {
 
@@ -57,7 +59,7 @@ pipeline {
                         relativeTargetDir: REPO_NAME,
                     ]],
                     userRemoteConfigs                : [[
-                        credentialsId: VMSBLD_CREDENTIALS,
+                        credentialsId: GIT_CREDENTIALS,
                         url          : "git@cto-github.cisco.com:NFV-BU/${REPO_NAME}.git",
                         refspec:       '+refs/pull/*:refs/remotes/origin/pr/* +refs/heads/*:refs/remotes/origin/*'
                     ]]
@@ -68,7 +70,7 @@ pipeline {
 
         stage('Perform Build') {
             steps {
-                sshagent([VMSBLD_CREDENTIALS]) {
+                sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
@@ -131,7 +133,7 @@ pipeline {
 
         stage('Publish Artifacts') {
             steps {
-                sshagent([VMSBLD_CREDENTIALS]) {
+                sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
@@ -142,12 +144,15 @@ pipeline {
                         script { withCredentials([usernamePassword(
                             credentialsId: DOCKER_CREDENTIALS,
                             passwordVariable: 'DOCKER_PASSWORD',
-                            usernameVariable: 'DOCKER_USERNAME')]) {
-                                if (env.PUBLISH == 'true') {
+                            usernameVariable: 'DOCKER_USERNAME')]) { withCredentials([usernamePassword(
+                                credentialsId: ARTIFACTORY_CREDENTIALS,
+                                passwordVariable: 'ARTIFACTORY_PASSWORD',
+                                usernameVariable: 'ARTIFACTORY_USERNAME')]) {
+                                if (env.PUBLISH == 'true' || (AUTO_PUBLISH_TRUNK && env.BRANCH_NAME == TRUNK)) {
                                     sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
                                     sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
                                 }
-                        }}
+                        }}}
                     }}
                 }
             }

@@ -21,3 +21,15 @@ resources:
   - includes:
       - "/**/*.sql"
       - "/**/*.cql"
+      - "/internal/populate/**/*"
+
+assemblies:
+  root: internal/populate
+#  custom:
+#    - path: ui/build
+#      pathPrefix: services
+#      manifestPrefix: skyfallui-files
+#      manifestKey: ${msx.deploymentGroup}-ui
+
+artifactory:
+  installer: deployments/kubernetes
