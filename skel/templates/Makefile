@@ -1,6 +1,6 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: test dist docker docker-publish publish clean precommit tag
+.PHONY: test dist debug assemblies docker docker-publish publish clean precommit tag
 .PHONY: update-go-msx update-go-msx-build
 
 test:
@@ -14,9 +14,13 @@ dist:
 	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
+	$(BUILDER) build-assemblies
 
 debug:
 	$(BUILDER) build-debug-executable
+
+assemblies:
+	$(BUILDER) build-assemblies
 
 docker:
 	go mod vendor
@@ -27,6 +31,7 @@ docker-publish: docker
 
 publish:
 	$(BUILDER) docker-push
+	$(BUILDER) publish-binaries
 	$(BUILDER) publish-installer-manifest
 
 clean:

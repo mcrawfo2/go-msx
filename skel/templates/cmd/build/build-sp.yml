@@ -16,8 +16,21 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: ${app.version}-EDGE
     includeGroups: "com.cisco.**"
+  deploymentGroup: ${deployment.group}
 
 resources:
   - includes:
       - "/**/*.sql"
       - "/**/*.cql"
+      - "/internal/populate/**/*"
+
+assemblies:
+  root: internal/populate
+#  custom:
+#    - path: ui/build
+#      pathPrefix: services
+#      manifestPrefix: skyfallui-files
+#      manifestKey: ${msx.deploymentGroup}-ui
+
+artifactory:
+  installer: deployments/kubernetes

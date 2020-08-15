@@ -15,6 +15,14 @@ info.build:
   name: ${app.description}
   version: ${info.build.release}-${info.build.buildNumber}
 
+populate:
+  root: /internal/populate
+  consume.enabled: false
+  administration.enabled: false
+  usermanagement.permission.enabled: false
+  usermanagement.secret-policy.enabled: false
+  serviceconfig.enabled: false
+
 server:
   port: ${server.port}
   context-path: ${server.contextPath}

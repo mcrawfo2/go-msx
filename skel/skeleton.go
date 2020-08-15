@@ -125,7 +125,8 @@ func GenerateApp(args []string) error {
 			DestFile:   "go.mod",
 		},
 		"Creating README": {
-			SourceFile: "README.md",
+			SourceFile: "README-${generator}.md",
+			DestFile:   "README.md",
 		},
 		"Creating bootstrap configuration": {
 			SourceFile: "cmd/app/bootstrap-${generator}.yml",

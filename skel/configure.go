@@ -20,6 +20,7 @@ type SkeletonConfig struct {
 	Repository        string `survey:"repository" json:"repository"`
 	BeatProtocol      string `survey:"protocol" json:"protocol"`
 	ServiceType       string `survey:"serviceType" json:"serviceType"`
+	DeploymentGroup   string `survey:"deploymentGroup" json:"deploymentGroup"`
 	KubernetesGroup   string `json:"kubernetesGroup"`
 }
 
@@ -50,6 +51,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppDisplayName:    "Some Microservice",
 	AppDescription:    "Does Something",
 	AppVersion:        "3.10.0",
+	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
 	Repository:        "cassandra",
@@ -173,9 +175,17 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Validate: survey.Required,
 		},
 		{
+			Name: "deploymentGroup",
+			Prompt: &survey.Input{
+				Message: "Service Pack Name: ",
+				Default: skeletonConfig.ServiceType,
+			},
+			Validate: survey.Required,
+		},
+		{
 			Name: "appName",
 			Prompt: &survey.Input{
-				Message: "App name:",
+				Message: "Microservice name:",
 				Default: skeletonConfig.AppName,
 			},
 			Validate:  survey.Required,
@@ -266,6 +276,7 @@ func ConfigureInteractive(args []string) error {
 	switch skeletonConfig.Archetype {
 	case archetypeKeyApp:
 		skeletonConfig.KubernetesGroup = "platformms"
+		skeletonConfig.DeploymentGroup = skeletonConfig.AppName
 
 	case archetypeKeyBeat:
 		skeletonConfig.BeatProtocol = strings.ToLower(skeletonConfig.BeatProtocol)
@@ -276,6 +287,7 @@ func ConfigureInteractive(args []string) error {
 		skeletonConfig.ServerContextPath = ""
 		skeletonConfig.Repository = ""
 		skeletonConfig.KubernetesGroup = "dataplatform"
+		skeletonConfig.DeploymentGroup = skeletonConfig.AppName
 
 	case archetypeKeyServicePack:
 		skeletonConfig.KubernetesGroup = "servicepackms"

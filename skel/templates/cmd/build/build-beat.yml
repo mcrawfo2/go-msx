@@ -20,3 +20,6 @@ msx:
 resources:
   - includes:
       - "/**/fields.yml"
+
+artifactory:
+  installer: deployments/kubernetes

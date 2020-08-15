@@ -2,6 +2,15 @@
 
 ## Quick Start 
 
+### Prerequisites
+
+1. [Go-MSX prerequisites](https://cto-github.cisco.com/NFV-BU/go-msx#requirements)
+
+2. [Mini-VMS](https://cto-github.cisco.com/NFV-BU/mini-vms)
+
+    - A pre-installed virtual machine can be allocated from our Ops team 
+      [here](https://jenkins.infra.ciscomsx.com/job/eng-generic/job/development/job/dev-ops-vm/)
+
 ### Goland
 
 #### Local MSX Development  Instance
@@ -9,8 +18,12 @@
 1. Stage artifacts into the `dist` folder:
 
     - From the Goland toolbar, execute the `make dist` run configuration
-    
-2. Start the main application entrypoint:
+
+2. Initialize the database:
+ 
+    - From the Goland toolbar, execute the `${app.name} migrate (local)` run configuration
+
+3. Start the main application entrypoint:
  
     - From the Goland toolbar, execute the `${app.name} (local)` run configuration
     
@@ -36,7 +49,11 @@
             host: ${remote.service.address}
         ```
     
-3. Start the main application entrypoint:
+3. Initialize the database:
+ 
+    - From the Goland toolbar, execute the `${app.name} migrate (remote)` run configuration
+
+4. Start the main application entrypoint:
  
     - From the Goland toolbar, execute the `${app.name} (remote)` run configuration
 
@@ -59,6 +76,7 @@
     ```bash
     go run main.go migrate
     ```
+
 4. Start the main application entrypoint:
     ```bash
     go run main.go
@@ -108,15 +126,28 @@ To execute a target from the shell, run `make <target>`.
 
 This project can be opened in goland, and has several default run configurations:
 
+### Local Mini-MSX
+
 * `${app.name} (local)`
     - Run the microservice against a local installation of MSX
+* `${app.name} migrate (local)`
+    - Migrate the microservice
+
+### Remote Mini-MSX
+
 * `${app.name} (remote)`
     - Run the microservice against a remote installation of MSX.  The remote
       connection configuration is locate in the [local config](./local) subdirectory
       of the project.
+* `${app.name} migrate (remote)`
+    - Migrate the microservice
+
+### Build Targets
 * `make clean` 
     - Clean the project
 * `make dist`
     - Build the project distribution folder
 * `make docker`
     - Build the docker image 
+* `make publish`
+    - Publish a build of the service pack
