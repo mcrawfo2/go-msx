@@ -3,7 +3,7 @@ SKEL_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/bui
 BUILD_NUMBER ?= 0
 
 .PHONY: test dist docker debug publish generate clean precommit
-.PHONY: skel install-skel
+.PHONY: skel publish-skel
 
 test:
 	$(BUILDER) download-test-deps

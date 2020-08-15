@@ -129,7 +129,7 @@ pipeline {
 
         stage('Skel') {
             steps {
-                withCredentials([usernamePassword(
+                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") { withCredentials([usernamePassword(
                     credentialsId: ARTIFACTORY_CREDENTIALS,
                     passwordVariable: 'ARTIFACTORY_PASSWORD',
                     usernameVariable: 'ARTIFACTORY_USERNAME')]) {
@@ -139,7 +139,7 @@ pipeline {
                             sh "make publish-skel"
                         }
                     }
-                }
+                }}}
             }
         }
 
