@@ -129,7 +129,13 @@ pipeline {
 
         stage('Skel') {
             steps {
-                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") { withCredentials([usernamePassword(
+                sshagent([VMSBLD_CREDENTIALS]) {
+                    withEnv([
+                        "GOPATH=${env.WORKSPACE}/go",
+                        "GOPRIVATE=cto-github.cisco.com/NFV-BU",
+                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "PATH+GOBIN=${env.WORKSPACE}/go/bin",
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") { withCredentials([usernamePassword(
                     credentialsId: ARTIFACTORY_CREDENTIALS,
                     passwordVariable: 'ARTIFACTORY_PASSWORD',
                     usernameVariable: 'ARTIFACTORY_USERNAME')]) {
@@ -139,7 +145,7 @@ pipeline {
                             sh "make publish-skel"
                         }
                     }
-                }}}
+                }}}}
             }
         }
 
