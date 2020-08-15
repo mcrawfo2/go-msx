@@ -16,6 +16,7 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: ${app.version}-EDGE
     includeGroups: "com.cisco.**"
+  deploymentGroup: ${deployment.group}
 
 resources:
   - includes:
