@@ -8,10 +8,13 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
+	"encoding/base64"
 	"fmt"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -19,16 +22,18 @@ var logger = log.NewLogger("build")
 
 const (
 	// build.yml
-	configRootMsx        = "msx"
-	configRootLibrary    = "library"
-	configRootExecutable = "executable"
-	configRootBuild      = "build"
-	configRootDocker     = "docker"
-	configRootKubernetes = "kubernetes"
-	configRootManifest   = "manifest"
-	configRootGo         = "go"
-	configRootGenerate   = "generate"
-	configRootResources  = "resources"
+	configRootMsx         = "msx"
+	configRootLibrary     = "library"
+	configRootTool        = "tool"
+	configRootExecutable  = "executable"
+	configRootBuild       = "build"
+	configRootDocker      = "docker"
+	configRootKubernetes  = "kubernetes"
+	configRootManifest    = "manifest"
+	configRootGo          = "go"
+	configRootGenerate    = "generate"
+	configRootResources   = "resources"
+	configRootArtifactory = "artifactory"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -36,6 +41,7 @@ const (
 
 	// Output directories
 	configOutputRootPath = "dist/root"
+	configOutputToolPath = "dist/tools"
 
 	configTestPath = "test"
 )
@@ -46,6 +52,8 @@ var (
 		"msx.platform.includegroups":   "com.cisco.**",
 		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
 		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.23.11",
+		"msx.release":                  "3.10.0",
+		"msx.platform.version":         "3.10.0-EDGE",
 		"build.number":                 "SNAPSHOT",
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",
@@ -60,6 +68,9 @@ var (
 		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro" -ldflags=-s -ldflags=-w`,
 		"go.env.darwin.GOFLAGS":        `-i`,
 		"library.name":                 "",
+		"artifactory.repository":       "",
+		"artifactory.username":         "",
+		"artifactory.password":         "",
 	}
 )
 
@@ -87,6 +98,51 @@ type Executable struct {
 
 type Library struct {
 	Name string
+}
+
+type Tool struct {
+	Cmd  string
+	Name string
+}
+
+func (t Tool) PublishUrl(goos string) string {
+	return strings.Join([]string{
+		BuildConfig.Binaries.Repository,
+		t.Name,
+		BuildConfig.Build.Number,
+		t.PublishArtifactName(goos)},
+		"/")
+}
+
+func (t Tool) PublishLatestUrl(goos string) string {
+	return strings.Join([]string{
+		BuildConfig.Binaries.Repository,
+		t.Name,
+		"latest",
+		t.PublishArtifactLatestName(goos)},
+		"/")
+}
+
+func (t Tool) PackageFolder(goos string) string {
+	return filepath.Join(BuildConfig.OutputToolPath(), t.Name, goos)
+}
+
+func (t Tool) PublishArtifactName(goos string) string {
+	return fmt.Sprintf("%s-%s-%s.tar.gz",
+		t.Name,
+		goos,
+		BuildConfig.Build.Number)
+}
+
+func (t Tool) PublishArtifactLatestName(goos string) string {
+	return fmt.Sprintf("%s-%s-%s.tar.gz",
+		t.Name,
+		goos,
+		"latest")
+}
+
+func (t Tool) PublishArtifactPath(goos string) string {
+	return filepath.Join(BuildConfig.OutputToolPath(), t.Name, t.PublishArtifactName(goos))
 }
 
 type Go struct {
@@ -172,9 +228,20 @@ type PathMapping struct {
 	To   string
 }
 
+type Binaries struct {
+	Repository string // Root URL of artifactory binaries repository
+	Username   string // Injected from Jenkins credentials store via ARTIFACTORY_USERNAME
+	Password   string // Injected from Jenkins credentials store via ARTIFACTORY_PASSWORD
+}
+
+func (b Binaries) Authorization() string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(b.Username+":"+b.Password))
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Library    Library
+	Tool       Tool
 	Msx        MsxParams
 	Go         Go
 	Executable Executable
@@ -186,6 +253,7 @@ type Config struct {
 	Manifest   Manifest
 	Generate   []Generate
 	Resources  Resources
+	Binaries   Binaries
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -226,6 +294,10 @@ func (p Config) OutputStaticPath() string {
 	return path.Join(p.OutputResourcesPath(), "www")
 }
 
+func (p Config) OutputToolPath() string {
+	return configOutputToolPath
+}
+
 var BuildConfig = new(Config)
 
 func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []config.Provider) (finalConfig *config.Config, err error) {
@@ -234,10 +306,6 @@ func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []con
 	}
 
 	if err = cfg.Populate(&BuildConfig.Executable, configRootExecutable); err != nil {
-		return
-	}
-
-	if err = cfg.Populate(&BuildConfig.Build, configRootBuild); err != nil {
 		return
 	}
 
@@ -316,6 +384,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		return
 	}
 
+	if err = cfg.Populate(&BuildConfig.Tool, configRootTool); err != nil {
+		return
+	}
+
 	if err = cfg.Populate(&BuildConfig.Go, configRootGo); err != nil {
 		return
 	}
@@ -324,7 +396,15 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		return
 	}
 
-	if BuildConfig.Library.Name == "" {
+	if err = cfg.Populate(&BuildConfig.Binaries, configRootArtifactory); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Build, configRootBuild); err != nil {
+		return
+	}
+
+	if BuildConfig.Library.Name == "" && BuildConfig.Tool.Name == "" {
 		if newCfg, err := LoadAppBuildConfig(ctx, cfg, providers); err != nil {
 			return err
 		} else {

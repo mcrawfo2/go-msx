@@ -1,4 +1,5 @@
 def REPO_NAME = 'go-msx'
+def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
 def VMSBLD_CREDENTIALS = 'msx-jenkins-gen-ssh-key'
 def GITHUB_CREDENTIALS = 'msx-jenkins-gen-token-secret-text'
 def GITHUB_APP_ID_SONARQUBE = '7'
@@ -123,6 +124,22 @@ pipeline {
                     }
 
                 }}
+            }
+        }
+
+        stage('Skel') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: ARTIFACTORY_CREDENTIALS,
+                    passwordVariable: 'ARTIFACTORY_PASSWORD',
+                    usernameVariable: 'ARTIFACTORY_USERNAME')]) {
+                    script {
+                        if (env.BRANCH_NAME == TRUNK) {
+                            sh "make skel"
+                            sh "make publish-skel"
+                        }
+                    }
+                }
             }
         }
 

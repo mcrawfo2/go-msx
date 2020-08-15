@@ -1,0 +1,15 @@
+tool:
+  name: go-msx-skel
+  cmd: skel
+  resources:
+    includes:
+      - cmd/skel/README.md
+    mappings:
+      - from: cmd/skel/README.md
+        to: README.md
+
+generate:
+  - path: skel
+
+artifactory:
+  repository: "https://engci-maven-master.cisco.com/artifactory/symphony-release/com/cisco/vms"

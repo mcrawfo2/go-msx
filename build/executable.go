@@ -2,6 +2,7 @@ package build
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"github.com/pkg/errors"
 	"os"
 	"path"
 	"strings"
@@ -13,6 +14,13 @@ func init() {
 }
 
 func BuildDebugExecutable(args []string) error {
+	if BuildConfig.App.Name == "" {
+		return errors.New("App name not specified.  Please provide app.name in app config file")
+	}
+	if BuildConfig.Executable.Cmd == "" {
+		return errors.New("Entrypoint not specified.  Please provide executable.cmd in build.yml")
+	}
+
 	buildArgs := []string{
 		"build",
 		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name+"-debug"),
@@ -31,6 +39,13 @@ func BuildDebugExecutable(args []string) error {
 }
 
 func BuildExecutable(args []string) error {
+	if BuildConfig.App.Name == "" {
+		return errors.New("App name not specified.  Please provide app.name in app config file")
+	}
+	if BuildConfig.Executable.Cmd == "" {
+		return errors.New("Entrypoint not specified.  Please provide executable.cmd in build.yml")
+	}
+
 	buildArgs := []string{
 		"build",
 		"-o", path.Join(BuildConfig.OutputBinaryPath(), BuildConfig.App.Name),

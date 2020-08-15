@@ -1,4 +1,6 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml
+SKEL_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build-skel.yml
+BUILD_NUMBER ?= 0
 
 .PHONY: test dist docker debug publish generate clean precommit
 .PHONY: skel install-skel
@@ -37,8 +39,12 @@ precommit:
 	$(BUILDER) go-fmt
 
 skel:
-	mkdir -p dist/skel
-	go build -o dist/skel/skel cmd/skel/skel.go
+	$(SKEL_BUILDER) build-tool
+	cp cmd/skel/README.md dist/tools/go-msx-skel/linux
+	cp cmd/skel/README.md dist/tools/go-msx-skel/darwin
+
+publish-skel:
+	BUILD_NUMBER=$(BUILD_NUMBER) $(SKEL_BUILDER) publish-tool
 
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
