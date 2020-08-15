@@ -2,6 +2,15 @@
 
 ## Quick Start 
 
+### Prerequisites
+
+1. [Go-MSX prerequisites](https://cto-github.cisco.com/NFV-BU/go-msx#requirements)
+
+2. [Mini-VMS](https://cto-github.cisco.com/NFV-BU/mini-vms)
+
+    - A pre-installed virtual machine can be allocated from our Ops team 
+      [here](https://jenkins.infra.ciscomsx.com/job/eng-generic/job/development/job/dev-ops-vm/)
+
 ### Goland
 
 #### Local MSX Development  Instance
