@@ -41,8 +41,8 @@ func buildToolForOs(goos string) error {
 	logger.Infof("Build tool %s for %s", BuildConfig.Tool.Name, goos)
 
 	env := BuildConfig.Go.Environment()
-	env["GOOS"] = goos
-	env["GOFLAGS"] = ""
+	env["goos"] = goos
+	env["goflags"] = ""
 
 	buildArgs := []string{
 		"build",
