@@ -68,6 +68,8 @@ var (
 		"go.env.linux.GOFLAGS":         `-buildmode=pie -i -ldflags="-extldflags=-Wl,-z,now,-z,relro" -ldflags=-s -ldflags=-w`,
 		"go.env.darwin.GOFLAGS":        `-i`,
 		"library.name":                 "",
+		"tool.cmd":                     "",
+		"tool.name":                    "",
 		"artifactory.repository":       "",
 		"artifactory.username":         "",
 		"artifactory.password":         "",
