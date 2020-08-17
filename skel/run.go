@@ -70,7 +70,8 @@ func loadConfig() (bool, error) {
 		return false, err
 	}
 
-	skeletonConfig.TargetParent = filepath.Dir(filepath.Dir(configFile))
+	skeletonConfig.TargetDir = filepath.Dir(configFile)
+	skeletonConfig.TargetParent = filepath.Dir(skeletonConfig.TargetDir)
 
 	return true, nil
 }

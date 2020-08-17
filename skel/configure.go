@@ -11,6 +11,7 @@ import (
 type SkeletonConfig struct {
 	Archetype         string `survey:"generator" json:"generator"`
 	TargetParent      string `survey:"targetParent" json:"-"`
+	TargetDir         string `json:"-"`
 	AppName           string `survey:"appName" json:"appName"`
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
 	AppDescription    string `survey:"appDescription" json:"appDescription"`
@@ -25,7 +26,10 @@ type SkeletonConfig struct {
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
-	return path.Join(c.TargetParent, c.AppName)
+	if c.TargetDir == "" {
+		return path.Join(c.TargetParent, c.AppName)
+	}
+	return c.TargetDir
 }
 
 func (c SkeletonConfig) AppMigrateVersion() string {
