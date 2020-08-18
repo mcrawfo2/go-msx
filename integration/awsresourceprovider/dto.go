@@ -108,3 +108,10 @@ type AwsTransitGatewayAttachmentStatus struct {
 	TransitGatewayID           string `json:"TransitGatewayId"`
 	TransitGatewayOwnerID      string `json:"TransitGatewayOwnerId"`
 }
+
+type StackOutput struct {
+	Description string `json:"Description"`
+	ExportName  string `json:"ExportName"`
+	OutputKey   string `json:"OutputKey"`
+	OutputValue string `json:"OutputValue"`
+}

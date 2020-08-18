@@ -16,4 +16,5 @@ type Api interface {
 	GetEc2InstanceStatus(controlPlaneId types.UUID, region string, instanceId string) (*integration.MsxResponse, error)
 	GetTransitGatewayStatus(controlPlaneId types.UUID, region string, transitGatewayIds []string) (*integration.MsxResponse, error)
 	GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string) (*integration.MsxResponse, error)
+	GetStackOutputs(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
 }

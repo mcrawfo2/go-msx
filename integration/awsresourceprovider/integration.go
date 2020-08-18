@@ -17,8 +17,8 @@ const (
 	endpointNameGetEc2InstanceStatus              = "getEc2InstanceStatus"
 	endpointNameGetTransitGatewayStatus           = "getTransitGatewayStatus"
 	endpointNameGetTransitGatewayAttachmentStatus = "getTransitGatewayAttachmentStatus"
-
-	serviceName = integration.ResourceProviderNameAws
+	endpointNameGetStackOutput                    = "getStackOutput"
+	serviceName                                   = integration.ResourceProviderNameAws
 )
 
 var (
@@ -32,6 +32,7 @@ var (
 		endpointNameGetTransitGatewayStatus:           {Method: "GET", Path: "/api/v1/transitgateway/status"},
 		endpointNameGetTransitGatewayAttachmentStatus: {Method: "GET", Path: "/api/v1/transitgatewayattachment/status"},
 		endpointNameGetEc2InstanceStatus:              {Method: "GET", Path: "/api/v1/ec2instance/status"},
+		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/stack/outputs"},
 	}
 )
 
@@ -149,5 +150,16 @@ func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUI
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayAttachmentStatus{},
+	})
+}
+
+func (i *Integration) GetStackOutputs(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetStackOutput,
+		QueryParameters: map[string][]string{
+			"serviceConfigurationApplicationId": {serviceConfigurationApplicationId.String()},
+		},
+		ExpectEnvelope: true,
+		Payload:        &[]StackOutput{},
 	})
 }
