@@ -41,5 +41,5 @@ spec:
         - name: SPRING_CLOUD_VAULT_TOKEN
           valueFrom:
             secretKeyRef:
-              name: msxvault-idm
+              name: msxvault
               key: token
