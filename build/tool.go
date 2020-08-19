@@ -168,7 +168,7 @@ func packageToolForOs(goos string) error {
 			return nil
 		}
 
-		subpath := strings.TrimPrefix(p, toolSourcePath + "/")
+		subpath := strings.TrimPrefix(p, toolSourcePath+"/")
 
 		logger.Infof("Adding %q", subpath)
 

@@ -33,4 +33,3 @@ func uploadArtifactory(sourceFile string, uploadUrl string) (err error) {
 
 	return nil
 }
-
