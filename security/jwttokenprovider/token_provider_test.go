@@ -20,7 +20,7 @@ func loadFile(t *testing.T, filename string, target interface{}) []byte {
 	return data
 }
 
-func createTokenProvider() *TokenProvider {
+func createTokenProviderKeystore() *TokenProvider {
 	return &TokenProvider{cfg: &TokenProviderConfig{
 		KeySource:   keySourceKeystore,
 		KeyPath:     "testdata/msxjwtkeystore.jks",
@@ -29,16 +29,30 @@ func createTokenProvider() *TokenProvider {
 	}}
 }
 
+func createTokenProviderPem() *TokenProvider {
+	return &TokenProvider{cfg: &TokenProviderConfig{
+		KeySource: keySourcePem,
+		KeyPath:   "testdata/jwt-pubkey.pem",
+	}}
+}
+
 func TestTokenProvider_keystoreSigningKey(t *testing.T) {
-	tokenProvider := createTokenProvider()
+	tokenProvider := createTokenProviderKeystore()
 	keyStore, err := tokenProvider.keystoreSigningKey(nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, keyStore)
+}
+
+func TestTokenProvider_pemSigningKey(t *testing.T) {
+	tokenProvider := createTokenProviderPem()
+	keyStore, err := tokenProvider.pemSigningKey(nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, keyStore)
 }
 
 // TODO: Find a mock time source
 //func TestTokenProvider_SecurityContextFromToken(t *testing.T) {
-//	tokenProvider := createTokenProvider()
+//	tokenProvider := createTokenProviderPem()
 //	var token *string
 //	loadFile(t, "token", &token)
 //

@@ -11,6 +11,7 @@ import (
 
 const (
 	configKeyInfo = "info"
+	endpointName  = "info"
 )
 
 type InfoProvider struct{}
@@ -50,6 +51,10 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	}
 
 	return i, nil
+}
+
+func (h InfoProvider) EndpointName() string {
+	return endpointName
 }
 
 func (h InfoProvider) Actuate(infoService *restful.WebService) error {

@@ -27,6 +27,7 @@ type WebServer struct {
 	documentation []DocumentationProvider
 	security      AuthenticationProvider
 	actuators     []ServiceProvider
+	actuatorCfg   *ManagementSecurityConfig
 	aliases       []StaticAlias
 	server        *http.Server
 	injectors     *types.ContextInjectors
@@ -42,18 +43,19 @@ func NewWebRoot(webRootPath string) (http.FileSystem, error) {
 	return fs.NewPrefixFileSystem(vfs, webRootPath)
 }
 
-func NewWebServer(cfg *WebServerConfig, ctx context.Context) (*WebServer, error) {
+func NewWebServer(cfg *WebServerConfig, actuatorConfig *ManagementSecurityConfig, ctx context.Context) (*WebServer, error) {
 	webRoot, err := NewWebRoot(cfg.StaticPath)
 	if err != nil {
 		return nil, err
 	}
 
 	return &WebServer{
-		ctx:       ctx,
-		cfg:       cfg,
-		router:    &restful.CurlyRouter{},
-		injectors: new(types.ContextInjectors),
-		webRoot:   webRoot,
+		ctx:         ctx,
+		cfg:         cfg,
+		actuatorCfg: actuatorConfig,
+		router:      &restful.CurlyRouter{},
+		injectors:   new(types.ContextInjectors),
+		webRoot:     webRoot,
 	}, nil
 }
 
@@ -120,7 +122,7 @@ func (s *WebServer) Handler() http.Handler {
 		s.actuateDocumentation(documentation)
 	}
 
-	// Add services
+	// Add admin actuators
 	for _, provider := range s.actuators {
 		s.actuateService(provider)
 	}
@@ -190,6 +192,12 @@ func (s *WebServer) actuateService(provider ServiceProvider) {
 
 	actuatorService := new(restful.WebService)
 	actuatorService.Path(s.cfg.ContextPath)
+
+	if s.actuatorCfg.EndpointSecurityEnabled(provider.EndpointName()) {
+		securityFilter := NewManagementSecurityFilter(s.actuatorCfg)
+		actuatorService.Filter(securityFilter)
+	}
+
 	if err := provider.Actuate(actuatorService); err != nil {
 		logger.WithError(err).Errorf("Failed to register actuator")
 	} else {

@@ -6,10 +6,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"github.com/emicklei/go-restful"
+	"strings"
 )
 
 const (
-	providerName = "env"
+	endpointName = "env"
 )
 
 type CachingProvider interface {
@@ -32,11 +33,15 @@ type Report struct {
 
 type Provider struct{}
 
+func (h Provider) EndpointName() string {
+	return endpointName
+}
+
 func (h Provider) Actuate(webService *restful.WebService) error {
 	webService.Consumes(restful.MIME_JSON)
 	webService.Produces(restful.MIME_JSON)
 
-	webService.Path(webService.RootPath() + "/admin/" + providerName)
+	webService.Path(webService.RootPath() + "/admin/" + endpointName)
 
 	// Unsecured routes for info
 	webService.Route(webService.GET("").
@@ -67,7 +72,11 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 		if cachingProvider, ok := provider.(CachingProvider); ok {
 			propertySource.Properties = make(map[string]Property)
 			for k, v := range cachingProvider.Cache() {
-				propertySource.Properties[k] = Property{v}
+				if h.isSecret(k) {
+					propertySource.Properties[k] = Property{"*****"}
+				} else {
+					propertySource.Properties[k] = Property{v}
+				}
 			}
 		}
 
@@ -77,11 +86,19 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 	return report, nil
 }
 
+func (h Provider) isSecret(key string) bool {
+	key = strings.ToLower(key)
+	return strings.Contains(key, "secret") ||
+		strings.Contains(key, "password") ||
+		strings.Contains(key, "token") ||
+		strings.Contains(key, "credentials")
+}
+
 func RegisterProvider(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	if server != nil {
 		server.RegisterActuator(new(Provider))
-		adminprovider.RegisterLink(providerName, providerName, false)
+		adminprovider.RegisterLink(endpointName, endpointName, false)
 	}
 	return nil
 }

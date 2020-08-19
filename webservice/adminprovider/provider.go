@@ -23,6 +23,10 @@ type Report struct {
 
 type AdminProvider struct{}
 
+func (h AdminProvider) EndpointName() string {
+	return "admin"
+}
+
 func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 	infoService.Consumes(restful.MIME_JSON)
 	infoService.Produces(restful.MIME_JSON)
@@ -36,12 +40,6 @@ func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 		Doc("Get System info").
 		Do(webservice.Returns200))
 
-	infoService.Route(infoService.GET("/alive").
-		Operation("admin.alive").
-		To(RawAdminController(h.emptyReport)).
-		Doc("Liveness check").
-		Do(webservice.Returns200))
-
 	return nil
 }
 
@@ -49,16 +47,11 @@ func (h AdminProvider) adminReport(req *restful.Request) (body interface{}, err 
 	baseUrl := fmt.Sprintf("http://%s%s", req.Request.Host, req.Request.URL.String())
 	var reportLinks = map[string]Link{
 		"self":  {baseUrl, false},
-		"alive": {baseUrl + "/alive", false},
 	}
 	for k, v := range links {
 		reportLinks[k] = Link{baseUrl + "/" + v.Href, v.Templated}
 	}
 	return Report{reportLinks}, nil
-}
-
-func (h AdminProvider) emptyReport(req *restful.Request) (body interface{}, err error) {
-	return struct{}{}, nil
 }
 
 func (h AdminProvider) optionsFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
