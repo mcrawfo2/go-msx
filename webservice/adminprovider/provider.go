@@ -46,7 +46,7 @@ func (h AdminProvider) Actuate(infoService *restful.WebService) error {
 func (h AdminProvider) adminReport(req *restful.Request) (body interface{}, err error) {
 	baseUrl := fmt.Sprintf("http://%s%s", req.Request.Host, req.Request.URL.String())
 	var reportLinks = map[string]Link{
-		"self":  {baseUrl, false},
+		"self": {baseUrl, false},
 	}
 	for k, v := range links {
 		reportLinks[k] = Link{baseUrl + "/" + v.Href, v.Templated}
