@@ -55,6 +55,11 @@ func (e *StatusError) Cause() error {
 	return e.cause
 }
 
+func (e *StatusError) Unwrap() error {
+	// leveraged by errors.As()
+	return e.cause
+}
+
 func NewBadRequestError(cause error) error {
 	return NewStatusError(cause, http.StatusBadRequest)
 }
