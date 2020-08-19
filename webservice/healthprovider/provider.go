@@ -11,6 +11,8 @@ import (
 	"net/http"
 )
 
+const endpointName = "health"
+
 type HealthProvider struct{}
 
 func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) {
@@ -33,6 +35,10 @@ func (h HealthProvider) healthComponentReport(req *restful.Request) (interface{}
 	} else {
 		return details, nil
 	}
+}
+
+func (h HealthProvider) EndpointName() string {
+	return endpointName
 }
 
 func (h HealthProvider) Actuate(healthService *restful.WebService) error {

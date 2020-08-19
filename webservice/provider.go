@@ -7,6 +7,7 @@ import (
 
 type ServiceProvider interface {
 	Actuate(webService *restful.WebService) error
+	EndpointName() string
 }
 
 type DocumentationProvider interface {

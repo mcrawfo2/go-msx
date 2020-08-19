@@ -25,6 +25,10 @@ type Report struct {
 
 type Provider struct{}
 
+func (h Provider) EndpointName() string {
+	return endpointName
+}
+
 func (h Provider) Report(req *restful.Request) (interface{}, error) {
 	var loggers = make(map[string]Logger)
 	for name, level := range log.GetLoggerLevels() {

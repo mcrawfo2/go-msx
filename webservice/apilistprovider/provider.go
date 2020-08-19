@@ -31,6 +31,10 @@ type resource struct {
 	Produces    string `json:"produces,omitempty"`
 }
 
+func (h *Provider) EndpointName() string {
+	return endpointName
+}
+
 func (h *Provider) Report(req *restful.Request) (body interface{}, err error) {
 	return h.report, nil
 }

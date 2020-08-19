@@ -11,6 +11,10 @@ type Provider struct{}
 
 const endpointName = "prometheus"
 
+func (h Provider) EndpointName() string {
+	return endpointName
+}
+
 func (h Provider) Actuate(webService *restful.WebService) error {
 	webService.Consumes(restful.MIME_JSON)
 	webService.Produces(restful.MIME_JSON)

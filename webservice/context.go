@@ -45,7 +45,12 @@ func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer
 		return nil, ErrDisabled
 	}
 
-	return NewWebServer(&webServerConfig, ctx)
+	actuatorConfig, err := NewManagementSecurityConfig(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read management security config")
+	}
+
+	return NewWebServer(&webServerConfig, actuatorConfig, ctx)
 }
 
 type webServerContextKey int

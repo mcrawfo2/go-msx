@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/aliveprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/apilistprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/debugprovider"
@@ -51,6 +52,7 @@ func registerAdminWebServices(ctx context.Context) error {
 		adminprovider.RegisterProvider(ctx),
 		healthprovider.RegisterProvider(ctx),
 		infoprovider.RegisterProvider(ctx),
+		aliveprovider.RegisterProvider(ctx),
 		metricsprovider.RegisterProvider(ctx),
 		envprovider.RegisterProvider(ctx),
 		loggersprovider.RegisterProvider(ctx),

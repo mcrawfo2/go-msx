@@ -1,4 +1,4 @@
-package metricsprovider
+package aliveprovider
 
 import (
 	"context"
@@ -8,20 +8,10 @@ import (
 )
 
 const (
-	endpointName = "metrics"
+	endpointName = "alive"
 )
 
-var metricNames = []string{}
-
-type Report struct {
-	Names []string `json:"names"`
-}
-
 type Provider struct{}
-
-func (h Provider) Report(req *restful.Request) (interface{}, error) {
-	return Report{Names: metricNames}, nil
-}
 
 func (h Provider) EndpointName() string {
 	return endpointName
@@ -33,13 +23,17 @@ func (h Provider) Actuate(webService *restful.WebService) error {
 
 	webService.Path(webService.RootPath() + "/admin/" + endpointName)
 
-	// Unsecured routes for info
 	webService.Route(webService.GET("").
-		Operation("admin.metrics").
-		To(adminprovider.RawAdminController(h.Report)).
+		Operation("admin.alive").
+		To(adminprovider.RawAdminController(h.emptyReport)).
+		Doc("Liveness check").
 		Do(webservice.Returns200))
 
 	return nil
+}
+
+func (h Provider) emptyReport(req *restful.Request) (body interface{}, err error) {
+	return struct{}{}, nil
 }
 
 func RegisterProvider(ctx context.Context) error {
