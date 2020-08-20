@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
@@ -80,64 +79,87 @@ func (c *Config) reload(ctx context.Context) (map[string]string, error) {
 	return result, nil
 }
 
+func (c *Config) resolveValueHelper(nested map[string]bool,
+	resolved, settings map[string]string, value string) (string, error) {
+	variableRegex, _ := regexp.Compile(`\${([\w._\-]+)(:(.*))?}`)
+	if !strings.Contains(value, "${") {
+		return value, nil
+	}
+
+	var refStrings []string
+	depth := 0
+	refString := ""
+	for i, c := range value {
+		if value[i] == '$' && i+1 < len(value) && value[i+1] == '{' {
+			depth++
+		}
+		if depth > 0 {
+			refString += string(c)
+		}
+		if value[i] == '}' && depth>0 {
+			depth--
+		}
+		if depth == 0 && len(refString) > 0 {
+			refStrings = append(refStrings, refString)
+			refString = ""
+		}
+	}
+
+	if depth != 0 {
+		logger.Errorf("Malformed string %s", value)
+		// return raw string
+		return value, nil
+	}
+
+	for _, rs := range refStrings {
+		match := variableRegex.FindStringSubmatch(rs)
+		if len(match) > 0 {
+			//ignore case
+			refName :=  c.alias(match[1])
+			refValue := ""
+			//check if variable is already in the stack
+			if _, ok := nested[refName]; ok {
+				return "", errors.Errorf("Circular variable reference detected: '%s' already in %v",
+					refName, nested)
+			} else {
+				nested[refName] = true
+			}
+			// check lasted resolved values first
+			if rv, ok := resolved[refName]; ok {
+				refValue = rv
+			} else if sv, ok := settings[refName]; ok {
+				refValue = sv
+			}
+			// resolve the references in the value.
+			refValue, err := c.resolveValueHelper(nested, resolved, settings, refValue)
+			if err != nil {
+				return "", err
+			}
+			if len(refValue) > 0 {
+				resolved[refName] = refValue
+			} else if len(match) >= 4 && len(match[3]) > 0 {
+				// if not able to resolve the value and default value is set
+				refValue, err = c.resolveValueHelper(nested, resolved, settings, match[3])
+			}
+			if err != nil {
+				return "", err
+			}
+			//remove resolved variable from nested map.
+			delete(nested, refName)
+			value = strings.Replace(value, rs, refValue, -1)
+		}
+	}
+	return value, nil
+}
+
 // Expand all references to ${variables} inside value
 func (c *Config) resolveValue(resolved, settings map[string]string, value string) string {
-	variableRegex, _ := regexp.Compile(`\${([\w._\-]+)(:([^}]*))?}`)
-
-	if !strings.Contains(value, "${") {
-		return value
+	nested := make(map[string]bool)
+	value, err := c.resolveValueHelper(nested, resolved, settings, value)
+	if err != nil {
+		logger.WithError(err).Error("Not able to resolve value!")
+		return ""
 	}
-
-	stack := types.StringStack{"_"}
-	defaults := make(map[string]string)
-	for len(stack) > 0 {
-		currentVariable := stack.Peek()
-		currentValue := ""
-		ok := false
-
-		if currentValue, ok = resolved[currentVariable]; ok {
-			// already resolved
-		} else if currentVariable == "_" {
-			// passed-in value
-			currentValue = value
-		} else if currentValue, ok = settings[currentVariable]; !ok {
-			var defaultValue string
-			if defaultValue, ok = defaults[currentVariable]; ok {
-				currentValue = defaultValue
-			} else {
-				logger.Errorf("Failed to resolve variable %s", currentVariable)
-				currentValue = ""
-			}
-		}
-
-		unresolvedReferences := 0
-		variables := variableRegex.FindAllStringSubmatch(currentValue, -1)
-		for _, match := range variables {
-			referenceVariableName := c.alias(match[1])
-			if stack.Contains(referenceVariableName) {
-				logger.Errorf("Circular variable reference detected: %s", referenceVariableName)
-				resolved[referenceVariableName] = ""
-			}
-			if referenceVariableValue, ok := resolved[referenceVariableName]; ok {
-				referenceRegex, _ := regexp.Compile(`\${` + strings.ReplaceAll(match[1], ".", "\\.") + `(:([^}]*))?}`)
-				currentValue = referenceRegex.ReplaceAllLiteralString(currentValue, referenceVariableValue)
-			} else {
-				unresolvedReferences++
-				stack = stack.Push(referenceVariableName)
-				if len(match) == 4 && len(match[2]) > 0 {
-					defaults[referenceVariableName] = match[3]
-				}
-			}
-		}
-
-		if unresolvedReferences == 0 {
-			resolved[currentVariable] = currentValue
-			stack = stack.Pop()
-		}
-	}
-
-	value = resolved["_"]
-	delete(resolved, "_")
 	return value
 }
 
