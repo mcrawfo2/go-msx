@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/vault/tokensource"
 	"encoding/base64"
 	"fmt"
 	"github.com/hashicorp/vault/api"
@@ -26,7 +27,7 @@ type ConnectionConfig struct {
 	Host    string `config:"default=localhost"`
 	Port    int    `config:"default=8200"`
 	Scheme  string `config:"default=http"`
-	Token   string `config:"default=replace_with_token_value"`
+	TokenSource   string `config:"default=config"`
 	Ssl     struct {
 		Cacert     string `config:"default="`
 		ClientCert string `config:"default="`
@@ -43,6 +44,7 @@ type Connection struct {
 	config *ConnectionConfig
 	client *api.Client
 	stats  *statsObserver
+	tokensource tokensource.TokenSource
 }
 
 func (c *Connection) Host() string {
@@ -270,12 +272,11 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 		return nil, err
 	}
 
-	client.SetToken(connectionConfig.Token)
-
-	return &Connection{
+		return &Connection{
 		config: connectionConfig,
 		client: client,
 		stats:  new(statsObserver),
+		tokensource: tokensource.GetTokenSource(connectionConfig.TokenSource),
 	}, nil
 }
 
@@ -284,6 +285,11 @@ func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
 	if err := cfg.Populate(connectionConfig, configRootVaultConnection); err != nil {
 		return nil, err
 	}
-
-	return NewConnection(connectionConfig)
+	conn, err := NewConnection(connectionConfig)
+	if err != nil {
+		return conn, err
+	}
+	token, err := conn.tokensource.GetToken(cfg)
+	conn.client.SetToken(token)
+	return conn, err
 }
