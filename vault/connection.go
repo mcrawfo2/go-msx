@@ -27,7 +27,9 @@ type ConnectionConfig struct {
 	Host    string `config:"default=localhost"`
 	Port    int    `config:"default=8200"`
 	Scheme  string `config:"default=http"`
-	TokenSource   string `config:"default=config"`
+	TokenSource   struct {
+		Source string `config:"default=config"`
+	}
 	Ssl     struct {
 		Cacert     string `config:"default="`
 		ClientCert string `config:"default="`
@@ -276,7 +278,7 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 		config: connectionConfig,
 		client: client,
 		stats:  new(statsObserver),
-		tokensource: tokensource.GetTokenSource(connectionConfig.TokenSource),
+		tokensource: tokensource.GetTokenSource(connectionConfig.TokenSource.Source),
 	}, nil
 }
 
@@ -289,7 +291,7 @@ func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
 	if err != nil {
 		return conn, err
 	}
-	token, err := conn.tokensource.GetToken(cfg)
+	token, err := conn.tokensource.GetToken(conn.client, cfg)
 	conn.client.SetToken(token)
 	go conn.tokensource.StartRenewer(conn.client)
 	return conn, err

@@ -12,7 +12,7 @@ const (
 type ConfigSource struct {
 }
 
-func (c *ConfigSource) GetToken(cfg *config.Config) (token string, err error) {
+func (c *ConfigSource) GetToken(client *api.Client, cfg  *config.Config) (token string, err error) {
 	return cfg.String(configRootVaultToken)
 }
 

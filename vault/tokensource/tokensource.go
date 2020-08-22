@@ -9,7 +9,7 @@ var logger  = log.NewLogger("msx.vault.tokensource")
 
 //TokenSource interface represents a mechanism for retrival and management of Vault Tokens
 type TokenSource interface {
-	GetToken(cfg *config.Config) (token string, err error)
+	GetToken(client *api.Client, cfg *config.Config) (token string, err error)
 	StartRenewer(client *api.Client)
 }
 
@@ -17,6 +17,8 @@ type TokenSource interface {
 //Currently Config based source and Kubernetes Auth are implemented
 func GetTokenSource(source string) TokenSource {
 	switch source {
+	case "approle":
+		return &ApproleSource{}
 	default:
 		return &ConfigSource{}
 	}
