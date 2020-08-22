@@ -291,5 +291,6 @@ func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
 	}
 	token, err := conn.tokensource.GetToken(cfg)
 	conn.client.SetToken(token)
+	go conn.tokensource.StartRenewer(conn.client)
 	return conn, err
 }

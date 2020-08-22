@@ -1,12 +1,16 @@
 package tokensource
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	tsconfig "cto-github.cisco.com/NFV-BU/go-msx/vault/tokensource/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"github.com/hashicorp/vault/api"
 )
+
+var logger  = log.NewLogger("msx.vault.tokensource")
 
 //TokenSource interface represents a mechanism for retrival and management of Vault Tokens
 type TokenSource interface {
 	GetToken(cfg *config.Config) (token string, err error)
+	StartRenewer(client *api.Client)
 }
 
 //GetTokenSource will return a TokenSource implementation based provided config
@@ -14,6 +18,6 @@ type TokenSource interface {
 func GetTokenSource(source string) TokenSource {
 	switch source {
 	default:
-		return &tsconfig.ConfigSource{}
+		return &ConfigSource{}
 	}
 }
