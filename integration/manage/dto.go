@@ -219,13 +219,7 @@ type ControlPlaneResponse struct {
 	Attributes         map[string]string `json:"attributes"`
 }
 type AttachTemplateRequest struct {
-	TemplateDetails []struct {
-		TemplateID     string `json:"templateId"`
-		TemplateParams []struct {
-			Name  string `json:"name"`
-			Value string `json:"value"`
-		} `json:"templateParams"`
-	} `json:"templateDetails"`
+	TemplateDetails []TemplateDetails `json:"templateDetails"`
 }
 
 type AttachTemplateResponse []struct {
@@ -241,13 +235,22 @@ type AttachTemplateResponse []struct {
 	UserID      string `json:"userId"`
 }
 
+type TemplateDetails struct {
+	TemplateID     string           `json:"templateId"`
+	TemplateParams []TemplateParams `json:"templateParams"`
+}
+
+type TemplateParams struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type DeviceTemplateAccessDTO struct {
-	Global  bool     `json:"global"`
 	Tenants []string `json:"tenants"`
 }
 
-type DeviceTemplateAccessResponseDTO struct{
-	Global bool `json:"global"`
+type DeviceTemplateAccessResponseDTO struct {
+	Global               bool     `json:"global"`
 	SuccessListOfTenants []string `json:successListOfTenants`
 	FailureListOfTenants []string `json:failureListOfTenants`
 }

@@ -73,6 +73,8 @@ const (
 
 	endpointNameGetEntityShard = "getEntityShard"
 
+	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
+
 	serviceName = integration.ServiceNameManage
 )
 
@@ -137,7 +139,8 @@ var (
 		endpointNameConnectControlPlane:          {Method: "POST", Path: "/api/v1/controlplanes/{{.controlPlaneId}}/connect"},
 		endpointNameConnectUnmanagedControlPlane: {Method: "POST", Path: "/api/v1/controlplanes/connect"},
 
-		endpointNameGetEntityShard: {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
+		endpointNameGetEntityShard:       {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
+		endpointNameUpdateTemplateAccess: {Method: "PUT", Path: "/api/v1/devicetemplates/{{.templateId}}"},
 	}
 )
 
@@ -832,16 +835,15 @@ func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateReque
 		ExpectEnvelope: true,
 	})
 }
-func (i *Integration) UpdateTemplateAccessForTenants(templateId types.UUID, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error){
+func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(deviceTemplateDTO)
 	if err != nil {
 		return nil, err
 	}
-
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameAttachDeviceTemplates,
+		EndpointName: endpointNameUpdateTemplateAccess,
 		EndpointParameters: map[string]string{
-			"templateId": templateId.String(),
+			"templateId": templateId,
 		},
 		Body:           bodyBytes,
 		Payload:        new(DeviceTemplateAccessResponseDTO),
