@@ -227,6 +227,7 @@ type AttachTemplateRequest struct {
 		} `json:"templateParams"`
 	} `json:"templateDetails"`
 }
+
 type AttachTemplateResponse []struct {
 	ID             string `json:"id"`
 	DeviceID       string `json:"deviceId"`
@@ -238,4 +239,15 @@ type AttachTemplateResponse []struct {
 	Status      string `json:"status"`
 	LastUpdated string `json:"lastUpdated"`
 	UserID      string `json:"userId"`
+}
+
+type DeviceTemplateAccessDTO struct {
+	Global  bool     `json:"global"`
+	Tenants []string `json:"tenants"`
+}
+
+type DeviceTemplateAccessResponseDTO struct{
+	Global bool `json:"global"`
+	SuccessListOfTenants []string `json:successListOfTenants`
+	FailureListOfTenants []string `json:failureListOfTenants`
 }

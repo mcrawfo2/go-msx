@@ -4,6 +4,7 @@ package manage
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
 type Api interface {
@@ -68,6 +69,7 @@ type Api interface {
 
 	GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error)
 	AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error)
+	UpdateTemplateAccessForTenants(templateId types.UUID, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error)
 	// UpdateDeviceTemplates
 	// DetachDeviceTemplates
 	// DetachDeviceTemplate

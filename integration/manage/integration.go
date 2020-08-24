@@ -832,6 +832,22 @@ func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateReque
 		ExpectEnvelope: true,
 	})
 }
+func (i *Integration) UpdateTemplateAccessForTenants(templateId types.UUID, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error){
+	bodyBytes, err := json.Marshal(deviceTemplateDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameAttachDeviceTemplates,
+		EndpointParameters: map[string]string{
+			"templateId": templateId.String(),
+		},
+		Body:           bodyBytes,
+		Payload:        new(DeviceTemplateAccessResponseDTO),
+		ExpectEnvelope: true,
+	})
+}
 
 func (i *Integration) GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error) {
 	queryParameters := url.Values{}
