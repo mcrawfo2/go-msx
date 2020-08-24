@@ -218,3 +218,24 @@ type ControlPlaneResponse struct {
 	TlsInsecure        bool              `json:"tlsInsecure"`
 	Attributes         map[string]string `json:"attributes"`
 }
+type AttachTemplateRequest struct {
+	TemplateDetails []struct {
+		TemplateID     string `json:"templateId"`
+		TemplateParams []struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		} `json:"templateParams"`
+	} `json:"templateDetails"`
+}
+type AttachTemplateResponse []struct {
+	ID             string `json:"id"`
+	DeviceID       string `json:"deviceId"`
+	TemplateID     string `json:"templateId"`
+	TemplateParams []struct {
+		Name  string `json:"name"`
+		Value string `json:"value"`
+	} `json:"templateParams"`
+	Status      string `json:"status"`
+	LastUpdated string `json:"lastUpdated"`
+	UserID      string `json:"userId"`
+}

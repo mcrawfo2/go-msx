@@ -812,11 +812,26 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 
 /*
 	TODO: v3 device templates
-	endpointNameAttachDeviceTemplates    = "attachDeviceTemplates"
 	endpointNameUpdateDeviceTemplates    = "updateDeviceTemplates"
 	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
 	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
 */
+func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(attachTemplateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameAttachDeviceTemplates,
+		EndpointParameters: map[string]string{
+			"deviceInstanceId": deviceId,
+		},
+		Body:           bodyBytes,
+		Payload:        new(AttachTemplateResponse),
+		ExpectEnvelope: true,
+	})
+}
 
 func (i *Integration) GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error) {
 	queryParameters := url.Values{}
