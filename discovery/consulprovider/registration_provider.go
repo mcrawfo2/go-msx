@@ -54,7 +54,7 @@ type RegistrationProviderConfig struct {
 	RegisterHealthCheck bool          `config:"default=true"`
 	HealthCheckPath     string        `config:"default=/admin/health"`
 	HealthCheckInterval time.Duration `config:"default=10s"`
-	HealthCheckTimeout  time.Duration `config:"default=2s"`
+	HealthCheckTimeout  time.Duration `config:"default=10s"`
 	Tags                string        `config:"default="`
 	InstanceId          string        `config:"default=local"` // uuid, hostname, or any static string
 	InstanceName        string        `config:"default=${info.app.name}"`
