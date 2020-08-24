@@ -19,6 +19,8 @@ func GetTokenSource(source string) TokenSource {
 	switch source {
 	case "approle":
 		return &ApproleSource{}
+	case "kubernetes":
+		return &KubernetesSource{}
 	default:
 		return &ConfigSource{}
 	}
