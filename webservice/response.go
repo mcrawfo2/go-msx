@@ -1,13 +1,14 @@
 package webservice
 
 import (
+	"errors"
+	"net/http"
+	"reflect"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"errors"
 	"github.com/emicklei/go-restful"
-	"net/http"
-	"reflect"
 )
 
 type ErrorRaw interface {
@@ -111,7 +112,8 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		Command:    RouteOperationFromContext(req.Request.Context()),
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
-		Throwable:  integration.NewThrowable(err),
+		//should not return stack trace envelop to api calls
+		//Throwable:  integration.NewThrowable(err),
 	}
 
 	var errorList types.ErrorList
