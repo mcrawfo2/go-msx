@@ -112,8 +112,6 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		Command:    RouteOperationFromContext(req.Request.Context()),
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
-		//should not return stack trace envelop to api calls
-		//Throwable:  integration.NewThrowable(err),
 	}
 
 	var errorList types.ErrorList
@@ -126,9 +124,8 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		WithError(err).
 		Error("Request failed")
 
-	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
-	if err2 != nil {
-		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error envelope")
+	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
+		logger.WithContext(req.Request.Context()).WithError(err).Error("Failed to write error envelope")
 	}
 }
 
