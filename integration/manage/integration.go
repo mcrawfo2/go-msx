@@ -73,6 +73,8 @@ const (
 
 	endpointNameGetEntityShard = "getEntityShard"
 
+	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
+
 	serviceName = integration.ServiceNameManage
 )
 
@@ -137,7 +139,8 @@ var (
 		endpointNameConnectControlPlane:          {Method: "POST", Path: "/api/v1/controlplanes/{{.controlPlaneId}}/connect"},
 		endpointNameConnectUnmanagedControlPlane: {Method: "POST", Path: "/api/v1/controlplanes/connect"},
 
-		endpointNameGetEntityShard: {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
+		endpointNameGetEntityShard:       {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
+		endpointNameUpdateTemplateAccess: {Method: "PUT", Path: "/api/v1/devicetemplates/{{.templateId}}"},
 	}
 )
 
@@ -812,11 +815,41 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 
 /*
 	TODO: v3 device templates
-	endpointNameAttachDeviceTemplates    = "attachDeviceTemplates"
 	endpointNameUpdateDeviceTemplates    = "updateDeviceTemplates"
 	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
 	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
 */
+func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(attachTemplateRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameAttachDeviceTemplates,
+		EndpointParameters: map[string]string{
+			"deviceInstanceId": deviceId,
+		},
+		Body:           bodyBytes,
+		Payload:        new(AttachTemplateResponse),
+		ExpectEnvelope: true,
+	})
+}
+func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceTemplateDTO)
+	if err != nil {
+		return nil, err
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameUpdateTemplateAccess,
+		EndpointParameters: map[string]string{
+			"templateId": templateId,
+		},
+		Body:           bodyBytes,
+		Payload:        new(DeviceTemplateAccessResponseDTO),
+		ExpectEnvelope: true,
+	})
+}
 
 func (i *Integration) GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error) {
 	queryParameters := url.Values{}
