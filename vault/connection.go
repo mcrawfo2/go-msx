@@ -23,14 +23,14 @@ var (
 )
 
 type ConnectionConfig struct {
-	Enabled bool   `config:"default=true"`
-	Host    string `config:"default=localhost"`
-	Port    int    `config:"default=8200"`
-	Scheme  string `config:"default=http"`
-	TokenSource   struct {
+	Enabled     bool   `config:"default=true"`
+	Host        string `config:"default=localhost"`
+	Port        int    `config:"default=8200"`
+	Scheme      string `config:"default=http"`
+	TokenSource struct {
 		Source string `config:"default=config"`
 	}
-	Ssl     struct {
+	Ssl struct {
 		Cacert     string `config:"default="`
 		ClientCert string `config:"default="`
 		ClientKey  string `config:"default="`
@@ -43,9 +43,9 @@ func (c ConnectionConfig) Address() string {
 }
 
 type Connection struct {
-	config *ConnectionConfig
-	client *api.Client
-	stats  *statsObserver
+	config      *ConnectionConfig
+	client      *api.Client
+	stats       *statsObserver
 	tokensource tokensource.TokenSource
 }
 
@@ -274,10 +274,10 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 		return nil, err
 	}
 
-		return &Connection{
-		config: connectionConfig,
-		client: client,
-		stats:  new(statsObserver),
+	return &Connection{
+		config:      connectionConfig,
+		client:      client,
+		stats:       new(statsObserver),
 		tokensource: tokensource.GetTokenSource(connectionConfig.TokenSource.Source),
 	}, nil
 }

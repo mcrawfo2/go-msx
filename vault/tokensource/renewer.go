@@ -1,8 +1,8 @@
 package tokensource
 
 import (
-	"github.com/hashicorp/vault/api"
 	"encoding/json"
+	"github.com/hashicorp/vault/api"
 )
 
 func initRenewer(client *api.Client) (*api.Renewer, error) {

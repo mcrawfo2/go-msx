@@ -1,11 +1,12 @@
 package tokensource
+
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/hashicorp/vault/api"
 )
 
-var logger  = log.NewLogger("msx.vault.tokensource")
+var logger = log.NewLogger("msx.vault.tokensource")
 
 //TokenSource interface represents a mechanism for retrival and management of Vault Tokens
 type TokenSource interface {

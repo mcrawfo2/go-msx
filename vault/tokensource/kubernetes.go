@@ -6,18 +6,20 @@ import (
 	"io/ioutil"
 )
 
-const ( configRootKubernetes = "spring.cloud.vault.tokensource.kubernetes" )
+const (
+	configRootKubernetes = "spring.cloud.vault.tokensource.kubernetes"
+)
 
 type KubernetesSource struct {
 }
 
 type KubernetesConfig struct {
-	Path string `config:"default=/auth/kubernetes/login"`
+	Path    string `config:"default=/auth/kubernetes/login"`
 	JWTPath string `config:"default=/run/secrets/kubernetes.io/serviceaccount/token"`
-	Role string
+	Role    string
 }
 
-func (k *KubernetesSource) GetToken(client *api.Client, cfg  *config.Config) (token string, err error) {
+func (k *KubernetesSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
 	k8sconfig := &KubernetesConfig{}
 	if err := cfg.Populate(k8sconfig, configRootKubernetes); err != nil {
 		return "", err

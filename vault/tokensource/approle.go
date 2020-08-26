@@ -5,18 +5,20 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-const ( configRootApprole = "spring.cloud.vault.tokensource.approle" )
+const (
+	configRootApprole = "spring.cloud.vault.tokensource.approle"
+)
 
 type ApproleSource struct {
 }
 
 type ApproleConfig struct {
-	Path string `config:"default=/auth/approle/login"`
-	Role_Id string
+	Path      string `config:"default=/auth/approle/login"`
+	Role_Id   string
 	Secret_Id string
 }
 
-func (c *ApproleSource) GetToken(client *api.Client, cfg  *config.Config) (token string, err error) {
+func (c *ApproleSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
 	approleconfig := &ApproleConfig{}
 	if err := cfg.Populate(approleconfig, configRootApprole); err != nil {
 		return "", err
