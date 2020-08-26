@@ -62,6 +62,7 @@ const (
 	endpointNameUpdateDeviceTemplates    = "updateDeviceTemplates"
 	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
 	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
+	endpointNameSetDeviceTemplate        = "setDeviceTemplate"
 
 	endpointNameGetAllControlPlanes          = "getAllControlPlanes"
 	endpointNameCreateControlPlane           = "createControlPlane"
@@ -130,6 +131,7 @@ var (
 		endpointNameUpdateDeviceTemplates:    {Method: "PUT", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameDetachDeviceTemplates:    {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameDetachDeviceTemplate:     {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates/{{.templateId}}"},
+		endpointNameSetDeviceTemplate:        {Method: "POST", Path: "/api/v1/devicetemplates"},
 
 		endpointNameGetAllControlPlanes:          {Method: "GET", Path: "/api/v1/controlplanes"},
 		endpointNameCreateControlPlane:           {Method: "POST", Path: "/api/v1/controlplanes"},
@@ -819,6 +821,7 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
 	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
 */
+
 func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(attachTemplateRequest)
 	if err != nil {
@@ -835,8 +838,8 @@ func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateReque
 		ExpectEnvelope: true,
 	})
 }
-func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error) {
-	bodyBytes, err := json.Marshal(deviceTemplateDTO)
+func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceTemplateAccess)
 	if err != nil {
 		return nil, err
 	}
@@ -846,7 +849,20 @@ func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateDTO 
 			"templateId": templateId,
 		},
 		Body:           bodyBytes,
-		Payload:        new(DeviceTemplateAccessResponseDTO),
+		Payload:        new(DeviceTemplateAccessResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceTemplateCreateRequest)
+	if err != nil {
+		return nil, err
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   endpointNameSetDeviceTemplate,
+		Body:           bodyBytes,
+		Payload:        new(DeviceTemplateCreateRequest),
 		ExpectEnvelope: true,
 	})
 }

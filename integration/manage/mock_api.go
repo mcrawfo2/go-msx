@@ -12,6 +12,29 @@ type MockManage struct {
 	mock.Mock
 }
 
+// AddDeviceTemplate provides a mock function with given fields: deviceTemplateCreateRequest
+func (_m *MockManage) AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceTemplateCreateRequest)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceTemplateCreateRequest) *integration.MsxResponse); ok {
+		r0 = rf(deviceTemplateCreateRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(DeviceTemplateCreateRequest) error); ok {
+		r1 = rf(deviceTemplateCreateRequest)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AddDeviceToSiteV3 provides a mock function with given fields: deviceId, siteId, notification
 func (_m *MockManage) AddDeviceToSiteV3(deviceId string, siteId string, notification string) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceId, siteId, notification)
@@ -1070,13 +1093,13 @@ func (_m *MockManage) UpdateSubscription(subscriptionId string, serviceType stri
 	return r0, r1
 }
 
-// UpdateTemplateAccess provides a mock function with given fields: templateId, deviceTemplateDTO
-func (_m *MockManage) UpdateTemplateAccess(templateId string, deviceTemplateDTO DeviceTemplateAccessDTO) (*integration.MsxResponse, error) {
-	ret := _m.Called(templateId, deviceTemplateDTO)
+// UpdateTemplateAccess provides a mock function with given fields: templateId, deviceTemplateAccess
+func (_m *MockManage) UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error) {
+	ret := _m.Called(templateId, deviceTemplateAccess)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, DeviceTemplateAccessDTO) *integration.MsxResponse); ok {
-		r0 = rf(templateId, deviceTemplateDTO)
+	if rf, ok := ret.Get(0).(func(string, DeviceTemplateAccess) *integration.MsxResponse); ok {
+		r0 = rf(templateId, deviceTemplateAccess)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -1084,8 +1107,8 @@ func (_m *MockManage) UpdateTemplateAccess(templateId string, deviceTemplateDTO 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, DeviceTemplateAccessDTO) error); ok {
-		r1 = rf(templateId, deviceTemplateDTO)
+	if rf, ok := ret.Get(1).(func(string, DeviceTemplateAccess) error); ok {
+		r1 = rf(templateId, deviceTemplateAccess)
 	} else {
 		r1 = ret.Error(1)
 	}
