@@ -223,16 +223,13 @@ type AttachTemplateRequest struct {
 }
 
 type AttachTemplateResponse []struct {
-	ID             string `json:"id"`
-	DeviceID       string `json:"deviceId"`
-	TemplateID     string `json:"templateId"`
-	TemplateParams []struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
-	} `json:"templateParams"`
-	Status      string `json:"status"`
-	LastUpdated string `json:"lastUpdated"`
-	UserID      string `json:"userId"`
+	ID             string           `json:"id"`
+	DeviceID       string           `json:"deviceId"`
+	TemplateID     string           `json:"templateId"`
+	TemplateParams []TemplateParams `json:"templateParams"`
+	Status         string           `json:"status"`
+	LastUpdated    string           `json:"lastUpdated"`
+	UserID         string           `json:"userId"`
 }
 
 type TemplateDetails struct {
