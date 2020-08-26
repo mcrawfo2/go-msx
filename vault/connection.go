@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/vault/tokensource"
 	"encoding/base64"
 	"fmt"
 	"github.com/hashicorp/vault/api"
@@ -22,12 +23,14 @@ var (
 )
 
 type ConnectionConfig struct {
-	Enabled bool   `config:"default=true"`
-	Host    string `config:"default=localhost"`
-	Port    int    `config:"default=8200"`
-	Scheme  string `config:"default=http"`
-	Token   string `config:"default=replace_with_token_value"`
-	Ssl     struct {
+	Enabled     bool   `config:"default=true"`
+	Host        string `config:"default=localhost"`
+	Port        int    `config:"default=8200"`
+	Scheme      string `config:"default=http"`
+	TokenSource struct {
+		Source string `config:"default=config"`
+	}
+	Ssl struct {
 		Cacert     string `config:"default="`
 		ClientCert string `config:"default="`
 		ClientKey  string `config:"default="`
@@ -40,9 +43,10 @@ func (c ConnectionConfig) Address() string {
 }
 
 type Connection struct {
-	config *ConnectionConfig
-	client *api.Client
-	stats  *statsObserver
+	config      *ConnectionConfig
+	client      *api.Client
+	stats       *statsObserver
+	tokensource tokensource.TokenSource
 }
 
 func (c *Connection) Host() string {
@@ -270,12 +274,11 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 		return nil, err
 	}
 
-	client.SetToken(connectionConfig.Token)
-
 	return &Connection{
-		config: connectionConfig,
-		client: client,
-		stats:  new(statsObserver),
+		config:      connectionConfig,
+		client:      client,
+		stats:       new(statsObserver),
+		tokensource: tokensource.GetTokenSource(connectionConfig.TokenSource.Source),
 	}, nil
 }
 
@@ -284,6 +287,12 @@ func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
 	if err := cfg.Populate(connectionConfig, configRootVaultConnection); err != nil {
 		return nil, err
 	}
-
-	return NewConnection(connectionConfig)
+	conn, err := NewConnection(connectionConfig)
+	if err != nil {
+		return conn, err
+	}
+	token, err := conn.tokensource.GetToken(conn.client, cfg)
+	conn.client.SetToken(token)
+	go conn.tokensource.StartRenewer(conn.client)
+	return conn, err
 }
