@@ -96,7 +96,7 @@ func (c *Config) resolveValueHelper(nested map[string]bool,
 		if depth > 0 {
 			refString += string(c)
 		}
-		if value[i] == '}' && depth>0 {
+		if value[i] == '}' && depth > 0 {
 			depth--
 		}
 		if depth == 0 && len(refString) > 0 {
@@ -115,7 +115,7 @@ func (c *Config) resolveValueHelper(nested map[string]bool,
 		match := variableRegex.FindStringSubmatch(rs)
 		if len(match) > 0 {
 			//ignore case
-			refName :=  c.alias(match[1])
+			refName := c.alias(match[1])
 			refValue := ""
 			//check if variable is already in the stack
 			if _, ok := nested[refName]; ok {
