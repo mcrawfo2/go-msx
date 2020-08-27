@@ -13,7 +13,7 @@ type ConfigSource struct {
 }
 
 func (c *ConfigSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
-	return cfg.StringOr(configRootVaultToken,"replace_with_token_value")
+	return cfg.StringOr(configRootVaultToken, "replace_with_token_value")
 }
 
 func (c *ConfigSource) StartRenewer(client *api.Client) {

@@ -1,10 +1,10 @@
-ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/vms-base-stretch:3.8.0-370
+ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/msx-base-buster:3.9.0-70
 
 ###
 ### Build container
 ###
 
-FROM golang:1.12-stretch AS builder
+FROM golang:1.14-buster AS builder
 ARG BUILD_FLAGS
 ENV BUILDER_FLAGS -mod=vendor
 ADD . /app/
