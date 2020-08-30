@@ -4,21 +4,20 @@ go 1.12
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.0.5
-	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/axw/gocov v1.0.0 // indirect
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
-	github.com/dave/jennifer v1.4.0
+	github.com/dave/jennifer v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/emicklei/go-restful v2.11.1+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
+	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
@@ -54,9 +53,12 @@ require (
 	go.uber.org/atomic v1.4.0
 	gopkg.in/ini.v1 v1.48.0 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
 
-replace github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
+replace (
+	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
+	github.com/dave/jennifer v1.4.1 => cto-github.cisco.com/mcrawfo2/jennifer v1.4.1
+)

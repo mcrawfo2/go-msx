@@ -40,6 +40,10 @@ func (c SkeletonConfig) AppPackageUrl() string {
 	return path.Join("cto-github.cisco.com", "NFV-BU", c.AppName)
 }
 
+func (c SkeletonConfig) ApiPackageUrl() string {
+	return path.Join(c.AppPackageUrl(), "pkg", "api")
+}
+
 func (c SkeletonConfig) RepositoryQueryFileExtension() string {
 	queryFileExtension := "cql"
 	if skeletonConfig.Repository == "cockroach" {
