@@ -2,6 +2,7 @@ package skel
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"encoding/json"
 	"fmt"
 	"github.com/gedex/inflector"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -10,6 +11,8 @@ import (
 	"path"
 	"strings"
 )
+
+const extKeyMsxPermissions = "x-msx-permissions"
 
 type Parameter struct {
 	SchemaType Schema
@@ -22,6 +25,10 @@ func (p Parameter) VarName() string {
 
 func (p Parameter) Name() string {
 	return strcase.ToCamel(p.parameter.Name)
+}
+
+func (p Parameter) JsonName() string {
+	return p.parameter.Name
 }
 
 func (p Parameter) In() string {
@@ -58,15 +65,15 @@ func NewParameters(parameters openapi3.Parameters) ([]Parameter, error) {
 }
 
 type Property struct {
-	SchemaType Schema
-	name       string
+	Schema Schema
+	name   string
 }
 
 func (p Property) StructFieldName() string {
 	return strcase.ToCamel(p.name)
 }
 
-func (p Property) JsonFieldName() string {
+func (p Property) JsonName() string {
 	return strcase.ToLowerCamel(p.name)
 }
 
@@ -77,8 +84,8 @@ func NewProperty(name string, schema *openapi3.SchemaRef, required bool) (Proper
 	}
 
 	return Property{
-		SchemaType: schemaType,
-		name:       name,
+		Schema: schemaType,
+		name:   name,
 	}, nil
 }
 
@@ -87,6 +94,7 @@ type Schema struct {
 	builtin     bool
 	array       bool
 	dict        bool
+	object      bool
 	qual        string
 	name        string
 	pkg         string
@@ -115,12 +123,20 @@ func (s Schema) IsDict() bool {
 	return s.dict
 }
 
+func (s Schema) IsObject() bool {
+	return s.object
+}
+
 func (s Schema) IsAny() bool {
 	return s.schemaRef.Value.Type == "any"
 }
 
 func (s Schema) IsReference() bool {
 	return s.array || s.dict
+}
+
+func (s Schema) IsUuid() bool {
+	return s.externalPkg == pkgTypes && s.name == "UUID"
 }
 
 func (s Schema) ItemType() Schema {
@@ -183,6 +199,109 @@ func (s Schema) Properties() ([]Property, error) {
 	return properties, nil
 }
 
+func (s Schema) Min() *float64 {
+	if s.schemaRef == nil {
+		return nil
+	}
+
+	return s.schemaRef.Value.Min
+}
+
+func (s Schema) Max() *float64 {
+	if s.schemaRef == nil {
+		return nil
+	}
+
+	return s.schemaRef.Value.Max
+}
+
+func (s Schema) MultipleOf() *float64 {
+	if s.schemaRef == nil {
+		return nil
+	}
+
+	return s.schemaRef.Value.MultipleOf
+}
+
+func (s Schema) Enum() []interface{} {
+	if s.schemaRef == nil {
+		return nil
+	}
+
+	if len(s.schemaRef.Value.Enum) == 0 {
+		return nil
+	}
+
+	return s.schemaRef.Value.Enum
+}
+
+func (s Schema) ArrayLength() (int, int) {
+	if s.schemaRef == nil {
+		return 0, 0
+	}
+
+	if s.schemaRef.Value.MinItems == 0 {
+		if s.schemaRef.Value.MaxItems == nil {
+			return 0, 0
+		} else {
+			return 0, int(*s.schemaRef.Value.MaxItems)
+		}
+	} else if s.schemaRef.Value.MaxItems == nil {
+		return int(s.schemaRef.Value.MinItems), 0
+	} else {
+		return int(s.schemaRef.Value.MinItems), int(*s.schemaRef.Value.MaxItems)
+	}
+}
+
+func (s Schema) Length() (int, int) {
+	if s.schemaRef == nil {
+		return 0, 0
+	}
+
+	if s.schemaRef.Value.MinLength == 0 {
+		if s.schemaRef.Value.MaxLength == nil {
+			return 0, 0
+		} else {
+			return 0, int(*s.schemaRef.Value.MaxLength)
+		}
+	} else if s.schemaRef.Value.MaxLength == nil {
+		return int(s.schemaRef.Value.MinLength), 0
+	} else {
+		return int(s.schemaRef.Value.MinLength), int(*s.schemaRef.Value.MaxLength)
+	}
+}
+
+func (s Schema) Pattern() string {
+	if s.schemaRef == nil {
+		return ""
+	}
+
+	if s.schemaRef.Value.Pattern == "" {
+		if s.schemaRef.Value.Type == "string" {
+			return s.FormatPattern()
+		}
+
+		return ""
+	}
+
+	return s.schemaRef.Value.Pattern
+}
+
+func (s Schema) FormatPattern() string {
+	if s.schemaRef == nil {
+		return ""
+	}
+
+	switch s.schemaRef.Value.Format {
+	case "uuid":
+		return openapi3.FormatOfStringForUUIDOfRFC4122
+	case "email", "date", "date-time":
+		return openapi3.SchemaStringFormats[s.schemaRef.Value.Format].String()
+	}
+
+	return ""
+}
+
 func addSchemaProperties(properties []Property, schemaRef *openapi3.SchemaRef) ([]Property, error) {
 	required := types.StringStack(schemaRef.Value.Required)
 	for propertyName, schemaRef := range schemaRef.Value.Properties {
@@ -219,6 +338,7 @@ func NewExternalType(schemaRef *openapi3.SchemaRef, required bool) Schema {
 	return Schema{
 		schemaRef: schemaRef,
 		builtin:   false,
+		object:    schemaRef.Value.Type == "object",
 		qual:      qual,
 		name:      name,
 		pkg:       "api",
@@ -240,7 +360,8 @@ const pkgJson = "json"
 func NewFrameworkType(schemaRef *openapi3.SchemaRef, pkg, qual, name string, required bool) Schema {
 	return Schema{
 		schemaRef:   schemaRef,
-		qual:        "",
+		object:      schemaRef.Value.Type == "object",
+		qual:        qual,
 		name:        name,
 		externalPkg: pkg,
 		required:    required,
@@ -260,7 +381,7 @@ func NewArrayType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error) 
 	}, nil
 }
 
-func NewObjectType(schemaRef *openapi3.SchemaRef, required bool) Schema {
+func NewDictType(schemaRef *openapi3.SchemaRef, required bool) Schema {
 	return Schema{
 		schemaRef: schemaRef.Value.Items,
 		dict:      true,
@@ -277,7 +398,7 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 	case "string":
 		switch schemaRef.Value.Format {
 		case "uuid":
-			return NewFrameworkType(schemaRef, pkgTypes, "", "UUID", required), nil
+			return NewFrameworkType(schemaRef, pkgTypes, "types", "UUID", required), nil
 		default:
 			return NewBuiltinType(schemaRef, "string", required), nil
 		}
@@ -297,9 +418,9 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 	case "object":
 		switch schemaRef.Value.Format {
 		case "json":
-			return NewFrameworkType(schemaRef, pkgJson, "", "RawMessage", required), nil
+			return NewFrameworkType(schemaRef, pkgJson, "api", "RawMessage", required), nil
 		default:
-			return NewObjectType(schemaRef, required), nil
+			return NewDictType(schemaRef, required), nil
 		}
 
 	default:
@@ -309,7 +430,7 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 
 type Body struct {
 	Exists       bool
-	SchemaType   Schema
+	Schema       Schema
 	ContentTypes []string
 }
 
@@ -332,7 +453,7 @@ func NewRequestBody(requestBody *openapi3.RequestBodyRef) (Body, error) {
 
 	return Body{
 		Exists:       true,
-		SchemaType:   schemaType,
+		Schema:       schemaType,
 		ContentTypes: contentTypes,
 	}, nil
 }
@@ -377,7 +498,7 @@ func NewResponseBody(responses openapi3.Responses) (Body, error) {
 
 	return Body{
 		Exists:       true,
-		SchemaType:   schemaType,
+		Schema:       schemaType,
 		ContentTypes: contentTypes,
 	}, nil
 }
@@ -407,6 +528,20 @@ func (e Endpoint) ReturnCodes() []string {
 		}
 	}
 	return results
+}
+
+func (e Endpoint) Permissions() []string {
+	permissionsData, ok := e.operation.Extensions[extKeyMsxPermissions]
+	if !ok {
+		return nil
+	}
+
+	var permissions []string
+	err := json.Unmarshal(permissionsData.(json.RawMessage), &permissions)
+	if err != nil {
+		return nil
+	}
+	return permissions
 }
 
 func NewEndpoint(path, method string, operation *openapi3.Operation) (Endpoint, error) {

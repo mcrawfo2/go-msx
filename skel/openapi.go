@@ -130,7 +130,105 @@ func generateType(s *Statement, ns string, schema Schema) (map[string]string, er
 	return imports, nil
 }
 
+func generateValidators(f *File, schema Schema) ([]Code, error) {
+	requiredValidators, err := generateRequiredValidators(f, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	var validators []Code
+	if schema.Required() {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "Required"))
+		validators = append(validators, requiredValidators...)
+	} else {
+		if len(requiredValidators) == 0 {
+			return []Code{}, nil
+		}
+
+		f.ImportName(pkgValidate, "validate")
+		ifNotNilValidator := Qual(pkgValidate, "IfNotNil").Call(requiredValidators...)
+		validators = append(validators, ifNotNilValidator)
+	}
+
+	return validators, nil
+}
+
+func generateRequiredValidators(f *File, schema Schema) ([]Code, error) {
+	if schema.IsObject() || schema.IsUuid() {
+		f.ImportName(pkgValidate, "validate")
+
+		return []Code{
+			Qual(pkgValidate, "Self"),
+		}, nil
+	}
+
+	if schema.IsArray() || schema.IsDict() {
+		f.ImportName(pkgValidation, "validation")
+		f.ImportName(pkgValidation, "validate")
+
+		itemValidators, err := generateRequiredValidators(f, schema.ItemType())
+		if err != nil {
+			return nil, err
+		}
+
+		return []Code{
+			Qual(pkgValidation, "Each").Call(itemValidators...),
+		}, nil
+	}
+
+	var validators []Code
+
+	if min := schema.Min(); min != nil {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "Min").Call(Lit(*min)))
+	}
+
+	if max := schema.Max(); max != nil {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "Max").Call(Lit(*max)))
+	}
+
+	if factor := schema.MultipleOf(); factor != nil {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "MultipleOf").Call(Lit(*factor)))
+	}
+
+	if min, max := schema.Length(); min != 0 || max != 0 {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "Length").Call(Lit(min), Lit(max)))
+	}
+
+	if min, max := schema.ArrayLength(); min != 0 || max != 0 {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "Length").Call(Lit(min), Lit(max)))
+	}
+
+	if pattern := schema.Pattern(); pattern != "" {
+		f.ImportName(pkgValidation, "validation")
+		f.ImportName(pkgRegexp, "regexp")
+
+		validators = append(validators, Qual(pkgValidation, "Match").Call(
+			Qual(pkgRegexp, "MustCompile").Params(Lit(pattern))))
+	}
+
+	if enum := schema.Enum(); enum != nil {
+		f.ImportName(pkgValidation, "validation")
+		validators = append(validators, Qual(pkgValidation, "In").Call(anyLiterals(enum)...))
+	}
+
+	return validators, nil
+}
+
 func stringLiterals(values []string) []Code {
+	var literals []Code
+	for _, value := range values {
+		literals = append(literals, Lit(value))
+	}
+	return literals
+}
+
+func anyLiterals(values []interface{}) []Code {
 	var literals []Code
 	for _, value := range values {
 		literals = append(literals, Lit(value))
