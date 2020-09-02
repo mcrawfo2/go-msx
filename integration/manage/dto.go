@@ -242,12 +242,36 @@ type TemplateParams struct {
 	Value string `json:"value"`
 }
 
-type DeviceTemplateAccessDTO struct {
+type DeviceTemplateAccess struct {
+	Global  bool     `json:"global"`
 	Tenants []string `json:"tenants"`
 }
 
-type DeviceTemplateAccessResponseDTO struct {
+type DeviceTemplateAccessResponse struct {
 	Global               bool     `json:"global"`
 	SuccessListOfTenants []string `json:successListOfTenants`
 	FailureListOfTenants []string `json:failureListOfTenants`
+}
+
+type DeviceTemplateCreateRequest struct {
+	DeviceTemplateAccess DeviceTemplateAccess       `json:"access"`
+	ConfigContent        string                     `json:"configContent"`
+	Description          string                     `json:"description"`
+	DeviceModels         []string                   `json:"deviceModels"`
+	Name                 string                     `json:"name"`
+	ResourceProvider     string                     `json:"resourceProvider"`
+	ServiceType          string                     `json:"serviceType"`
+	TemplateStandard     string                     `json:"templateStandard"`
+	Validators           []DeviceTemplateValidators `json:"validators"`
+	Version              string                     `json:"version"`
+}
+
+type DeviceTemplateValidators struct {
+	AllowedValues []string `json:"allowedValues"`
+	DisplayType   string   `json:"displayType"`
+	HintText      string   `json:"hintText"`
+	Label         string   `json:"label"`
+	Name          string   `json:"name"`
+	ToolTipText   string   `json:"toolTipText"`
+	Type          string   `json:"type"`
 }
