@@ -86,8 +86,14 @@ func (p ServiceConfigPopulator) populateServiceConfig(ctx context.Context, scm a
 	}
 
 	_, err = scm.CreateServiceConfiguration(request)
-	if err != nil {
+	resp, err := scm.CreateServiceConfiguration(request)
+
+	if resp == nil || (err != nil && resp.StatusCode != 409) {
 		return errors.Wrapf(err, "Failed to populate service config %q", artifact.TemplateFileName)
+	}
+
+	if resp.StatusCode == 409 {
+		return nil
 	}
 
 	logger.WithContext(ctx).Infof("Successfully populated service config %q", artifact.TemplateFileName)
