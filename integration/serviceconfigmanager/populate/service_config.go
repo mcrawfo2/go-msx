@@ -85,7 +85,6 @@ func (p ServiceConfigPopulator) populateServiceConfig(ctx context.Context, scm a
 		request.Configuration = string(configuration)
 	}
 
-	_, err = scm.CreateServiceConfiguration(request)
 	resp, err := scm.CreateServiceConfiguration(request)
 
 	if resp == nil || (err != nil && resp.StatusCode != 409) {
