@@ -38,9 +38,14 @@ func (s *Static) Set(key, val string) {
 }
 
 func NewStatic(name string, settings map[string]string) *Static {
+	var results = make(map[string]string)
+	for key, value := range settings {
+		results[NormalizeKey(key)] = value
+	}
+
 	return &Static{
 		name:     name,
-		settings: settings,
+		settings: results,
 	}
 }
 
@@ -65,8 +70,13 @@ func NewStaticFromMap(name string, values map[string]interface{}) (*Static, erro
 		return nil, err
 	}
 
+	var results = make(map[string]string)
+	for key, value := range settings {
+		results[NormalizeKey(key)] = value
+	}
+
 	return &Static{
 		name:     name,
-		settings: settings,
+		settings: results,
 	}, nil
 }
