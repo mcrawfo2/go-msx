@@ -46,8 +46,8 @@ const (
 	PermissionManageTermsConditions = "MANAGE_TERMS_CONDITIONS"
 	PermissionViewIncident          = "VIEW_INCIDENT"
 	PermissionManageIncident        = "MANAGE_INCIDENT"
-	PermissionViewConfig            = "VIEW_CONFIG"
-	PermissionManageConfig          = "MANAGE_CONFIG"
+	PermissionViewConfig            = "VIEW_INCIDENT_CONFIG"
+	PermissionManageConfig          = "MANAGE_INCIDENT_CONFIG"
 )
 
 var ErrUserDosNotHavePermission = errors.New("User does not have any of the required permissions")
