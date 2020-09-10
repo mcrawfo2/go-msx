@@ -1,0 +1,33 @@
+---
+Name: "${deployment.group}"
+Type: Internal
+Containers:
+  - Name: "${app.name}"
+    Version: "${app.version}-SNAPSHOT"
+    Artifact: "${app.name}-${app.version}-SNAPSHOT.tar.gz"
+    Port: ${server.port}
+    ContextPath: "${server.contextpath}"
+    Check:
+      Http:
+        Scheme: "http"
+        Host: "127.0.0.1"
+        Path: "${server.contextpath}/admin/health"
+      IntervalSec: 30
+      TimeoutSec: 10
+    Limits:
+      Memory: "128Mi"
+      CPU: "1"
+    Command:
+      - "/usr/bin/${app.name}"
+      - "--profile"
+      - "production"
+    Endpoints:
+      - "/swagger"
+ConfigFiles: []
+Infrastructure:
+  Database:
+    Type: Cockroach # or Cockroach
+    Name: "${app.name}"
+  Bus:
+    Type: Kafka
+    Topics: []

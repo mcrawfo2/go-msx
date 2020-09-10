@@ -1,0 +1,13 @@
+{
+  "services": [
+    {
+      "name": "${deployment.group}-${app.version}-SNAPSHOT",
+      "files": [
+        "manifest.yml"
+      ],
+      "images": {
+        "dockerhub.cisco.com/vms-platform-dev-docker/${app.name}:${app.version}-SNAPSHOT": "${app.name}-${app.version}-SNAPSHOT.tar.gz"
+      }
+    }
+  ]
+}

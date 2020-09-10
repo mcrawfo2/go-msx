@@ -21,6 +21,9 @@ func GenerateServicePack(args []string) error {
 	subscriptionPackageSource := path.Join("code", "sp", "subscription")
 	subscriptionPackagePath := path.Join("internal", "subscription")
 
+	slmPackageSource := path.Join("code", "sp", "platform-common", "servicelifecycle")
+	slmPackagePath := path.Join("platform-common", "servicelifecycle")
+
 	files := []domainDefinitionFile{
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription DTO",
@@ -62,6 +65,20 @@ func GenerateServicePack(args []string) error {
 			Template: Template{
 				SourceFile: path.Join(subscriptionPackageSource, "service.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "service.go"),
+			},
+		},
+		{
+			Name: inflections[inflectionAppTitle] + " Service Lifecycle Manifest",
+			Template: Template{
+				SourceFile: path.Join(slmPackageSource, "manifest.json"),
+				DestFile:   path.Join(slmPackagePath, "manifest.json"),
+			},
+		},
+		{
+			Name: inflections[inflectionAppTitle] + " Service Lifecycle Deployment Manifest",
+			Template: Template{
+				SourceFile: path.Join(slmPackageSource, "manifest.yml"),
+				DestFile:   path.Join(slmPackagePath, "manifest.yml"),
 			},
 		},
 	}
