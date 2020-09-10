@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	consume "cto-github.cisco.com/NFV-BU/catalogservice/pkg/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/manage"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/sp/api"
 	"github.com/pkg/errors"
@@ -16,7 +17,7 @@ const (
 )
 
 var (
-	errPayloadConversion = errors.New("error converting payload from manage")
+	errPayloadConversion = errors.New("error converting payload")
 )
 
 type subscriptionServiceApi interface {
@@ -29,6 +30,18 @@ type subscriptionService struct {
 }
 
 func (s *subscriptionService) CreateSubscription(ctx context.Context, req api.SubscriptionCreateRequest) (subscription, error) {
+	consumeApi := consume.NewIntegration(ctx)
+
+	offerResponse, err := consumeApi.GetOffer(req.OfferId)
+	if err != nil {
+		return subscription{}, err
+	}
+
+	offerPayload, ok := offerResponse.Payload.(*consume.ServiceOffering)
+	if !ok {
+		return subscription{}, errPayloadConversion
+	}
+
 	manageApi, err := manage.NewIntegration(ctx)
 	if err != nil {
 		return subscription{}, err
@@ -48,18 +61,18 @@ func (s *subscriptionService) CreateSubscription(ctx context.Context, req api.Su
 		return subscription{}, err
 	}
 
-	convertedSubscriptionResponse, ok := response.Payload.(*manage.CreateSubscriptionResponse)
+	subscriptionPayload, ok := response.Payload.(*manage.CreateSubscriptionResponse)
 
 	if !ok {
 		return subscription{}, errPayloadConversion
 	}
 
 	response, err = manageApi.CreateServiceInstance(
-		convertedSubscriptionResponse.SubscriptionID,
+		subscriptionPayload.SubscriptionID,
 		"",
 		map[string]string{}, map[string]string{
 			"type":      "${service.type}",
-			"offerName": "com.cisco.msx.${app.name}.service.property.name",
+			"offerName": offerPayload.Name,
 			"id":        req.ServiceId,
 		},
 		map[string]string{
@@ -70,20 +83,20 @@ func (s *subscriptionService) CreateSubscription(ctx context.Context, req api.Su
 		return subscription{}, errors.Wrap(err, "Failed to submit create subscription request")
 	}
 
-	convertedServiceInstanceResponse, ok := response.Payload.(*manage.ServiceInstanceResponse)
+	serviceInstanceResponse, ok := response.Payload.(*manage.ServiceInstanceResponse)
 	if !ok {
 		return subscription{}, errPayloadConversion
 	}
 
 	// Set service to provisioned
-	err = s.UpdateServiceInstanceStatus(ctx, convertedServiceInstanceResponse.ServiceInstanceID, ServiceLifecycleStateProvisioned)
+	err = s.UpdateServiceInstanceStatus(ctx, serviceInstanceResponse.ServiceInstanceID, ServiceLifecycleStateProvisioned)
 	if err != nil {
 		return subscription{}, errPayloadConversion
 	}
 
 	return subscription{
-		SubscriptionId:    convertedSubscriptionResponse.SubscriptionID,
-		ServiceInstanceId: convertedServiceInstanceResponse.ServiceInstanceID,
+		SubscriptionId:    subscriptionPayload.SubscriptionID,
+		ServiceInstanceId: serviceInstanceResponse.ServiceInstanceID,
 	}, err
 }
 
@@ -165,5 +178,5 @@ func getLifeCycleStatusFromTxStatus(txStatus string) (string, error) {
 		return "Order Failed", nil
 	}
 
-	return "", errors.New("invalid status")
+	return "", errors.Errorf("Unknown status %q", txStatus)
 }

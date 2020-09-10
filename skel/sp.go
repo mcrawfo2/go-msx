@@ -32,35 +32,35 @@ func GenerateServicePack(args []string) error {
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription Context",
 			Template: Template{
-				SourceFile: path.Join(subscriptionPackageSource, "context.go"),
+				SourceFile: path.Join(subscriptionPackageSource, "context.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "context.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription Controller",
 			Template: Template{
-				SourceFile: path.Join(subscriptionPackageSource, "controller.go"),
+				SourceFile: path.Join(subscriptionPackageSource, "controller.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "controller.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription Controller",
 			Template: Template{
-				SourceFile: path.Join(subscriptionPackageSource, "converter.go"),
+				SourceFile: path.Join(subscriptionPackageSource, "converter.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "converter.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription Model",
 			Template: Template{
-				SourceFile: path.Join(subscriptionPackageSource, "model.go"),
+				SourceFile: path.Join(subscriptionPackageSource, "model.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "model.go"),
 			},
 		},
 		{
 			Name: inflections[inflectionAppTitle] + " Subscription Service",
 			Template: Template{
-				SourceFile: path.Join(subscriptionPackageSource, "service.go"),
+				SourceFile: path.Join(subscriptionPackageSource, "service.go.tpl"),
 				DestFile:   path.Join(subscriptionPackagePath, "service.go"),
 			},
 		},
