@@ -15,6 +15,9 @@ dist:
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
 	$(BUILDER) build-assemblies
+#if GENERATOR_SP
+	$(BUILDER) build-installer-manifest
+#endif GENERATOR_SP
 
 debug:
 	$(BUILDER) build-debug-executable
@@ -22,6 +25,13 @@ debug:
 assemblies:
 	$(BUILDER) build-assemblies
 
+#if GENERATOR_SP
+.PHONY: manifest
+
+manifest:
+	$(BUILDER) build-installer-manifest
+
+#endif GENERATOR_SP
 docker:
 	go mod vendor
 	$(BUILDER) docker-build
@@ -52,3 +62,23 @@ update-go-msx:
 update-go-msx-build:
 	go get cto-github.cisco.com/NFV-BU/go-msx-build
 	go mod tidy
+
+#if GENERATOR_SP
+.PHONY: update-administrationservice update-catalogservice
+
+update-administrationservice:
+	go get cto-github.cisco.com/NFV-BU/administrationservice
+	go mod tidy
+
+update-catalogservice:
+	go get cto-github.cisco.com/NFV-BU/catalogservice
+	go mod tidy
+
+#endif GENERATOR_SP
+#if UI
+.PHONY: ui
+
+ui:
+	cd ui && npm run build
+
+#endif UI

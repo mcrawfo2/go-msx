@@ -26,16 +26,19 @@ resources:
 
 assemblies:
   root: platform-common
-#  custom:
-#    - path: ui/build
-#      pathPrefix: services
-#      manifestPrefix: skyfallui-files
-#      manifestKey: ${deployment.group}-ui
+#if UI
+  custom:
+    - path: ui/build
+      pathPrefix: services
+      manifestPrefix: skyfallui-files
+      manifestKey: ${msx.deploymentGroup}-ui
+#endif UI
 
 artifactory:
   installer: deployments/kubernetes
-    custom: []
-    images:
-      - ${app.name}
-#      - ${deployment.group}ui
-
+  custom: []
+  images:
+    - ${app.name}
+#if UI
+    - ${deployment.group}ui
+#endif UI
