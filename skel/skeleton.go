@@ -110,6 +110,12 @@ func GenerateInstallerManifest(args []string) error {
 			SourceFile: "manifest/assembly.xml",
 			Format:     FileFormatXml,
 		},
+		{
+			Name:       "Creating gitignore",
+			SourceFile: "manifest/gitignore",
+			DestFile:   "manifest/.gitignore",
+			Format:     FileFormatDocker,
+		},
 	}
 
 	return templates.Render(NewRenderOptions())
@@ -178,7 +184,7 @@ func GenerateApp(args []string) error {
 			Format:     FileFormatYaml,
 		},
 		{
-			Name:       "Creating ${generator} application entrypoint source",
+			Name:       "Creating application entrypoint source",
 			SourceFile: "cmd/app/main-${generator}.go.tpl",
 			DestFile:   "cmd/app/main.go",
 		},
