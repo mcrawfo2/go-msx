@@ -30,8 +30,7 @@ func GenerateDomainOpenApi(args []string) error {
 	loader.IsExternalRefsAllowed = true
 	loader.LoadSwaggerFromURIFunc = loadSwaggerFromUri
 
-	var swagger *openapi3.Swagger
-	swagger, err = loader.LoadSwaggerFromData(bytes)
+	swagger, err := loader.LoadSwaggerFromData(bytes)
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse OpenAPI spec")
 	}
