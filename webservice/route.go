@@ -35,7 +35,6 @@ const (
 
 var (
 	logger        = log.NewLogger("msx.webservice")
-	responseTypes = make(map[reflect.Type]string)
 )
 
 func StandardList(b *restful.RouteBuilder) {
