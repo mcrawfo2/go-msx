@@ -110,8 +110,7 @@ type AwsTransitGatewayAttachmentStatus struct {
 }
 
 type StackOutput struct {
-	Description string `json:"Description"`
-	ExportName  string `json:"ExportName"`
-	OutputKey   string `json:"OutputKey"`
-	OutputValue string `json:"OutputValue"`
+	Description *string `json:"Description"`
+	OutputKey   *string `json:"OutputKey"`
+	OutputValue *string `json:"OutputValue"`
 }
