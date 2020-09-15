@@ -164,7 +164,7 @@ func generateRequiredValidators(f *File, schema Schema) ([]Code, error) {
 
 	if schema.IsArray() || schema.IsDict() {
 		f.ImportName(pkgValidation, "validation")
-		f.ImportName(pkgValidation, "validate")
+		f.ImportName(pkgValidate, "validate")
 
 		itemValidators, err := generateRequiredValidators(f, schema.ItemType())
 		if err != nil {
