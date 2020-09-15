@@ -182,15 +182,17 @@ func (s Schema) Required() bool {
 }
 
 func (s Schema) Properties() ([]Property, error) {
-	var properties []Property
+	return addNestedProperties(nil, s.schemaRef)
+}
 
-	properties, err := addSchemaProperties(nil, s.schemaRef)
+func addNestedProperties(properties []Property, subschema *openapi3.SchemaRef) ([]Property, error) {
+	properties, err := addSchemaProperties(properties, subschema)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, subschema := range s.schemaRef.Value.AllOf {
-		properties, err = addSchemaProperties(properties, subschema)
+	for _, subschema := range subschema.Value.AllOf {
+		properties, err = addNestedProperties(properties, subschema)
 		if err != nil {
 			return nil, err
 		}
