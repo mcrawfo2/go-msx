@@ -23,7 +23,7 @@ func (s *Static) Load(ctx context.Context) (map[string]string, error) {
 	settings := map[string]string{}
 
 	for key, value := range s.settings {
-		settings[key] = value
+		settings[NormalizeKey(key)] = value
 	}
 
 	if ctx.Err() != nil {
@@ -38,14 +38,9 @@ func (s *Static) Set(key, val string) {
 }
 
 func NewStatic(name string, settings map[string]string) *Static {
-	var results = make(map[string]string)
-	for key, value := range settings {
-		results[NormalizeKey(key)] = value
-	}
-
 	return &Static{
 		name:     name,
-		settings: results,
+		settings: settings,
 	}
 }
 
