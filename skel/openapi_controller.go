@@ -85,7 +85,7 @@ func generateParameterVariable(p Parameter) Code {
 
 	parameterVariable := Var().Id(parameterVarName).Op("=").
 		Qual(pkgRestful, parameterTypeName).
-		Call(Lit(p.Name()), Lit(p.Description()))
+		Call(Lit(p.JsonName()), Lit(p.Description()))
 
 	if p.SchemaType.Required() {
 		parameterVariable.Dot("Required").Call(True())
