@@ -182,15 +182,17 @@ func (s Schema) Required() bool {
 }
 
 func (s Schema) Properties() ([]Property, error) {
-	var properties []Property
+	return addNestedProperties(nil, s.schemaRef)
+}
 
-	properties, err := addSchemaProperties(nil, s.schemaRef)
+func addNestedProperties(properties []Property, subschema *openapi3.SchemaRef) ([]Property, error) {
+	properties, err := addSchemaProperties(properties, subschema)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, subschema := range s.schemaRef.Value.AllOf {
-		properties, err = addSchemaProperties(properties, subschema)
+	for _, subschema := range subschema.Value.AllOf {
+		properties, err = addNestedProperties(properties, subschema)
 		if err != nil {
 			return nil, err
 		}
@@ -295,7 +297,7 @@ func (s Schema) FormatPattern() string {
 	switch s.schemaRef.Value.Format {
 	case "uuid":
 		return openapi3.FormatOfStringForUUIDOfRFC4122
-	case "email", "date", "date-time":
+	case "email", "date":
 		return openapi3.SchemaStringFormats[s.schemaRef.Value.Format].String()
 	}
 
@@ -399,6 +401,8 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 		switch schemaRef.Value.Format {
 		case "uuid":
 			return NewFrameworkType(schemaRef, pkgTypes, "types", "UUID", required), nil
+		case "date-time":
+			return NewFrameworkType(schemaRef, pkgTypes, "types", "Time", required), nil
 		default:
 			return NewBuiltinType(schemaRef, "string", required), nil
 		}
