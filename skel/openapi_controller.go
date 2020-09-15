@@ -236,6 +236,8 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 
 		// produces
 		controllerDefinition.DotWrap("Produces").Call(stringLiterals(e.ResponseBody.ContentTypes)...)
+	} else {
+		controllerDefinition.DotWrap("Produces").Call(Lit("application/json"))
 	}
 
 	permissions := e.Permissions()
