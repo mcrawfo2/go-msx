@@ -297,7 +297,7 @@ func (s Schema) FormatPattern() string {
 	switch s.schemaRef.Value.Format {
 	case "uuid":
 		return openapi3.FormatOfStringForUUIDOfRFC4122
-	case "email", "date", "date-time":
+	case "email", "date":
 		return openapi3.SchemaStringFormats[s.schemaRef.Value.Format].String()
 	}
 
@@ -401,6 +401,8 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 		switch schemaRef.Value.Format {
 		case "uuid":
 			return NewFrameworkType(schemaRef, pkgTypes, "types", "UUID", required), nil
+		case "date-time":
+			return NewFrameworkType(schemaRef, pkgTypes, "types", "Time", required), nil
 		default:
 			return NewBuiltinType(schemaRef, "string", required), nil
 		}
