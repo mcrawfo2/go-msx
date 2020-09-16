@@ -9,7 +9,9 @@ import (
 
 type Api interface {
 	Connect(request AwsConnectRequest) (*integration.MsxResponse, error)
+	//DEPRECATED use v2 instead
 	GetRegions(controlPlaneId types.UUID) (*integration.MsxResponse, error)
+	GetRegionsV2(controlPlaneId types.UUID, amiName *string) (*integration.MsxResponse, error)	// optional amiName
 	GetAvailabilityZones(controlPlaneId types.UUID, region string) (*integration.MsxResponse, error)
 	GetResources(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
 	GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error)
