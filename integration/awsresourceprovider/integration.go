@@ -66,6 +66,7 @@ func (i *Integration) Connect(request AwsConnectRequest) (*integration.MsxRespon
 	})
 }
 
+//DEPRECATED use v2 instead
 func (i *Integration) GetRegions(controlPlaneId types.UUID) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetRegions,
@@ -74,6 +75,21 @@ func (i *Integration) GetRegions(controlPlaneId types.UUID) (*integration.MsxRes
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]Region{},
+	})
+}
+
+func (i *Integration) GetRegionsV2(controlPlaneId types.UUID, amiName *string) (*integration.MsxResponse, error) {
+	params := map[string][]string{
+		"controlPlaneId": {controlPlaneId.String()},
+	}
+	if amiName != nil {
+		params["amiName"] = []string{*amiName}
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameGetRegions,
+		QueryParameters: params,
+		ExpectEnvelope:  true,
+		Payload:         &[]Region{},
 	})
 }
 
