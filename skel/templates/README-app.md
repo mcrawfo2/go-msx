@@ -15,8 +15,6 @@
 
 #### Generate IDE run configuration
 
-#### Generate IDE run configuration
-
 From the project root directory, execute: 
     
    `skel generate-goland` 
