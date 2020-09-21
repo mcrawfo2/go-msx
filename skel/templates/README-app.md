@@ -13,6 +13,18 @@
 
 ### Goland
 
+#### Generate IDE run configuration
+
+#### Generate IDE run configuration
+
+From the project root directory, execute: 
+    
+   `skel generate-goland` 
+    
+   `skel generate-local` 
+   
+   `skel` can be installed from [Go-MSX prerequisites](https://cto-github.cisco.com/NFV-BU/go-msx#requirements) step above.
+
 #### Local MSX Development  Instance
 
 1. Stage artifacts into the `dist` folder:
@@ -36,15 +48,17 @@
 2. Configure the location of your remote environment:
    
     - Edit the `./local/${app.name}.remote.yml` and set your remote
-      environment's IP address:
+      environment's IP address. if you are connected to VPN, set your local tunnel address and uncomment the `discovery.ipaddress` section :
       
         ```yaml
         remote.service.address: 10.81.85.174
-        
+        local.tunnel.address: 10.11.12.13
+
         spring.cloud:
           consul:
             host: ${remote.service.address}
             discovery.instanceId: local
+            #discovery.ipaddress: ${local.tunnel.address}
           vault:
             host: ${remote.service.address}
         ```
