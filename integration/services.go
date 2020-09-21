@@ -28,4 +28,5 @@ const (
 
 	ResourceProviderNameDnac = "dnac"
 	ResourceProviderNameAws  = "aws"
+	ResourceProviderNameViptela  = "viptelaservice"
 )
