@@ -1,9 +1,11 @@
 remote.service.address: 192.168.1.2
+local.tunnel.address: 10.11.12.13
 
 spring.cloud:
   consul:
     host: ${remote.service.address}
     discovery.instanceId: local
+    #discovery.ipaddress: ${local.tunnel.address}
   vault:
     host: ${remote.service.address}
 
