@@ -266,6 +266,20 @@ type DeviceTemplateCreateRequest struct {
 	Version              string                     `json:"version"`
 }
 
+type DeviceTemplateCreateResponse struct {
+	Id                   types.UUID                     `json:"id"`
+	DeviceTemplateAccess DeviceTemplateAccess       `json:"access"`
+	ConfigContent        string                     `json:"configContent"`
+	Description          string                     `json:"description"`
+	DeviceModels         []string                   `json:"deviceModels"`
+	Name                 string                     `json:"name"`
+	ResourceProvider     string                     `json:"resourceProvider"`
+	ServiceType          string                     `json:"serviceType"`
+	TemplateStandard     string                     `json:"templateStandard"`
+	Validators           []DeviceTemplateValidators `json:"validators"`
+	Version              string                     `json:"version"`
+}
+
 type DeviceTemplateValidators struct {
 	AllowedValues []string `json:"allowedValues"`
 	DisplayType   string   `json:"displayType"`

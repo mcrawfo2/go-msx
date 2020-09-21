@@ -862,7 +862,7 @@ func (i *Integration) AddDeviceTemplate(deviceTemplateCreateRequest DeviceTempla
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameSetDeviceTemplate,
 		Body:           bodyBytes,
-		Payload:        new(DeviceTemplateCreateRequest),
+		Payload:        new(DeviceTemplateCreateResponse),
 		ExpectEnvelope: true,
 	})
 }
