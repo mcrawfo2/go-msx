@@ -156,13 +156,14 @@ func (i *Integration) GetTransitGatewayStatus(controlPlaneId types.UUID, region 
 	})
 }
 
-func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string) (*integration.MsxResponse, error) {
+func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string, resourceIds []string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTransitGatewayAttachmentStatus,
 		QueryParameters: map[string][]string{
 			"controlPlaneId":             {controlPlaneId.String()},
 			"region":                     {region},
 			"transitGatewayAttachmentId": transitGatewayAttachmentIds,
+			"resourceId":                 resourceIds,
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayAttachmentStatus{},
