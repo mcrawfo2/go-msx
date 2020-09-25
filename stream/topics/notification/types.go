@@ -18,32 +18,17 @@ type Message struct {
 }
 
 type Context struct {
-	User            User                     `json:"user"`
-	Provider        Provider                 `json:"provider"`
-	Tenant          Tenant                   `json:"tenant"`
+	User            Identifier               `json:"user"`
+	Provider        Identifier               `json:"provider"`
+	Tenant          Identifier               `json:"tenant"`
 	RecipientEmails []string                 `json:"recipientEmails"`
 	EmailLocale     string                   `json:"emailLocale"`
 	Recipients      []map[string]interface{} `json:"recipients"`
 	ServiceType     map[string]interface{}   `json:"serviceType"`
-	Initiator       Initiator                `json:"initiator"`
+	Initiator       Identifier               `json:"initiator"`
 }
 
-type User struct {
-	Id   types.UUID `json:"id"`
-	Name string     `json:"name"`
-}
-
-type Provider struct {
-	Id   types.UUID `json:"id"`
-	Name string     `json:"name"`
-}
-
-type Tenant struct {
-	Id   types.UUID `json:"id"`
-	Name string     `json:"name"`
-}
-
-type Initiator struct {
+type Identifier struct {
 	Id   types.UUID `json:"id"`
 	Name string     `json:"name"`
 }
@@ -51,8 +36,6 @@ type Initiator struct {
 type MessageProducer interface {
 	Message(context.Context) (Message, error)
 }
-
-type Details map[string]string
 
 func NewMessage(ctx context.Context) (Message, error) {
 	userContextDetails, err := security.NewUserContextDetails(ctx)
@@ -65,15 +48,15 @@ func NewMessage(ctx context.Context) (Message, error) {
 	return Message{
 		Timestamp: topics.Time(time.Now().UTC()),
 		Context: Context{
-			User: User{
+			User: Identifier{
 				Id:   userContextDetails.UserId,
 				Name: *userContextDetails.Username,
 			},
-			Provider: Provider{
+			Provider: Identifier{
 				Id:   userContextDetails.ProviderId,
 				Name: *userContextDetails.ProviderName,
 			},
-			Tenant: Tenant{
+			Tenant: Identifier{
 				Id:   userContextDetails.TenantId,
 				Name: *userContextDetails.TenantName,
 			},
