@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
+	"strings"
 )
 
 const (
@@ -149,7 +150,7 @@ func (i *Integration) GetTransitGatewayStatus(controlPlaneId types.UUID, region 
 		QueryParameters: map[string][]string{
 			"controlPlaneId":   {controlPlaneId.String()},
 			"region":           {region},
-			"transitGatewayId": transitGatewayIds,
+			"transitGatewayId": {strings.Join(transitGatewayIds, ",")},
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayStatus{},
@@ -162,8 +163,8 @@ func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUI
 		QueryParameters: map[string][]string{
 			"controlPlaneId":             {controlPlaneId.String()},
 			"region":                     {region},
-			"transitGatewayAttachmentId": transitGatewayAttachmentIds,
-			"resourceId":                 resourceIds,
+			"transitGatewayAttachmentId": {strings.Join(transitGatewayAttachmentIds, ",")},
+			"resourceId":                 {strings.Join(resourceIds, ",")},
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayAttachmentStatus{},
