@@ -10,7 +10,7 @@ import (
 
 type SkeletonConfig struct {
 	Archetype         string `survey:"generator" json:"generator"`
-	TargetParent      string `survey:"targetParent" json:"-"`
+	TargetParent      string `survey:"targetParent" json:"targetParent"`
 	TargetDir         string `json:"-"`
 	AppName           string `survey:"appName" json:"appName"`
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`

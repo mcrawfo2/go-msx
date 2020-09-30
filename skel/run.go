@@ -12,7 +12,8 @@ import (
 )
 
 const appName = "skel"
-const configFileName = ".skel.json"
+const projectConfigFileName = ".skel.json"
+const generateConfigFileName = "generate.json"
 
 var logger = log.NewLogger("msx.skel")
 
@@ -25,7 +26,13 @@ func init() {
 }
 
 func configure(cmd *cobra.Command, args []string) error {
-	if loaded, err := loadConfig(); err != nil {
+	if loaded, err := loadProjectConfig(); err != nil {
+		return err
+	} else if loaded {
+		return nil
+	}
+
+	if loaded, err := loadGenerateConfig(); err != nil {
 		return err
 	} else if loaded {
 		return nil
@@ -35,7 +42,21 @@ func configure(cmd *cobra.Command, args []string) error {
 	return ConfigureInteractive(args)
 }
 
-func loadConfig() (bool, error) {
+func loadConfig (configFile string) error {
+	bytes, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(bytes, &skeletonConfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func loadProjectConfig() (bool, error) {
 	here, err := os.Getwd()
 	if err != nil {
 		return false, err
@@ -43,7 +64,7 @@ func loadConfig() (bool, error) {
 
 	configFile := ""
 	for here != "/" {
-		hereFile := filepath.Join(here, configFileName)
+		hereFile := filepath.Join(here, projectConfigFileName)
 		stat, err := os.Stat(hereFile)
 		if err != nil && !os.IsNotExist(err) {
 			return false, err
@@ -60,18 +81,31 @@ func loadConfig() (bool, error) {
 		return false, nil
 	}
 
-	bytes, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return false, err
-	}
-
-	err = json.Unmarshal(bytes, &skeletonConfig)
+	err = loadConfig(configFile)
 	if err != nil {
 		return false, err
 	}
 
 	skeletonConfig.TargetDir = filepath.Dir(configFile)
 	skeletonConfig.TargetParent = filepath.Dir(skeletonConfig.TargetDir)
+
+	return true, nil
+}
+
+func loadGenerateConfig() (bool, error) {
+	stat, err := os.Stat(generateConfigFileName)
+	if err != nil && !os.IsNotExist(err) {
+		return false, err
+	} else if err != nil {
+		return false, nil
+	} else if stat.IsDir() {
+		return false, nil
+	}
+
+	err = loadConfig(generateConfigFileName)
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 }

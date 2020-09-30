@@ -64,7 +64,7 @@ func GenerateSkelJson(args []string) error {
 
 	template := Template{
 		Name:       "Creating skel config",
-		DestFile:   configFileName,
+		DestFile:   projectConfigFileName,
 		SourceData: bytes,
 		Format:     FileFormatJson,
 	}
