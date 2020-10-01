@@ -1,7 +1,9 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: test dist debug assemblies docker docker-publish publish clean precommit tag
+.PHONY: all test dist debug assemblies docker docker-publish manifest publish clean precommit tag
 .PHONY: update-go-msx update-go-msx-build
+
+all: clean test docker dist
 
 test:
 	$(BUILDER) download-test-deps
@@ -15,9 +17,7 @@ dist:
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
 	$(BUILDER) build-assemblies
-#if GENERATOR_SP
 	$(BUILDER) build-installer-manifest
-#endif GENERATOR_SP
 
 debug:
 	$(BUILDER) build-debug-executable
@@ -25,13 +25,9 @@ debug:
 assemblies:
 	$(BUILDER) build-assemblies
 
-#if GENERATOR_SP
-.PHONY: manifest
-
 manifest:
 	$(BUILDER) build-installer-manifest
 
-#endif GENERATOR_SP
 docker:
 	go mod vendor
 	$(BUILDER) docker-build
