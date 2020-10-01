@@ -3,94 +3,118 @@
 package skel
 
 import (
+	"bufio"
+	"bytes"
 	"compress/gzip"
+	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"github.com/pkg/errors"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
+type FileFormat int
+
+const (
+	FileFormatGo FileFormat = iota
+	FileFormatMakefile
+	FileFormatJson
+	FileFormatSql
+	FileFormatYaml
+	FileFormatXml
+	FileFormatGroovy
+	FileFormatProperties
+	FileFormatMarkdown
+	FileFormatGoMod
+	FileFormatDocker
+)
+
+type RenderOptions struct {
+	Variables  map[string]string
+	Conditions map[string]bool
+	Strings    map[string]string
+}
+
+func (r RenderOptions) AddString(source, dest string) {
+	r.Strings[source] = dest
+}
+
+func (r RenderOptions) AddStrings(strings map[string]string) {
+	for k, v := range strings {
+		r.Strings[k] = v
+	}
+}
+
+func (r RenderOptions) AddCondition(condition string, value bool) {
+	r.Conditions[condition] = value
+}
+
+func (r RenderOptions) AddConditions(conditions map[string]bool) {
+	for k, v := range conditions {
+		r.Conditions[k] = v
+	}
+}
+
+func NewRenderOptions() RenderOptions {
+	return RenderOptions{
+		Variables: map[string]string{
+			"app.name":                     skeletonConfig.AppName,
+			"app.description":              skeletonConfig.AppDescription,
+			"app.displayname":              skeletonConfig.AppDisplayName,
+			"app.version":                  skeletonConfig.AppVersion,
+			"app.migrateversion":           skeletonConfig.AppMigrateVersion(),
+			"app.packageurl":               skeletonConfig.AppPackageUrl(),
+			"deployment.group":             skeletonConfig.DeploymentGroup,
+			"server.port":                  strconv.Itoa(skeletonConfig.ServerPort),
+			"server.contextpath":           path.Clean("/" + skeletonConfig.ServerContextPath),
+			"kubernetes.group":             skeletonConfig.KubernetesGroup,
+			"target.dir":                   skeletonConfig.TargetDirectory(),
+			"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
+			"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
+			"jenkins.publish.trunk":        strconv.FormatBool(skeletonConfig.KubernetesGroup != "platformms"),
+			"generator":                    skeletonConfig.Archetype,
+			"beat.protocol":                skeletonConfig.BeatProtocol,
+			"service.type":                 skeletonConfig.ServiceType,
+		},
+		Conditions: map[string]bool{
+			"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
+			"REPOSITORY_CASSANDRA": skeletonConfig.Repository == "cassandra",
+			"GENERATOR_APP":        skeletonConfig.Archetype == archetypeKeyApp,
+			"GENERATOR_BEAT":       skeletonConfig.Archetype == archetypeKeyBeat,
+			"GENERATOR_SP":         skeletonConfig.Archetype == archetypeKeyServicePack,
+			"UI":                   hasUI(),
+		},
+		Strings: make(map[string]string),
+	}
+}
+
 type Template struct {
-	SourceFile string
+	Name       string
 	DestFile   string
+	SourceFile string
+	SourceData []byte
+	Format     FileFormat
 }
 
-type StaticFile struct {
-	Data     []byte
-	DestFile string
-}
-
-func variables() map[string]string {
-	return map[string]string{
-		"app.name":                     skeletonConfig.AppName,
-		"app.description":              skeletonConfig.AppDescription,
-		"app.displayname":              skeletonConfig.AppDisplayName,
-		"app.version":                  skeletonConfig.AppVersion,
-		"app.migrateversion":           skeletonConfig.AppMigrateVersion(),
-		"app.packageurl":               skeletonConfig.AppPackageUrl(),
-		"deployment.group":             skeletonConfig.DeploymentGroup,
-		"server.port":                  strconv.Itoa(skeletonConfig.ServerPort),
-		"server.contextpath":           path.Clean("/" + skeletonConfig.ServerContextPath),
-		"kubernetes.group":             skeletonConfig.KubernetesGroup,
-		"target.dir":                   skeletonConfig.TargetDirectory(),
-		"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
-		"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
-		"jenkins.publish.trunk":        strconv.FormatBool(skeletonConfig.KubernetesGroup != "platformms"),
-		"generator":                    skeletonConfig.Archetype,
-		"beat.protocol":                skeletonConfig.BeatProtocol,
-		"service.type":                 skeletonConfig.ServiceType,
-	}
-}
-
-func writeStaticFiles(files map[string]StaticFile) error {
-	for message, static := range files {
-		logger.Infof("- %s (%s)", message, static.DestFile)
-		err := writeStatic(static)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func writeStatic(static StaticFile) (err error) {
-	variableValues := variables()
-
-	destFile := static.DestFile
-	if destFile == "" {
-		return errors.New("Static file missing destination filename")
-	}
-	destFile = substituteVariables(destFile, variableValues)
-
-	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
-	targetDirectory := path.Dir(targetFileName)
-	err = os.MkdirAll(targetDirectory, 0755)
-	if err != nil {
-		return err
+func (t Template) source(options RenderOptions) (string, error) {
+	if t.SourceData != nil {
+		return string(t.SourceData), nil
 	}
 
-	return ioutil.WriteFile(targetFileName, static.Data, 0644)
-}
+	sourceFile := substituteVariables(t.SourceFile, options.Variables)
 
-func renderTemplates(templates map[string]Template) error {
-	for message, template := range templates {
-		logger.Infof("- %s (%s)", message, template.SourceFile)
-		err := renderTemplate(template)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func readTemplate(sourceFile string) ([]byte, error) {
 	f, ok := staticFiles[sourceFile]
 	if !ok {
-		return nil, errors.Errorf("Template file not found: %s", sourceFile)
+		return "", errors.Errorf("Template file not found: %s", sourceFile)
 	}
 
 	var reader io.Reader
@@ -98,34 +122,62 @@ func readTemplate(sourceFile string) ([]byte, error) {
 		var err error
 		reader, err = gzip.NewReader(strings.NewReader(f.data))
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 	} else {
 		reader = strings.NewReader(f.data)
 	}
 
-	return ioutil.ReadAll(reader)
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
 
-func renderTemplate(template Template) error {
-	variableValues := variables()
+func (t Template) destinationFile(options RenderOptions) (string, error) {
+	if t.DestFile == "" {
+		if t.SourceFile == "" {
+			return "", errors.New("Missing destination filename")
+		}
+		return substituteVariables(t.SourceFile, options.Variables), nil
+	}
+	return substituteVariables(t.DestFile, options.Variables), nil
+}
 
-	sourceFile := template.SourceFile
-	sourceFile = substituteVariables(sourceFile, variableValues)
-	bytes, err := readTemplate(sourceFile)
+func (t Template) Render(options RenderOptions) error {
+	// Load the source
+	contents, err := t.source(options)
 	if err != nil {
 		return err
 	}
 
-	destFile := template.DestFile
-	if destFile == "" {
-		destFile = sourceFile
-	} else {
-		destFile = substituteVariables(destFile, variableValues)
+	// Find the destination
+	destFile, err := t.destinationFile(options)
+	if err != nil {
+		return err
 	}
 
-	rendered := substituteVariables(string(bytes), variableValues)
-	bytes = []byte(rendered)
+	logger.Infof("- %s (%s)", t.Name, destFile)
+
+	// Replace strings
+	for sourceString, destString := range options.Strings {
+		contents = strings.ReplaceAll(contents, sourceString, destString)
+	}
+
+	// Substitute variables
+	contents = substituteVariables(contents, options.Variables)
+
+	// Execute conditions
+	for condition, value := range options.Conditions {
+		contents, err = processConditionalBlocks(contents, t.Format, condition, value)
+	}
+	if err != nil {
+		return err
+	}
+
+	// Ensure the target parent directory exists
 	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
 	targetDirectory := path.Dir(targetFileName)
 	err = os.MkdirAll(targetDirectory, 0755)
@@ -133,7 +185,30 @@ func renderTemplate(template Template) error {
 		return err
 	}
 
-	return ioutil.WriteFile(targetFileName, bytes, 0644)
+	// Write the rendered contents to the destination file
+	err = ioutil.WriteFile(targetFileName, []byte(contents), 0644)
+	if err != nil {
+		return err
+	}
+
+	if t.Format == FileFormatGo {
+		err = exec.ExecutePipes(
+			exec.Info("  - Reformatting %q", path.Base(destFile)),
+			exec.ExecSimple("go", "fmt", targetFileName))
+	}
+
+	return err
+}
+
+type TemplateSet []Template
+
+func (t TemplateSet) Render(options RenderOptions) error {
+	for _, template := range t {
+		if err := template.Render(options); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func substituteVariables(source string, variableValues map[string]string) string {
@@ -147,4 +222,126 @@ func substituteVariables(source string, variableValues map[string]string) string
 		}
 	}
 	return rendered
+}
+
+func conditionalMarkers(format FileFormat) (string, string) {
+	switch format {
+	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker:
+		return "#", ""
+	case FileFormatSql:
+		return "--#", ""
+	case FileFormatXml, FileFormatMarkdown:
+		return "<--#", "-->"
+	default:
+		return "//#", ""
+	}
+}
+
+func processConditionalBlocks(data string, format FileFormat, condition string, output bool) (result string, err error) {
+	type parserState int
+	const outside parserState = 0
+	const insideIf parserState = 1
+	const insideElse parserState = 2
+
+	sb := strings.Builder{}
+	write := func(out bool, line string) {
+		if !out {
+			return
+		}
+		sb.WriteString(line)
+		sb.WriteRune('\n')
+	}
+	insideCondition := outside
+	prefix, suffix := conditionalMarkers(format)
+	startMarker := prefix + "if " + condition + suffix
+	middleMarker := prefix + "else " + condition + suffix
+	endMarker := prefix + "endif " + condition + suffix
+
+	scanner := bufio.NewScanner(strings.NewReader(data))
+	for scanner.Scan() {
+		line := scanner.Text()
+		lineTrimmed := strings.TrimSpace(line)
+		switch insideCondition {
+		case outside:
+			switch lineTrimmed {
+			case startMarker:
+				insideCondition = insideIf
+			default:
+				write(true, line)
+			}
+
+		case insideIf:
+			switch lineTrimmed {
+			case endMarker:
+				insideCondition = outside
+			case middleMarker:
+				insideCondition = insideElse
+			default:
+				write(output, line)
+			}
+
+		case insideElse:
+			switch lineTrimmed {
+			case endMarker:
+				insideCondition = outside
+			default:
+				write(!output, line)
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", errors.Wrap(err, "Failed to process conditional blocks")
+	}
+
+	return sb.String(), nil
+}
+
+func initializePackageFromFile(fileName, packageUrl string) error {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, fileName, nil, 0)
+	if err != nil {
+		return err
+	}
+
+	// Add the imports
+	for i := 0; i < len(f.Decls); i++ {
+		d := f.Decls[i]
+
+		switch d.(type) {
+		case *ast.GenDecl:
+			dd := d.(*ast.GenDecl)
+
+			// IMPORT Declarations
+			if dd.Tok == token.IMPORT {
+				// Add the new import
+				iSpec := &ast.ImportSpec{
+					Path: &ast.BasicLit{Value: strconv.Quote(packageUrl)},
+					Name: ast.NewIdent("_"),
+				}
+
+				dd.Specs = append(dd.Specs, iSpec)
+			}
+		}
+	}
+
+	// Sort the imports
+	ast.SortImports(fset, f)
+
+	var output []byte
+	buffer := bytes.NewBuffer(output)
+	if err := printer.Fprint(buffer, fset, f); err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(fileName, buffer.Bytes(), 0644)
+}
+
+func hasUI() bool {
+	uiPath := filepath.Join(skeletonConfig.TargetDirectory(), "ui", "package.json")
+	if st, err := os.Stat(uiPath); err != nil {
+		return false
+	} else {
+		return !st.IsDir() && st.Size() > 0
+	}
 }

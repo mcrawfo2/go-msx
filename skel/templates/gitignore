@@ -33,4 +33,3 @@ dist/
 vendor/
 local/
 test/
-manifest/target/

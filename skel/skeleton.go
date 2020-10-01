@@ -62,101 +62,154 @@ func GenerateSkelJson(args []string) error {
 		return err
 	}
 
-	return writeStaticFiles(map[string]StaticFile{
-		"Creating skel config": {
-			Data:     bytes,
-			DestFile: configFileName,
-		},
-	})
+	template := Template{
+		Name:       "Creating skel config",
+		DestFile:   projectConfigFileName,
+		SourceData: bytes,
+		Format:     FileFormatJson,
+	}
+
+	return template.Render(NewRenderOptions())
 }
 
 func GenerateBuild(args []string) error {
 	logger.Info("Generating build command")
 
-	templates := map[string]Template{
-		"Creating Makefile": {SourceFile: "Makefile"},
-		"Creating build descriptor": {
+	templates := TemplateSet{
+		{
+			Name:       "Creating Makefile",
+			SourceFile: "Makefile",
+			Format:     FileFormatMakefile,
+		},
+		{
+			Name:       "Creating build descriptor",
 			SourceFile: "cmd/build/build-${generator}.yml",
 			DestFile:   "cmd/build/build.yml",
+			Format:     FileFormatYaml,
 		},
-		"Creating build command source": {
+		{
+			Name:       "Creating build command source",
 			SourceFile: "cmd/build/build.go.tpl",
 			DestFile:   "cmd/build/build.go",
 		},
 	}
 
-	return renderTemplates(templates)
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateInstallerManifest(args []string) error {
 	logger.Info("Generating installer manifest")
-	return renderTemplates(map[string]Template{
-		"Creating pom.xml":      {SourceFile: "manifest/pom.xml"},
-		"Creating assembly.xml": {SourceFile: "manifest/assembly.xml"},
-		"Creating images manifest": {
-			SourceFile: "manifest/resources/manifest-images.yml",
-			DestFile:   "manifest/resources/${app.name}-manifest-images.yml",
+	templates := TemplateSet{
+		{
+			Name:       "Creating pom.xml",
+			SourceFile: "manifest/pom.xml",
+			Format:     FileFormatXml,
 		},
-	})
+		{
+			Name:       "Creating assembly.xml",
+			SourceFile: "manifest/assembly.xml",
+			Format:     FileFormatXml,
+		},
+		{
+			Name:       "Creating gitignore",
+			SourceFile: "manifest/gitignore",
+			DestFile:   "manifest/.gitignore",
+			Format:     FileFormatDocker,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateJenkinsCi(args []string) error {
 	logger.Info("Generating Jenkins CI")
-	return renderTemplates(map[string]Template{
-		"Creating Jenkinsfile":        {SourceFile: "build/ci/Jenkinsfile"},
-		"Creating sonar config":       {SourceFile: "build/ci/sonar-project.properties"},
-		"Creating Jenkins job config": {SourceFile: "build/ci/config.xml"},
-	})
+	templates := TemplateSet{
+		{
+			Name:       "Creating Jenkinsfile",
+			SourceFile: "build/ci/Jenkinsfile",
+			Format:     FileFormatGroovy,
+		},
+		{
+			Name:       "Creating sonar config",
+			SourceFile: "build/ci/sonar-project.properties",
+			Format:     FileFormatProperties,
+		},
+		{
+			Name:       "Creating Jenkins job config",
+			SourceFile: "build/ci/config.xml",
+			Format:     FileFormatXml,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateLocal(args []string) error {
 	logger.Info("Generating local profiles")
-	return renderTemplates(map[string]Template{
-		"Creating remote profile": {
-			SourceFile: "local/profile.remote.yml",
-			DestFile:   "local/${app.name}.remote.yml",
-		},
-	})
+	template := Template{
+		Name:       "Creating remote profile",
+		SourceFile: "local/profile.remote.yml",
+		DestFile:   "local/${app.name}.remote.yml",
+		Format:     FileFormatYaml,
+	}
+
+	return template.Render(NewRenderOptions())
 }
 
 func GenerateApp(args []string) error {
 	logger.Info("Generating application")
-	return renderTemplates(map[string]Template{
-		"Creating go module definition": {
+	templates := TemplateSet{
+		{
+			Name:       "Creating go module definition",
 			SourceFile: "go.mod.tpl",
 			DestFile:   "go.mod",
+			Format:     FileFormatGoMod,
 		},
-		"Creating README": {
+		{
+			Name:       "Creating README",
 			SourceFile: "README-${generator}.md",
 			DestFile:   "README.md",
+			Format:     FileFormatMarkdown,
 		},
-		"Creating bootstrap configuration": {
+		{
+			Name:       "Creating bootstrap configuration",
 			SourceFile: "cmd/app/bootstrap-${generator}.yml",
 			DestFile:   "cmd/app/bootstrap.yml",
+			Format:     FileFormatYaml,
 		},
-		"Creating production profile": {
+		{
+			Name:       "Creating production profile",
 			SourceFile: "cmd/app/profile-${generator}.production.yml",
 			DestFile:   "cmd/app/${app.name}.production.yml",
+			Format:     FileFormatYaml,
 		},
-		"Creating beat application entrypoint source": {
+		{
+			Name:       "Creating application entrypoint source",
 			SourceFile: "cmd/app/main-${generator}.go.tpl",
 			DestFile:   "cmd/app/main.go",
 		},
-	})
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateMigrate(args []string) error {
 	logger.Info("Generating migration scanner")
-	err := renderTemplates(map[string]Template{
-		"Creating migration root sources": {
+
+	templates := TemplateSet{
+		{
+			Name:       "Creating migration root sources",
 			SourceFile: "internal/migrate/migrate.go.tpl",
 			DestFile:   "internal/migrate/migrate.go",
 		},
-		"Creating migration version sources": {
+		{
+			Name:       "Creating migration version sources",
 			SourceFile: fmt.Sprintf("internal/migrate/version/migrate_%s.go.tpl", skeletonConfig.Repository),
 			DestFile:   "internal/migrate/${app.migrateVersion}/migrate.go",
 		},
-	})
+	}
+
+	err := templates.Render(NewRenderOptions())
 	if err != nil {
 		return err
 	}
@@ -211,122 +264,174 @@ func AddGoMsxDependency(args []string) error {
 
 func GenerateGoland(args []string) error {
 	logger.Info("Generating Goland project")
-	return renderTemplates(map[string]Template{
-		"Creating module definition": {
+	templates := TemplateSet{
+		{
+			Name:       "Creating module definition",
 			SourceFile: "idea/project.iml.tpl",
 			DestFile:   ".idea/${app.name}.iml",
+			Format:     FileFormatXml,
 		},
-		"Creating project definition": {
+		{
+			Name:       "Creating project definition",
 			SourceFile: "idea/modules.xml",
 			DestFile:   ".idea/modules.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating vcs definition": {
+		{
+			Name:       "Creating vcs definition",
 			SourceFile: "idea/vcs.xml",
 			DestFile:   ".idea/vcs.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating workspace": {
+		{
+			Name:       "Creating workspace",
 			SourceFile: "idea/workspace.xml",
 			DestFile:   ".idea/workspace.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make clean": {
-			SourceFile: "idea/runConfigurations/make_clean.xml",
+		{
+			Name:       "Creating run configuration: make clean",
 			DestFile:   ".idea/runConfigurations/make_clean.xml",
+			SourceFile: "idea/runConfigurations/make_clean.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make test": {
+		{
+			Name:       "Creating run configuration: make test",
 			SourceFile: "idea/runConfigurations/make_test.xml",
 			DestFile:   ".idea/runConfigurations/make_test.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make precommit": {
+		{
+			Name:       "Creating run configuration: make precommit",
 			SourceFile: "idea/runConfigurations/make_precommit.xml",
 			DestFile:   ".idea/runConfigurations/make_precommit.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make dist": {
+		{
+			Name:       "Creating run configuration: make dist",
 			SourceFile: "idea/runConfigurations/make_dist.xml",
 			DestFile:   ".idea/runConfigurations/make_dist.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make docker": {
+		{
+			Name:       "Creating run configuration: make docker",
 			SourceFile: "idea/runConfigurations/make_docker.xml",
 			DestFile:   ".idea/runConfigurations/make_docker.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: make docker-publish": {
+		{
+			Name:       "Creating run configuration: make docker-publish",
 			SourceFile: "idea/runConfigurations/make_docker_publish.xml",
 			DestFile:   ".idea/runConfigurations/make_docker_publish.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: (local)": {
+		{
+			Name:       "Creating run configuration: (local)",
 			SourceFile: "idea/runConfigurations/project__local_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__local_.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: migrate (local)": {
+		{
+			Name:       "Creating run configuration: migrate (local)",
 			SourceFile: "idea/runConfigurations/project_migrate__local_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_migrate__local_.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: populate (local)": {
+		{
+			Name:       "Creating run configuration: populate (local)",
 			SourceFile: "idea/runConfigurations/project_populate__local_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_populate__local_.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: (remote)": {
+		{
+			Name:       "Creating run configuration: (remote)",
 			SourceFile: "idea/runConfigurations/project__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}__remote_.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: migrate (remote)": {
+		{
+			Name:       "Creating run configuration: migrate (remote)",
 			SourceFile: "idea/runConfigurations/project_migrate__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_migrate__remote_.xml",
+			Format:     FileFormatXml,
 		},
-		"Creating run configuration: populate (remote)": {
+		{
+			Name:       "Creating run configuration: populate (remote)",
 			SourceFile: "idea/runConfigurations/project_populate__remote_.xml",
 			DestFile:   ".idea/runConfigurations/${app.name}_populate__remote_.xml",
+			Format:     FileFormatXml,
 		},
-	})
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateVsCode(args []string) error {
 	logger.Info("Generating VSCode project")
-	return renderTemplates(map[string]Template{
-		"Creating launch configurations": {
+	templates := TemplateSet{
+		{
+			Name:       "Creating launch configurations",
 			SourceFile: "vscode/launch.json",
 			DestFile:   ".vscode/launch.json",
+			Format:     FileFormatJson,
 		},
-		"Creating task configurations": {
+		{
+			Name:       "Creating task configurations",
 			SourceFile: "vscode/tasks.json",
 			DestFile:   ".vscode/tasks.json",
+			Format:     FileFormatJson,
 		},
-	})
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateDockerfile(args []string) error {
 	logger.Info("Generating Dockerfile")
-	return renderTemplates(map[string]Template{
-		"Creating Dockerfile": {SourceFile: "build/package/Dockerfile"},
-	})
+	template := Template{
+		Name:       "Creating Dockerfile",
+		SourceFile: "build/package/Dockerfile",
+		Format:     FileFormatDocker,
+	}
+
+	return template.Render(NewRenderOptions())
 }
 
 func GenerateKubernetes(args []string) error {
 	logger.Info("Generating kubernetes manifest templates")
-	return renderTemplates(map[string]Template{
-		"Creating deployment template": {
+	templates := TemplateSet{
+		{
+			Name:       "Creating deployment template",
 			SourceFile: "deployments/kubernetes-deployment.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
+			Format:     FileFormatYaml,
 		},
-		"Creating init template": {
+		{
+			Name:       "Creating init template",
 			SourceFile: "deployments/kubernetes-init.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
+			Format:     FileFormatYaml,
 		},
-		"Creating pdb template": {
+		{
+			Name:       "Creating pdb template",
 			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
+			Format:     FileFormatYaml,
 		},
-	})
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateGit(args []string) error {
 	logger.Info("Generating git repository")
-	err := renderTemplates(map[string]Template{
-		"Creating .gitignore": {
-			SourceFile: "gitignore",
-			DestFile:   ".gitignore",
-		},
-	})
-	if err != nil {
+	template := Template{
+		Name:       "Creating git ignore list",
+		SourceFile: "gitignore",
+		DestFile:   ".gitignore",
+		Format:     FileFormatDocker,
+	}
+	if err := template.Render(NewRenderOptions()); err != nil {
 		return err
 	}
 
@@ -335,6 +440,7 @@ func GenerateGit(args []string) error {
 
 	gitDirectory := path.Join(targetDirectory, ".git")
 	if _, err := os.Stat(gitDirectory); err == nil || !os.IsNotExist(err) {
+		logger.Warn(".git directory exists.  Not recreating.")
 		return err
 	}
 

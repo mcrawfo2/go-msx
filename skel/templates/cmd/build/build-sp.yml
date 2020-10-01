@@ -25,12 +25,20 @@ resources:
       - "/internal/populate/**/*"
 
 assemblies:
-  root: internal/populate
-#  custom:
-#    - path: ui/build
-#      pathPrefix: services
-#      manifestPrefix: skyfallui-files
-#      manifestKey: ${msx.deploymentGroup}-ui
+  root: platform-common
+#if UI
+  custom:
+    - path: ui/build
+      pathPrefix: services
+      manifestPrefix: skyfallui-files
+      manifestKey: ${msx.deploymentGroup}-ui
+#endif UI
 
 artifactory:
   installer: deployments/kubernetes
+  custom: []
+  images:
+    - ${app.name}
+#if UI
+    - ${deployment.group}ui
+#endif UI

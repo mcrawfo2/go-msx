@@ -19,5 +19,18 @@ msx:
 
 resources:
   - includes:
+#if REPOSITORY_COCKROACH
       - "/**/*.sql"
+#endif REPOSITORY_COCKROACH
+#if REPOSITORY_CASSANDRA
       - "/**/*.cql"
+#endif REPOSITORY_CASSANDRA
+
+assemblies:
+  root: platform-common
+
+artifactory:
+  installer: deployments/kubernetes
+  custom: []
+  images:
+    - ${app.name}
