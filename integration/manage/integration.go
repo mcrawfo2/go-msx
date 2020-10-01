@@ -147,17 +147,23 @@ var (
 )
 
 type Integration struct {
-	*integration.MsxService
+	integration.MsxServiceExecutor
 }
 
 func NewIntegration(ctx context.Context) (Api, error) {
 	integrationInstance := IntegrationFromContext(ctx)
 	if integrationInstance == nil {
 		integrationInstance = &Integration{
-			MsxService: integration.NewMsxService(ctx, serviceName, endpoints),
+			MsxServiceExecutor: integration.NewMsxService(ctx, serviceName, endpoints),
 		}
 	}
 	return integrationInstance, nil
+}
+
+func NewIntegrationWithExecutor(executor integration.MsxServiceExecutor) (Api) {
+	return &Integration{
+		MsxServiceExecutor: executor,
+	}
 }
 
 func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
@@ -170,6 +176,10 @@ func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 		Payload:      result.Payload,
 		NoToken:      true,
 	})
+
+	if result.Response != nil {
+		result.Payload = result.Response.Payload.(*integration.HealthDTO)
+	}
 
 	return result, err
 }

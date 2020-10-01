@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=MsxServiceExecutor
+
 package integration
 
 import (
@@ -13,6 +15,10 @@ import (
 var (
 	logger = log.NewLogger("msx.integration")
 )
+
+type MsxServiceExecutor interface {
+	Execute(request *MsxEndpointRequest) (response *MsxResponse, err error)
+}
 
 type MsxEndpointRequest struct {
 	EndpointName       string
