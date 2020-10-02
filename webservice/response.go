@@ -112,6 +112,7 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		Command:    RouteOperationFromContext(req.Request.Context()),
 		Params:     parameters(req),
 		HttpStatus: integration.GetSpringStatusNameForCode(status),
+		Throwable:  integration.NewThrowable(err),
 	}
 
 	var errorList types.ErrorList

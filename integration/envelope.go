@@ -1,9 +1,9 @@
 package integration
 
 import (
-	"strconv"
-
 	"github.com/pkg/errors"
+	"strconv"
+	"strings"
 )
 
 type MsxEnvelope struct {
@@ -15,6 +15,7 @@ type MsxEnvelope struct {
 	Params     map[string]interface{} `json:"params"`
 	Payload    interface{}            `json:"responseObject"`
 	Success    bool                   `json:"success"`
+	Throwable  *Throwable             `json:"throwable,omitempty"`
 }
 
 func (e *MsxEnvelope) Error() error {
@@ -29,24 +30,44 @@ func (e *MsxEnvelope) StatusCode() int {
 	return GetSpringStatusCodeForName(e.HttpStatus)
 }
 
-func NewEnvelope(payload interface{}) *MsxEnvelope {
-	return &MsxEnvelope{
-		Payload: payload,
-	}
-}
-
 type Throwable struct {
 	Cause      *Throwable   `json:"cause,omitempty"`
 	StackTrace []StackFrame `json:"stackTrace,omitempty"`
 	Message    string       `json:"message"`
 }
 
-type stackTracer interface {
-	StackTrace() errors.StackTrace
-}
 
 type causer interface {
 	Cause() error
+}
+
+func NewThrowable(err error) *Throwable {
+	throwable := new(Throwable)
+
+	if err == nil {
+		throwable.Message = "Nil error"
+		return throwable
+	}
+
+	// Parse message
+	errMessage := err.Error()
+	lines := strings.Split(errMessage, "\n")
+	parts := strings.Split(lines[0], ": ")
+	throwable.Message = parts[0]
+
+	// Recurse
+	if errWithCause, ok := err.(causer); ok {
+		if cause := errWithCause.Cause(); cause != nil {
+			throwableCause := NewThrowable(cause)
+			// Skip over errors.Wrap artifacts
+			if throwableCause.Message == throwable.Message && throwableCause.StackTrace == nil {
+				throwableCause = throwableCause.Cause
+			}
+			throwable.Cause = throwableCause
+		}
+	}
+
+	return throwable
 }
 
 type StackFrame map[string]interface{}
