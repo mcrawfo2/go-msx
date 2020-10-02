@@ -111,6 +111,7 @@ func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
 		Transport: &http.Transport{
 			TLSClientConfig: f.tlsConfig,
 			IdleConnTimeout: f.clientConfig.IdleTimeout,
+			Proxy: http.ProxyFromEnvironment,
 		},
 		Timeout: f.clientConfig.Timeout,
 	}
