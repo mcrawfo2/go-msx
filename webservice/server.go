@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -147,9 +148,11 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 			To(HttpHandlerController(http.NotFound)))
 	}
 
+	fs := http.FileServer(customFileSystem{s.webRoot})
+
 	staticUiHandler := http.StripPrefix(
-		staticService.RootPath(),
-		http.FileServer(s.webRoot)).ServeHTTP
+		staticService.RootPath(), fs).ServeHTTP
+
 
 	for _, alias := range aliases {
 		staticService.Route(staticService.
@@ -169,6 +172,33 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 		To(HttpHandlerController(staticUiHandler)))
 
 	s.container.Add(staticService)
+
+}
+
+type customFileSystem struct {
+	fs http.FileSystem
+}
+
+func (nfs customFileSystem) Open(path string) (http.File, error) {
+	f, err := nfs.fs.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Stat()
+	if s.IsDir() {
+		index := filepath.Join(path, "index.html")
+		if _, err := nfs.fs.Open(index); err != nil {
+			closeErr := f.Close()
+			if closeErr != nil {
+				return nil, closeErr
+			}
+
+			return nil, err
+		}
+	}
+
+	return f, nil
 }
 
 func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
