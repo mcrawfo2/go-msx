@@ -30,6 +30,12 @@ func (e *MsxEnvelope) StatusCode() int {
 	return GetSpringStatusCodeForName(e.HttpStatus)
 }
 
+func NewEnvelope(payload interface{}) *MsxEnvelope {
+	return &MsxEnvelope{
+		Payload: payload,
+	}
+}
+
 type Throwable struct {
 	Cause      *Throwable   `json:"cause,omitempty"`
 	StackTrace []StackFrame `json:"stackTrace,omitempty"`
