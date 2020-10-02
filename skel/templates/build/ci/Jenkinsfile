@@ -43,6 +43,15 @@ pipeline {
                         env.BRANCH_NAME = env.GIT_BRANCH.replaceAll("origin/", "")
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
                     }
+
+                    if env.BUILD_FLAGS {
+                        BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
+                    }
+
+                    if env.MANIFEST_FOLDER {
+                        BUILD_FLAGS = "${BUILD_FLAGS} --manifest.folder=${env.MANIFEST_FOLDER}"
+                        env.PUBLISH = 'true'
+                    }
                 }
             }
         }
@@ -76,11 +85,13 @@ pipeline {
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
                         "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
-                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "BUILD_FLAGS=$BUILD_FLAGS"
                     ]) { dir ("$WORKSPACE") {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
                         sh 'make test'
-                        sh "make docker BUILD_FLAGS='$BUILD_FLAGS'"
+                        sh "make dist"
+                        sh "make docker"
                     }}
                 }
             }
@@ -139,7 +150,8 @@ pipeline {
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
                         "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
-                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "BUILD_FLAGS=$BUILD_FLAGS"
                     ]) { dir ("$WORKSPACE") {
                         script { withCredentials([usernamePassword(
                             credentialsId: DOCKER_CREDENTIALS,
@@ -149,8 +161,8 @@ pipeline {
                                 passwordVariable: 'ARTIFACTORY_PASSWORD',
                                 usernameVariable: 'ARTIFACTORY_USERNAME')]) {
                                 if (env.PUBLISH == 'true' || (AUTO_PUBLISH_TRUNK && env.BRANCH_NAME == TRUNK)) {
-                                    sh "make tag BUILD_FLAGS='$BUILD_FLAGS'"
-                                    sh "make publish BUILD_FLAGS='$BUILD_FLAGS'"
+                                    sh "make tag"
+                                    sh "make publish"
                                 }
                         }}}
                     }}
