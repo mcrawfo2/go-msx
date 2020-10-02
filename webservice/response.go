@@ -1,13 +1,14 @@
 package webservice
 
 import (
+	"errors"
+	"net/http"
+	"reflect"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"errors"
 	"github.com/emicklei/go-restful"
-	"net/http"
-	"reflect"
 )
 
 type ErrorRaw interface {
@@ -124,9 +125,8 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		WithError(err).
 		Error("Request failed")
 
-	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
-	if err2 != nil {
-		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error envelope")
+	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
+		logger.WithContext(req.Request.Context()).WithError(err).Error("Failed to write error envelope")
 	}
 }
 
