@@ -102,6 +102,9 @@ func (i *Integration) GetServiceConfigurations(page, pageSize int) (*integration
 			"page":     {strconv.Itoa(page)},
 			"pageSize": {strconv.Itoa(pageSize)},
 		},
+		Payload: &paging.PaginatedResponse{
+			Content: []ServiceConfigurationResponse{},
+		},
 		ExpectEnvelope: true,
 	})
 }
