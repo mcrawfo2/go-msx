@@ -152,13 +152,13 @@ func (_m *MockAwsResourceProvider) GetResources(serviceConfigurationApplicationI
 	return r0, r1
 }
 
-// GetStackOutputs provides a mock function with given fields: serviceConfigurationApplicationId
-func (_m *MockAwsResourceProvider) GetStackOutputs(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error) {
-	ret := _m.Called(serviceConfigurationApplicationId)
+// GetStackOutputs provides a mock function with given fields: controlPlaneId, applicationId
+func (_m *MockAwsResourceProvider) GetStackOutputs(controlPlaneId types.UUID, applicationId types.UUID) (*integration.MsxResponse, error) {
+	ret := _m.Called(controlPlaneId, applicationId)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(types.UUID) *integration.MsxResponse); ok {
-		r0 = rf(serviceConfigurationApplicationId)
+	if rf, ok := ret.Get(0).(func(types.UUID, types.UUID) *integration.MsxResponse); ok {
+		r0 = rf(controlPlaneId, applicationId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -166,8 +166,8 @@ func (_m *MockAwsResourceProvider) GetStackOutputs(serviceConfigurationApplicati
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.UUID) error); ok {
-		r1 = rf(serviceConfigurationApplicationId)
+	if rf, ok := ret.Get(1).(func(types.UUID, types.UUID) error); ok {
+		r1 = rf(controlPlaneId, applicationId)
 	} else {
 		r1 = ret.Error(1)
 	}
