@@ -11,12 +11,12 @@ type Api interface {
 	Connect(request AwsConnectRequest) (*integration.MsxResponse, error)
 	//DEPRECATED use v2 instead
 	GetRegions(controlPlaneId types.UUID) (*integration.MsxResponse, error)
-	GetRegionsV2(controlPlaneId types.UUID, amiName *string) (*integration.MsxResponse, error)	// optional amiName
+	GetRegionsV2(controlPlaneId types.UUID, amiName *string) (*integration.MsxResponse, error) // optional amiName
 	GetAvailabilityZones(controlPlaneId types.UUID, region string) (*integration.MsxResponse, error)
 	GetResources(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
 	GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error)
 	GetEc2InstanceStatus(controlPlaneId types.UUID, region string, instanceId string) (*integration.MsxResponse, error)
 	GetTransitGatewayStatus(controlPlaneId types.UUID, region string, transitGatewayIds []string) (*integration.MsxResponse, error)
 	GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string, resourceIds []string) (*integration.MsxResponse, error)
-	GetStackOutputs(serviceConfigurationApplicationId types.UUID) (*integration.MsxResponse, error)
+	GetStackOutputs(applicationId types.UUID) (*integration.MsxResponse, error)
 }
