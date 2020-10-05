@@ -7,9 +7,10 @@ def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
 def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
-def BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
+def BUILD_FLAGS = ""
 def TRUNK = 'develop'
-def AUTO_PUBLISH_TRUNK = ${jenkins.publish.trunk}
+def TRUNK_MANIFEST_FOLDER = 'Build-Stable'
+def PUBLISH = false
 
 pipeline {
 
@@ -29,7 +30,6 @@ pipeline {
                 deleteDir()
 
                 script {
-                    assert env.PUBLISH
                     assert env.BUILD_NUMBER
                     assert env.WORKSPACE
 
@@ -44,13 +44,19 @@ pipeline {
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
                     }
 
-                    if env.BUILD_FLAGS {
-                        BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
+                    BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
+
+                    if env.BRANCH_NAME == TRUNK && !env.MANIFEST_FOLDER {
+                        env.MANIFEST_FOLDER = TRUNK_MANIFEST_FOLDER
                     }
 
                     if env.MANIFEST_FOLDER {
                         BUILD_FLAGS = "${BUILD_FLAGS} --manifest.folder=${env.MANIFEST_FOLDER}"
-                        env.PUBLISH = 'true'
+                        PUBLISH = true
+                    }
+
+                    if env.BUILD_FLAGS {
+                        BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
                     }
                 }
             }
@@ -160,7 +166,7 @@ pipeline {
                                 credentialsId: ARTIFACTORY_CREDENTIALS,
                                 passwordVariable: 'ARTIFACTORY_PASSWORD',
                                 usernameVariable: 'ARTIFACTORY_USERNAME')]) {
-                                if (env.PUBLISH == 'true' || (AUTO_PUBLISH_TRUNK && env.BRANCH_NAME == TRUNK)) {
+                                if (PUBLISH) {
                                     sh "make tag"
                                     sh "make publish"
                                 }
