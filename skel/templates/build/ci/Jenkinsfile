@@ -46,16 +46,16 @@ pipeline {
 
                     BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
 
-                    if env.BRANCH_NAME == TRUNK && !env.MANIFEST_FOLDER {
+                    if (env.BRANCH_NAME == TRUNK && !env.MANIFEST_FOLDER) {
                         env.MANIFEST_FOLDER = TRUNK_MANIFEST_FOLDER
                     }
 
-                    if env.MANIFEST_FOLDER {
+                    if (env.MANIFEST_FOLDER) {
                         BUILD_FLAGS = "${BUILD_FLAGS} --manifest.folder=${env.MANIFEST_FOLDER}"
                         PUBLISH = true
                     }
 
-                    if env.BUILD_FLAGS {
+                    if (env.BUILD_FLAGS) {
                         BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
                     }
                 }

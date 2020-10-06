@@ -138,7 +138,7 @@
             <userRemoteConfigs>
                 <hudson.plugins.git.UserRemoteConfig>
                     <url>git@cto-github.cisco.com:NFV-BU/${app.name}.git</url>
-                    <credentialsId>06702990-d4e7-4a80-beaa-6d407896feff</credentialsId>
+                    <credentialsId>msx-jenkins-gen-ssh-key</credentialsId>
                 </hudson.plugins.git.UserRemoteConfig>
             </userRemoteConfigs>
             <branches>
