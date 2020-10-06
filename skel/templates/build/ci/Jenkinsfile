@@ -96,8 +96,9 @@ pipeline {
                     ]) { dir ("$WORKSPACE") {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
                         sh 'make test'
-                        sh "make dist"
                         sh "make docker"
+                        sh "make assemblies"
+                        sh "make manifest"
                     }}
                 }
             }

@@ -16,8 +16,6 @@ dist:
 	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
-	$(BUILDER) build-assemblies
-	$(BUILDER) build-installer-manifest
 
 debug:
 	$(BUILDER) build-debug-executable
