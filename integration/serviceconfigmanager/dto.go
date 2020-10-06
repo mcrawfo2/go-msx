@@ -31,6 +31,8 @@ type ServiceConfigurationUpdateRequest struct {
 	ServiceConfigId string `json:"serviceConfigId"`
 }
 
+type ServiceConfigurationListResponse []ServiceConfigurationResponse
+
 type ServiceConfigurationResponse struct {
 	Name                 string             `json:"name"`
 	Description          *string            `json:"description"`
