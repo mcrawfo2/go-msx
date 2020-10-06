@@ -95,10 +95,7 @@ pipeline {
                         "BUILD_FLAGS=$BUILD_FLAGS"
                     ]) { dir ("$WORKSPACE") {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
-                        sh 'make test'
-                        sh "make docker"
-                        sh "make assemblies"
-                        sh "make manifest"
+                        sh 'make all'
                     }}
                 }
             }
