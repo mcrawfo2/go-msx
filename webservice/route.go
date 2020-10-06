@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	logger        = log.NewLogger("msx.webservice")
+	logger = log.NewLogger("msx.webservice")
 )
 
 func StandardList(b *restful.RouteBuilder) {

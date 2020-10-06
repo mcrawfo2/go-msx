@@ -267,7 +267,7 @@ type DeviceTemplateCreateRequest struct {
 }
 
 type DeviceTemplateCreateResponse struct {
-	Id                   types.UUID                     `json:"id"`
+	Id                   types.UUID                 `json:"id"`
 	DeviceTemplateAccess DeviceTemplateAccess       `json:"access"`
 	ConfigContent        string                     `json:"configContent"`
 	Description          string                     `json:"description"`

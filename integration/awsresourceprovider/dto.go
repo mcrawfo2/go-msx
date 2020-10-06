@@ -21,7 +21,7 @@ type AwsConnectRequest struct {
 type Region struct {
 	Regionname string `json:"regionname"`
 	Endpoint   string `json:"endpoint"`
-	AmiId 	   string `json:"amiId"`
+	AmiId      string `json:"amiId"`
 }
 
 type AvailabilityZone struct {

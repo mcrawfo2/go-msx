@@ -42,7 +42,6 @@ type Throwable struct {
 	Message    string       `json:"message"`
 }
 
-
 type causer interface {
 	Cause() error
 }
