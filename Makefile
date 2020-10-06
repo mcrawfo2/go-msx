@@ -35,6 +35,7 @@ generate:
 	$(BUILDER) generate
 
 precommit:
+	$(BUILDER) download-generate-deps
 	$(BUILDER) generate
 	$(BUILDER) go-fmt
 
