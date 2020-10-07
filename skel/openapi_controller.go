@@ -102,7 +102,7 @@ func generateEndpointValidation(f *File, e Endpoint) (Dict, error) {
 	for _, p := range e.Parameters {
 		result[Lit(p.JsonName())] = Qual(pkgValidation, "Validate").Call(
 			Op("&").Id("p").Dot(p.Name()),
-			)
+		)
 	}
 
 	if e.RequestBody.Exists {
@@ -254,7 +254,7 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 		Parens(List(
 			Id("body").Interface(),
 			Id("err").Id("error"))).
-		Block(	// TODO: Generate body based on archetype
+		Block( // TODO: Generate body based on archetype
 			Return(List(Nil(), Nil())))
 
 	controllerDefinition.DotWrap("To").Call(Qual(pkgWebservice, "RawController").Call(controllerFunction))

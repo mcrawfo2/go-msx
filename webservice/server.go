@@ -153,7 +153,6 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 	staticUiHandler := http.StripPrefix(
 		staticService.RootPath(), fs).ServeHTTP
 
-
 	for _, alias := range aliases {
 		staticService.Route(staticService.
 			GET(alias.Path).

@@ -42,7 +42,7 @@ func configure(cmd *cobra.Command, args []string) error {
 	return ConfigureInteractive(args)
 }
 
-func loadConfig (configFile string) error {
+func loadConfig(configFile string) error {
 	bytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err

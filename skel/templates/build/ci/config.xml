@@ -48,18 +48,25 @@
             <parameterDefinitions>
                 <hudson.model.StringParameterDefinition>
                     <name>BRANCH_NAME</name>
-                    <description/>
+                    <description>Git branch to build</description>
                     <defaultValue/>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
-                <hudson.model.BooleanParameterDefinition>
-                    <name>PUBLISH</name>
-                    <description/>
-                    <defaultValue>false</defaultValue>
-                </hudson.model.BooleanParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>MANIFEST_FOLDER</name>
+                    <description>Manifest stream to publish to</description>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
+                <hudson.model.StringParameterDefinition>
+                    <name>BUILD_FLAGS</name>
+                    <description>Extra build flags</description>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.StringParameterDefinition>
                 <hudson.model.StringParameterDefinition>
                     <name>SLAVE_LABEL</name>
-                    <description/>
+                    <description>Jenkins slave label to locate a build node</description>
                     <defaultValue>dev-vm</defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
@@ -86,14 +93,14 @@
                     <cron>H/5 * * * *</cron>
                     <buildDescTemplate/>
                     <onlyTriggerPhrase>false</onlyTriggerPhrase>
-                    <useGitHubHooks>false</useGitHubHooks>
-                    <permitAll>false</permitAll>
+                    <useGitHubHooks>true</useGitHubHooks>
+                    <permitAll>true</permitAll>
                     <whitelist/>
                     <autoCloseFailedPullRequests>false</autoCloseFailedPullRequests>
                     <displayBuildErrorsOnDownstreamBuilds>false</displayBuildErrorsOnDownstreamBuilds>
                     <whiteListTargetBranches>
                         <org.jenkinsci.plugins.ghprb.GhprbBranch>
-                            <branch/>
+                            <branch>develop</branch>
                         </org.jenkinsci.plugins.ghprb.GhprbBranch>
                     </whiteListTargetBranches>
                     <blackListTargetBranches>
@@ -131,12 +138,12 @@
             <userRemoteConfigs>
                 <hudson.plugins.git.UserRemoteConfig>
                     <url>git@cto-github.cisco.com:NFV-BU/${app.name}.git</url>
-                    <credentialsId>06702990-d4e7-4a80-beaa-6d407896feff</credentialsId>
+                    <credentialsId>msx-jenkins-gen-ssh-key</credentialsId>
                 </hudson.plugins.git.UserRemoteConfig>
             </userRemoteConfigs>
             <branches>
                 <hudson.plugins.git.BranchSpec>
-                    <name>*/master</name>
+                    <name>*/develop</name>
                 </hudson.plugins.git.BranchSpec>
             </branches>
             <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>

@@ -160,7 +160,7 @@ func NewIntegration(ctx context.Context) (Api, error) {
 	return integrationInstance, nil
 }
 
-func NewIntegrationWithExecutor(executor integration.MsxServiceExecutor) (Api) {
+func NewIntegrationWithExecutor(executor integration.MsxServiceExecutor) Api {
 	return &Integration{
 		MsxServiceExecutor: executor,
 	}
