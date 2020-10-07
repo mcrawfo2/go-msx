@@ -35,7 +35,7 @@ var (
 		endpointNameGetTransitGatewayAttachmentStatus: {Method: "GET", Path: "/api/v1/transitgatewayattachment/status"},
 		endpointNameGetEc2InstanceStatus:              {Method: "GET", Path: "/api/v1/ec2instance/status"},
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
-		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}/"},
+		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
 	}
 )
 
