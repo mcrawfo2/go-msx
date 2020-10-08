@@ -8,6 +8,7 @@ docker.dockerfile: build/package/Dockerfile
 
 msx:
   release: ${app.version}
+  deploymentGroup: ${deployment.group}
   platform:
     parentArtifacts:
       - com.cisco.vms:vms-service-starter
