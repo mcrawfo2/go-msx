@@ -40,10 +40,18 @@ type Resource struct {
 }
 
 type VpnConnection struct {
-	CustomerGatewayConfiguration *string `json:"customerGatewayConfiguration"`
-	CustomerGatewayId            *string `json:"customerGatewayId"`
-	VpnConnectionId              *string `json:"vpnConnectionId"`
-	VpnGatewayId                 *string `json:"vpnGatewayId"`
+	CustomerGatewayConfiguration *string      `json:"customerGatewayConfiguration"`
+	CustomerGatewayId            *string      `json:"customerGatewayId"`
+	VpnConnectionId              *string      `json:"vpnConnectionId"`
+	VpnGatewayId                 *string      `json:"vpnGatewayId"`
+	VpnTunnels                   []*VpnTunnel `json:"vpnTunnels"`
+}
+
+type VpnTunnel struct {
+	AcceptedRouteCount *int64  `json:"acceptedRouteCount"`
+	OutsideIpAddress   *string `json:"outsideIpAddress"`
+	Status             *string `json:"status"`
+	StatusMessage      *string `json:"statusMessage"`
 }
 
 type AwsEc2InstanceStatuses struct {
