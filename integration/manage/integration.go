@@ -74,6 +74,8 @@ const (
 
 	endpointNameGetEntityShard = "getEntityShard"
 
+	endpointNameCreateDeviceConnection = "createDeviceConnection"
+
 	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
 
 	serviceName = integration.ServiceNameManage
@@ -143,6 +145,8 @@ var (
 
 		endpointNameGetEntityShard:       {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
 		endpointNameUpdateTemplateAccess: {Method: "PUT", Path: "/api/v1/devicetemplates/{{.templateId}}"},
+
+		endpointNameCreateDeviceConnection: {Method: "POST", Path: "/api/v2/devices/connections"},
 	}
 )
 
@@ -993,4 +997,25 @@ func (i *Integration) GetEntityShard(entityId string) (*integration.MsxResponse,
 		Payload:            new(EntityShard),
 		ExpectEnvelope:     true,
 	})
+}
+
+func (i *Integration) CreateDeviceConnection(deviceConnection DeviceConnectionCreateRequest) (*integration.MsxResponse, *DeviceConnectionResponse, error) {
+	bodyBytes, err := json.Marshal(deviceConnection)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response, err := i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   endpointNameCreateDeviceConnection,
+		Body:           bodyBytes,
+		Payload:        new(DeviceConnectionResponse),
+		ExpectEnvelope: true,
+	})
+
+	if err != nil {
+		return response, nil, err
+	}
+
+	return response, response.Payload.(*DeviceConnectionResponse), err
 }
