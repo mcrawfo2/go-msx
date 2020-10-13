@@ -75,6 +75,7 @@ const (
 	endpointNameGetEntityShard = "getEntityShard"
 
 	endpointNameCreateDeviceConnection = "createDeviceConnection"
+	endpointNameDeleteDeviceConnection = "deleteDeviceConnection"
 
 	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
 
@@ -147,6 +148,7 @@ var (
 		endpointNameUpdateTemplateAccess: {Method: "PUT", Path: "/api/v1/devicetemplates/{{.templateId}}"},
 
 		endpointNameCreateDeviceConnection: {Method: "POST", Path: "/api/v2/devices/connections"},
+		endpointNameDeleteDeviceConnection: {Method: "DELETE", Path: "/api/v2/devices/connections/{{.deviceConnectionId}}"},
 	}
 )
 
@@ -1018,4 +1020,14 @@ func (i *Integration) CreateDeviceConnection(deviceConnection DeviceConnectionCr
 	}
 
 	return response, response.Payload.(*DeviceConnectionResponse), err
+}
+
+func (i *Integration) DeleteDeviceConnection(deviceConnectionId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointParameters: map[string]string{
+			"deviceConnectionId": deviceConnectionId,
+		},
+		EndpointName:   endpointNameDeleteDeviceConnection,
+		ExpectEnvelope: true,
+	})
 }
