@@ -72,40 +72,40 @@ type ServiceInstanceResponse struct {
 }
 
 type DeviceCreateRequest struct {
-	Name                     string            `json:"name"`
-	TenantId                 string            `json:"tenantId"`
-	SubscriptionId           string            `json:"subscriptionId"`
-	ServiceInstanceId        string            `json:"serviceInstanceId"`
-	ServiceType              string            `json:"serviceType"`
-	Model                    string            `json:"model"`
-	Type                     string            `json:"type"`
-	SubType                  string            `json:"subType"`
-	SerialKey                string            `json:"serialKey"`
-	DeviceOnboardingType     string            `json:"deviceOnboardingType"`
-	Managed                  bool              `json:"managed"`
-	Version                  string            `json:"version"`
-	Tags                     map[string]string `json:"tags"`
-	Attributes               map[string]string `json:"attributes"`
-	DeviceOnboardInformation map[string]string `json:"deviceOnboardInformation"`
+	Name               string                 `json:"name"`
+	TenantId           string                 `json:"tenantId"`
+	SubscriptionId     *string                `json:"subscriptionId"`
+	ServiceInstanceId  *string                `json:"serviceInstanceId"`
+	ServiceType        string                 `json:"serviceType"`
+	Model              string                 `json:"model"`
+	Type               string                 `json:"type"`
+	SubType            string                 `json:"subType"`
+	SerialKey          string                 `json:"serialKey"`
+	OnboardType        string                 `json:"onboardType"`
+	Managed            bool                   `json:"managed"`
+	Version            string                 `json:"version"`
+	Tags               map[string]string      `json:"tags"`
+	Attributes         map[string]string      `json:"attributes"`
+	OnboardInformation map[string]interface{} `json:"onboardInformation"`
 }
 
 type DeviceResponse struct {
-	Id                       string            `json:"id"`
-	Name                     string            `json:"name"`
-	Model                    string            `json:"model"`
-	Type                     string            `json:"type"`
-	SubType                  string            `json:"subType"`
-	Tags                     map[string]string `json:"tags"`
-	SerialKey                string            `json:"serialKey"`
-	Version                  string            `json:"version"`
-	ServiceInstanceId        string            `json:"serviceInstanceId"`
-	SubscriptionId           string            `json:"subscriptionId"`
-	ServiceType              string            `json:"serviceType"`
-	Managed                  bool              `json:"managed"`
-	DeviceOnboardingType     string            `json:"deviceOnboardingType"`
-	Attributes               map[string]string `json:"attributes"`
-	DeviceOnboardInformation map[string]string `json:"deviceOnboardInformation"`
-	StatusDetails            struct {
+	Id                 string                 `json:"id"`
+	Name               string                 `json:"name"`
+	Model              string                 `json:"model"`
+	Type               string                 `json:"type"`
+	SubType            string                 `json:"subType"`
+	Tags               map[string]string      `json:"tags"`
+	SerialKey          string                 `json:"serialKey"`
+	Version            string                 `json:"version"`
+	ServiceInstanceId  string                 `json:"serviceInstanceId"`
+	SubscriptionId     string                 `json:"subscriptionId"`
+	ServiceType        string                 `json:"serviceType"`
+	Managed            bool                   `json:"managed"`
+	OnboardType        string                 `json:"onboardType"`
+	Attributes         map[string]string      `json:"attributes"`
+	OnboardInformation map[string]interface{} `json:"onboardInformation"`
+	StatusDetails      struct {
 		HealthStatus    DeviceStatusDetail
 		PnpStatus       DeviceStatusDetail
 		LifeCycleStatus DeviceStatusDetail
