@@ -82,5 +82,8 @@ type Api interface {
 	ConnectControlPlane(controlPlaneId string) (*integration.MsxResponse, error)
 	ConnectUnmanagedControlPlane(username, password, url, resourceProvider string, tlsInsecure bool) (*integration.MsxResponse, error)
 
+	CreateDeviceConnection(deviceConnection DeviceConnectionCreateRequest) (*integration.MsxResponse, *DeviceConnectionResponse, error)
+	DeleteDeviceConnection(deviceConnectionId string) (*integration.MsxResponse, error)
+
 	GetEntityShard(entityId string) (*integration.MsxResponse, error)
 }

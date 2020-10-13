@@ -74,6 +74,9 @@ const (
 
 	endpointNameGetEntityShard = "getEntityShard"
 
+	endpointNameCreateDeviceConnection = "createDeviceConnection"
+	endpointNameDeleteDeviceConnection = "deleteDeviceConnection"
+
 	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
 
 	serviceName = integration.ServiceNameManage
@@ -143,6 +146,9 @@ var (
 
 		endpointNameGetEntityShard:       {Method: "GET", Path: "/api/v2/shardmanagers/entity/{{.entityId}}"},
 		endpointNameUpdateTemplateAccess: {Method: "PUT", Path: "/api/v1/devicetemplates/{{.templateId}}"},
+
+		endpointNameCreateDeviceConnection: {Method: "POST", Path: "/api/v2/devices/connections"},
+		endpointNameDeleteDeviceConnection: {Method: "DELETE", Path: "/api/v2/devices/connections/{{.deviceConnectionId}}"},
 	}
 )
 
@@ -992,5 +998,36 @@ func (i *Integration) GetEntityShard(entityId string) (*integration.MsxResponse,
 		EndpointParameters: map[string]string{"entityId": entityId},
 		Payload:            new(EntityShard),
 		ExpectEnvelope:     true,
+	})
+}
+
+func (i *Integration) CreateDeviceConnection(deviceConnection DeviceConnectionCreateRequest) (*integration.MsxResponse, *DeviceConnectionResponse, error) {
+	bodyBytes, err := json.Marshal(deviceConnection)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	response, err := i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   endpointNameCreateDeviceConnection,
+		Body:           bodyBytes,
+		Payload:        new(DeviceConnectionResponse),
+		ExpectEnvelope: true,
+	})
+
+	if err != nil {
+		return response, nil, err
+	}
+
+	return response, response.Payload.(*DeviceConnectionResponse), err
+}
+
+func (i *Integration) DeleteDeviceConnection(deviceConnectionId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointParameters: map[string]string{
+			"deviceConnectionId": deviceConnectionId,
+		},
+		EndpointName:   endpointNameDeleteDeviceConnection,
+		ExpectEnvelope: true,
 	})
 }

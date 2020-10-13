@@ -218,6 +218,7 @@ type ControlPlaneResponse struct {
 	TlsInsecure        bool              `json:"tlsInsecure"`
 	Attributes         map[string]string `json:"attributes"`
 }
+
 type AttachTemplateRequest struct {
 	TemplateDetails []TemplateDetails `json:"templateDetails"`
 }
@@ -288,4 +289,35 @@ type DeviceTemplateValidators struct {
 	Name          string   `json:"name"`
 	ToolTipText   string   `json:"toolTipText"`
 	Type          string   `json:"type"`
+}
+
+type DeviceConnectionCreateRequest struct {
+	Category          string `json:"category"`
+	DeviceInstanceId  string `json:"deviceInstanceId"`
+	HostName          string `json:"hostName"`
+	IpAddress         string `json:"ipAddress"`
+	Name              string `json:"name"`
+	Profile           string `json:"profile"`
+	SerialKey         string `json:"serialKey"`
+	ServiceInstanceId string `json:"serviceInstanceId"`
+	SpecificType      string `json:"specificType"`
+	Type              string `json:"type"`
+}
+
+type DeviceConnectionResponse struct {
+	Category          string `json:"category"`
+	CreatedBy         string `json:"createdBy"`
+	CreatedOn         string `json:"createdOn"`
+	DeviceInstanceId  string `json:"deviceInstanceId"`
+	HostName          string `json:"hostName"`
+	IpAddress         string `json:"ipAddress"`
+	ModifiedBy        string `json:"modifiedBy"`
+	ModifiedOn        string `json:"modifiedOn"`
+	Name              string `json:"name"`
+	Profile           string `json:"profile"`
+	SerialKey         string `json:"serialKey"`
+	ServiceInstanceId string `json:"serviceInstanceId"`
+	SpecificType      string `json:"specificType"`
+	TenantId          string `json:"tenantId"`
+	Type              string `json:"type"`
 }
