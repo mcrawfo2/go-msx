@@ -16,15 +16,15 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 		ctx := req.Context()
 		response, err = fn(req)
 		if response == nil {
-			logger.WithContext(ctx).WithError(err).Error("000 : ", req.URL.String())
+			logger.WithContext(ctx).WithError(err).Errorf("000 : %s %s", req.Method, req.URL.String())
 		} else if response.StatusCode > 399 {
 			// Fully log the response
-			logger.WithContext(ctx).Errorf("%s : %s", response.Status, req.URL.String())
+			logger.WithContext(ctx).Errorf("%s : %s %s", response.Status, req.Method, req.URL.String())
 			var responseBytes []byte
 			responseBytes, _ = json.Marshal(response)
 			logger.WithContext(ctx).Error(string(responseBytes))
 		} else {
-			logger.WithContext(ctx).Infof("%s : %s", response.Status, req.URL.String())
+			logger.WithContext(ctx).Infof("%s : %s %s", response.Status, req.Method, req.URL.String())
 		}
 
 		return response, err
