@@ -33,7 +33,9 @@ type CrudRepositoryApi interface {
 	CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) error
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
+	FindAllPagedByWithOptions(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}, options map[Option]interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindAllByWithOptions(ctx context.Context, where map[string]interface{}, dest interface{}, options map[Option]interface{}) (err error)
 	FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error)
 	FindAllByLuceneSearch(ctx context.Context, index, search string, dest interface{}) (err error)
 	FindAllByPagedLuceneSearch(ctx context.Context, index, search string, dest interface{}, request paging.Request) (response paging.Response, err error)
@@ -125,6 +127,10 @@ func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err err
 }
 
 func (r *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]interface{}, request paging.Request, dest interface{}) (response paging.Response, err error) {
+	return r.FindAllPagedByWithOptions(ctx, where, request, dest, nil)
+}
+
+func (r *CrudRepository) FindAllPagedByWithOptions(ctx context.Context, where map[string]interface{}, request paging.Request, dest interface{}, options map[Option]interface{}) (response paging.Response, err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return
@@ -140,11 +146,16 @@ func (r *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 			}
 		}
 
-		stmt, names := gocqlxqb.
+		selectBuilder := gocqlxqb.
 			Select(r.Table.Name).
 			Columns(r.Table.ColumnNames()...).
-			Where(cmps...).
-			ToCql()
+			Where(cmps...)
+
+		if v,ok := options[AllowFiltering]; ok && v.(bool) {
+			selectBuilder.AllowFiltering()
+		}
+
+		stmt, names := selectBuilder.ToCql()
 
 		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
 		if err != nil {
@@ -188,6 +199,7 @@ func (r *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 	return
 }
 
+
 // Find the paging state for the requested page by executing the query for all prior records
 func (r *CrudRepository) getPageState(ctx context.Context, session *gocql.Session, stmt string, names []string, where map[string]interface{}, request paging.Request) (pageState []byte, err error) {
 	if request.State != nil {
@@ -214,7 +226,7 @@ func (r *CrudRepository) getPageState(ctx context.Context, session *gocql.Sessio
 	return iter.PageState(), nil
 }
 
-func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+func (r *CrudRepository) FindAllByWithOptions(ctx context.Context, where map[string]interface{}, dest interface{}, options map[Option]interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return
@@ -230,11 +242,16 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 			}
 		}
 
-		stmt, names := gocqlxqb.
+		selectBuilder :=gocqlxqb.
 			Select(r.Table.Name).
 			Columns(r.Table.ColumnNames()...).
-			Where(cmps...).
-			ToCql()
+			Where(cmps...)
+
+		if v,ok := options[AllowFiltering]; ok && v.(bool) {
+			selectBuilder.AllowFiltering()
+		}
+
+		stmt, names := selectBuilder.ToCql()
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
@@ -244,6 +261,11 @@ func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 	})
 
 	return
+}
+
+
+func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+	return r.FindAllByWithOptions(ctx, where, dest, nil)
 }
 
 func (r *CrudRepository) FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) (err error) {
