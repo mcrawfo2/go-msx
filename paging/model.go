@@ -21,6 +21,10 @@ func (s Response) Elements() uint {
 
 	contentValue := reflect.ValueOf(s.Content)
 	contentValueKind := contentValue.Kind()
+	if contentValueKind == reflect.Ptr {
+		contentValue = contentValue.Elem()
+		contentValueKind = contentValue.Kind()
+	}
 	switch contentValueKind {
 	case reflect.Slice, reflect.Array:
 		return uint(contentValue.Len())
