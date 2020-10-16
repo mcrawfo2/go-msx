@@ -105,13 +105,12 @@ func (s *WebServer) Handler() http.Handler {
 		s.injectors.Clone()))
 	s.container.Filter(tracingFilter)
 	s.container.Filter(recoveryFilter)
-	s.container.Filter(optionsFilter)
-	s.container.Filter(securityContextFilter)
-	s.container.Filter(authenticationFilter)
-	s.container.Filter(auditContextFilter)
 	if s.cfg.Cors {
 		ActivateCors(s.container)
 	}
+	s.container.Filter(securityContextFilter)
+	s.container.Filter(authenticationFilter)
+	s.container.Filter(auditContextFilter)
 
 	// Add all web services
 	for _, service := range s.services {
