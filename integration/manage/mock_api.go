@@ -173,6 +173,38 @@ func (_m *MockManage) CreateDevice(subscriptionId string, deviceInstanceId *stri
 	return r0, r1
 }
 
+// CreateDeviceConnection provides a mock function with given fields: deviceConnection
+func (_m *MockManage) CreateDeviceConnection(deviceConnection DeviceConnectionCreateRequest) (*integration.MsxResponse, *DeviceConnectionResponse, error) {
+	ret := _m.Called(deviceConnection)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceConnectionCreateRequest) *integration.MsxResponse); ok {
+		r0 = rf(deviceConnection)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 *DeviceConnectionResponse
+	if rf, ok := ret.Get(1).(func(DeviceConnectionCreateRequest) *DeviceConnectionResponse); ok {
+		r1 = rf(deviceConnection)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*DeviceConnectionResponse)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(DeviceConnectionCreateRequest) error); ok {
+		r2 = rf(deviceConnection)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // CreateDeviceV4 provides a mock function with given fields: deviceRequest
 func (_m *MockManage) CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceRequest)
@@ -350,6 +382,29 @@ func (_m *MockManage) DeleteDevice(deviceInstanceId string) (*integration.MsxRes
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(deviceInstanceId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteDeviceConnection provides a mock function with given fields: deviceConnectionId
+func (_m *MockManage) DeleteDeviceConnection(deviceConnectionId string) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceConnectionId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
+		r0 = rf(deviceConnectionId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(deviceConnectionId)
 	} else {
 		r1 = ret.Error(1)
 	}
