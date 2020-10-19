@@ -5,8 +5,8 @@ package mocks
 import (
 	context "context"
 
-	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
 	cassandra "cto-github.cisco.com/NFV-BU/go-msx/cassandra"
+	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"

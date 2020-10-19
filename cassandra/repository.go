@@ -151,7 +151,7 @@ func (r *CrudRepository) FindAllPagedByWithOptions(ctx context.Context, where ma
 			Columns(r.Table.ColumnNames()...).
 			Where(cmps...)
 
-		if v,ok := options[AllowFiltering]; ok && v.(bool) {
+		if v, ok := options[AllowFiltering]; ok && v.(bool) {
 			selectBuilder.AllowFiltering()
 		}
 
@@ -199,7 +199,6 @@ func (r *CrudRepository) FindAllPagedByWithOptions(ctx context.Context, where ma
 	return
 }
 
-
 // Find the paging state for the requested page by executing the query for all prior records
 func (r *CrudRepository) getPageState(ctx context.Context, session *gocql.Session, stmt string, names []string, where map[string]interface{}, request paging.Request) (pageState []byte, err error) {
 	if request.State != nil {
@@ -242,12 +241,12 @@ func (r *CrudRepository) FindAllByWithOptions(ctx context.Context, where map[str
 			}
 		}
 
-		selectBuilder :=gocqlxqb.
+		selectBuilder := gocqlxqb.
 			Select(r.Table.Name).
 			Columns(r.Table.ColumnNames()...).
 			Where(cmps...)
 
-		if v,ok := options[AllowFiltering]; ok && v.(bool) {
+		if v, ok := options[AllowFiltering]; ok && v.(bool) {
 			selectBuilder.AllowFiltering()
 		}
 
@@ -262,7 +261,6 @@ func (r *CrudRepository) FindAllByWithOptions(ctx context.Context, where map[str
 
 	return
 }
-
 
 func (r *CrudRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	return r.FindAllByWithOptions(ctx, where, dest, nil)
