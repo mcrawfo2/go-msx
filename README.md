@@ -78,7 +78,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 - Commit your code to your topic branch
 
-- Rebase your topic branch onto develop (do not reverse merge develop into your branch)
+- Rebase your topic branch onto master (do not reverse merge master into your branch)
 
 - Ensure your commits are cohesive, or just squash them
 
