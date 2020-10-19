@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
+	cassandra "cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -121,6 +122,20 @@ func (_m *CrudRepositoryApi) FindAllByPagedLuceneSearch(ctx context.Context, ind
 	return r0, r1
 }
 
+// FindAllByWithOptions provides a mock function with given fields: ctx, where, dest, options
+func (_m *CrudRepositoryApi) FindAllByWithOptions(ctx context.Context, where map[string]interface{}, dest interface{}, options map[cassandra.Option]interface{}) error {
+	ret := _m.Called(ctx, where, dest, options)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]interface{}, interface{}, map[cassandra.Option]interface{}) error); ok {
+		r0 = rf(ctx, where, dest, options)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindAllCql provides a mock function with given fields: ctx, stmt, names, where, dest
 func (_m *CrudRepositoryApi) FindAllCql(ctx context.Context, stmt string, names []string, where map[string]interface{}, dest interface{}) error {
 	ret := _m.Called(ctx, stmt, names, where, dest)
@@ -149,6 +164,27 @@ func (_m *CrudRepositoryApi) FindAllPagedBy(ctx context.Context, where map[strin
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, map[string]interface{}, paging.Request, interface{}) error); ok {
 		r1 = rf(ctx, where, preq, dest)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FindAllPagedByWithOptions provides a mock function with given fields: ctx, where, preq, dest, options
+func (_m *CrudRepositoryApi) FindAllPagedByWithOptions(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}, options map[cassandra.Option]interface{}) (paging.Response, error) {
+	ret := _m.Called(ctx, where, preq, dest, options)
+
+	var r0 paging.Response
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]interface{}, paging.Request, interface{}, map[cassandra.Option]interface{}) paging.Response); ok {
+		r0 = rf(ctx, where, preq, dest, options)
+	} else {
+		r0 = ret.Get(0).(paging.Response)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, map[string]interface{}, paging.Request, interface{}, map[cassandra.Option]interface{}) error); ok {
+		r1 = rf(ctx, where, preq, dest, options)
 	} else {
 		r1 = ret.Error(1)
 	}
