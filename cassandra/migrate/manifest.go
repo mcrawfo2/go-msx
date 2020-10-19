@@ -22,6 +22,7 @@ type MigrationType string
 const (
 	MigrationTypeCql      MigrationType = "CQL"
 	MigrationTypeGoDriver MigrationType = "GO_DRIVER"
+	MigrationTypeBaseline MigrationType = "BASELINE"
 
 	configRootManifest = "migrate"
 )
