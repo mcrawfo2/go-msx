@@ -2,12 +2,13 @@ package migrate
 
 import (
 	"context"
+	"time"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
-	"time"
 )
 
 const (
@@ -25,7 +26,7 @@ type Migrator struct {
 	versioner Versioner
 }
 
-func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpgrade bool) error {
+func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, migrations []*Migration, preUpgrade bool) error {
 	logger.WithContext(m.ctx).Info("Validating previously applied migrations")
 
 	postUpgradeVersion, err := m.manifest.PostUpgradeVersion()
@@ -38,9 +39,7 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 		preUpgrade = false
 	}
 
-	n := 0
-	var migration *Migration
-	for n, migration = range m.manifest.Migrations() {
+	for n, migration := range migrations {
 		if n == len(appliedMigrations) {
 			break
 		}
@@ -67,7 +66,8 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 			return errors.Errorf("Failed migration recorded: %+v", appliedMigration)
 		}
 
-		if appliedMigration.Description != migration.Description {
+		// Baseline migrations excluded from the description check - they are expected to differ
+		if appliedMigration.Type != MigrationTypeBaseline && appliedMigration.Description != migration.Description {
 			return errors.Errorf("Mismatched description: %+v", appliedMigration)
 		}
 
@@ -83,7 +83,7 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 	return nil
 }
 
-func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string, preUpgrade bool) (err error) {
+func (m *Migrator) ApplyMigrations(migrations []*Migration, lastAppliedMigration int, userName string, preUpgrade bool) (err error) {
 	logger.WithContext(m.ctx).Info("Applying new migrations")
 
 	postUpgradeVersion, err := m.manifest.PostUpgradeVersion()
@@ -96,7 +96,6 @@ func (m *Migrator) ApplyMigrations(lastAppliedMigration int, userName string, pr
 		preUpgrade = false
 	}
 
-	migrations := m.manifest.Migrations()
 	for n := lastAppliedMigration; n < len(migrations); n++ {
 		migration := migrations[n]
 
@@ -153,8 +152,12 @@ func (m *Migrator) Migrate(preUpgrade bool) error {
 		return err
 	}
 
-	if err = m.ValidateManifest(appliedMigrations, preUpgrade); err != nil {
-		return err
+	applicableMigrations, err := m.getApplicableMigrations(appliedMigrations)
+
+	if len(appliedMigrations) > 0 {
+		if err = m.ValidateManifest(appliedMigrations, applicableMigrations, preUpgrade); err != nil {
+			return err
+		}
 	}
 
 	userName, err := config.FromContext(m.ctx).StringOr(configKeyCassandraUsername, "cassandra")
@@ -162,7 +165,7 @@ func (m *Migrator) Migrate(preUpgrade bool) error {
 		return err
 	}
 
-	if err = m.ApplyMigrations(len(appliedMigrations), userName, preUpgrade); err != nil {
+	if err = m.ApplyMigrations(applicableMigrations, len(appliedMigrations), userName, preUpgrade); err != nil {
 		return err
 	}
 
@@ -196,4 +199,27 @@ func Migrate(ctx context.Context) error {
 	return cassandraPool.WithSession(func(session *gocql.Session) error {
 		return NewMigrator(ctx, session).Migrate(preUpgrade)
 	})
+}
+
+// Returns the migrations that should be used for this environment.  This will only differ from the complete set
+// of migrations defined by the service when the first applied migration is a "baseline" migration.
+//
+// A baseline migration will exist when the schema was created before the custom cassandra migration tool was adopted
+// (i.e. before 3.6.0 for platform, later for at least some SPs).  A single baseline migration entry was created for
+// to represent all migrations steps before the version using the cassandra migration tool.
+func (m *Migrator) getApplicableMigrations(appliedMigrations []AppliedMigration) ([]*Migration, error) {
+	allMigrations := m.manifest.Migrations()
+
+	if len(appliedMigrations) == 0 || appliedMigrations[0].Type != MigrationTypeBaseline {
+		return allMigrations, nil
+	}
+
+	baselineVersion := appliedMigrations[0].Version
+	for n, migration := range allMigrations {
+		if migration.Version.String() == baselineVersion {
+			return allMigrations[n:], nil
+		}
+	}
+
+	return nil, errors.Errorf("Baseline migration version doesn't match any defined migration")
 }
