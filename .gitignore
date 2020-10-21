@@ -28,3 +28,4 @@ dist
 test/
 local/
 vendor/
+!skel/test/
