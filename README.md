@@ -28,7 +28,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     - Ensure you have a registered SSH key referenced in your `~/.ssh/config`:
     
         ```
-        Host github
+        Host cto-github.cisco.com
               HostName cto-github.cisco.com
               User git
               IdentityFile ~/.ssh/github.key
