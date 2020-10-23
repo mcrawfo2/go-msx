@@ -117,7 +117,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 * [Http Client](#)
 * [Leader Election](#)
 * [Pagination](#)
-* [Resources](#)
+* [Resources](#resource/README.md)
 * [Retry](#)
 * [Transit Encryption](#)
 * [Validation](#)
