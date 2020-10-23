@@ -94,9 +94,21 @@ func AddCommand(path, brief string, command CommandObserver, init Observer) (cmd
 }
 
 func Run(appName string) {
-	// Convert environment variable POPULATE into migrate command
-	if strings.ToLower(os.Getenv("POPULATE")) == "database" {
+	var p = os.Getenv("POPULATE")
+
+	// Convert environment variable POPULATE into sub-command
+	switch strings.ToLower(p) {
+	case "database":
 		os.Args = append(os.Args, "migrate")
+
+	case "":
+
+	case "all":
+		os.Args = append(os.Args, "populate")
+
+	default:
+		args := append([]string{"populate"}, strings.Fields(p)...)
+		os.Args = append(os.Args, args...)
 	}
 
 	cli.Run(appName)
