@@ -29,6 +29,7 @@ pipeline {
                 script {
                     assert env.BUILD_NUMBER
                     assert env.WORKSPACE
+                    assert env.TEST_NAME
 
                     if (env.BRANCH_NAME) {
                         currentBuild.description = env.BRANCH_NAME + " (Manual)"
@@ -82,7 +83,7 @@ pipeline {
                                 passwordVariable: 'ARTIFACTORY_PASSWORD',
                                 usernameVariable: 'ARTIFACTORY_USERNAME')]) {
                             sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
-                            sh 'bash -xe go-msx/skel/test/build-publish-app.sh'
+                            sh "bash -xe go-msx/skel/test/${env.TEST_NAME}.sh"
                         }}}
                     }
                 }
