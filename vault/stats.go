@@ -13,6 +13,7 @@ const (
 
 	statsApiListSecrets      = "listSecrets"
 	statsApiStoreSecrets     = "storeSecrets"
+	statsApiRemoveSecrets	 = "removeSecrets"
 	statsApiHealth           = "health"
 	statsApiCreateTransitKey = "createTransitKey"
 	statsApiTransitEncrypt   = "transitEncrypt"
