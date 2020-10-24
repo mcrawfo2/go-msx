@@ -12,6 +12,7 @@ type Api interface {
 
 	// Service Configuration
 	GetServiceConfigurations(page, pageSize int) (*integration.MsxResponse, error)
+	GetServiceConfigurationsByFilter(filter ServiceConfigurationSearchFilter, page, pageSize int) (*integration.MsxResponse, error)
 	GetServiceConfigurationByServiceConfigId(serviceConfigId types.UUID) (*integration.MsxResponse, error)
 	CreateServiceConfiguration(configuration ServiceConfigurationRequest) (*integration.MsxResponse, error)
 	UpdateServiceConfiguration(configuration ServiceConfigurationUpdateRequest) (*integration.MsxResponse, error)

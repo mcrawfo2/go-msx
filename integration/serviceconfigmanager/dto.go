@@ -31,6 +31,11 @@ type ServiceConfigurationUpdateRequest struct {
 	ServiceConfigId string `json:"serviceConfigId"`
 }
 
+type ServiceConfigurationSearchFilter struct {
+	ExternalId string `json:"externalId"`
+	Service    string `json:"service"`
+}
+
 type ServiceConfigurationListResponse []ServiceConfigurationResponse
 
 type ServiceConfigurationResponse struct {
