@@ -100,9 +100,10 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     * [Filter](#)
 
 * Persistence
+  
     * [Repository](sqldb/repository.md)
     * [Migration](#)
-
+    
 * Communication
     * [Integration](#)
     * [Streaming](#)
@@ -117,7 +118,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 * [Http Client](#)
 * [Leader Election](#)
 * [Pagination](#)
-* [Resources](#resource/README.md)
+* [Resources](resource/README.md)
 * [Retry](#)
 * [Transit Encryption](#)
 * [Validation](#)
