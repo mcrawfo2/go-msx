@@ -105,7 +105,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     * [Migration](#)
     
 * Communication
-    * [Integration](#)
+    * [Integration](integration/README.md)
     * [Streaming](#)
 
 ### Utilities
