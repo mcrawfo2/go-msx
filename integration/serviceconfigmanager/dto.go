@@ -19,6 +19,7 @@ type ServiceConfigurationRequest struct {
 	Name          string            `json:"name"`
 	Notes         string            `json:"notes"`
 	Service       string            `json:"service"`
+	ExternalId    string            `json:"externalId"`
 	Status        string            `json:"status"`
 	StatusDetails string            `json:"statusDetails"`
 	SubType       string            `json:"subType"`
@@ -31,12 +32,18 @@ type ServiceConfigurationUpdateRequest struct {
 	ServiceConfigId string `json:"serviceConfigId"`
 }
 
+type ServiceConfigurationSearchFilter struct {
+	ExternalId string `json:"externalId"`
+	Service    string `json:"service"`
+}
+
 type ServiceConfigurationListResponse []ServiceConfigurationResponse
 
 type ServiceConfigurationResponse struct {
 	Name                 string             `json:"name"`
 	Description          *string            `json:"description"`
 	Service              string             `json:"service"`
+	ExternalId           string             `json:"externalId"`
 	Type                 string             `json:"type"`
 	SubType              *string            `json:"subType"`
 	Configuration        string             `json:"configuration"`

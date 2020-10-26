@@ -109,6 +109,23 @@ func (i *Integration) GetServiceConfigurations(page, pageSize int) (*integration
 	})
 }
 
+func (i *Integration) GetServiceConfigurationsByFilter(filter ServiceConfigurationSearchFilter, page, pageSize int) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:       endpointNameGetServiceConfigurations,
+		EndpointParameters: map[string]string{},
+		QueryParameters: map[string][]string{
+			"service":    {filter.Service},
+			"externalId": {filter.ExternalId},
+			"page":       {strconv.Itoa(page)},
+			"pageSize":   {strconv.Itoa(pageSize)},
+		},
+		Payload: &paging.PaginatedResponse{
+			Content: new(ServiceConfigurationListResponse),
+		},
+		ExpectEnvelope: true,
+	})
+}
+
 func (i *Integration) GetServiceConfigurationByServiceConfigId(serviceConfigId types.UUID) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetServiceConfigurationByServiceConfigId,
