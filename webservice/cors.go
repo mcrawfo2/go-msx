@@ -34,6 +34,7 @@ const (
 	headerNameXCsrfToken                    = "X-CSRF-Token"
 	headerNameApiKey                        = "api_key"
 	headerNameXRequestedWith                = "x-requested-with"
+	headerNameAccessControlRequestMethod    = restful.HEADER_AccessControlRequestMethod
 
 	// Deprecated
 	HEADER_ContentEncoding = "Content-Encoding"
@@ -100,6 +101,19 @@ func ActivateCors(container *restful.Container) {
 			return
 		}
 
+		if req.Request.Header.Get(headerNameAccessControlRequestMethod) == "" {
+			// Standard options request
+			allowedMethods := findAllowedMethods(container, req.Request.URL.Path)
+			if len(allowedMethods) > 0 {
+				resp.AddHeader("Allow", strings.Join(allowedMethods, ","))
+				resp.AddHeader("Cache-Control", "max-age=604800")
+				resp.WriteHeader(204)
+			} else {
+				resp.WriteHeader(404)
+			}
+			return
+		}
+
 		var corsRecorder = httptest.NewRecorder()
 		var corsResponse = restful.NewResponse(corsRecorder)
 		cors.Filter(req, corsResponse, chain)
@@ -138,4 +152,42 @@ func ActivateCors(container *restful.Container) {
 		resp.Header().Set(headerNameAccessControlAllowHeaders, allowedHeader)
 		resp.Header().Set(headerNameContentEncoding, "application/json")
 	})
+}
+
+func findAllowedMethods(c *restful.Container, requested string) []string {
+	var results = make(types.StringSet)
+	requestedTokens := tokenizePath(requested)
+	for _, ws := range c.RegisteredWebServices() {
+		for _, r := range ws.Routes() {
+			availableTokens := tokenizePath(r.Path)
+			if matchesPath(requestedTokens, availableTokens) {
+				results.Add(r.Method)
+			}
+		}
+	}
+	if len(results) > 0 {
+		results.Add("OPTIONS")
+	}
+	return results.Values()
+}
+
+func matchesPath(requested, available []string) bool {
+	if len(requested) != len(available) {
+		return false
+	}
+
+	for i, a := range available {
+		if a[0] != '{' && requested[i] != a {
+			return false
+		}
+	}
+
+	return true
+}
+
+func tokenizePath(path string) []string {
+	if "/" == path {
+		return nil
+	}
+	return strings.Split(strings.Trim(path, "/"), "/")
 }
