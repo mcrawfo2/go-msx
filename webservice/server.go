@@ -73,9 +73,16 @@ func (s *WebServer) NewService(path string) (*restful.WebService, error) {
 		path = "/" + path
 	}
 
+	for _, service := range s.services {
+		if service.RootPath() == s.cfg.ContextPath+path {
+			return service, nil
+		}
+	}
+
 	s.resetContainer()
 	webService := new(restful.WebService)
 	webService.Path(s.cfg.ContextPath + path)
+
 	s.services = append(s.services, webService)
 	return webService, nil
 }
