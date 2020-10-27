@@ -3,6 +3,7 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.12
 
 require (
+	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
