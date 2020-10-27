@@ -31,6 +31,7 @@ func NewProductionCrudRepositoryFactory() CrudRepositoryFactoryApi {
 type CrudRepositoryApi interface {
 	CountAll(ctx context.Context, dest interface{}) error
 	CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) error
+	CountAllByWithOptions(ctx context.Context, where map[string]interface{}, dest interface{}, options map[Option]interface{}) error
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllPagedByWithOptions(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}, options map[Option]interface{}) (presp paging.Response, err error)
@@ -73,7 +74,7 @@ func (r *CrudRepository) CountAll(ctx context.Context, dest interface{}) (err er
 	return
 }
 
-func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+func (r *CrudRepository) CountAllByWithOptions(ctx context.Context, where map[string]interface{}, dest interface{}, options map[Option]interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return
@@ -89,11 +90,12 @@ func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interf
 			}
 		}
 
-		stmt, names := gocqlxqb.
+		selectBuilder := gocqlxqb.
 			Select(r.Table.Name).
 			CountAll().
-			Where(cmps...).
-			ToCql()
+			Where(cmps...)
+
+		stmt, names := r.processOptions(selectBuilder, &options).ToCql()
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
@@ -103,6 +105,10 @@ func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interf
 	})
 
 	return
+}
+
+func (r *CrudRepository) CountAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+	return r.CountAllByWithOptions(ctx, where, dest, nil)
 }
 
 func (r *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err error) {
@@ -151,11 +157,7 @@ func (r *CrudRepository) FindAllPagedByWithOptions(ctx context.Context, where ma
 			Columns(r.Table.ColumnNames()...).
 			Where(cmps...)
 
-		if v, ok := options[AllowFiltering]; ok && v.(bool) {
-			selectBuilder.AllowFiltering()
-		}
-
-		stmt, names := selectBuilder.ToCql()
+		stmt, names := r.processOptions(selectBuilder, &options).ToCql()
 
 		pageState, err := r.getPageState(ctx, session, stmt, names, where, request)
 		if err != nil {
@@ -246,11 +248,7 @@ func (r *CrudRepository) FindAllByWithOptions(ctx context.Context, where map[str
 			Columns(r.Table.ColumnNames()...).
 			Where(cmps...)
 
-		if v, ok := options[AllowFiltering]; ok && v.(bool) {
-			selectBuilder.AllowFiltering()
-		}
-
-		stmt, names := selectBuilder.ToCql()
+		stmt, names := r.processOptions(selectBuilder, &options).ToCql()
 
 		return gocqlx.
 			Query(session.Query(stmt), names).
@@ -576,4 +574,16 @@ func (r *CrudRepository) DeleteBy(ctx context.Context, where map[string]interfac
 	})
 
 	return
+}
+
+// process query options
+func (r *CrudRepository) processOptions(builder *gocqlxqb.SelectBuilder, options *map[Option]interface{} )  *gocqlxqb.SelectBuilder{
+	if builder == nil || options == nil {
+		return builder
+	}
+
+	if v, ok := (*options)[AllowFiltering]; ok && v.(bool) {
+		builder.AllowFiltering()
+	}
+	return builder
 }
