@@ -24,7 +24,8 @@ const (
 	ServiceNameSshBeat     = "probe_ssh"
 	ServiceNameViptelaBeat = "probe_viptela"
 
-	ServiceNameResource = "resourceservice"
+	ServiceNameResource      = "resourceservice"
+	ServiceNameManagedDevice = "manageddeviceservice"
 
 	ResourceProviderNameDnac    = "dnac"
 	ResourceProviderNameAws     = "aws"
