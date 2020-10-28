@@ -64,7 +64,10 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 }
 
 func WriteError(req *restful.Request, resp *restful.Response, status int, err error) {
-	trace.SpanFromContext(req.Request.Context()).LogFields(trace.Error(resp.Error()))
+	span := trace.SpanFromContext(req.Request.Context())
+	if span != nil {
+		span.LogFields(trace.Error(resp.Error()))
+	}
 	req.SetAttribute(AttributeError, err)
 
 	logger.
