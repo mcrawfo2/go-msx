@@ -9,13 +9,14 @@ import (
 	"time"
 )
 
-type Details map[string]string
+type Details map[string]interface{}
 
 type Message struct {
 	Time        topics.Time          `json:"timestamp"`
 	Service     string               `json:"service"`
 	Type        string               `json:"type"`
 	Subtype     string               `json:"subtype"`
+	Severity    string               `json:"severity"`
 	Trace       TraceAuditContext    `json:"trace"`
 	Security    SecurityAuditContext `json:"security"`
 	Details     Details              `json:"details"`
