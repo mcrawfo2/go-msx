@@ -50,6 +50,7 @@ type VpnConnection struct {
 type VpnTunnel struct {
 	AcceptedRouteCount *int64  `json:"acceptedRouteCount"`
 	OutsideIpAddress   *string `json:"outsideIpAddress"`
+	InsideIpv4Cidr     *string `json:"insideIpv4Cidr"`
 	Status             *string `json:"status"`
 	StatusMessage      *string `json:"statusMessage"`
 }
