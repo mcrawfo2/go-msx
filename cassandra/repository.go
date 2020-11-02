@@ -1,3 +1,5 @@
+//go:generate mockery --name=CrudRepositoryApi --filename=CrudRepositoryApi.go --structname=CrudRepositoryApi
+
 package cassandra
 
 import (
@@ -577,7 +579,7 @@ func (r *CrudRepository) DeleteBy(ctx context.Context, where map[string]interfac
 }
 
 // process query options
-func (r *CrudRepository) processOptions(builder *gocqlxqb.SelectBuilder, options *map[Option]interface{} )  *gocqlxqb.SelectBuilder{
+func (r *CrudRepository) processOptions(builder *gocqlxqb.SelectBuilder, options *map[Option]interface{}) *gocqlxqb.SelectBuilder {
 	if builder == nil || options == nil {
 		return builder
 	}
