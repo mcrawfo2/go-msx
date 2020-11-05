@@ -56,6 +56,7 @@ type MsxRequest struct {
 	NoToken            bool
 	Payload            interface{}
 	ErrorPayload       interface{}
+	ClientOptions      []func(*http.Client)
 }
 
 func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) {
@@ -108,6 +109,9 @@ func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, er
 	}
 
 	httpClient := factory.NewHttpClient()
+	for _, optionFunc := range v.ClientOptions {
+		optionFunc(httpClient)
+	}
 	httpClientDo := loginterceptor.NewInterceptor(httpClient.Do)
 	switch v.Target.ServiceType {
 	case ServiceTypeMicroservice:
