@@ -78,10 +78,11 @@ func normalizePathTemplate(path string) string {
 }
 
 type ExternalService struct {
-	ctx          context.Context
-	baseUrl      string
-	interceptors []httpclient.RequestInterceptor
-	retry        *retry.Retry
+	ctx           context.Context
+	baseUrl       string
+	interceptors  []httpclient.RequestInterceptor
+	retry         *retry.Retry
+	ClientOptions []func(*http.Client)
 }
 
 func (v *ExternalService) AddInterceptor(interceptor httpclient.RequestInterceptor) {
@@ -134,7 +135,13 @@ func (v *ExternalService) Do(req *http.Request, responseBody interface{}) (*http
 		return nil, nil, errors.New("Failed to retrieve http client factory from context")
 	}
 
-	httpClientDo := factory.NewHttpClient().Do
+	httpClient := factory.NewHttpClient()
+
+	for _, optionFunc := range v.ClientOptions {
+		optionFunc(httpClient)
+	}
+
+	httpClientDo := httpClient.Do
 	for _, interceptor := range v.interceptors {
 		httpClientDo = interceptor(httpClientDo)
 	}

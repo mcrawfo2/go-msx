@@ -48,6 +48,7 @@ type MsxServiceEndpoint struct {
 type MsxService struct {
 	serviceName     string
 	endpoints       map[string]MsxServiceEndpoint
+	ClientOptions   []func(*http.Client)
 	serviceType     ServiceType
 	serviceInstance *discovery.ServiceInstance
 	ctx             context.Context
@@ -97,6 +98,7 @@ func (v *MsxService) ServiceRequest(request *MsxEndpointRequest) (*MsxRequest, e
 		NoToken:            request.NoToken,
 		Payload:            request.Payload,
 		ErrorPayload:       request.ErrorPayload,
+		ClientOptions:      v.ClientOptions,
 	}, nil
 }
 
