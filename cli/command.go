@@ -25,6 +25,33 @@ func RootCmd() *cobra.Command {
 	return rootCmd
 }
 
+func AddNode(path, brief string) (*cobra.Command, error) {
+	path = strings.TrimSpace(path)
+	if len(path) == 0 {
+		return nil, errors.New("Missing command path")
+	}
+
+	pathParts := strings.Split(path, " ")
+	parentPath := pathParts[:len(pathParts)-1]
+	commandName := pathParts[len(pathParts)-1]
+
+	parent := FindCommand(parentPath...)
+	if parent == nil {
+		return nil, errors.New("Could not find parent command")
+	}
+
+	cmd := &cobra.Command{
+		Use:                commandName,
+		Short:              brief,
+		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
+	}
+
+	parent.AddCommand(cmd)
+
+	return cmd, nil
+
+}
+
 func AddCommand(path, brief string, cmdFunc CommandFunc) (*cobra.Command, error) {
 	path = strings.TrimSpace(path)
 	if len(path) == 0 {

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -25,6 +26,7 @@ type WebServer struct {
 	containerMtx  sync.Mutex
 	router        *restful.CurlyRouter
 	services      []*restful.WebService
+	handlers      map[string]http.Handler
 	documentation []DocumentationProvider
 	security      AuthenticationProvider
 	actuators     []ServiceProvider
@@ -56,6 +58,7 @@ func NewWebServer(cfg *WebServerConfig, actuatorConfig *ManagementSecurityConfig
 		actuatorCfg: actuatorConfig,
 		router:      &restful.CurlyRouter{},
 		injectors:   new(types.ContextInjectors),
+		handlers:    make(map[string]http.Handler),
 		webRoot:     webRoot,
 	}, nil
 }
@@ -85,6 +88,11 @@ func (s *WebServer) NewService(path string) (*restful.WebService, error) {
 
 	s.services = append(s.services, webService)
 	return webService, nil
+}
+
+func (s *WebServer) SetHandler(p string, handler http.Handler) {
+	p = path.Join(s.cfg.ContextPath, p)
+	s.handlers[p] = handler
 }
 
 func (s *WebServer) resetContainer() {
@@ -122,6 +130,11 @@ func (s *WebServer) Handler() http.Handler {
 	// Add all web services
 	for _, service := range s.services {
 		s.container.Add(service)
+	}
+
+	// Add all handlers
+	for path, handler := range s.handlers {
+		s.container.HandleWithFilter(path, handler)
 	}
 
 	// Add documentation provider
