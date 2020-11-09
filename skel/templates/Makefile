@@ -76,6 +76,6 @@ update-catalogservice:
 .PHONY: ui
 
 ui:
-	cd ui && npm run build
+	cd ui && npm install && npm run build
 
 #endif UI
