@@ -30,9 +30,9 @@ func newPlatformClientConfigFromContext(ctx context.Context, serviceName string)
 	httpClient.Transport = httpclient.DoFunc(transport)
 
 	return &platform.Configuration{
-		Host:          serviceName,
-		Scheme:        "http",
-		HTTPClient:    httpClient,
+		Host:       serviceName,
+		Scheme:     "http",
+		HTTPClient: httpClient,
 	}
 }
 
@@ -47,8 +47,8 @@ func newSecurityClientConfigFromContext(ctx context.Context, serviceName string)
 	httpClient.Transport = httpclient.DoFunc(transport)
 
 	return &platform.Configuration{
-		Host:          serviceName,
-		Scheme:        "http",
-		HTTPClient:    httpClient,
+		Host:       serviceName,
+		Scheme:     "http",
+		HTTPClient: httpClient,
 	}
 }
