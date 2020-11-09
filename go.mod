@@ -62,5 +62,3 @@ replace (
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
 	github.com/dave/jennifer v1.4.1 => cto-github.cisco.com/mcrawfo2/jennifer v1.4.1
 )
-
-replace cto-github.cisco.com/NFV-BU/msx-platform-go-client => ../../msx/msx-platform-go-client
