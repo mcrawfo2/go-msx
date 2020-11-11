@@ -167,6 +167,7 @@ func (a *MsxApplication) Run(command string) error {
 	} else {
 		logger.WithContext(a.ctx).WithError(err).Error("Startup failed")
 		logger.WithContext(a.ctx).Errorf("%+v", err)
+		a.SetExitCode(1)
 	}
 
 	// Shutdown gracefully
