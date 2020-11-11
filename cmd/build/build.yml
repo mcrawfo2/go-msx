@@ -18,6 +18,7 @@ generate:
   - path: skel
   - path: integration/awsresourceprovider
   - path: integration/manage
+  - path: integration/monitor
   - path: integration/oss
   - path: integration/serviceconfigmanager
   - path: integration/usermanagement
