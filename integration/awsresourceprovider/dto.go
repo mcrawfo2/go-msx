@@ -119,6 +119,29 @@ type AwsTransitGatewayAttachmentStatus struct {
 	TransitGatewayOwnerID      string `json:"TransitGatewayOwnerId"`
 }
 
+type AwsTransitVPCStatus struct {
+	CidrBlock               string `json:"CidrBlock"`
+	CidrBlockAssociationSet []struct {
+		AssociationID  string `json:"AssociationId"`
+		CidrBlock      string `json:"CidrBlock"`
+		CidrBlockState struct {
+			State         string      `json:"State"`
+			StatusMessage interface{} `json:"StatusMessage"`
+		} `json:"CidrBlockState"`
+	} `json:"CidrBlockAssociationSet"`
+	DhcpOptionsID               string      `json:"DhcpOptionsId"`
+	InstanceTenancy             string      `json:"InstanceTenancy"`
+	Ipv6CidrBlockAssociationSet interface{} `json:"Ipv6CidrBlockAssociationSet"`
+	IsDefault                   bool        `json:"IsDefault"`
+	OwnerID                     string      `json:"OwnerId"`
+	State                       string      `json:"State"`
+	Tags                        []struct {
+		Key   string `json:"Key"`
+		Value string `json:"Value"`
+	} `json:"Tags"`
+	VpcID string `json:"VpcId"`
+}
+
 type StackOutput struct {
 	Description *string `json:"Description"`
 	OutputKey   *string `json:"OutputKey"`

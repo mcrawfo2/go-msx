@@ -18,6 +18,7 @@ const (
 	endpointNameGetEc2InstanceStatus              = "getEc2InstanceStatus"
 	endpointNameGetTransitGatewayStatus           = "getTransitGatewayStatus"
 	endpointNameGetTransitGatewayAttachmentStatus = "getTransitGatewayAttachmentStatus"
+	endpointNameGetTransitVPCStatus               = "getTransitVPCStatus"
 	endpointNameGetStackOutput                    = "getStackOutput"
 	endpointNameGetInstanceType                   = "getInstanceType"
 	serviceName                                   = integration.ResourceProviderNameAws
@@ -33,6 +34,7 @@ var (
 		endpointNameGetVpnConnections:                 {Method: "GET", Path: "/api/v1/vpnconnection"},
 		endpointNameGetTransitGatewayStatus:           {Method: "GET", Path: "/api/v1/transitgateway/status"},
 		endpointNameGetTransitGatewayAttachmentStatus: {Method: "GET", Path: "/api/v1/transitgatewayattachment/status"},
+		endpointNameGetTransitVPCStatus:               {Method: "GET", Path: "/api/v1/transitvpc/status"},
 		endpointNameGetEc2InstanceStatus:              {Method: "GET", Path: "/api/v1/ec2instance/status"},
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
@@ -170,6 +172,19 @@ func (i *Integration) GetTransitGatewayAttachmentStatus(controlPlaneId types.UUI
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]AwsTransitGatewayAttachmentStatus{},
+	})
+}
+
+func (i *Integration) GetTransitVPCStatus(controlPlaneId types.UUID, region string, transitVPCIds []string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetTransitVPCStatus,
+		QueryParameters: map[string][]string{
+			"controlPlaneId": {controlPlaneId.String()},
+			"region":         {region},
+			"transitVPCId":   {strings.Join(transitVPCIds, ",")},
+		},
+		ExpectEnvelope: true,
+		Payload:        &[]AwsTransitVPCStatus{},
 	})
 }
 
