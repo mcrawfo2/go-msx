@@ -244,6 +244,29 @@ func (_m *MockAwsResourceProvider) GetTransitGatewayStatus(controlPlaneId types.
 	return r0, r1
 }
 
+// GetTransitVPCStatus provides a mock function with given fields: controlPlaneId, region, transitVPCIds
+func (_m *MockAwsResourceProvider) GetTransitVPCStatus(controlPlaneId types.UUID, region string, transitVPCIds []string) (*integration.MsxResponse, error) {
+	ret := _m.Called(controlPlaneId, region, transitVPCIds)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(types.UUID, string, []string) *integration.MsxResponse); ok {
+		r0 = rf(controlPlaneId, region, transitVPCIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(types.UUID, string, []string) error); ok {
+		r1 = rf(controlPlaneId, region, transitVPCIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetVpnConnectionDetails provides a mock function with given fields: controlPlaneId, vpnConnectionIds, region
 func (_m *MockAwsResourceProvider) GetVpnConnectionDetails(controlPlaneId types.UUID, vpnConnectionIds []string, region string) (*integration.MsxResponse, error) {
 	ret := _m.Called(controlPlaneId, vpnConnectionIds, region)
