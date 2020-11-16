@@ -44,3 +44,9 @@ const (
 	SeverityWarning       = "Warning"
 	SeverityCritical      = "Critical"
 )
+
+const (
+	ActionCreate = "CREATE"
+	ActionUpdate = "UPDATE"
+	ActionDelete = "DELETE"
+)
