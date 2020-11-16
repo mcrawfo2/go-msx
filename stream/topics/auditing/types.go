@@ -12,16 +12,18 @@ import (
 type Details map[string]interface{}
 
 type Message struct {
-	Time        topics.Time          `json:"timestamp"`
-	Service     string               `json:"service"`
-	Type        string               `json:"type"`
-	Subtype     string               `json:"subtype"`
-	Severity    string               `json:"severity"`
-	Trace       TraceAuditContext    `json:"trace"`
-	Security    SecurityAuditContext `json:"security"`
-	Details     Details              `json:"details"`
-	Description string               `json:"description"`
-	Keywords    string               `json:"keywords"`
+	Time              topics.Time          `json:"timestamp"`
+	SourceApplication string               `json:"sourceApplication"`
+	Service           string               `json:"service"`
+	Type              string               `json:"type"`
+	Subtype           string               `json:"subtype"`
+	Action            string               `json:"action"`
+	Severity          string               `json:"severity"`
+	Trace             TraceAuditContext    `json:"trace"`
+	Security          SecurityAuditContext `json:"security"`
+	Details           Details              `json:"details"`
+	Description       string               `json:"description"`
+	Keywords          string               `json:"keywords"`
 }
 
 type SecurityAuditContext struct {
