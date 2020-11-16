@@ -90,12 +90,9 @@ type AwsTransitGatewayStatus struct {
 		PropagationDefaultRouteTableID string      `json:"PropagationDefaultRouteTableId"`
 		VpnEcmpSupport                 string      `json:"VpnEcmpSupport"`
 	} `json:"Options"`
-	OwnerID string `json:"OwnerId"`
-	State   string `json:"State"`
-	Tags    []struct {
-		Key   string `json:"Key"`
-		Value string `json:"Value"`
-	} `json:"Tags"`
+	OwnerID           string `json:"OwnerId"`
+	State             string `json:"State"`
+	Tags              []Tag  `json:"Tags"`
 	TransitGatewayArn string `json:"TransitGatewayArn"`
 	TransitGatewayID  string `json:"TransitGatewayId"`
 }
@@ -105,18 +102,15 @@ type AwsTransitGatewayAttachmentStatus struct {
 		State                      string `json:"State"`
 		TransitGatewayRouteTableID string `json:"TransitGatewayRouteTableId"`
 	} `json:"Association"`
-	CreationTime    time.Time `json:"CreationTime"`
-	ResourceID      string    `json:"ResourceId"`
-	ResourceOwnerID string    `json:"ResourceOwnerId"`
-	ResourceType    string    `json:"ResourceType"`
-	State           string    `json:"State"`
-	Tags            []struct {
-		Key   string `json:"Key"`
-		Value string `json:"Value"`
-	} `json:"Tags"`
-	TransitGatewayAttachmentID string `json:"TransitGatewayAttachmentId"`
-	TransitGatewayID           string `json:"TransitGatewayId"`
-	TransitGatewayOwnerID      string `json:"TransitGatewayOwnerId"`
+	CreationTime               time.Time `json:"CreationTime"`
+	ResourceID                 string    `json:"ResourceId"`
+	ResourceOwnerID            string    `json:"ResourceOwnerId"`
+	ResourceType               string    `json:"ResourceType"`
+	State                      string    `json:"State"`
+	Tags                       []Tag     `json:"Tags"`
+	TransitGatewayAttachmentID string    `json:"TransitGatewayAttachmentId"`
+	TransitGatewayID           string    `json:"TransitGatewayId"`
+	TransitGatewayOwnerID      string    `json:"TransitGatewayOwnerId"`
 }
 
 type AwsTransitVPCStatus struct {
@@ -135,11 +129,13 @@ type AwsTransitVPCStatus struct {
 	IsDefault                   bool        `json:"IsDefault"`
 	OwnerID                     string      `json:"OwnerId"`
 	State                       string      `json:"State"`
-	Tags                        []struct {
-		Key   string `json:"Key"`
-		Value string `json:"Value"`
-	} `json:"Tags"`
-	VpcID string `json:"VpcId"`
+	Tags                        []Tag       `json:"Tags"`
+	VpcID                       string      `json:"VpcId"`
+}
+
+type Tag struct {
+	Key   string `json:"Key"`
+	Value string `json:"Value"`
 }
 
 type StackOutput struct {
