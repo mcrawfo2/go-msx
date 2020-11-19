@@ -32,6 +32,16 @@ func (e *PermanentError) Error() string {
 	return e.Cause.Error()
 }
 
+func PermanentErrorInterceptor(fn func() error) error {
+	err := fn()
+	if err != nil {
+		return &PermanentError{
+			Cause: err,
+		}
+	}
+
+	return nil
+}
 type RetryConfig struct {
 	Attempts int     `config:"default=3"`
 	Delay    int     `config:"default=500"`
