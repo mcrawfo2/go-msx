@@ -12,6 +12,10 @@ type HealthResult integration.HealthResult
 type ErrorDTO integration.ErrorDTO
 type ErrorDTO2 integration.ErrorDTO2
 
+const (
+	EntityTypeControlPlane = "CONTROLPLANE"
+)
+
 type ServiceConfigurationRequest struct {
 	Attributes    map[string]string `json:"attributes"`
 	Configuration string            `json:"configuration"`
@@ -86,6 +90,18 @@ type ServiceConfigurationAssignmentResponse struct {
 	StatusDetails      *string `json:"statusDetails"`
 	AssignedTenantID   string  `json:"assignedTenantId"`
 	AssignedTenantName string  `json:"assignedTenantName"`
+}
+
+type ServiceConfigurationAssignmentCreateResponse struct {
+	AssignmentEntries []AssignmentEntry `json:"assignmentEntries"`
+	Flawed            bool              `json:"flawed"`
+}
+
+type AssignmentEntry struct {
+	AssignedTenantId  types.UUID `json:"assignedTenantId"`
+	ErrorCauseMessage *string    `json:"errorCauseMessage"`
+	SuccessfulUpdate  bool       `json:"successfulUpdate"`
+	TenantId          types.UUID `json:"tenantId"`
 }
 
 type ServiceConfigurationApplicationRequest struct {
