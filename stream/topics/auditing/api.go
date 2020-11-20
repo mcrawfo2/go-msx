@@ -6,18 +6,29 @@ import (
 )
 
 const TopicName = "AUDITING_GENERIC_TOPIC"
+const TopicNameDeviceV4 = "AUDITING_DEVICE_V4_TOPIC"
+const TopicNameService = "AUDITING_SERVICE_TOPIC"
+const TopicNameSite = "AUDITING_SITE_TOPIC"
 
 func Publish(ctx context.Context, message Message) error {
-	return stream.PublishObject(ctx, TopicName, message, nil)
+	return PublishToTopic(ctx, TopicName, message)
 }
 
 func PublishFromProducer(ctx context.Context, producer MessageProducer) error {
+	return PublishToTopicFromProducer(ctx, TopicName, producer)
+}
+
+func PublishToTopic(ctx context.Context, topicName string, message Message) error {
+	return stream.PublishObject(ctx, topicName, message, nil)
+}
+
+func PublishToTopicFromProducer(ctx context.Context, topicName string, producer MessageProducer) error {
 	message, err := producer.Message(ctx)
 	if err != nil {
 		return err
 	}
 
-	return Publish(ctx, message)
+	return PublishToTopic(ctx, topicName, message)
 }
 
 const (

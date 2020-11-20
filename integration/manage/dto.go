@@ -71,6 +71,26 @@ type ServiceInstanceResponse struct {
 	ServiceAttribute    interface{} `json:"serviceAttribute"`
 }
 
+func (r ServiceInstanceResponse) ServiceAttributes() types.Pojo {
+	if r.ServiceAttribute == nil {
+		return nil
+	}
+	if pojo, ok := r.ServiceAttribute.(map[string]interface{}); ok {
+		return pojo
+	}
+	return nil
+}
+
+func (r ServiceInstanceResponse) ServiceDefAttributes() types.Pojo {
+	if r.ServiceAttribute == nil {
+		return nil
+	}
+	if pojo, ok := r.ServiceAttribute.(map[string]interface{}); ok {
+		return pojo
+	}
+	return nil
+}
+
 type DeviceCreateRequest struct {
 	Name               string                 `json:"name"`
 	TenantId           string                 `json:"tenantId"`
@@ -321,3 +341,13 @@ type DeviceConnectionResponse struct {
 	TenantId          string `json:"tenantId"`
 	Type              string `json:"type"`
 }
+
+const (
+	ServiceLifecycleStateOrdering           = "ORDERING"
+	ServiceLifecycleStateOrderFailed        = "ORDER_FAILED"
+	ServiceLifecycleStateProvisioning       = "PROVISIONING"
+	ServiceLifecycleStateProvisioned        = "PROVISIONED"
+	ServiceLifecycleStateProvisioningFailed = "PROVISIONING_FAILED"
+	ServiceLifecycleStateDeleting           = "DELETING"
+	ServiceLifecycleStateDeleteFailed       = "DELETE_FAILED"
+)

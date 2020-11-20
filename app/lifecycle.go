@@ -284,3 +284,10 @@ var application = NewMsxApplication()
 func OnEvent(event string, phase string, observer Observer) {
 	application.On(event, phase, observer)
 }
+
+func OnRootEvent(event string, phase string, observer Observer) {
+	OnEvent(EventCommand, CommandRoot, func(ctx context.Context) error {
+		OnEvent(event, phase, observer)
+		return nil
+	})
+}
