@@ -13,10 +13,8 @@ import (
 
 const configRootHttpClient = "http.client"
 
-type ProductionHttpClientFactory struct {
-	tlsConfig    *tls.Config
-	clientConfig *ClientConfig
-}
+type ClientConfigurationFunc func(c *http.Client)
+type TransportConfigurationFunc func(c *http.Transport)
 
 type ClientConfig struct {
 	Timeout     time.Duration `config:"default=30s"`
@@ -70,6 +68,50 @@ func getClientCerts(cfg *ClientConfig) ([]tls.Certificate, error) {
 	return []tls.Certificate{cert}, nil
 }
 
+type ProductionHttpClientFactory struct {
+	tlsConfig    *tls.Config
+	clientConfig *ClientConfig
+	clientConfigurationFuncs []ClientConfigurationFunc
+	transportConfigurationFuncs []TransportConfigurationFunc
+}
+
+func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
+	var tlsConfig = &tls.Config{
+		InsecureSkipVerify: f.tlsConfig.InsecureSkipVerify,
+		RootCAs: f.tlsConfig.RootCAs,
+		Certificates: f.tlsConfig.Certificates[:],
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		IdleConnTimeout: f.clientConfig.IdleTimeout,
+		Proxy:           http.ProxyFromEnvironment,
+	}
+
+	for _, configure := range f.transportConfigurationFuncs {
+		configure(transport)
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout: f.clientConfig.Timeout,
+	}
+
+	for _, configure := range f.clientConfigurationFuncs {
+		configure(client)
+	}
+
+	return client
+}
+
+func (f *ProductionHttpClientFactory) AddClientConfigurationFunc(fn ClientConfigurationFunc) {
+	f.clientConfigurationFuncs = append(f.clientConfigurationFuncs, fn)
+}
+
+func (f *ProductionHttpClientFactory) AddTransportConfigurationFunc(fn TransportConfigurationFunc) {
+	f.transportConfigurationFuncs = append(f.transportConfigurationFuncs, fn)
+}
+
 func NewProductionHttpClientFactoryFromConfig(cfg *config.Config) (*ProductionHttpClientFactory, error) {
 	var clientConfig ClientConfig
 	if err := cfg.Populate(&clientConfig, configRootHttpClient); err != nil {
@@ -104,15 +146,4 @@ func NewProductionHttpClientFactoryFromConfig(cfg *config.Config) (*ProductionHt
 
 func NewProductionHttpClientFactory(ctx context.Context) (*ProductionHttpClientFactory, error) {
 	return NewProductionHttpClientFactoryFromConfig(config.MustFromContext(ctx))
-}
-
-func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: f.tlsConfig,
-			IdleConnTimeout: f.clientConfig.IdleTimeout,
-			Proxy:           http.ProxyFromEnvironment,
-		},
-		Timeout: f.clientConfig.Timeout,
-	}
 }
