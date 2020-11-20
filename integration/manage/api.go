@@ -64,6 +64,7 @@ type Api interface {
 	DeleteDeviceV4(deviceId string, force string) (*integration.MsxResponse, error)
 	GetDevicesV4(requestQuery map[string][]string, page int, pageSize int) (*integration.MsxResponse, error)
 	GetDeviceV4(deviceId string) (*integration.MsxResponse, error)
+	UpdateDeviceV4(deviceRequest DeviceUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 	UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 
 	GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error)

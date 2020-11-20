@@ -109,6 +109,23 @@ type DeviceCreateRequest struct {
 	OnboardInformation map[string]interface{} `json:"onboardInformation"`
 }
 
+type DeviceUpdateRequest struct {
+	Name               string                 `json:"name"`
+	ServiceType        string                 `json:"serviceType"`
+	Model              string                 `json:"model"`
+	Type               string                 `json:"type"`
+	SubType            string                 `json:"subType"`
+	SerialKey          string                 `json:"serialKey"`
+	OnboardType        string                 `json:"onboardType"`
+	Managed            bool                   `json:"managed"`
+	Version            string                 `json:"version"`
+	Tags               map[string]string      `json:"tags"`
+	Attributes         map[string]string      `json:"attributes"`
+	OnboardInformation map[string]interface{} `json:"onboardInformation"`
+}
+
+type DeviceListResponse []DeviceResponse
+
 type DeviceResponse struct {
 	Id                 string                 `json:"id"`
 	Name               string                 `json:"name"`

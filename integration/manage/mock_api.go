@@ -1033,6 +1033,29 @@ func (_m *MockManage) UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateReques
 	return r0, r1
 }
 
+// UpdateDeviceV4 provides a mock function with given fields: deviceRequest, deviceId
+func (_m *MockManage) UpdateDeviceV4(deviceRequest DeviceUpdateRequest, deviceId string) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceRequest, deviceId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceUpdateRequest, string) *integration.MsxResponse); ok {
+		r0 = rf(deviceRequest, deviceId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(DeviceUpdateRequest, string) error); ok {
+		r1 = rf(deviceRequest, deviceId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateServiceInstance provides a mock function with given fields: serviceInstanceId, serviceAttribute, serviceDefAttribute, status
 func (_m *MockManage) UpdateServiceInstance(serviceInstanceId string, serviceAttribute map[string]string, serviceDefAttribute map[string]string, status map[string]string) (*integration.MsxResponse, error) {
 	ret := _m.Called(serviceInstanceId, serviceAttribute, serviceDefAttribute, status)
