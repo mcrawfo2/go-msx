@@ -143,3 +143,16 @@ type StackOutput struct {
 	OutputKey   *string `json:"OutputKey"`
 	OutputValue *string `json:"OutputValue"`
 }
+
+type StackOutputList []StackOutput
+
+func (s StackOutputList) Map() map[string]string {
+	var result = make(map[string]string)
+	for _, output := range s {
+		pk, pv := output.OutputKey, output.OutputValue
+		if pk != nil && pv != nil {
+			result[*pk] = *pv
+		}
+	}
+	return result
+}
