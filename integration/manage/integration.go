@@ -55,6 +55,7 @@ const (
 	endpointNameGetDeviceV4          = "getDeviceV4"
 	endpointNameCreateDeviceV4       = "createDeviceV4"
 	endpointNameDeleteDeviceV4       = "deleteDeviceV4"
+	endpointNameUpdateDeviceV4       = "updateDeviceV4"
 	endpointNameUpdateDeviceStatusV4 = "updateDeviceStatusV4"
 
 	endpointNameGetDeviceTemplateHistory = "getDeviceTemplateHistory"
@@ -127,6 +128,7 @@ var (
 		endpointNameGetDeviceV4:          {Method: "GET", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameCreateDeviceV4:       {Method: "POST", Path: "/api/v4/devices"},
 		endpointNameDeleteDeviceV4:       {Method: "DELETE", Path: "/api/v4/devices/{{.deviceId}}"},
+		endpointNameUpdateDeviceV4:       {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameUpdateDeviceStatusV4: {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}/status"},
 
 		endpointNameGetDeviceTemplateHistory: {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
@@ -781,8 +783,8 @@ func (i *Integration) GetDevicesV4(requestQuery map[string][]string, page, pageS
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetDevicesV4,
 		QueryParameters: queryParameters,
-		Payload: paging.PaginatedResponse{
-			Content: []DeviceResponse{},
+		Payload: &paging.PaginatedResponse{
+			Content: new(DeviceListResponse),
 		},
 		ExpectEnvelope: true,
 	})
@@ -794,6 +796,23 @@ func (i *Integration) GetDeviceV4(deviceId string) (*integration.MsxResponse, er
 		EndpointParameters: map[string]string{
 			"deviceId": deviceId,
 		},
+		Payload:        new(DeviceResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) UpdateDeviceV4(deviceRequest DeviceUpdateRequest, deviceId string) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameUpdateDeviceV4,
+		EndpointParameters: map[string]string{
+			"deviceId": deviceId,
+		},
+		Body:           bodyBytes,
 		Payload:        new(DeviceResponse),
 		ExpectEnvelope: true,
 	})
@@ -811,7 +830,7 @@ func (i *Integration) UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateReques
 	}
 
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameUpdateDevice,
+		EndpointName: endpointNameUpdateDeviceStatusV4,
 		EndpointParameters: map[string]string{
 			"deviceId": deviceId,
 		},
