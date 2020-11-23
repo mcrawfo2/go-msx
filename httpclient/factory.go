@@ -1,9 +1,18 @@
 package httpclient
 
-import "net/http"
+import (
+	"context"
+	"github.com/pkg/errors"
+	"net/http"
+)
 
 type Factory interface {
 	NewHttpClient() *http.Client
+}
+
+type ContextFactory interface {
+	Factory
+	NewHttpClientWithConfigurer(context.Context, Configurer) *http.Client
 }
 
 type Client interface {
@@ -17,3 +26,19 @@ func (d DoFunc) RoundTrip(request *http.Request) (*http.Response, error) {
 }
 
 type RequestInterceptor func(fn DoFunc) DoFunc
+
+func New(ctx context.Context, configurer Configurer) (*http.Client, error) {
+	factory := FactoryFromContext(ctx)
+	if factory == nil {
+		return nil, errors.New("Failed to retrieve http client factory from context")
+	}
+
+	var httpClient *http.Client
+	if contextFactory, ok := factory.(ContextFactory); ok {
+		httpClient = contextFactory.NewHttpClientWithConfigurer(ctx, configurer)
+	} else {
+		httpClient = factory.NewHttpClient()
+	}
+
+	return httpClient, nil
+}

@@ -5,6 +5,7 @@ package integration
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/discovery"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
 	"github.com/pkg/errors"
@@ -30,6 +31,7 @@ type MsxEndpointRequest struct {
 	NoToken            bool
 	Payload            interface{}
 	ErrorPayload       interface{}
+	Configurer         httpclient.Configurer
 }
 
 type ServiceType string
@@ -48,7 +50,9 @@ type MsxServiceEndpoint struct {
 type MsxService struct {
 	serviceName     string
 	endpoints       map[string]MsxServiceEndpoint
+	// Deprecated
 	ClientOptions   []func(*http.Client)
+	Configurer      httpclient.Configurer
 	serviceType     ServiceType
 	serviceInstance *discovery.ServiceInstance
 	ctx             context.Context
@@ -98,6 +102,10 @@ func (v *MsxService) ServiceRequest(request *MsxEndpointRequest) (*MsxRequest, e
 		NoToken:            request.NoToken,
 		Payload:            request.Payload,
 		ErrorPayload:       request.ErrorPayload,
+		Configurer:         httpclient.CompositeConfigurer{
+			Service:  v.Configurer,
+			Endpoint: request.Configurer,
+		},
 		ClientOptions:      v.ClientOptions,
 	}, nil
 }
