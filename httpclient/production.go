@@ -196,11 +196,19 @@ type CompositeConfigurer struct {
 }
 
 func (c CompositeConfigurer) HttpClient(client *http.Client) {
-	c.Service.HttpClient(client)
-	c.Endpoint.HttpClient(client)
+	if c.Service != nil {
+		c.Service.HttpClient(client)
+	}
+	if c.Endpoint != nil {
+		c.Endpoint.HttpClient(client)
+	}
 }
 
 func (c CompositeConfigurer) HttpTransport(transport *http.Transport) {
-	c.Service.HttpTransport(transport)
-	c.Endpoint.HttpTransport(transport)
+	if c.Service != nil {
+		c.Service.HttpTransport(transport)
+	}
+	if c.Endpoint != nil {
+		c.Endpoint.HttpTransport(transport)
+	}
 }
