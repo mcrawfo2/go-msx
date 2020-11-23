@@ -71,7 +71,7 @@ type Api interface {
 	AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error)
 	UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error)
 	AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error)
-	SaveDeviceActions(deviceActionDto DeviceActionDTOList) (*integration.MsxResponse, error)
+	CreateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error)
 	// UpdateDeviceTemplates
 	// DetachDeviceTemplates
 	// DetachDeviceTemplate

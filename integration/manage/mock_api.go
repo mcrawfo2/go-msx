@@ -965,11 +965,11 @@ func (_m *MockManage) GetSubscriptionsV3(serviceType string, page int, pageSize 
 }
 
 // SaveDeviceActions provides a mock function with given fields: deviceActionDto
-func (_m *MockManage) SaveDeviceActions(deviceActionDto DeviceActionDTOList) (*integration.MsxResponse, error) {
+func (_m *MockManage) SaveDeviceActions(deviceActionDto DeviceActionCreateRequests) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceActionDto)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(DeviceActionDTOList) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(DeviceActionCreateRequests) *integration.MsxResponse); ok {
 		r0 = rf(deviceActionDto)
 	} else {
 		if ret.Get(0) != nil {
@@ -978,7 +978,7 @@ func (_m *MockManage) SaveDeviceActions(deviceActionDto DeviceActionDTOList) (*i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(DeviceActionDTOList) error); ok {
+	if rf, ok := ret.Get(1).(func(DeviceActionCreateRequests) error); ok {
 		r1 = rf(deviceActionDto)
 	} else {
 		r1 = ret.Error(1)
