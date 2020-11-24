@@ -41,11 +41,12 @@ const (
 	endpointNameDeleteDeviceFromSiteV3 = "deleteDeviceFromSiteV3"
 	endpointNameUpdateSiteStatusV3     = "updateSiteStatusV3"
 
-	endpointNameGetDevice    = "getDevice"
-	endpointNameGetDevices   = "getDevices"
-	endpointNameCreateDevice = "createDevice"
-	endpointNameUpdateDevice = "updateDevice"
-	endpointNameDeleteDevice = "deleteDevice"
+	endpointNameGetDevice        = "getDevice"
+	endpointNameGetDevices       = "getDevices"
+	endpointNameCreateDevice     = "createDevice"
+	endpointNameUpdateDevice     = "updateDevice"
+	endpointNameDeleteDevice     = "deleteDevice"
+	endpointNameSaveDeviceAction = "deviceActions"
 
 	endpointNameCreateManagedDevice = "createManagedDevice"
 	endpointNameDeleteManagedDevice = "deleteManagedDevice"
@@ -130,6 +131,7 @@ var (
 		endpointNameDeleteDeviceV4:       {Method: "DELETE", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameUpdateDeviceV4:       {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameUpdateDeviceStatusV4: {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}/status"},
+		endpointNameSaveDeviceAction:     {Method: "POST", Path: "/api/v1/deviceActions"},
 
 		endpointNameGetDeviceTemplateHistory: {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameAttachDeviceTemplates:    {Method: "POST", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
@@ -749,6 +751,20 @@ func (i *Integration) CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integr
 		EndpointParameters: map[string]string{},
 		Body:               bodyBytes,
 		Payload:            new(DeviceResponse),
+		ExpectEnvelope:     true,
+	})
+}
+
+func (i *Integration) SaveDeviceActions(deviceActionList DeviceActionDTOList) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceActionList)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:       endpointNameSaveDeviceAction,
+		EndpointParameters: map[string]string{},
+		Body:               bodyBytes,
 		ExpectEnvelope:     true,
 	})
 }

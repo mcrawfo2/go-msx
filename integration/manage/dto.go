@@ -303,7 +303,21 @@ type DeviceTemplateCreateRequest struct {
 	Validators           []DeviceTemplateValidators `json:"validators"`
 	Version              string                     `json:"version"`
 }
+type DeviceActionDTO struct {
+	ActionConfig          ActionConfig `json:"actionConfig"`
+	ActionType            string       `json:"actionType"`
+	Description           string       `json:"description"`
+	DeviceTypes           []string     `json:"deviceTypes"`
+	Name                  string       `json:"name"`
+	Owner                 string       `json:"owner"`
+	SupportsBulkOperation bool         `json:"supportsBulkOperation"`
+}
 
+type DeviceActionDTOList []DeviceActionDTO
+
+type ActionConfig struct {
+	Component string `json:component`
+}
 type DeviceTemplateCreateResponse struct {
 	Id                   types.UUID                 `json:"id"`
 	DeviceTemplateAccess DeviceTemplateAccess       `json:"access"`
