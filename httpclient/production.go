@@ -89,8 +89,8 @@ func (f *ProductionHttpClientFactory) NewHttpClientWithConfigurer(ctx context.Co
 
 	var tlsConfig = &tls.Config{
 		InsecureSkipVerify: f.tlsConfig.InsecureSkipVerify,
-		RootCAs: f.tlsConfig.RootCAs,
-		Certificates: f.tlsConfig.Certificates[:],
+		RootCAs:            f.tlsConfig.RootCAs,
+		Certificates:       f.tlsConfig.Certificates[:],
 	}
 
 	transport := &http.Transport{
@@ -109,7 +109,7 @@ func (f *ProductionHttpClientFactory) NewHttpClientWithConfigurer(ctx context.Co
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout: f.clientConfig.Timeout,
+		Timeout:   f.clientConfig.Timeout,
 	}
 
 	f.configurer.HttpClient(client)
@@ -122,7 +122,6 @@ func (f *ProductionHttpClientFactory) NewHttpClientWithConfigurer(ctx context.Co
 
 	return client
 }
-
 
 func (f *ProductionHttpClientFactory) AddClientConfigurationFunc(fn ClientConfigurationFunc) {
 	f.configurer.ClientFuncs = append(f.configurer.ClientFuncs, fn)
@@ -174,7 +173,7 @@ type Configurer interface {
 }
 
 type ClientConfigurer struct {
-	ClientFuncs []ClientConfigurationFunc
+	ClientFuncs    []ClientConfigurationFunc
 	TransportFuncs []TransportConfigurationFunc
 }
 
@@ -191,7 +190,7 @@ func (c ClientConfigurer) HttpTransport(transport *http.Transport) {
 }
 
 type CompositeConfigurer struct {
-	Service Configurer
+	Service  Configurer
 	Endpoint Configurer
 }
 

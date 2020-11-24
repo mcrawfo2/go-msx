@@ -57,8 +57,8 @@ type MsxRequest struct {
 	Payload            interface{}
 	ErrorPayload       interface{}
 	// Deprecated
-	ClientOptions      []func(*http.Client)
-	Configurer         httpclient.Configurer
+	ClientOptions []func(*http.Client)
+	Configurer    httpclient.Configurer
 }
 
 func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) {
