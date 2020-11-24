@@ -16,6 +16,12 @@ const configRootHttpClient = "http.client"
 type ClientConfigurationFunc func(c *http.Client)
 type TransportConfigurationFunc func(c *http.Transport)
 
+func TlsInsecure(insecure bool) TransportConfigurationFunc {
+	return func(c *http.Transport) {
+		c.TLSClientConfig.InsecureSkipVerify = insecure
+	}
+}
+
 type ClientConfig struct {
 	Timeout     time.Duration `config:"default=30s"`
 	IdleTimeout time.Duration `config:"default=1s"`
@@ -71,11 +77,16 @@ func getClientCerts(cfg *ClientConfig) ([]tls.Certificate, error) {
 type ProductionHttpClientFactory struct {
 	tlsConfig    *tls.Config
 	clientConfig *ClientConfig
-	clientConfigurationFuncs []ClientConfigurationFunc
-	transportConfigurationFuncs []TransportConfigurationFunc
+	configurer   ClientConfigurer
 }
 
 func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
+	return f.NewHttpClientWithConfigurer(context.Background(), nil)
+}
+
+func (f *ProductionHttpClientFactory) NewHttpClientWithConfigurer(ctx context.Context, configurer Configurer) *http.Client {
+	contextConfigurer := ConfigurerFromContext(ctx)
+
 	var tlsConfig = &tls.Config{
 		InsecureSkipVerify: f.tlsConfig.InsecureSkipVerify,
 		RootCAs: f.tlsConfig.RootCAs,
@@ -88,8 +99,12 @@ func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
 		Proxy:           http.ProxyFromEnvironment,
 	}
 
-	for _, configure := range f.transportConfigurationFuncs {
-		configure(transport)
+	f.configurer.HttpTransport(transport)
+	if contextConfigurer != nil {
+		contextConfigurer.HttpTransport(transport)
+	}
+	if configurer != nil {
+		configurer.HttpTransport(transport)
 	}
 
 	client := &http.Client{
@@ -97,19 +112,24 @@ func (f *ProductionHttpClientFactory) NewHttpClient() *http.Client {
 		Timeout: f.clientConfig.Timeout,
 	}
 
-	for _, configure := range f.clientConfigurationFuncs {
-		configure(client)
+	f.configurer.HttpClient(client)
+	if contextConfigurer != nil {
+		contextConfigurer.HttpClient(client)
+	}
+	if configurer != nil {
+		configurer.HttpClient(client)
 	}
 
 	return client
 }
 
+
 func (f *ProductionHttpClientFactory) AddClientConfigurationFunc(fn ClientConfigurationFunc) {
-	f.clientConfigurationFuncs = append(f.clientConfigurationFuncs, fn)
+	f.configurer.ClientFuncs = append(f.configurer.ClientFuncs, fn)
 }
 
 func (f *ProductionHttpClientFactory) AddTransportConfigurationFunc(fn TransportConfigurationFunc) {
-	f.transportConfigurationFuncs = append(f.transportConfigurationFuncs, fn)
+	f.configurer.TransportFuncs = append(f.configurer.TransportFuncs, fn)
 }
 
 func NewProductionHttpClientFactoryFromConfig(cfg *config.Config) (*ProductionHttpClientFactory, error) {
@@ -146,4 +166,49 @@ func NewProductionHttpClientFactoryFromConfig(cfg *config.Config) (*ProductionHt
 
 func NewProductionHttpClientFactory(ctx context.Context) (*ProductionHttpClientFactory, error) {
 	return NewProductionHttpClientFactoryFromConfig(config.MustFromContext(ctx))
+}
+
+type Configurer interface {
+	HttpClient(*http.Client)
+	HttpTransport(*http.Transport)
+}
+
+type ClientConfigurer struct {
+	ClientFuncs []ClientConfigurationFunc
+	TransportFuncs []TransportConfigurationFunc
+}
+
+func (c ClientConfigurer) HttpClient(client *http.Client) {
+	for _, configure := range c.ClientFuncs {
+		configure(client)
+	}
+}
+
+func (c ClientConfigurer) HttpTransport(transport *http.Transport) {
+	for _, configure := range c.TransportFuncs {
+		configure(transport)
+	}
+}
+
+type CompositeConfigurer struct {
+	Service Configurer
+	Endpoint Configurer
+}
+
+func (c CompositeConfigurer) HttpClient(client *http.Client) {
+	if c.Service != nil {
+		c.Service.HttpClient(client)
+	}
+	if c.Endpoint != nil {
+		c.Endpoint.HttpClient(client)
+	}
+}
+
+func (c CompositeConfigurer) HttpTransport(transport *http.Transport) {
+	if c.Service != nil {
+		c.Service.HttpTransport(transport)
+	}
+	if c.Endpoint != nil {
+		c.Endpoint.HttpTransport(transport)
+	}
 }

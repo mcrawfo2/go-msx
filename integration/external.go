@@ -82,7 +82,9 @@ type ExternalService struct {
 	baseUrl       string
 	interceptors  []httpclient.RequestInterceptor
 	retry         *retry.Retry
+	// Deprecated
 	ClientOptions []func(*http.Client)
+	Configurer    httpclient.Configurer
 }
 
 func (v *ExternalService) AddInterceptor(interceptor httpclient.RequestInterceptor) {
@@ -130,12 +132,10 @@ func (v *ExternalService) Request(endpoint Endpoint, uriVariables map[string]str
 }
 
 func (v *ExternalService) Do(req *http.Request, responseBody interface{}) (*http.Response, []byte, error) {
-	factory := httpclient.FactoryFromContext(v.ctx)
-	if factory == nil {
-		return nil, nil, errors.New("Failed to retrieve http client factory from context")
+	httpClient, err := httpclient.New(req.Context(), v.Configurer)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	httpClient := factory.NewHttpClient()
 
 	for _, optionFunc := range v.ClientOptions {
 		optionFunc(httpClient)

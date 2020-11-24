@@ -12,6 +12,7 @@ type httpClientContextKey int
 const (
 	contextKeyHttpClientFactory httpClientContextKey = iota
 	contextKeyOperationName
+	contextKeyHttpClientConfigurer
 )
 
 func ContextWithFactory(ctx context.Context, factory Factory) context.Context {
@@ -46,4 +47,20 @@ func OperationNameFromContext(ctx context.Context) string {
 	} else {
 		return operationName
 	}
+}
+
+func ContextWithConfigurer(ctx context.Context, configurer Configurer) context.Context {
+	return context.WithValue(ctx, contextKeyHttpClientConfigurer, configurer)
+}
+
+func ConfigurerFromContext(ctx context.Context) Configurer {
+	iface := ctx.Value(contextKeyHttpClientConfigurer)
+	if iface == nil {
+		return nil
+	}
+	if configurer, ok := iface.(Configurer); ok {
+		return configurer
+	}
+	logger.Warn("Context http client configurer is the wrong type")
+	return nil
 }

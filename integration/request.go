@@ -56,7 +56,9 @@ type MsxRequest struct {
 	NoToken            bool
 	Payload            interface{}
 	ErrorPayload       interface{}
+	// Deprecated
 	ClientOptions      []func(*http.Client)
+	Configurer         httpclient.Configurer
 }
 
 func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) {
@@ -103,12 +105,11 @@ func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) 
 }
 
 func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, error) {
-	factory := httpclient.FactoryFromContext(ctx)
-	if factory == nil {
-		return nil, errors.New("Failed to retrieve http client factory from context")
+	httpClient, err := httpclient.New(ctx, v.Configurer)
+	if err != nil {
+		return nil, err
 	}
 
-	httpClient := factory.NewHttpClient()
 	for _, optionFunc := range v.ClientOptions {
 		optionFunc(httpClient)
 	}
