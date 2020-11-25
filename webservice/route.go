@@ -56,6 +56,10 @@ func StandardDelete(b *restful.RouteBuilder) {
 	b.Do(StandardReturns, ProducesJson)
 }
 
+func StandardAccept(b *restful.RouteBuilder) {
+	b.Do(AcceptReturns, ProducesJson, ConsumesJson)
+}
+
 func ResponseTypeName(t reflect.Type) (string, bool) {
 	typeName := types.GetTypeName(t, true)
 	return typeName, typeName != ""
@@ -126,6 +130,10 @@ func StandardReturns(b *restful.RouteBuilder) {
 
 func CreateReturns(b *restful.RouteBuilder) {
 	b.Do(Returns(200, 201, 400, 401, 403), DefaultReturns(201))
+}
+
+func AcceptReturns(b *restful.RouteBuilder) {
+	b.Do(Returns(202, 400, 401, 403), DefaultReturns(202))
 }
 
 func NoContentReturns(b *restful.RouteBuilder) {
@@ -278,6 +286,9 @@ func Returns200(b *restful.RouteBuilder) {
 func Returns201(b *restful.RouteBuilder) {
 	b.Returns(http.StatusCreated, "Created", nil)
 }
+func Returns202(b *restful.RouteBuilder) {
+	b.Returns(http.StatusAccepted, "Accepted", nil)
+}
 func Returns204(b *restful.RouteBuilder) {
 	b.Returns(http.StatusNoContent, "No Content", nil)
 }
@@ -314,6 +325,8 @@ func Returns(statuses ...int) RouteBuilderFunc {
 			statusFuncs = append(statusFuncs, Returns200)
 		case 201:
 			statusFuncs = append(statusFuncs, Returns201)
+		case 202:
+			statusFuncs = append(statusFuncs, Returns202)
 		case 204:
 			statusFuncs = append(statusFuncs, Returns204)
 		case 400:
