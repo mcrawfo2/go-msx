@@ -964,6 +964,29 @@ func (_m *MockManage) GetSubscriptionsV3(serviceType string, page int, pageSize 
 	return r0, r1
 }
 
+// SaveDeviceActions provides a mock function with given fields: deviceActionDto
+func (_m *MockManage) SaveDeviceActions(deviceActionDto DeviceActionCreateRequests) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceActionDto)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceActionCreateRequests) *integration.MsxResponse); ok {
+		r0 = rf(deviceActionDto)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(DeviceActionCreateRequests) error); ok {
+		r1 = rf(deviceActionDto)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateControlPlane provides a mock function with given fields: controlPlaneId, tenantId, name, url, resourceProvider, authenticationType, tlsInsecure, attributes
 func (_m *MockManage) UpdateControlPlane(controlPlaneId string, tenantId string, name string, url string, resourceProvider string, authenticationType string, tlsInsecure bool, attributes map[string]string) (*integration.MsxResponse, error) {
 	ret := _m.Called(controlPlaneId, tenantId, name, url, resourceProvider, authenticationType, tlsInsecure, attributes)
