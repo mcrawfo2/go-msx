@@ -20,5 +20,6 @@ type Api interface {
 	GetTransitGatewayAttachmentStatus(controlPlaneId types.UUID, region string, transitGatewayAttachmentIds []string, resourceIds []string) (*integration.MsxResponse, error)
 	GetTransitVPCStatus(controlPlaneId types.UUID, region string, transitVPCIds []string) (*integration.MsxResponse, error)
 	GetStackOutputs(applicationId types.UUID) (*integration.MsxResponse, error)
+	CheckStatus(applicationId types.UUID, request *CheckStatusRequest) (*integration.MsxResponse, error)
 	GetInstanceType(controlPlaneId types.UUID, region string, availabilityZone string, instanceType string) (*integration.MsxResponse, error)
 }
