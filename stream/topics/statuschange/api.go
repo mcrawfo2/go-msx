@@ -47,7 +47,6 @@ func NewMessageListener(fn MessageHandler, filters []MessageFilter) stream.Liste
 	}
 }
 
-
 func AddListener(fn MessageHandler, filters []MessageFilter) error {
 	listener := NewMessageListener(fn, filters)
 	return stream.AddListener(TopicStatusChange, listener)

@@ -4,7 +4,14 @@ executable:
     - bootstrap.yml
     - ${app.name}.production.yml
 
-docker.dockerfile: build/package/Dockerfile
+docker:
+  dockerfile: build/package/Dockerfile
+  base:
+    dynamic:
+      enabled: false
+      version: ${app.version}
+      manifest: msxbase-manifest
+      stream: EI-Stable
 
 msx:
   release: ${app.version}

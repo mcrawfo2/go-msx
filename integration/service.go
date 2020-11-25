@@ -48,8 +48,8 @@ type MsxServiceEndpoint struct {
 }
 
 type MsxService struct {
-	serviceName     string
-	endpoints       map[string]MsxServiceEndpoint
+	serviceName string
+	endpoints   map[string]MsxServiceEndpoint
 	// Deprecated
 	ClientOptions   []func(*http.Client)
 	Configurer      httpclient.Configurer
@@ -102,11 +102,11 @@ func (v *MsxService) ServiceRequest(request *MsxEndpointRequest) (*MsxRequest, e
 		NoToken:            request.NoToken,
 		Payload:            request.Payload,
 		ErrorPayload:       request.ErrorPayload,
-		Configurer:         httpclient.CompositeConfigurer{
+		Configurer: httpclient.CompositeConfigurer{
 			Service:  v.Configurer,
 			Endpoint: request.Configurer,
 		},
-		ClientOptions:      v.ClientOptions,
+		ClientOptions: v.ClientOptions,
 	}, nil
 }
 

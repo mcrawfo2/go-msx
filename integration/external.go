@@ -78,10 +78,10 @@ func normalizePathTemplate(path string) string {
 }
 
 type ExternalService struct {
-	ctx           context.Context
-	baseUrl       string
-	interceptors  []httpclient.RequestInterceptor
-	retry         *retry.Retry
+	ctx          context.Context
+	baseUrl      string
+	interceptors []httpclient.RequestInterceptor
+	retry        *retry.Retry
 	// Deprecated
 	ClientOptions []func(*http.Client)
 	Configurer    httpclient.Configurer

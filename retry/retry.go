@@ -42,6 +42,7 @@ func PermanentErrorInterceptor(fn func() error) error {
 
 	return nil
 }
+
 type RetryConfig struct {
 	Attempts int     `config:"default=3"`
 	Delay    int     `config:"default=500"`
