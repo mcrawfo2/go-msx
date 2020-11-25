@@ -14,6 +14,29 @@ type MockAwsResourceProvider struct {
 	mock.Mock
 }
 
+// CheckStatus provides a mock function with given fields: applicationId, request
+func (_m *MockAwsResourceProvider) CheckStatus(applicationId types.UUID, request *CheckStatusRequest) (*integration.MsxResponse, error) {
+	ret := _m.Called(applicationId, request)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(types.UUID, *CheckStatusRequest) *integration.MsxResponse); ok {
+		r0 = rf(applicationId, request)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(types.UUID, *CheckStatusRequest) error); ok {
+		r1 = rf(applicationId, request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Connect provides a mock function with given fields: request
 func (_m *MockAwsResourceProvider) Connect(request AwsConnectRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(request)

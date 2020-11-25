@@ -20,6 +20,7 @@ const (
 	endpointNameGetTransitGatewayAttachmentStatus = "getTransitGatewayAttachmentStatus"
 	endpointNameGetTransitVPCStatus               = "getTransitVPCStatus"
 	endpointNameGetStackOutput                    = "getStackOutput"
+	endpointNameCheckStatus                       = "checkStatus"
 	endpointNameGetInstanceType                   = "getInstanceType"
 	serviceName                                   = integration.ResourceProviderNameAws
 )
@@ -37,6 +38,7 @@ var (
 		endpointNameGetTransitVPCStatus:               {Method: "GET", Path: "/api/v1/transitvpc/status"},
 		endpointNameGetEc2InstanceStatus:              {Method: "GET", Path: "/api/v1/ec2instance/status"},
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
+		endpointNameCheckStatus:                       {Method: "POST", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/checkstatus"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
 	}
 )
@@ -49,6 +51,16 @@ func NewIntegration(ctx context.Context) (Api, error) {
 		}
 	}
 	return integrationInstance, nil
+}
+
+func MustNewIntegration(ctx context.Context) Api {
+	integrationInstance := IntegrationFromContext(ctx)
+	if integrationInstance == nil {
+		integrationInstance = &Integration{
+			MsxService: integration.NewMsxServiceResourceProvider(ctx, serviceName, endpoints),
+		}
+	}
+	return integrationInstance
 }
 
 type Integration struct {
@@ -196,6 +208,23 @@ func (i *Integration) GetStackOutputs(applicationId types.UUID) (*integration.Ms
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]StackOutput{},
+	})
+}
+
+func (i *Integration) CheckStatus(applicationId types.UUID, request *CheckStatusRequest) (*integration.MsxResponse, error) {
+
+	bodyBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameCheckStatus,
+		EndpointParameters: map[string]string{
+			"applicationId": applicationId.String(),
+		},
+		ExpectEnvelope: true,
+		Body:           bodyBytes,
 	})
 }
 

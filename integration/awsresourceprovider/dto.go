@@ -18,6 +18,10 @@ type AwsConnectRequest struct {
 	Password    string `json:"password"`
 }
 
+type CheckStatusRequest struct {
+	CallbackId         string `json:"CallbackId"`
+}
+
 type Region struct {
 	Regionname string `json:"regionname"`
 	Endpoint   string `json:"endpoint"`
