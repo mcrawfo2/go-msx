@@ -51,6 +51,7 @@ type RegistrationProviderConfig struct {
 	IpAddress           string        `config:"default="`
 	Interface           string        `config:"default="`
 	Port                int           `config:"default=0"`
+	Scheme              string        `config:"default=http"`
 	RegisterHealthCheck bool          `config:"default=true"`
 	HealthCheckPath     string        `config:"default=/admin/health"`
 	HealthCheckInterval time.Duration `config:"default=10s"`
@@ -162,7 +163,7 @@ func (c *RegistrationProvider) healthCheck() *api.AgentServiceCheck {
 		Interval:      c.config.HealthCheckInterval.String(),
 		Timeout:       c.config.HealthCheckTimeout.String(),
 		TLSSkipVerify: true,
-		HTTP:          fmt.Sprintf("%s://%s%s", "http", c.details.SocketAddress(), checkPath),
+		HTTP:          fmt.Sprintf("%s://%s%s", c.config.Scheme, c.details.SocketAddress(), checkPath),
 	}
 }
 
