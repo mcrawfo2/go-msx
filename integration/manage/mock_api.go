@@ -173,6 +173,29 @@ func (_m *MockManage) CreateDevice(subscriptionId string, deviceInstanceId *stri
 	return r0, r1
 }
 
+// CreateDeviceActions provides a mock function with given fields: deviceActionList
+func (_m *MockManage) CreateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceActionList)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceActionCreateRequests) *integration.MsxResponse); ok {
+		r0 = rf(deviceActionList)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(DeviceActionCreateRequests) error); ok {
+		r1 = rf(deviceActionList)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateDeviceConnection provides a mock function with given fields: deviceConnection
 func (_m *MockManage) CreateDeviceConnection(deviceConnection DeviceConnectionCreateRequest) (*integration.MsxResponse, *DeviceConnectionResponse, error) {
 	ret := _m.Called(deviceConnection)
@@ -957,29 +980,6 @@ func (_m *MockManage) GetSubscriptionsV3(serviceType string, page int, pageSize 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(serviceType, page, pageSize)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveDeviceActions provides a mock function with given fields: deviceActionDto
-func (_m *MockManage) SaveDeviceActions(deviceActionDto DeviceActionCreateRequests) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceActionDto)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(DeviceActionCreateRequests) *integration.MsxResponse); ok {
-		r0 = rf(deviceActionDto)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(DeviceActionCreateRequests) error); ok {
-		r1 = rf(deviceActionDto)
 	} else {
 		r1 = ret.Error(1)
 	}
