@@ -1,6 +1,8 @@
 package webservice
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	"cto-github.cisco.com/NFV-BU/go-msx/repository"
 	"errors"
 	"net/http"
 	"reflect"
@@ -21,6 +23,8 @@ func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interfa
 		status := http.StatusBadRequest
 		if statusErr, ok := err.(StatusCodeProvider); ok {
 			status = statusErr.StatusCode()
+		} else {
+			status, err = StatusCode(err)
 		}
 		WriteError(req, resp, status, err)
 		return
@@ -44,6 +48,8 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 		status := http.StatusBadRequest
 		if statusErr, ok := err.(StatusCodeProvider); ok {
 			status = statusErr.StatusCode()
+		} else {
+			status, err = StatusCode(err)
 		}
 		WriteError(req, resp, status, err)
 		return
@@ -153,6 +159,19 @@ func WriteSuccessEnvelope(req *restful.Request, resp *restful.Response, status i
 
 	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
 		logger.WithError(err).Error("Failed to write body")
+	}
+}
+
+func StatusCode(err error) (int, error) {
+	switch {
+	case errors.Is(err, rbac.ErrUserDoesNotHaveTenantAccess):
+		return http.StatusForbidden, err
+	case errors.Is(err, rbac.ErrUserDosNotHavePermission):
+		return http.StatusForbidden, err
+	case errors.Is(err, repository.ErrNotFound):
+		return http.StatusNotFound, err
+	default:
+		return http.StatusBadRequest, err
 	}
 }
 
