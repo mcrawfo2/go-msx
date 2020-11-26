@@ -13,3 +13,11 @@ func Publish(ctx context.Context, event Event) error {
 	}
 	return stream.Publish(ctx, TopicServiceConfigEventTopic, payload, event.Headers)
 }
+
+func PublishApplication(ctx context.Context, event ApplicationEvent) error {
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	return stream.Publish(ctx, TopicServiceConfigEventTopic, payload, event.Headers)
+}
