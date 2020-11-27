@@ -2,19 +2,20 @@ package notification
 
 import (
 	"context"
+	"errors"
+	"time"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream/topics"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"errors"
-	"time"
 )
 
 type Message struct {
-	Timestamp topics.Time       `json:"timestamp"`
-	Version   *string           `json:"version"`
-	Context   Context           `json:"context"`
-	EventName string            `json:"event"`
-	Payload   map[string]string `json:"payload"`
+	Timestamp topics.Time            `json:"timestamp"`
+	Version   *string                `json:"version"`
+	Context   Context                `json:"context"`
+	EventName string                 `json:"event"`
+	Payload   map[string]interface{} `json:"payload"`
 }
 
 type Context struct {
