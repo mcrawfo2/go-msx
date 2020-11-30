@@ -4,13 +4,19 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"cto-github.cisco.com/NFV-BU/go-msx/background"
+	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
+	stdlog "log"
+	"net"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -257,8 +263,9 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	s.ctx = trace.UntracedContextFromContext(ctx)
 
 	s.server = &http.Server{
-		Addr:    s.cfg.Address(),
-		Handler: s.Handler(),
+		Addr:     s.cfg.Address(),
+		Handler:  s.Handler(),
+		ErrorLog: stdlog.New(logger.Level(logrus.ErrorLevel).(*log.LevelLogger), "", 0),
 	}
 
 	restful.EnableTracing(s.cfg.TraceEnabled)
@@ -267,21 +274,32 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	go func() {
 		var err error
 		if s.cfg.Tls.Enabled {
+			var tlsConfig *tls.Config
+
 			logger.Infof("Serving on https://%s%s", s.cfg.Address(), s.cfg.ContextPath)
-			tlsConfig, _ := buildTlsConfig(s.cfg)
-			tlsConfig.BuildNameToCertificate()
-			s.server.TLSConfig = tlsConfig
-			err = s.server.ListenAndServeTLS(s.cfg.Tls.CertFile, s.cfg.Tls.KeyFile)
+			tlsConfig, err = buildTlsConfig(s.ctx, s.cfg)
+			var ln net.Listener
+			if err == nil {
+				tlsConfig.BuildNameToCertificate()
+				ln, err = s.getTLSListener(tlsConfig)
+				if err == nil {
+					err = s.server.Serve(ln)
+				}
+			}
+
+			logger.WithError(err).Error("Error starting TLS listener")
 		} else {
 			logger.Infof("Serving on http://%s%s", s.cfg.Address(), s.cfg.ContextPath)
 
 			err = s.server.ListenAndServe()
 		}
 
-		if err != nil && err.Error() != "http: Server closed" {
-			logger.WithError(err).Error("Web Server exited")
-		} else {
-			logger.WithError(err).Info("Web server exited")
+		if err == http.ErrServerClosed {
+			logger.Info("Web server exited normally")
+			background.ErrorReporterFromContext(ctx).NonFatal(err)
+		} else if err != nil {
+			logger.Error("Web Server exited abnormally")
+			background.ErrorReporterFromContext(ctx).Fatal(err)
 		}
 	}()
 
@@ -370,10 +388,10 @@ func requestContextInjectorFilter(ctx context.Context, container *restful.Contai
 	}
 }
 
-func buildTlsConfig(cfg *WebServerConfig) (*tls.Config, error) {
+func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, error) {
 	ca, err := ioutil.ReadFile(cfg.Tls.CaFile)
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, errors.Wrapf(err, "Failed to read CA certificate file %q", cfg.Tls.CaFile)
 	}
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(ca)
@@ -381,13 +399,27 @@ func buildTlsConfig(cfg *WebServerConfig) (*tls.Config, error) {
 	if err != nil {
 		return &tls.Config{}, err
 	}
-
-	tlsconfig := &tls.Config{
-		ClientAuth:   tls.VerifyClientCertIfGiven,
-		ClientCAs:    caCertPool,
-		MinVersion:   TLSLookup[cfg.Tls.MinVersion],
-		CipherSuites: ciphers,
+	w, err := certificate.NewSource(ctx, cfg.Tls.CertificateSource)
+	if err != nil {
+		return &tls.Config{}, err
 	}
-
+	tlsconfig := &tls.Config{
+		ClientAuth:     tls.VerifyClientCertIfGiven,
+		ClientCAs:      caCertPool,
+		MinVersion:     TLSLookup[cfg.Tls.MinVersion],
+		CipherSuites:   ciphers,
+		GetCertificate: w.TlsCertificate,
+	}
 	return tlsconfig, nil
+}
+func (s *WebServer) getTLSListener(tlscfg *tls.Config) (net.Listener, error) {
+	addr := s.server.Addr
+	if addr == "" {
+		addr = ":http"
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return ln, err
+	}
+	return tls.NewListener(ln, tlscfg), nil
 }

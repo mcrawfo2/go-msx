@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/background"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -32,12 +33,13 @@ type Observer types.ActionFunc
 type CommandObserver func(context.Context, []string) error
 
 type MsxApplication struct {
-	Callbacks map[string][]Observer
-	stage     string
-	ctx       context.Context    // background context
-	cancel    context.CancelFunc // cancels Startup/Runtime or Shutdown
-	refresh   chan struct{}
-	exitCode  int
+	Callbacks       map[string][]Observer
+	stage           string
+	ctx             context.Context    // background context
+	cancel          context.CancelFunc // cancels Startup/Runtime or Shutdown
+	refresh         chan struct{}
+	reporter        errorReporter
+	exitCode        int
 	sync.Mutex
 }
 
@@ -143,6 +145,10 @@ func (a *MsxApplication) Run(command string) error {
 		}
 	}()
 
+	// Provide a background error reporting mechanism
+	a.reporter = newErrorReporter(a)
+	a.ctx = background.ContextWithErrorReporter(a.ctx, a.reporter)
+
 	logger.WithContext(a.ctx).Infof("Command selected: %s", command)
 	if err := a.triggerPhase(a.ctx, EventCommand, command); err != nil {
 		logger.WithContext(a.ctx).WithError(err).Error("Command initialization failed")
@@ -157,8 +163,15 @@ func (a *MsxApplication) Run(command string) error {
 				if err = a.refreshEvents(a.ctx); err != nil {
 					logger.Error(errors.Wrap(err, "Refresh failed"))
 					logger.WithContext(a.ctx).Errorf("%+v", err)
+					a.SetExitCode(1)
 					break
 				}
+
+			case <-a.reporter.C():
+				// Background error cancellation
+				a.SetExitCode(1)
+				a.cancel()
+				break
 
 			case <-a.ctx.Done():
 				break
