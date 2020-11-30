@@ -165,3 +165,8 @@ func (l *LevelLogger) Panicf(template string, values ...interface{}) {
 func (l *LevelLogger) Panicln(values ...interface{}) {
 	l.parent.Panicln(values...)
 }
+
+func (l *LevelLogger) Write(data []byte) (int, error) {
+	l.Print(string(data))
+	return len(data), nil
+}

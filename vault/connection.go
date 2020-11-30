@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
@@ -35,6 +36,9 @@ type ConnectionConfig struct {
 		ClientCert string `config:"default="`
 		ClientKey  string `config:"default="`
 		Insecure   bool   `config:"default=true"`
+	}
+	Issuer struct {
+		Mount string `config:"default=/pki"` //Mount sets targetted mount point for Vault PKI
 	}
 }
 
@@ -252,6 +256,33 @@ func (c *Connection) TransitDecrypt(ctx context.Context, keyName string, ciphert
 			}
 
 			plaintext = string(plaintextBytes)
+			return nil
+		})
+	})
+
+	return
+}
+
+func (c *Connection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
+	path := c.config.Issuer.Mount + "/issue/" + role
+
+	err = trace.Operation(ctx, "vault."+statsApiIssueCertificate, func(ctx context.Context) error {
+		return c.stats.Observe(statsApiIssueCertificate, path, func() error {
+			if secret, err := c.write(ctx, path, request.Data()); err != nil {
+				return errors.Wrap(err, "Failed to issue certificate")
+			} else {
+				crtPEM := []byte(secret.Data["certificate"].(string))
+				keyPEM := []byte(secret.Data["private_key"].(string))
+
+				var converted tls.Certificate
+				converted, err = tls.X509KeyPair(crtPEM, keyPEM)
+				if err != nil {
+					return errors.Wrap(err, "Failed to parse X.509 keypair")
+				} else {
+					cert = &converted
+				}
+			}
+
 			return nil
 		})
 	})
