@@ -62,6 +62,6 @@ func NewMessage(ctx context.Context) (Message, error) {
 				Name: *userContextDetails.TenantName,
 			},
 		},
-		Payload: map[string]string{},
+		Payload: make(map[string]interface{}),
 	}, nil
 }
