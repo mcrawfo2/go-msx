@@ -35,9 +35,8 @@ type TLSConfig struct {
 	// MinVersion defines minimum supported TLS.  Should be one of:
 	// tls10, tls11, tls12, tls13
 	MinVersion string `config:"default=tls12"`
-	// CertFile and KeyFile represent the full path to the TLS certificate and Key in pem format
-	CertFile string `config:"default=server.crt"`
-	KeyFile  string `config:"default=server.key"`
+	//CertProvider defines the type of certprovider in use File is default
+	CertificateSource string `config:"default=server"`
 	//CaFile represents the full path to the CA to be used for validating client certs used in mTLS authentication
 	CaFile string `config:"default=ca.pem"`
 	// CipherSuites is a comma separated list of desired ciphersuites to use for secure connection

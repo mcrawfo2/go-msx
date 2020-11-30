@@ -18,6 +18,7 @@ const (
 	statsApiCreateTransitKey = "createTransitKey"
 	statsApiTransitEncrypt   = "transitEncrypt"
 	statsApiTransitDecrypt   = "transitDecrypt"
+	statsApiIssueCertificate = "issueCertificate"
 )
 
 var (
