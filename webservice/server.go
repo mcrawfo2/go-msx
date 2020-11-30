@@ -7,12 +7,15 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
+	stdlog "log"
 	"net"
 	"net/http"
 	"path"
@@ -260,8 +263,9 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	s.ctx = trace.UntracedContextFromContext(ctx)
 
 	s.server = &http.Server{
-		Addr:    s.cfg.Address(),
-		Handler: s.Handler(),
+		Addr:     s.cfg.Address(),
+		Handler:  s.Handler(),
+		ErrorLog: stdlog.New(logger.Level(logrus.ErrorLevel).(*log.LevelLogger), "", 0),
 	}
 
 	restful.EnableTracing(s.cfg.TraceEnabled)
