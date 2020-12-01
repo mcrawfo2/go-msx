@@ -13,6 +13,18 @@ type PaginatedResponse struct {
 	Pageable         PageableResponse `json:"pageable"`
 }
 
+// Paging Response V8
+type PaginatedResponseV8 struct {
+	Page        int32         `json:"page"`
+	PageSize    int32         `json:"pageSize"`
+	TotalItems  int64         `json:"totalItems"`
+	HasNext     bool          `json:"hasNext"`
+	HasPrevious bool          `json:"hasPrevious"`
+	SortBy      string        `json:"sortBy,omitempty"`
+	SortOrder   SortDirection `json:"sortOrder,omitempty"`
+	Contents    interface{}   `json:"contents"`
+}
+
 type PageableResponse struct {
 	Page  uint         `json:"page"`
 	Size  uint         `json:"size"`

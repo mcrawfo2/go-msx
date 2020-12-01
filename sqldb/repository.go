@@ -97,7 +97,7 @@ func (c *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 		}
 
 		err = conn.SelectContext(ctx, dest, stmt, args...)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 
