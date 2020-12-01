@@ -19,19 +19,24 @@ type Message struct {
 }
 
 type Context struct {
-	User            Identifier               `json:"user"`
-	Provider        Identifier               `json:"provider"`
-	Tenant          Identifier               `json:"tenant"`
-	RecipientEmails []string                 `json:"recipientEmails"`
-	EmailLocale     string                   `json:"emailLocale"`
-	Recipients      []map[string]interface{} `json:"recipients"`
-	ServiceType     map[string]interface{}   `json:"serviceType"`
-	Initiator       Identifier               `json:"initiator"`
+	User            Identifier   `json:"user"`
+	Provider        Identifier   `json:"provider"`
+	Tenant          Identifier   `json:"tenant"`
+	RecipientEmails []string     `json:"recipientEmails"`
+	EmailLocale     string       `json:"emailLocale"`
+	Recipients      []Identifier `json:"recipients"`
+	ServiceType     ServiceType  `json:"serviceType"`
+	Initiator       Identifier   `json:"initiator"`
 }
 
 type Identifier struct {
 	Id   types.UUID `json:"id"`
 	Name string     `json:"name"`
+}
+
+type ServiceType struct {
+	LogicName              string `json:"logicName"`
+	DisplayNameResourceKey string `json:"diplayNameResourceKey"`
 }
 
 type MessageProducer interface {
