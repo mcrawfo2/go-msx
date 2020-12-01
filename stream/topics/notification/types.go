@@ -11,8 +11,8 @@ import (
 )
 
 type Message struct {
-	Timestamp topics.Time            `json:"timestamp"`
-	Version   *string                `json:"version"`
+	Timestamp topics.Time            `json:"timestamp,omitempty"`
+	Version   *string                `json:"version,omitempty"`
 	Context   Context                `json:"context"`
 	EventName string                 `json:"event"`
 	Payload   map[string]interface{} `json:"payload"`
