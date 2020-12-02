@@ -60,23 +60,24 @@ func (c *productController) listProducts(svc *restful.WebService) *restful.Route
         Category *string `req:"query"`
     }
 
-	return svc.GET("").
-		Operation("listProducts").
-		Doc("Retrieve the list of products, optionally filtering by the specified criteria.").
-		Do(webservice.StandardList).
-		Do(webservice.ResponsePayload(api.ProductListResponse{})).
-		Filter(viewPermissionFilter).
-		To(webservice.Controller(
-			func(req *restful.Request) (body interface{}, err error) {
+    return svc.GET("").
+        Operation("listProducts").
+        Doc("Retrieve the list of products, optionally filtering by the specified criteria.").
+        Do(webservice.StandardList).
+        Do(webservice.ResponsePayload(api.ProductListResponse{})).
+        Do(webservice.PopulateParams(params{})).
+        Filter(viewPermissionFilter).
+        To(webservice.Controller(
+            func(req *restful.Request) (body interface{}, err error) {
                 params = webservice.Params(req).(*params)
-
+        
                 products, err := c.productService.ListProducts(req.Request.Context(), params.Category)
-				if err != nil {
-					return nil, err
-				}
-
-				return c.productConverter.ToProductListResponse(products), nil
-			}))
+                if err != nil {
+                    return nil, err
+                }
+        
+                return c.productConverter.ToProductListResponse(products), nil
+            }))
 }
 ```
 
@@ -93,6 +94,8 @@ Here we are declaring the endpoint:
     - has the supplied description in the Swagger UI
 - `Do(webservice.StandardList)`
     - is an implementation of a List Collection endpoint.  Returns 200 by default.
+- `Do(webservice.PopulateParams(params{}))`
+    - populates request parameters into the supplied structure
 - `Do(webservice.ResponsePayload(api.ProductListResponse{}))`
     - will return the specified response DTO, wrapped _inside_ an MsxEnvelope object.
 - `Filter(viewPermissionFilter)`
@@ -101,7 +104,56 @@ Here we are declaring the endpoint:
 - `To(webservice.Controller(func ...))`
     - will execute the supplied function when this endpoint is called
 
-These are just some of the possible route building functions available in go-msx.  You may use the go-restful routing functions, along with the [go-msx routing functions](routes.go) to define many aspects of your endpoint.
+These are some possible route building functions available in go-msx.  You may use the go-restful routing functions, along with the [go-msx routing functions](routes.go) to define many aspects of your endpoint.
+
+### Validation
+
+Controller parameter validation can be performed in two ways:
+
+1. Any member of the `params` struct passed into `webservice.PopulateParams` which implement the `validate.Validatable` interface
+    will be validated before being passed into the controller via a request attribute.
+
+    Create and Update request bodies will generally implement this interface.  For example:
+
+    ```go
+    type SubscriptionCreateRequest struct {
+        OfferId   string `json:"offerId"`
+        TenantId  string `json:"tenantId"`
+        ServiceId string `json:"serviceId"`
+    }
+    
+    func (s *SubscriptionCreateRequest) Validate() error {
+        return types.ErrorMap{
+            "offerId": validation.Validate(&s.OfferId, validation.Required, is.UUID),
+            "tenantId": validation.Validate(&s.TenantId, validation.Required, is.UUID),
+            "serviceId": validation.Validate(&s.ServiceId, validation.Required, is.UUID),
+        }
+    }
+    ```
+
+2. A custom validation function may be provided using `.Do(requestValidatorFunc)`.  Extending the example above
+which contains a `Category` parameter:
+
+    ```go
+        ...
+        Do(webservice.ValidateParams(func(req *restful.Request) (err error) {
+            params, ok := webservice.Params(req).(*params)
+            if !ok {
+                return webservice.NewInternalError(errors.New("incorrect params type"))
+            }
+            return types.ErrorMap{
+                "category": validation.Validate(&params.Category, 
+                                                validation.Required, 
+                                                validation.In("a", "b", "c")),
+            }
+        })).
+    ```
+
+Any non-nil errors returned by the validation function will cause a `400 BAD REQUEST` response detailing
+the validation errors.
+
+Common validators are provided by the [github.com/go-ozzo/ozzo-validation](https://github.com/go-ozzo/ozzo-validation) package.
+A few custom validators are available in the [validate](../validate/README.md) package.
 
 ## Implementing a Constructor
 
