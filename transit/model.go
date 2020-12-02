@@ -3,11 +3,13 @@ package transit
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"database/sql/driver"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 )
 
 var ErrKeyNotSet = errors.New("Key Id not set for encryption")
+var ErrDataInvalid = errors.New("Data not valid type")
 
 type SecureData struct {
 	ctx     context.Context
@@ -15,6 +17,33 @@ type SecureData struct {
 	keyId   types.UUID
 	secure  Value
 	payload map[string]*string
+}
+
+func (s *SecureData) cleanValue() (string, error) {
+	if s == nil || s.keyId == nil {
+		return "", ErrKeyNotSet
+	}
+
+	// Lazy encrypt on dirty write
+	if s.dirty {
+		payload, encrypted, err := encrypterFactory.
+			Create(s.ctx, s.keyId).
+			Encrypt(s.payload)
+		if err != nil {
+			return "", err
+		}
+		if encrypted {
+			s.secure = NewSecureValue(s.keyId, payload)
+		} else {
+			s.secure, err = NewValue(s.keyId, s.payload)
+			if err != nil {
+				return "", err
+			}
+		}
+		s.dirty = false
+	}
+
+	return s.secure.String(), nil
 }
 
 func (s *SecureData) UnmarshalCQL(_ gocql.TypeInfo, data []byte) (err error) {
@@ -27,31 +56,31 @@ func (s *SecureData) UnmarshalCQL(_ gocql.TypeInfo, data []byte) (err error) {
 	return nil
 }
 
-func (s *SecureData) MarshalCQL(_ gocql.TypeInfo) (data []byte, err error) {
-	if s == nil || s.keyId == nil {
-		return nil, ErrKeyNotSet
+func (s *SecureData) MarshalCQL(_ gocql.TypeInfo) ([]byte, error) {
+	result, err := s.cleanValue()
+	if err != nil {
+		return nil, err
+	}
+	return []byte(result), nil
+}
+
+func (s *SecureData) Value() (driver.Value, error) {
+	return s.cleanValue()
+}
+
+func (s *SecureData) Scan(src interface{}) (err error) {
+	data, ok := src.([]byte)
+	if !ok {
+		return ErrDataInvalid
 	}
 
-	// Lazy encrypt on dirty write
-	if s.dirty {
-		payload, encrypted, err := encrypterFactory.
-			Create(s.ctx, s.keyId).
-			Encrypt(s.payload)
-		if err != nil {
-			return nil, err
-		}
-		if encrypted {
-			s.secure = NewSecureValue(s.keyId, payload)
-		} else {
-			s.secure, err = NewValue(s.keyId, s.payload)
-			if err != nil {
-				return nil, err
-			}
-		}
-		s.dirty = false
+	s.dirty = false
+	s.secure, err = ParseValue(string(data))
+	if err != nil {
+		return err
 	}
-
-	return []byte(s.secure.String()), nil
+	s.keyId = s.secure.KeyId()
+	return nil
 }
 
 func (s *SecureData) Field(ctx context.Context, name string) (value *string, err error) {
