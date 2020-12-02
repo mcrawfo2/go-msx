@@ -62,13 +62,12 @@ func (c Converter) ResponseToPaginatedResponse(response Response, dataResponse i
 	}
 }
 
-
 func (c Converter) ResponseToPaginatedResponseV8(response Response, objects []interface{}) PaginatedResponseV8 {
 
 	if objects == nil {
 		objects = make([]interface{}, 0)
 	}
-	presp :=  PaginatedResponseV8{
+	presp := PaginatedResponseV8{
 		Page:        int32(response.Number),
 		PageSize:    int32(response.Size),
 		TotalItems:  int64(response.Elements()),

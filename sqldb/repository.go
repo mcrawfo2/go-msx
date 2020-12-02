@@ -37,6 +37,7 @@ type CrudRepositoryApi interface {
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	//FindAllDataSet(ctx context.Context, ds *goqu.SelectDataset, where map[string]interface{}, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	Insert(ctx context.Context, value interface{}) (err error)
 	Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error)
 	Save(ctx context.Context, value interface{}) (err error)
@@ -139,6 +140,34 @@ func (c *CrudRepository) FindOneBy(ctx context.Context, where map[string]interfa
 		if err != nil {
 			return err
 		}
+		return conn.GetContext(ctx, dest, stmt, args...)
+	})
+}
+
+func (c *CrudRepository) FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		selectDataSet := c.dialect(conn).
+			From(c.tableName).
+			Where(goqu.Ex(where))
+
+		ident := goqu.I(sortOrder.Property)
+		switch sortOrder.Direction {
+		case paging.SortDirectionDesc:
+			selectDataSet = selectDataSet.OrderAppend(ident.Desc())
+		default:
+			selectDataSet = selectDataSet.OrderAppend(ident.Asc())
+		}
+
+		stmt, args, err := selectDataSet.ToSQL()
+		if err != nil {
+			return err
+		}
+
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
