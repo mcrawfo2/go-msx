@@ -25,6 +25,39 @@ type Migrator struct {
 	versioner Versioner
 }
 
+func (m *Migrator) ValidateMigration(n int, migration Migration, appliedMigration AppliedMigration) error {
+	// Ensure manifest migration matches applied migration
+	if appliedMigration.InstalledRank != n+1 {
+		return errors.Errorf("Incorrect installed rank: %+v", appliedMigration)
+	}
+
+	if !appliedMigration.Success {
+		return errors.Errorf("Failed migration recorded: %+v", appliedMigration)
+	}
+
+	if appliedMigration.Type == "JDBC" {
+		logger.WithContext(m.ctx).Warn(
+			"Skipping verification of existing JDBC migration %s checksum and description",
+			migration.Version)
+		return nil
+	}
+
+	if appliedMigration.Description != migration.Description {
+		return errors.Errorf("Mismatched description: %+v", appliedMigration)
+	}
+
+	if appliedMigration.Checksum == nil && migration.Checksum != nil ||
+		appliedMigration.Checksum != nil && migration.Checksum == nil {
+		return errors.Errorf("Mismatched checksum: %+v vs %+v", appliedMigration.Checksum, migration.Checksum)
+	} else if appliedMigration.Checksum != nil &&
+		migration.Checksum != nil &&
+		*appliedMigration.Checksum != *migration.Checksum {
+		return errors.Errorf("Mismatched checksum: %d vs %d", *appliedMigration.Checksum, *migration.Checksum)
+	}
+
+	return nil
+}
+
 func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpgrade bool) error {
 	logger.WithContext(m.ctx).Info("Validating previously applied migrations")
 
@@ -56,25 +89,9 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 			continue
 		}
 
-		// Ensure manifest migration matches applied migration
-		if appliedMigration.InstalledRank != n+1 {
-			return errors.Errorf("Incorrect installed rank: %+v", appliedMigration)
-		}
-		if !appliedMigration.Success {
-			return errors.Errorf("Failed migration recorded: %+v", appliedMigration)
-		}
-
-		if appliedMigration.Description != migration.Description {
-			return errors.Errorf("Mismatched description: %+v", appliedMigration)
-		}
-
-		if appliedMigration.Checksum == nil && migration.Checksum != nil ||
-			appliedMigration.Checksum != nil && migration.Checksum == nil {
-			return errors.Errorf("Mismatched checksum: %+v vs %+v", appliedMigration.Checksum, migration.Checksum)
-		} else if appliedMigration.Checksum != nil &&
-			migration.Checksum != nil &&
-			*appliedMigration.Checksum != *migration.Checksum {
-			return errors.Errorf("Mismatched checksum: %d vs %d", *appliedMigration.Checksum, *migration.Checksum)
+		err = m.ValidateMigration(n, *migration, appliedMigration)
+		if err == nil {
+			return err
 		}
 
 		logger.WithContext(m.ctx).
