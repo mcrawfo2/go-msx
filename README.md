@@ -120,7 +120,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 * [Pagination](#)
 * [Resources](resource/README.md)
 * [Retry](#)
-* [Transit Encryption](#)
+* [Transit Encryption](transit/README.md)
 * [Validation](#)
 
 ## License
