@@ -69,13 +69,13 @@ func (s *SecureData) Value() (driver.Value, error) {
 }
 
 func (s *SecureData) Scan(src interface{}) (err error) {
-	data, ok := src.([]byte)
+	data, ok := src.(string)
 	if !ok {
 		return ErrDataInvalid
 	}
 
 	s.dirty = false
-	s.secure, err = ParseValue(string(data))
+	s.secure, err = ParseValue(data)
 	if err != nil {
 		return err
 	}
