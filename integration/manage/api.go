@@ -89,3 +89,6 @@ type Api interface {
 
 	GetEntityShard(entityId string) (*integration.MsxResponse, error)
 }
+
+// Ensure MockManage is up to date
+var _ Api = new(MockManage)

@@ -23,3 +23,6 @@ type Api interface {
 	CheckStatus(applicationId types.UUID, request *CheckStatusRequest) (*integration.MsxResponse, error)
 	GetInstanceType(controlPlaneId types.UUID, region string, availabilityZone string, instanceType string) (*integration.MsxResponse, error)
 }
+
+// Ensure mock is up-to-date
+var _ Api = new(MockAwsResourceProvider)
