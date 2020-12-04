@@ -90,3 +90,6 @@ func NewIntransientPublisher(publisher Publisher) Publisher {
 		publisher: publisher,
 	}
 }
+
+// Ensure MockPublisher is up-to-date
+var _ Publisher = new(MockPublisher)

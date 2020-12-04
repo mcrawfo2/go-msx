@@ -36,3 +36,6 @@ type Api interface {
 	GetServiceConfigurationApplicationById(applicationId types.UUID) (*integration.MsxResponse, error)
 	GetServiceConfigurationApplicationByServiceConfigIdTargetEntityTypeAndTargetEntityId(serviceConfigId types.UUID, targetEntityType string, targetEntityId string) (*integration.MsxResponse, error)
 }
+
+// Ensure MockServiceConfigManagerApi is up-to-date
+var _ Api = new(MockServiceConfigManagerApi)

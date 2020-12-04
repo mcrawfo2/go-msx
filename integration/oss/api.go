@@ -20,6 +20,9 @@ type Api interface {
 	GetAllowedValues(serviceId string, propertyName string) (AllowedValuesResponse, error)
 }
 
+// Ensure MockOss implementation is up-to-date
+var _ Api = new(MockOss)
+
 type PricingOptionsRequest struct {
 	Currency              string                 `json:"currency"`
 	Language              string                 `json:"language"`

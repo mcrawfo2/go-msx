@@ -21,6 +21,9 @@ type MsxServiceExecutor interface {
 	Execute(request *MsxEndpointRequest) (response *MsxResponse, err error)
 }
 
+// Ensure MockMsxServiceExecutor is up-to-date
+var _ MsxServiceExecutor = new(MockMsxServiceExecutor)
+
 type MsxEndpointRequest struct {
 	EndpointName       string
 	EndpointParameters map[string]string

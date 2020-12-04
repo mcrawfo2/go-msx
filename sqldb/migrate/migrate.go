@@ -36,7 +36,7 @@ func (m *Migrator) ValidateMigration(n int, migration Migration, appliedMigratio
 	}
 
 	if appliedMigration.Type == "JDBC" {
-		logger.WithContext(m.ctx).Warn(
+		logger.WithContext(m.ctx).Warnf(
 			"Skipping verification of existing JDBC migration %s checksum and description",
 			migration.Version)
 		return nil
