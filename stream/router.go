@@ -143,11 +143,16 @@ func AddListener(topic string, action ListenerAction) error {
 
 func listenerHandler(topic string, action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
 	result := TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, func(msg *message.Message) error {
-		logger.
+		entry := logger.
 			WithContext(msg.Context()).
 			WithField("messageId", msg.UUID).
-			WithField("topic", topic).
-			Infof("received message payload: %s", string(msg.Payload))
+			WithField("topic", topic)
+		if cfg.LogMessages {
+			entry.Infof("received message payload: %s", string(msg.Payload))
+		} else {
+			entry.Info("received message (payload hidden)")
+		}
+
 
 		retryableAction := func() error {
 			return action(msg)
