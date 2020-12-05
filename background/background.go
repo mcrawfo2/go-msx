@@ -1,3 +1,4 @@
+//go:generate mockery --inpackage --name=ErrorReporter --structname=MockErrorReporter --filename mock_ErrorReporter.go
 package background
 
 import "context"
@@ -25,3 +26,5 @@ func ErrorReporterFromContext(ctx context.Context) ErrorReporter {
 	}
 	return i.(ErrorReporter)
 }
+
+var _ ErrorReporter = new(MockErrorReporter)
