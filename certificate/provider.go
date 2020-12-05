@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=Provider --structname=mockProvider --filename mock_provider_test.go
+//go:generate mockery --inpackage --name=ProviderFactory --structname=mockProviderFactory --filename mock_provider_factory_test.go
 package certificate
 
 import (
@@ -16,7 +18,7 @@ type Provider interface {
 
 type ProviderFactory interface {
 	Name() string
-	New(ctx context.Context, bindingName string) (Provider, error)
+	New(ctx context.Context, configRoot string) (Provider, error)
 }
 
 var factories = map[string]ProviderFactory{}

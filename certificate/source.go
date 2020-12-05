@@ -6,7 +6,9 @@ import (
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"github.com/thejerf/abtime"
 	"math/rand"
 	"sync"
 	"time"
@@ -17,15 +19,18 @@ var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 var sources = make(map[string]*Source)
 var sourceLock sync.Mutex
 
+const renewTimerId = iota
+
 type Source struct {
 	sync.Mutex
 	certificate *tls.Certificate
 	provider    Provider
+	clock       abtime.AbstractTime
 }
 
 // TlsCertificate fetches the certificate for tls.Config
 func (c *Source) TlsCertificate(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	return c.certificate, nil
+	return c.Certificate(), nil
 }
 
 // Certificate fetches the most recently cached certificate
@@ -41,7 +46,7 @@ func (c *Source) setCertificate(certificate *tls.Certificate) {
 	c.certificate = certificate
 }
 
-// renew continuously refreshes the certificate after approximately half of its validity period.
+// renew continuously refreshes the certificate after approximately half of its remaining validity period.
 func (c *Source) renew(ctx context.Context) {
 	defer logger.Info("Exiting certificate renewal")
 
@@ -55,13 +60,14 @@ func (c *Source) renew(ctx context.Context) {
 
 		logger.Infof("Renewing Certificate in %f minutes", d.Minutes())
 
-		t := time.NewTimer(d)
+		t := c.clock.NewTimer(d, renewTimerId)
 
 		select {
 		case <-ctx.Done():
+			t.Stop()
 			return
 
-		case <-t.C:
+		case <-t.Channel():
 			err = c.renewOnce(ctx)
 			if err != nil {
 				err = errors.Wrap(err, "Failed to renew certificate")
@@ -94,6 +100,7 @@ func (c *Source) renewOnce(ctx context.Context) error {
 	cert, err := c.provider.GetCertificate(ctx)
 	if err != nil {
 		logger.Errorf("Problem retrieving certificate from provider: %s", err.Error())
+		return err
 	}
 
 	c.setCertificate(cert)
@@ -124,6 +131,7 @@ func NewSource(ctx context.Context, bindingName string) (*Source, error) {
 	source := &Source{
 		certificate: cert,
 		provider:    provider,
+		clock:       types.NewClock(ctx),
 	}
 
 	if provider.Renewable() {
