@@ -20,6 +20,7 @@ func TransientErrorInterceptor(fn Retryable) error {
 	return TransientErrorDecorator(fn)()
 }
 
+// TransientErrorDecorator wraps the supplied retryable to force it to return a TransientError
 func TransientErrorDecorator(fn Retryable) Retryable {
 	return func() error {
 		err := fn()
@@ -36,6 +37,7 @@ func TransientErrorDecorator(fn Retryable) Retryable {
 type PermanentError struct {
 	Cause error
 }
+
 func (e *PermanentError) Unwrap() error {
 	return e.Cause
 }
@@ -52,6 +54,7 @@ func PermanentErrorInterceptor(fn Retryable) error {
 	return PermanentErrorDecorator(fn)()
 }
 
+// TransientErrorDecorator wraps the supplied retryable to force it to return a PermanentError
 func PermanentErrorDecorator(fn Retryable) Retryable {
 	return func() error {
 		err := fn()
