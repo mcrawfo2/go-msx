@@ -14,17 +14,17 @@ func TestClockFromContext(t *testing.T) {
 
 	tests := []struct {
 		name string
-		ctx context.Context
+		ctx  context.Context
 		want abtime.AbstractTime
 	}{
 		{
 			name: "ExistsInContext",
-			ctx: ctx,
+			ctx:  ctx,
 			want: clock,
 		},
 		{
 			name: "NotExistsInContext",
-			ctx: context.Background(),
+			ctx:  context.Background(),
 			want: nil,
 		},
 	}
@@ -50,17 +50,17 @@ func TestNewClock(t *testing.T) {
 
 	tests := []struct {
 		name string
-		ctx context.Context
+		ctx  context.Context
 		want abtime.AbstractTime
 	}{
 		{
 			name: "ExistsInContext",
-			ctx: ctx,
+			ctx:  ctx,
 			want: clock,
 		},
 		{
 			name: "NotExistsInContext",
-			ctx: context.Background(),
+			ctx:  context.Background(),
 			want: NewRealClock(),
 		},
 	}

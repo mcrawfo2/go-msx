@@ -33,13 +33,13 @@ type Observer types.ActionFunc
 type CommandObserver func(context.Context, []string) error
 
 type MsxApplication struct {
-	Callbacks       map[string][]Observer
-	stage           string
-	ctx             context.Context    // background context
-	cancel          context.CancelFunc // cancels Startup/Runtime or Shutdown
-	refresh         chan struct{}
-	reporter        errorReporter
-	exitCode        int
+	Callbacks map[string][]Observer
+	stage     string
+	ctx       context.Context    // background context
+	cancel    context.CancelFunc // cancels Startup/Runtime or Shutdown
+	refresh   chan struct{}
+	reporter  errorReporter
+	exitCode  int
 	sync.Mutex
 }
 

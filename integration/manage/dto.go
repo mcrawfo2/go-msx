@@ -305,12 +305,12 @@ type DeviceTemplateCreateRequest struct {
 }
 type DeviceActionCreateRequest struct {
 	ActionConfig          map[string]string `json:"actionConfig"`
-	ActionType            string       `json:"actionType"`
-	Description           string       `json:"description"`
-	DeviceTypes           []string     `json:"deviceTypes"`
-	Name                  string       `json:"name"`
-	Owner                 string       `json:"owner"`
-	SupportsBulkOperation bool         `json:"supportsBulkOperation"`
+	ActionType            string            `json:"actionType"`
+	Description           string            `json:"description"`
+	DeviceTypes           []string          `json:"deviceTypes"`
+	Name                  string            `json:"name"`
+	Owner                 string            `json:"owner"`
+	SupportsBulkOperation bool              `json:"supportsBulkOperation"`
 }
 
 type DeviceActionCreateRequests []DeviceActionCreateRequest

@@ -197,7 +197,7 @@ func TestSource_renew(t *testing.T) {
 	clock := types.NewMockClock()
 	certificate := generateCertificate(t, clock, 10*time.Minute)
 
-	deadlineCtx, cancelDeadlineCtx := context.WithDeadline(context.Background(), time.Now().Add(2 * time.Second))
+	deadlineCtx, cancelDeadlineCtx := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
 	defer func() {
 		if deadlineCtx.Err() != nil {
 			t.Error("GetCertificate was not called")
@@ -236,7 +236,7 @@ func TestSource_renewFailure(t *testing.T) {
 	clock := types.NewMockClock()
 	certificate := generateCertificate(t, clock, 10*time.Minute)
 
-	deadlineCtx, cancelDeadlineCtx := context.WithDeadline(context.Background(), time.Now().Add(2 * time.Second))
+	deadlineCtx, cancelDeadlineCtx := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
 	defer func() {
 		if deadlineCtx.Err() != nil {
 			t.Error("GetCertificate was not called")

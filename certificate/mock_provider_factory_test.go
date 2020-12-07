@@ -27,13 +27,13 @@ func (_m *mockProviderFactory) Name() string {
 	return r0
 }
 
-// New provides a mock function with given fields: ctx, bindingName
-func (_m *mockProviderFactory) New(ctx context.Context, bindingName string) (Provider, error) {
-	ret := _m.Called(ctx, bindingName)
+// New provides a mock function with given fields: ctx, configRoot
+func (_m *mockProviderFactory) New(ctx context.Context, configRoot string) (Provider, error) {
+	ret := _m.Called(ctx, configRoot)
 
 	var r0 Provider
 	if rf, ok := ret.Get(0).(func(context.Context, string) Provider); ok {
-		r0 = rf(ctx, bindingName)
+		r0 = rf(ctx, configRoot)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(Provider)
@@ -42,7 +42,7 @@ func (_m *mockProviderFactory) New(ctx context.Context, bindingName string) (Pro
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, bindingName)
+		r1 = rf(ctx, configRoot)
 	} else {
 		r1 = ret.Error(1)
 	}
