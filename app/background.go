@@ -2,7 +2,7 @@ package app
 
 type errorReporter struct {
 	cancel chan struct{}
-	app *MsxApplication
+	app    *MsxApplication
 }
 
 func (e errorReporter) Fatal(err error) {
@@ -21,6 +21,6 @@ func (e errorReporter) C() <-chan struct{} {
 func newErrorReporter(app *MsxApplication) errorReporter {
 	return errorReporter{
 		cancel: make(chan struct{}),
-		app:     app,
+		app:    app,
 	}
 }

@@ -7,9 +7,9 @@ import (
 
 type IssueCertificateRequest struct {
 	CommonName string
-	Ttl time.Duration
-	AltNames []string
-	IpSans []string
+	Ttl        time.Duration
+	AltNames   []string
+	IpSans     []string
 }
 
 func (r IssueCertificateRequest) Data() map[string]interface{} {

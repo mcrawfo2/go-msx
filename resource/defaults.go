@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 11, 28, 20, 40, 42, 680840211, time.UTC),
+			modTime: time.Date(2020, 12, 5, 22, 55, 59, 269403603, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 11, 29, 18, 6, 47, 949110990, time.UTC),
+			modTime: time.Date(2020, 12, 4, 19, 23, 10, 934759315, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,14 +32,14 @@ var Defaults = func() http.FileSystem {
 		},
 		"/certificate": &vfsgen۰DirInfo{
 			name:    "certificate",
-			modTime: time.Date(2020, 11, 29, 18, 10, 51, 225180890, time.UTC),
+			modTime: time.Date(2020, 12, 5, 22, 55, 59, 432132140, time.UTC),
 		},
 		"/certificate/defaults-certificate.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-certificate.properties",
-			modTime:          time.Date(2020, 11, 29, 18, 5, 27, 339220619, time.UTC),
-			uncompressedSize: 188,
+			modTime:          time.Date(2020, 12, 4, 19, 23, 10, 934672506, time.UTC),
+			uncompressedSize: 185,
 
-			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x52\x56\x08\x4e\x2d\x2a\x4b\x2d\x52\x70\x4e\x2d\x2a\xc9\x4c\xcb\x4c\x4e\x2c\x49\xe5\x4a\x46\xb0\xf5\x92\x32\xf3\x52\x32\xf3\xd2\xf5\x8a\xc1\xca\xf4\x0a\x8a\xf2\xcb\x32\x53\x52\x8b\x14\x6c\x15\xd2\x32\x73\xf0\x2a\x05\x49\xe9\x82\x14\x29\xd8\x2a\xa8\x54\x43\x05\x4b\x72\x8a\x11\x12\xb5\xf8\xb4\x67\xa7\x56\x62\xd5\x0d\x13\xaf\xe5\x02\x04\x00\x00\xff\xff\x43\xfb\xfe\x9b\xbc\x00\x00\x00"),
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x52\x56\x08\x4e\x2d\x2a\x4b\x2d\x52\x70\x4e\x2d\x2a\xc9\x4c\xcb\x4c\x4e\x2c\x49\xe5\x4a\x46\xb0\xf5\x8a\xf3\x4b\x8b\x92\x53\xf5\x8a\xc1\xaa\xf4\x0a\x8a\xf2\xcb\x32\x53\x52\x8b\x14\x6c\x15\xd2\x32\x73\xf0\xa9\x04\xc9\xe8\x82\xd4\x28\xd8\x2a\xa8\x54\x43\x05\x4b\x72\x8a\x11\x12\xb5\x78\x74\x67\xa7\x56\x62\xd5\x0c\x13\xaf\xe5\x02\x04\x00\x00\xff\xff\x9b\x37\xc7\xa3\xb9\x00\x00\x00"),
 		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
@@ -47,7 +47,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
-			modTime: time.Date(2020, 11, 27, 13, 37, 57, 538396828, time.UTC),
+			modTime: time.Date(2020, 12, 2, 14, 57, 58, 764215794, time.UTC),
 		},
 		"/discovery/consulprovider/defaults-discovery.properties": &vfsgen۰FileInfo{
 			name:    "defaults-discovery.properties",
@@ -100,7 +100,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
-			modTime: time.Date(2020, 11, 19, 19, 56, 38, 175302694, time.UTC),
+			modTime: time.Date(2020, 12, 4, 19, 23, 10, 939053715, time.UTC),
 		},
 		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-sqldb.properties",
@@ -111,7 +111,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/transit": &vfsgen۰DirInfo{
 			name:    "transit",
-			modTime: time.Date(2020, 9, 29, 13, 0, 4, 766559424, time.UTC),
+			modTime: time.Date(2020, 12, 4, 19, 23, 10, 942864194, time.UTC),
 		},
 		"/transit/defaults-transit.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-transit.properties",
@@ -122,7 +122,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 11, 29, 18, 10, 11, 847804935, time.UTC),
+			modTime: time.Date(2020, 12, 4, 22, 10, 19, 757989859, time.UTC),
 		},
 		"/webservice/defaults-security-actuator.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-security-actuator.properties",
@@ -133,10 +133,10 @@ var Defaults = func() http.FileSystem {
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",
-			modTime:          time.Date(2020, 11, 29, 18, 9, 46, 346346677, time.UTC),
-			uncompressedSize: 278,
+			modTime:          time.Date(2020, 12, 4, 19, 23, 10, 946359072, time.UTC),
+			uncompressedSize: 322,
 
-			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8d\xc1\x0a\x84\x20\x10\x86\xef\x3d\xc5\xc0\x9e\x75\x3b\x76\xf1\x61\x4c\xc7\x1a\x12\x8d\x71\x48\x7a\xfb\xa5\x36\x63\x09\x16\x6f\xdf\xff\xf9\x4d\x41\xde\x90\x75\x11\x2b\xe4\xd4\x6a\x65\x06\x03\xef\x5a\x6b\x77\x2d\xc2\xd6\xa1\xc2\x64\xc7\x88\x1e\x0c\x04\x1b\x0b\xb6\x71\xcd\x2c\x60\x60\xe8\x87\xbe\xa1\x39\x97\x03\xf5\xfa\x7c\x8d\x3e\xff\x77\x2f\xc8\xd1\x83\xc4\x02\x5f\x03\x5c\x4e\x81\xa6\xfb\x6a\x2c\xda\x21\x8b\x0a\x14\x11\xcc\x25\x69\xc7\xf2\x6b\x2c\xb8\x3f\x84\x05\xf7\xa3\x9d\xb0\x9e\xed\x95\xf3\x46\xfe\x6f\x9d\x02\x39\x2b\xa8\x46\x4a\x9e\xd2\x74\x67\xba\x4f\x00\x00\x00\xff\xff\x8e\xb6\x2d\x7e\x16\x01\x00\x00"),
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8e\xcd\x0e\x82\x30\x10\x84\xef\x3c\xc5\x26\x7a\x6d\xe5\xc8\xa5\x0f\x53\xcb\x56\x1a\x1a\x4a\x76\x57\x1a\x62\x7c\x77\x03\x52\x7f\x88\x66\x6f\x33\xdf\xce\x0c\x23\x4d\x48\x9a\xc5\x4a\x70\x6a\xb4\xd2\x81\x81\x53\xce\xb9\xda\x1c\x21\xeb\x50\xe1\x60\xcf\x11\x5b\x30\xe0\x6d\x64\x2c\xe6\x98\x48\xc0\x40\x53\x37\x75\x91\xba\xc4\x8b\x54\xeb\xf5\x8a\xba\xff\xaf\x0e\x90\x62\x0b\x12\x19\x9e\x04\xb8\x34\xf8\x70\x79\xb5\x46\xd6\x0e\x49\x94\x0f\x11\xc1\x6c\x90\x76\x24\x9f\x44\x8f\xf3\x0e\xe8\x71\xfe\x8a\xb0\xc5\x3f\xde\x7e\x25\xdf\x97\x21\x03\xe6\x75\xc8\x48\x69\x0a\xed\xdf\x29\xc1\x07\x67\x05\x15\xa7\x2b\xb9\x77\x65\xf5\x08\x00\x00\xff\xff\x37\xda\x0b\x92\x42\x01\x00\x00"),
 		},
 	}
 	fs["/"].(*vfsgen۰DirInfo).entries = []os.FileInfo{

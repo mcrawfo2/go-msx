@@ -35,6 +35,11 @@ func AddNode(path, brief string) (*cobra.Command, error) {
 	parentPath := pathParts[:len(pathParts)-1]
 	commandName := pathParts[len(pathParts)-1]
 
+	existing := FindCommand(pathParts...)
+	if existing != nil {
+		return nil, errors.New("Command node alread exists")
+	}
+
 	parent := FindCommand(parentPath...)
 	if parent == nil {
 		return nil, errors.New("Could not find parent command")

@@ -30,9 +30,9 @@ func GenerateCertificate(args []string) error {
 	template := x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
-			Organization: []string{"Cisco Systems"},
+			Organization:       []string{"Cisco Systems"},
 			OrganizationalUnit: []string{"MSX"},
-			CommonName: skeletonConfig.AppName,
+			CommonName:         skeletonConfig.AppName,
 		},
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().Add(time.Hour * 24 * 180),

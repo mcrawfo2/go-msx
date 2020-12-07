@@ -15,13 +15,15 @@ msx:
     includeGroups: "com.cisco.**"
 
 generate:
-  - path: skel
+  - path: background
+  - path: certificate
   - path: integration/awsresourceprovider
   - path: integration/manage
   - path: integration/monitor
   - path: integration/oss
   - path: integration/serviceconfigmanager
   - path: integration/usermanagement
+  - path: skel
   - path: stream
   - path: resource
     vfsgen:

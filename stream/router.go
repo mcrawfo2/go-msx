@@ -153,7 +153,6 @@ func listenerHandler(topic string, action ListenerAction, cfg *BindingConfigurat
 			entry.Info("received message (payload hidden)")
 		}
 
-
 		retryableAction := func() error {
 			return action(msg)
 		}

@@ -19,7 +19,7 @@ type AwsConnectRequest struct {
 }
 
 type CheckStatusRequest struct {
-	CallbackId         string `json:"CallbackId"`
+	CallbackId string `json:"CallbackId"`
 }
 
 type Region struct {
