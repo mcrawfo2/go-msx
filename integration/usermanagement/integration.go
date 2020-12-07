@@ -38,6 +38,9 @@ const (
 	endpointNameGetTenantById   = "getTenantById"
 	endpointNameGetTenantByName = "getTenantByName"
 
+	endpointNameGetUserById   = "getUserById"
+
+
 	endpointNameGetSystemSecrets      = "getSystemSecrets"
 	endpointNameEncryptSystemSecrets  = "encryptSystemSecrets"
 	endpointNameAddSystemSecrets      = "addSystemSecrets"
@@ -95,6 +98,11 @@ var (
 		endpointNameGetTenantById:   {Method: "GET", Path: "/api/v3/tenants/{{.tenantId}}"},
 		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
 
+
+		endpointNameGetUserById:   {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
+
+
+
 		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},
 		endpointNameAddSystemSecrets:      {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}"},
 		endpointNameReplaceSystemSecrets:  {Method: "PUT", Path: "/api/v2/secrets/scope/{{.scope}}"},
@@ -138,6 +146,7 @@ func NewIntegration(ctx context.Context) (Api, error) {
 type Integration struct {
 	*integration.MsxService
 }
+
 
 func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
 	result = &HealthResult{
@@ -339,6 +348,18 @@ func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResp
 	}
 
 	return result, err
+}
+
+
+func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetUserById,
+		EndpointParameters: map[string]string{
+			"userId": userId,
+		},
+		ExpectEnvelope: true,
+		Payload:        new(UserResponse),
+	})
 }
 
 func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxResponse, err error) {

@@ -247,6 +247,32 @@ type LengthRule struct {
 
 type SecretsResponse map[string]string
 
+type UserResponse struct {
+	Id            string               `json:"id"`
+	Email         string               `json:"email"`
+	UserId        string               `json:"userId"`
+	Name          string               `json:"name"`
+	FirstName     string               `json:"firstName"`
+	LastName      string               `json:"lastName"`
+	Status        string               `json:"status,omitempty"`
+	PwdPolicyname string               `json:"pwdPolicyname,omitempty"`
+	Locale        string               `json:"locale,omitempty"`
+	Seeded        bool                 `json:"isSeeded,omitempty"`
+	Deleted       string               `json:"isDeleted,omitempty"`
+	Tenants       []UserTenantResponse `json:"tenants,omitempty"`
+	Roles         []UserRoleResponse   `json:"roles,omitempty"`
+}
+
+type UserRoleResponse struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+}
+
+type UserTenantResponse struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+}
+
 func (s SecretsResponse) Value(key string) string {
 	return s[key]
 }
