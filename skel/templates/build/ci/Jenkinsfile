@@ -139,10 +139,19 @@ pipeline {
                                 sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
                                 sh sonarCommand
                             }
+
+                            // TODO: need to create webhooks manually for each of the sonar project for sonar to send status
+//                             script {
+//                                 timeout(time: 10, unit: 'MINUTES') {
+//                                     def qg = waitForQualityGate()
+//                                     if (qg.status != 'OK') {
+//                                         error "Pipeline aborted due to microservices quality gate failure: ${qg.status}"
+//                                     }
+//                                 }
+//                             }
                         }
                     }
                 }}
-
             }
         }
 

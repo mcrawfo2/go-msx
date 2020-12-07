@@ -19,11 +19,11 @@ var Defaults = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 12, 5, 22, 55, 59, 269403603, time.UTC),
+			modTime: time.Date(2020, 12, 7, 15, 49, 29, 75529004, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 12, 4, 19, 23, 10, 934759315, time.UTC),
+			modTime: time.Date(2020, 12, 7, 15, 49, 29, 68575591, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,7 +32,7 @@ var Defaults = func() http.FileSystem {
 		},
 		"/certificate": &vfsgen۰DirInfo{
 			name:    "certificate",
-			modTime: time.Date(2020, 12, 5, 22, 55, 59, 432132140, time.UTC),
+			modTime: time.Date(2020, 12, 7, 15, 49, 29, 72292519, time.UTC),
 		},
 		"/certificate/defaults-certificate.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-certificate.properties",
@@ -91,12 +91,12 @@ var Defaults = func() http.FileSystem {
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
-			modTime: time.Date(2020, 7, 27, 13, 26, 0, 727792679, time.UTC),
+			modTime: time.Date(2020, 12, 7, 15, 49, 29, 527252965, time.UTC),
 		},
 		"/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties": &vfsgen۰FileInfo{
 			name:    "defaults-security-idmdetailsprovider.properties",
-			modTime: time.Date(2020, 3, 16, 22, 38, 32, 803682492, time.UTC),
-			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a"),
+			modTime: time.Date(2020, 12, 7, 15, 49, 29, 528627229, time.UTC),
+			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x66\x61\x73\x74\x3a\x20\x74\x72\x75\x65"),
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
