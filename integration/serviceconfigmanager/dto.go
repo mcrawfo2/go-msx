@@ -121,14 +121,15 @@ type ServiceConfigurationApplicationStatusUpdateRequest struct {
 }
 
 type ServiceConfigurationApplicationResponse struct {
-	ID               types.UUID        `json:"id"`
-	ServiceConfigID  types.UUID        `json:"serviceConfigId"`
-	TenantID         types.UUID        `json:"tenantId"`
-	Timestamp        time.Time         `json:"timestamp"`
-	ModifiedDate     time.Time         `json:"modifiedDate"`
-	Status           string            `json:"status"`
-	StatusDetails    *string           `json:"statusDetails"`
-	Parameters       map[string]string `json:"parameters"`
-	TargetEntityID   string            `json:"targetEntityId"`
-	TargetEntityType string            `json:"targetEntityType"`
+	ID                types.UUID        `json:"id"`
+	ServiceConfigID   types.UUID        `json:"serviceConfigId"`
+	ServiceConfigName string            `json:"serviceConfigName"`
+	TenantID          types.UUID        `json:"tenantId"`
+	Timestamp         time.Time         `json:"timestamp"`
+	ModifiedDate      time.Time         `json:"modifiedDate"`
+	Status            string            `json:"status"`
+	StatusDetails     *string           `json:"statusDetails"`
+	Parameters        map[string]string `json:"parameters"`
+	TargetEntityID    string            `json:"targetEntityId"`
+	TargetEntityType  string            `json:"targetEntityType"`
 }
