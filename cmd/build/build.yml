@@ -26,6 +26,7 @@ generate:
   - path: skel
   - path: stream
   - path: resource
+  - path: sqldb
     vfsgen:
       filename: "defaults.go"
       variable-name: "Defaults"
