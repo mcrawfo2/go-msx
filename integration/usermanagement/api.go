@@ -29,6 +29,8 @@ type Api interface {
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)
 
+	GetUserById(userId string) (*integration.MsxResponse, error)
+
 	GetSystemSecrets(scope string) (*integration.MsxResponse, error)
 	AddSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error)
 	ReplaceSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error)
