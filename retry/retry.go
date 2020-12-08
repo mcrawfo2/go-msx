@@ -4,50 +4,23 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"github.com/thejerf/abtime"
 	"time"
 )
 
 const (
 	configRootRetry = "spring.retry"
+	delaySleepId    = iota
 )
 
-var retryLogger = log.NewLogger("msx.retry")
+var logger = log.NewLogger("msx.retry")
 
 type Retryable func() error
 
-type PermanentFailure interface {
+type failure interface {
 	IsPermanent() bool
-}
-
-type PermanentError struct {
-	Cause error
-}
-
-func (e *PermanentError) IsPermanent() bool {
-	return true
-}
-
-func (e *PermanentError) Error() string {
-	return e.Cause.Error()
-}
-
-func PermanentErrorInterceptor(fn func() error) error {
-	err := fn()
-	if err != nil {
-		return &PermanentError{
-			Cause: err,
-		}
-	}
-
-	return nil
-}
-
-type RetryConfig struct {
-	Attempts int     `config:"default=3"`
-	Delay    int     `config:"default=500"`
-	BackOff  float64 `config:"default=0.0"`
-	Linear   bool    `config:"default=true"`
 }
 
 type Retry struct {
@@ -56,20 +29,22 @@ type Retry struct {
 	BackOff  float64
 	Linear   bool
 	Context  context.Context
+	clock    abtime.AbstractTime
 }
 
+// Retry executes the Retryable up to Attempts times, exiting early if there is a success (no error returned) or a PermanentError occurs
 func (r Retry) Retry(retryable Retryable) (err error) {
 	currentDelay := r.Delay.Nanoseconds()
 	var n int
 	for n < r.Attempts {
 		if n > 0 {
-			retryLogger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed, retrying after delay", n)
+			logger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed, retrying after delay", n)
 			currentDelay = r.delay(currentDelay, n)
 		}
 
 		if err = retryable(); err == nil {
 			break
-		} else if perm, ok := err.(PermanentFailure); ok && perm.IsPermanent() {
+		} else if perm, ok := err.(failure); ok && perm.IsPermanent() {
 			break
 		}
 
@@ -77,10 +52,10 @@ func (r Retry) Retry(retryable Retryable) (err error) {
 	}
 
 	if err != nil {
-		if perm, ok := err.(PermanentFailure); ok && perm.IsPermanent() {
-			retryLogger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed with permanent failure", n)
+		if perm, ok := err.(failure); ok && perm.IsPermanent() {
+			logger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed with permanent failure", n)
 		} else {
-			retryLogger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed, no more attempts", n)
+			logger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed, no more attempts", n)
 		}
 	}
 
@@ -96,11 +71,16 @@ func (r Retry) delay(currentDelay int64, n int) int64 {
 		}
 	}
 
-	time.Sleep(time.Duration(currentDelay))
+	if r.clock == nil {
+		r.clock = types.NewClock(r.Context)
+	}
+
+	r.clock.Sleep(time.Duration(currentDelay), delaySleepId)
 
 	return currentDelay
 }
 
+// NewRetry returns a new Retry instance using the specified RetryConfig
 func NewRetry(ctx context.Context, cfg RetryConfig) Retry {
 	return Retry{
 		Attempts: cfg.Attempts,
@@ -108,9 +88,11 @@ func NewRetry(ctx context.Context, cfg RetryConfig) Retry {
 		BackOff:  cfg.BackOff,
 		Linear:   cfg.Linear,
 		Context:  ctx,
+		clock:    types.NewClock(ctx),
 	}
 }
 
+// NewRetryFromConfig returns a new Retry instance configured from the default RetryConfig in the specified *config.Config
 func NewRetryFromConfig(ctx context.Context, cfg *config.Config) (*Retry, error) {
 	var retryConfig RetryConfig
 	if err := cfg.Populate(&retryConfig, configRootRetry); err != nil {
@@ -121,6 +103,7 @@ func NewRetryFromConfig(ctx context.Context, cfg *config.Config) (*Retry, error)
 	return &retry, nil
 }
 
+// NewRetryFromContext returns a new Retry instance configured from the default RetryConfig in the context's *config.Config
 func NewRetryFromContext(ctx context.Context) (*Retry, error) {
 	retry, err := NewRetryFromConfig(ctx, config.FromContext(ctx))
 	if err != nil {

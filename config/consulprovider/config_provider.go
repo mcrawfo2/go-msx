@@ -8,7 +8,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"fmt"
 	"github.com/pkg/errors"
-	"time"
 )
 
 const (
@@ -48,13 +47,12 @@ func (f *ConfigProvider) Load(ctx context.Context) (settings map[string]string, 
 	logger.Infof("Loading configuration from consul (%s): %s)", f.connection.Host(), consulPrefix)
 	var defaultSettings map[string]string
 
-	err = retry.Retry{
+	err = retry.NewRetry(ctx, retry.RetryConfig{
 		Attempts: 10,
-		Delay:    3 * time.Second,
+		Delay:    3000,
 		BackOff:  0.0,
 		Linear:   true,
-		Context:  ctx,
-	}.Retry(func() error {
+	}).Retry(func() error {
 		if ctx.Err() != nil {
 			return &retry.PermanentError{Cause: err}
 		}
