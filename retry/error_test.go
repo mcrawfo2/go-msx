@@ -175,3 +175,8 @@ func TestTransientError_Unwrap(t *testing.T) {
 	}
 	assert.Equal(t, originalErr, err.Unwrap())
 }
+
+func TestImplementations(t *testing.T) {
+	var _ failure = new(TransientError)
+	var _ failure = new(PermanentError)
+}
