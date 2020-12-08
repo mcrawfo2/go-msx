@@ -142,7 +142,7 @@ func TestRetry_Retry(t *testing.T) {
 	ctx := types.ContextWithClock(context.Background(), clock)
 
 	type args struct {
-		config RetryConfig
+		config    RetryConfig
 		retryable Retryable
 	}
 	tests := []struct {
@@ -151,9 +151,9 @@ func TestRetry_Retry(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:"Once",
+			name: "Once",
 			args: args{
-				config:    RetryConfig{
+				config: RetryConfig{
 					Attempts: 1,
 					Delay:    500,
 					BackOff:  1.0,
@@ -168,7 +168,7 @@ func TestRetry_Retry(t *testing.T) {
 		{
 			name: "OnceError",
 			args: args{
-				config:    RetryConfig{
+				config: RetryConfig{
 					Attempts: 1,
 					Delay:    500,
 					BackOff:  1.0,
@@ -183,7 +183,7 @@ func TestRetry_Retry(t *testing.T) {
 		{
 			name: "Thrice",
 			args: args{
-				config:    RetryConfig{
+				config: RetryConfig{
 					Attempts: 3,
 					Delay:    500,
 					BackOff:  1.0,
@@ -198,7 +198,7 @@ func TestRetry_Retry(t *testing.T) {
 		{
 			name: "Permanent",
 			args: args{
-				config:    RetryConfig{
+				config: RetryConfig{
 					Attempts: 3,
 					Delay:    500,
 					BackOff:  1.0,

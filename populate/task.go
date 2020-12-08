@@ -1,3 +1,5 @@
+//go:generate mockery --name Task --structname MockTask --inpackage --filename mock_task_test.go
+
 package populate
 
 import (

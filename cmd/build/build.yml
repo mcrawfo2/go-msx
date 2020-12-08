@@ -23,10 +23,11 @@ generate:
   - path: integration/oss
   - path: integration/serviceconfigmanager
   - path: integration/usermanagement
+  - path: populate
   - path: skel
+  - path: sqldb
   - path: stream
   - path: resource
-  - path: sqldb
     vfsgen:
       filename: "defaults.go"
       variable-name: "Defaults"
