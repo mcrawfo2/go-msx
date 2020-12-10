@@ -26,18 +26,22 @@ func getRegisteredJobs() types.StringSet {
 	return jobSet
 }
 
+func validateJobs(jobs []string) error {
+	jobSet := getRegisteredJobs()
+	for _, job := range jobs {
+		if !jobSet.Contains(job) {
+			return errors.Errorf(
+				"Unknown populate job %q.  Must be one of: %s",
+				job,
+				strings.Join(jobSet.Values(), ", "))
+		}
+	}
+	return nil
+}
+
 func CustomizeCommand(cmd *cobra.Command) {
 	cmd.Args = func(cmd *cobra.Command, args []string) error {
-		jobSet := getRegisteredJobs()
-		for _, arg := range args {
-			if !jobSet.Contains(arg) {
-				return errors.Errorf(
-					"Unknown populate job %q.  Must be one of: %s",
-					arg,
-					strings.Join(jobSet.Values(), ", "))
-			}
-		}
-		return nil
+		return validateJobs(args)
 	}
 
 	cmd.Use += " [job [...]]"
