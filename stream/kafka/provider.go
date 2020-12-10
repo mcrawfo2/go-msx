@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	msxKafka "cto-github.cisco.com/NFV-BU/go-msx/kafka"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"github.com/Shopify/sarama"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
@@ -16,6 +17,7 @@ const (
 )
 
 var ErrDisabled = msxKafka.ErrDisabled
+var ErrTopicAlreadyExists = msxKafka.ErrTopicAlreadyExists
 var loggerWatermillKafka = log.NewLogger("watermill.kafka")
 var loggerAdapter = stream.NewWatermillLoggerAdapter(loggerWatermillKafka)
 
@@ -42,10 +44,17 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	}
 
 	if connectionConfig.AutoCreateTopics {
-		err = msxKafka.Pool().WithConnection(context.Background(), func(connection *msxKafka.Connection) error {
-			return msxKafka.CreateTopics(context.Background(), connection, streamBinding.Destination)
+		err = retry.NewRetry(context.Background(), retry.RetryConfig{
+			Attempts: 3,
+			Delay:    500,
+			BackOff:  0.0,
+			Linear:   true,
+		}).Retry(func() error {
+			return msxKafka.Pool().WithConnection(context.Background(), func(connection *msxKafka.Connection) error {
+				return msxKafka.CreateTopics(context.Background(), connection, streamBinding.Destination)
+			})
 		})
-		if err != nil {
+		if err != nil && err != ErrTopicAlreadyExists {
 			return nil, errors.Wrap(err, "Failed to create topic")
 		}
 	}

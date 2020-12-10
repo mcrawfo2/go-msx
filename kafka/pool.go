@@ -44,12 +44,17 @@ func (p *ConnectionPool) WithConnection(ctx context.Context, action func(*Connec
 	if err != nil {
 		return err
 	}
-	defer p.pool.Put(connResource)
 
 	conn, ok := connResource.(*Connection)
 	if !ok {
 		return errors.New("Failed to retrieve connection")
 	}
+
+	defer func() {
+		if !conn.Client().Closed() {
+			p.pool.Put(connResource)
+		}
+	}()
 
 	return action(conn)
 }
