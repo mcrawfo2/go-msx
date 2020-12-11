@@ -42,6 +42,15 @@ func HasLevel(level logrus.Level) EntryPredicate {
 	}
 }
 
+func HasMessage(msg string) EntryPredicate {
+	return EntryPredicate{
+		Description: fmt.Sprintf("entry.message == %q", msg),
+		Matches:     func(entry logrus.Entry) bool {
+			return entry.Message == msg
+		},
+	}
+}
+
 func HasFieldValue(name string, value interface{}) EntryPredicate {
 	return EntryPredicate{
 		Description: fmt.Sprintf("entry.Data['%s'] = %q", name, value),
