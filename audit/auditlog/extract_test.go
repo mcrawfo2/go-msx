@@ -21,10 +21,10 @@ func TestExtractRequestDetails(t *testing.T) {
 		{
 			name: "Proxied",
 			args: args{
-				req:  &restful.Request{
+				req: &restful.Request{
 					Request: &http.Request{
 						RemoteAddr: "10.10.10.10",
-						Proto: "http",
+						Proto:      "http",
 						Header: map[string][]string{
 							XForwardedForHeader: {"192.168.2.1"},
 						},
@@ -43,11 +43,11 @@ func TestExtractRequestDetails(t *testing.T) {
 		{
 			name: "Unproxied",
 			args: args{
-				req:  &restful.Request{
+				req: &restful.Request{
 					Request: &http.Request{
 						RemoteAddr: "192.168.2.1",
-						Proto: "http",
-						Header: map[string][]string{},
+						Proto:      "http",
+						Header:     map[string][]string{},
 					},
 				},
 				host: "10.10.10.12",

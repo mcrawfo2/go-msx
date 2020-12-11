@@ -481,7 +481,8 @@ func TestResultOf(t *testing.T) {
 				}
 			}
 		})
-	}}
+	}
+}
 
 func TestSuccess(t *testing.T) {
 	type args struct {

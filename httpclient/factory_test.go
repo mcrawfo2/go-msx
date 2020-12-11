@@ -76,21 +76,21 @@ func TestNew(t *testing.T) {
 				ctx: context.Background(),
 			},
 			wantClient: false,
-			wantErr: true,
+			wantErr:    true,
 		},
 		{
 			name: "NoConfigurer",
 			args: args{
-				ctx:        ctx,
+				ctx: ctx,
 			},
 			wantClient: true,
 		},
 		{
 			name: "Configurer",
-			args: args {
+			args: args{
 				ctx: ctx,
 				configurer: ClientConfigurer{
-					ClientFuncs:    []ClientConfigurationFunc{
+					ClientFuncs: []ClientConfigurationFunc{
 						ClientTimeout(3 * time.Second),
 					},
 				},

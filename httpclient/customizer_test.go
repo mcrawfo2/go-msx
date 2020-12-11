@@ -31,7 +31,7 @@ func validateClientCookieJar(jar http.CookieJar) ClientValidator {
 	}
 }
 
-type DevNullJar struct {}
+type DevNullJar struct{}
 
 func (t DevNullJar) SetCookies(u *_neturl.URL, cookies []*http.Cookie) {
 }

@@ -65,7 +65,7 @@ func TestNewTlsConfig(t *testing.T) {
 				LocalCaFile: "testdata/none.crt",
 			},
 			wantConfig: false,
-			wantErr: true,
+			wantErr:    true,
 		},
 		{
 			name: "BadClientCert",
@@ -73,16 +73,16 @@ func TestNewTlsConfig(t *testing.T) {
 				CertFile: "testdata/none.crt",
 			},
 			wantConfig: false,
-			wantErr: true,
+			wantErr:    true,
 		},
 		{
 			name: "ValidClientCert",
 			clientConfig: ClientConfig{
 				CertFile: "testdata/server.crt",
-				KeyFile: "testdata/server.key",
+				KeyFile:  "testdata/server.key",
 			},
 			wantConfig: true,
-			wantErr: false,
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
