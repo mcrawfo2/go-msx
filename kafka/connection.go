@@ -3,13 +3,15 @@ package kafka
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
 )
 
 var (
-	ErrDisabled = errors.New("Kafka disabled")
-	logger      = log.NewLogger("msx.kafka")
+	ErrDisabled           = errors.New("Kafka disabled")
+	ErrTopicAlreadyExists = &retry.PermanentError{Cause: errors.New("Topic already exists")}
+	logger                = log.NewLogger("msx.kafka")
 )
 
 type Connection struct {

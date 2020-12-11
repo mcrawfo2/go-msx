@@ -48,6 +48,15 @@ func CreateTopics(ctx context.Context, conn *Connection, topics ...string) (err 
 		logger.Infof("Creating kafka topic: %s", topic)
 		err = saramaClusterAdmin.CreateTopic(topic, &detail, false)
 		if err != nil {
+			// Ignore topic creation failure due to existing topic
+			var topicError *sarama.TopicError
+			ok := errors.As(err, &topicError)
+			if ok && topicError.Err == sarama.ErrTopicAlreadyExists {
+				err = ErrTopicAlreadyExists
+			}
+		}
+
+		if err != nil {
 			return errors.Wrap(err, "Failed to create Kafka Topic")
 		}
 	}
