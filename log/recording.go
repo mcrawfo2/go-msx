@@ -60,6 +60,17 @@ func HasFieldValue(name string, value interface{}) EntryPredicate {
 	}
 }
 
+func FieldValue(name string) EntryPredicate {
+	return EntryPredicate{
+		Description: fmt.Sprintf("entry.Data['%s'] set", name),
+		Matches: func(entry logrus.Entry) bool {
+			_, ok := entry.Data[name]
+			return ok
+		},
+	}
+}
+
+
 func NoFieldValue(name string) EntryPredicate {
 	return EntryPredicate{
 		Description: fmt.Sprintf("entry.Data['%s'] unset", name),

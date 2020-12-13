@@ -1,3 +1,7 @@
+//go:generate mockery --name AuthenticationProvider --structname MockAuthenticationProvider --filename mock_AuthenticationProvider.go --inpackage
+//go:generate mockery --name DocumentationProvider --structname MockDocumentationProvider --filename mock_DocumentationProvider.go --inpackage
+//go:generate mockery --name ServiceProvider --structname MockServiceProvider --filename mock_ServiceProvider.go --inpackage
+
 package webservice
 
 import (

@@ -72,9 +72,9 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 
 	logger.
 		WithContext(req.Request.Context()).
+		WithField("status", status).
 		WithError(err).
-		WithField("Status", status).
-		Error("Controller returned error response")
+		Error("Request failed")
 
 	payload := req.Attribute(AttributeErrorPayload)
 	if payload == nil {
@@ -123,11 +123,6 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		envelope.Errors = errorList.Strings()
 	}
 
-	logger.
-		WithContext(req.Request.Context()).
-		WithError(err).
-		Error("Request failed")
-
 	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
 		logger.WithContext(req.Request.Context()).WithError(err).Error("Failed to write error envelope")
 	}
@@ -141,9 +136,6 @@ func WriteSuccessEnvelope(req *restful.Request, resp *restful.Response, status i
 	var envelope integration.MsxEnvelope
 	if bodyEnvelope, ok := body.(integration.MsxEnvelope); ok {
 		envelope = bodyEnvelope
-		if envelope.HttpStatus == "" {
-			envelope.HttpStatus = integration.GetSpringStatusNameForCode(status)
-		}
 	} else if bodyPointerEnvelope, ok := body.(*integration.MsxEnvelope); ok {
 		envelope = *bodyPointerEnvelope
 	} else {
@@ -152,9 +144,11 @@ func WriteSuccessEnvelope(req *restful.Request, resp *restful.Response, status i
 			Payload:    body,
 			Command:    RouteOperationFromContext(req.Request.Context()),
 			Params:     parameters(req),
-			HttpStatus: integration.GetSpringStatusNameForCode(status),
 		}
+	}
 
+	if envelope.HttpStatus == "" {
+		envelope.HttpStatus = integration.GetSpringStatusNameForCode(status)
 	}
 
 	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {

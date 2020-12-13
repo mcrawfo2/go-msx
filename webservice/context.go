@@ -69,6 +69,10 @@ func ContextWithWebServer(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKeyWebServer, service)
 }
 
+func ContextWithWebServerValue(ctx context.Context, server *WebServer) context.Context {
+	return context.WithValue(ctx, contextKeyWebServer, server)
+}
+
 func WebServerFromContext(ctx context.Context) *WebServer {
 	webServerInterface := ctx.Value(contextKeyWebServer)
 	if webServerInterface != nil {
@@ -114,7 +118,11 @@ func ContextWithRouteOperation(ctx context.Context, operation string) context.Co
 }
 
 func RouteOperationFromContext(ctx context.Context) string {
-	return ctx.Value(contextKeyOperation).(string)
+	routeOperation, ok := ctx.Value(contextKeyOperation).(string)
+	if !ok {
+		return "unknown"
+	}
+	return routeOperation
 }
 
 func ContextWithSecurityProvider(ctx context.Context, provider AuthenticationProvider) context.Context {

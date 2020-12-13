@@ -332,8 +332,34 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 			if err != nil {
 				return errorWrapper(err)
 			}
-			ptrValue := &intValue
-			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+
+			switch fieldValue.Elem().Kind() {
+			case reflect.Int:
+				targetValue := int(intValue)
+				ptrValue := &targetValue
+				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+
+			case reflect.Int8:
+				targetValue := int8(intValue)
+				ptrValue := &targetValue
+				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+
+			case reflect.Int16:
+				targetValue := int16(intValue)
+				ptrValue := &targetValue
+				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+
+			case reflect.Int32:
+				targetValue := int32(intValue)
+				ptrValue := &targetValue
+				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+
+			case reflect.Int64:
+				targetValue := int64(intValue)
+				ptrValue := &targetValue
+				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			}
+
 			return nil
 
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:

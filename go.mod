@@ -49,6 +49,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/thejerf/abtime v1.0.3
+	github.com/tidwall/gjson v1.6.4
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	github.com/yosuke-furukawa/json5 v0.1.1
