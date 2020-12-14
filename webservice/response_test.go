@@ -2,8 +2,8 @@ package webservice
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
@@ -116,11 +116,11 @@ func TestWriteError(t *testing.T) {
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 409, errors.New("some error"))
 				}).
-				WithLogCheck(log.Check{
-					Validators: []log.EntryPredicate{
-						log.HasLevel(logrus.ErrorLevel),
-						log.HasFieldValue("status", 409),
-						log.HasMessage("Request failed"),
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasFieldValue("status", 409),
+						logtest.HasMessage("Request failed"),
 					},
 				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(409)).
@@ -134,6 +134,13 @@ func TestWriteError(t *testing.T) {
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 400, errors.New("some error"))
 				}).
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasFieldValue("status", 400),
+						logtest.HasMessage("Request failed"),
+					},
+				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(400)).
 				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(`success`, false)).
 				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(`message`, "some error")),
@@ -145,6 +152,13 @@ func TestWriteError(t *testing.T) {
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 401, errors.New("some error"))
 				}).
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasFieldValue("status", 401),
+						logtest.HasMessage("Request failed"),
+					},
+				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(401)).
 				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(`code`, "401")).
 				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(`message`, "some error")),
@@ -155,6 +169,13 @@ func TestWriteError(t *testing.T) {
 				WithRouteBuilderDo(ErrorPayload(new(struct{}))).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 403, errors.New("some error"))
+				}).
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasFieldValue("status", 403),
+						logtest.HasMessage("Request failed"),
+					},
 				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(403)).
 				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(`code`, "403")).

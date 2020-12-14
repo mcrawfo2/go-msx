@@ -2,8 +2,8 @@ package auditlog
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"errors"
 	"github.com/sirupsen/logrus"
 	"testing"
@@ -17,7 +17,7 @@ func TestAction(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -25,12 +25,12 @@ func TestAction(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateAction),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateAction),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}
@@ -58,7 +58,7 @@ func TestAudit(t *testing.T) {
 	tests := []struct {
 		name   string
 		args   args
-		checks []log.Check
+		checks []logtest.Check
 	}{
 		{
 			name: "NoError",
@@ -69,29 +69,29 @@ func TestAudit(t *testing.T) {
 					return nil
 				},
 			},
-			checks: []log.Check{
+			checks: []logtest.Check{
 				{
-					Filters: []log.EntryPredicate{
-						log.HasLevel(logrus.InfoLevel),
-						log.HasFieldValue("state", StateInit),
+					Filters: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.InfoLevel),
+						logtest.HasFieldValue("state", StateInit),
 					},
-					Validators: []log.EntryPredicate{
-						log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-						log.HasFieldValue("action", "DEPLOY"),
-						log.HasFieldValue("audit", "true"),
-						log.HasFieldValue("user", "anonymous"),
+					Validators: []logtest.EntryPredicate{
+						logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+						logtest.HasFieldValue("action", "DEPLOY"),
+						logtest.HasFieldValue("audit", "true"),
+						logtest.HasFieldValue("user", "anonymous"),
 					},
 				},
 				{
-					Filters: []log.EntryPredicate{
-						log.HasLevel(logrus.InfoLevel),
-						log.HasFieldValue("state", StateSuccess),
+					Filters: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.InfoLevel),
+						logtest.HasFieldValue("state", StateSuccess),
 					},
-					Validators: []log.EntryPredicate{
-						log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-						log.HasFieldValue("action", "DEPLOY"),
-						log.HasFieldValue("audit", "true"),
-						log.HasFieldValue("user", "anonymous"),
+					Validators: []logtest.EntryPredicate{
+						logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+						logtest.HasFieldValue("action", "DEPLOY"),
+						logtest.HasFieldValue("audit", "true"),
+						logtest.HasFieldValue("user", "anonymous"),
 					},
 				},
 			},
@@ -105,29 +105,29 @@ func TestAudit(t *testing.T) {
 					return errors.New("some error")
 				},
 			},
-			checks: []log.Check{
+			checks: []logtest.Check{
 				{
-					Filters: []log.EntryPredicate{
-						log.HasLevel(logrus.InfoLevel),
-						log.HasFieldValue("state", StateInit),
+					Filters: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.InfoLevel),
+						logtest.HasFieldValue("state", StateInit),
 					},
-					Validators: []log.EntryPredicate{
-						log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-						log.HasFieldValue("action", "DEPLOY"),
-						log.HasFieldValue("audit", "true"),
-						log.HasFieldValue("user", "anonymous"),
+					Validators: []logtest.EntryPredicate{
+						logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+						logtest.HasFieldValue("action", "DEPLOY"),
+						logtest.HasFieldValue("audit", "true"),
+						logtest.HasFieldValue("user", "anonymous"),
 					},
 				},
 				{
-					Filters: []log.EntryPredicate{
-						log.HasLevel(logrus.InfoLevel),
-						log.HasFieldValue("state", StateFail),
+					Filters: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.InfoLevel),
+						logtest.HasFieldValue("state", StateFail),
 					},
-					Validators: []log.EntryPredicate{
-						log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-						log.HasFieldValue("action", "DEPLOY"),
-						log.HasFieldValue("audit", "true"),
-						log.HasFieldValue("user", "anonymous"),
+					Validators: []logtest.EntryPredicate{
+						logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+						logtest.HasFieldValue("action", "DEPLOY"),
+						logtest.HasFieldValue("audit", "true"),
+						logtest.HasFieldValue("user", "anonymous"),
 					},
 				},
 			},
@@ -167,7 +167,7 @@ func TestEntry(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -176,16 +176,16 @@ func TestEntry(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateAction),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
-				log.NoFieldValue("source"),
-				log.NoFieldValue("protocol"),
-				log.NoFieldValue("host"),
-				log.NoFieldValue("port"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateAction),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
+				logtest.NoFieldValue("source"),
+				logtest.NoFieldValue("protocol"),
+				logtest.NoFieldValue("host"),
+				logtest.NoFieldValue("port"),
 			},
 		},
 		{
@@ -195,16 +195,16 @@ func TestEntry(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateAction),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "mach"),
-				log.NoFieldValue("source"),
-				log.NoFieldValue("protocol"),
-				log.NoFieldValue("host"),
-				log.NoFieldValue("port"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateAction),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "mach"),
+				logtest.NoFieldValue("source"),
+				logtest.NoFieldValue("protocol"),
+				logtest.NoFieldValue("host"),
+				logtest.NoFieldValue("port"),
 			},
 		},
 		{
@@ -214,16 +214,16 @@ func TestEntry(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateAction),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "mach"),
-				log.HasFieldValue("source", "10.10.10.10"),
-				log.HasFieldValue("protocol", "https"),
-				log.HasFieldValue("host", "192.168.2.1"),
-				log.HasFieldValue("port", "8080"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateAction),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "mach"),
+				logtest.HasFieldValue("source", "10.10.10.10"),
+				logtest.HasFieldValue("protocol", "https"),
+				logtest.HasFieldValue("host", "192.168.2.1"),
+				logtest.HasFieldValue("port", "8080"),
 			},
 		},
 	}
@@ -252,7 +252,7 @@ func TestError(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -260,13 +260,13 @@ func TestError(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateFail),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
-				log.HasFieldValue("error", e),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateFail),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
+				logtest.HasFieldValue("error", e),
 			},
 		},
 	}
@@ -293,7 +293,7 @@ func TestFailure(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -301,12 +301,12 @@ func TestFailure(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateFail),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateFail),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}
@@ -333,7 +333,7 @@ func TestInit(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -341,12 +341,12 @@ func TestInit(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateInit),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateInit),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}
@@ -374,7 +374,7 @@ func TestResult(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "NoError",
@@ -383,12 +383,12 @@ func TestResult(t *testing.T) {
 				action:       "DEPLOY",
 				err:          nil,
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateSuccess),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateSuccess),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 		{
@@ -398,12 +398,12 @@ func TestResult(t *testing.T) {
 				action:       "DEPLOY",
 				err:          errors.New("another error"),
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateFail),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateFail),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}
@@ -432,7 +432,7 @@ func TestResultOf(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "NoError",
@@ -443,12 +443,12 @@ func TestResultOf(t *testing.T) {
 					return nil
 				},
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateSuccess),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateSuccess),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 		{
@@ -460,12 +460,12 @@ func TestResultOf(t *testing.T) {
 					return errors.New("another error")
 				},
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateFail),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateFail),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}
@@ -492,7 +492,7 @@ func TestSuccess(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []log.EntryPredicate
+		want []logtest.EntryPredicate
 	}{
 		{
 			name: "DefaultUser",
@@ -500,12 +500,12 @@ func TestSuccess(t *testing.T) {
 				resourceName: "SERVICE_INSTANCE",
 				action:       "DEPLOY",
 			},
-			want: []log.EntryPredicate{
-				log.HasFieldValue("resource", "SERVICE_INSTANCE"),
-				log.HasFieldValue("action", "DEPLOY"),
-				log.HasFieldValue("state", StateSuccess),
-				log.HasFieldValue("audit", "true"),
-				log.HasFieldValue("user", "anonymous"),
+			want: []logtest.EntryPredicate{
+				logtest.HasFieldValue("resource", "SERVICE_INSTANCE"),
+				logtest.HasFieldValue("action", "DEPLOY"),
+				logtest.HasFieldValue("state", StateSuccess),
+				logtest.HasFieldValue("audit", "true"),
+				logtest.HasFieldValue("user", "anonymous"),
 			},
 		},
 	}

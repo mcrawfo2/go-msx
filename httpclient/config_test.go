@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -114,16 +114,16 @@ func Test_getClientCerts(t *testing.T) {
 		cfg      ClientConfig
 		wantCert bool
 		wantErr  bool
-		wantLog  log.Check
+		wantLog  logtest.Check
 	}{
 		{
 			name:     "NotSpecified",
 			cfg:      ClientConfig{},
 			wantCert: false,
 			wantErr:  false,
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.WarnLevel),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.WarnLevel),
 				},
 			},
 		},
@@ -152,10 +152,10 @@ func Test_getClientCerts(t *testing.T) {
 			},
 			wantCert: true,
 			wantErr:  false,
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.InfoLevel),
-					log.HasMessage(`Loaded client certificate from "testdata/server.crt"`),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.InfoLevel),
+					logtest.HasMessage(`Loaded client certificate from "testdata/server.crt"`),
 				},
 			},
 		},
@@ -163,7 +163,7 @@ func Test_getClientCerts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recording := log.RecordLogging()
+			recording := logtest.RecordLogging()
 
 			got, err := getClientCerts(&tt.cfg)
 			if (err != nil) != tt.wantErr {
@@ -186,7 +186,7 @@ func Test_getRootCAs(t *testing.T) {
 		cfg      ClientConfig
 		wantPool bool
 		wantErr  bool
-		wantLog  log.Check
+		wantLog  logtest.Check
 	}{
 		{
 			name:     "NoLocalCA",
@@ -201,10 +201,10 @@ func Test_getRootCAs(t *testing.T) {
 			},
 			wantPool: true,
 			wantErr:  false,
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.InfoLevel),
-					log.HasMessage(`Added certificates from "testdata/server.crt" to RootCAs`),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.InfoLevel),
+					logtest.HasMessage(`Added certificates from "testdata/server.crt" to RootCAs`),
 				},
 			},
 		},
@@ -220,7 +220,7 @@ func Test_getRootCAs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recording := log.RecordLogging()
+			recording := logtest.RecordLogging()
 
 			got, err := getRootCAs(&tt.cfg)
 			if (err != nil) != tt.wantErr {

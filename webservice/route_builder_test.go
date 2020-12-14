@@ -3,9 +3,9 @@ package webservice
 import (
 	"bytes"
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/contexttest"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
@@ -33,7 +33,7 @@ type RouteBuilderTest struct {
 		Request  webservicetest.RequestCheck
 		Response webservicetest.ResponseCheck
 		Context  contexttest.ContextCheck
-		Log      []log.Check
+		Log      []logtest.Check
 	}
 	Errors struct {
 		Context  []error
@@ -42,10 +42,10 @@ type RouteBuilderTest struct {
 		Response []error
 		Log      []error
 	}
-	Recording *log.Recording
+	Recording *logtest.Recording
 }
 
-func (r *RouteBuilderTest) WithRecording(rec *log.Recording) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithRecording(rec *logtest.Recording) *RouteBuilderTest {
 	r.Recording = rec
 	return r
 }
@@ -132,7 +132,7 @@ func (r *RouteBuilderTest) WithResponsePredicate(p webservicetest.ResponsePredic
 	return r
 }
 
-func (r *RouteBuilderTest) WithLogCheck(l log.Check) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithLogCheck(l logtest.Check) *RouteBuilderTest {
 	r.Checks.Log = append(r.Checks.Log, l)
 	return r
 }
@@ -157,7 +157,7 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 	ws.Path("")
 
 	if r.Recording == nil {
-		r.Recording = log.RecordLogging()
+		r.Recording = logtest.RecordLogging()
 	}
 
 	var rb = r.RouteBuilder

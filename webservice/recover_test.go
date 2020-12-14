@@ -1,8 +1,8 @@
 package webservice
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"errors"
 	"github.com/emicklei/go-restful"
@@ -37,11 +37,11 @@ func Test_recoveryFilter(t *testing.T) {
 				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(500)).
 				WithResponsePredicate(DummyFilterResponseCheck).
-				WithLogCheck(log.Check{
-					Validators: []log.EntryPredicate{
-						log.HasLevel(logrus.ErrorLevel),
-						log.HasMessage("Recovered from panic"),
-						log.FieldValue("error"),
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasMessage("Recovered from panic"),
+						logtest.FieldValue("error"),
 					},
 				}),
 		},
@@ -55,11 +55,11 @@ func Test_recoveryFilter(t *testing.T) {
 				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(500)).
 				WithResponsePredicate(DummyFilterResponseCheck).
-				WithLogCheck(log.Check{
-					Validators: []log.EntryPredicate{
-						log.HasLevel(logrus.ErrorLevel),
-						log.HasMessage("Recovered from panic"),
-						log.FieldValue("error"),
+				WithLogCheck(logtest.Check{
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasMessage("Recovered from panic"),
+						logtest.FieldValue("error"),
 					},
 				}),
 
