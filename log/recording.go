@@ -30,14 +30,23 @@ func RecordLogging() *Recording {
 
 type EntryPredicate struct {
 	Description string
-	Matches func(logrus.Entry) bool
+	Matches     func(logrus.Entry) bool
 }
 
 func HasLevel(level logrus.Level) EntryPredicate {
 	return EntryPredicate{
 		Description: fmt.Sprintf("entry.level == %d", level),
-		Matches:     func(entry logrus.Entry) bool {
+		Matches: func(entry logrus.Entry) bool {
 			return entry.Level == level
+		},
+	}
+}
+
+func HasMessage(msg string) EntryPredicate {
+	return EntryPredicate{
+		Description: fmt.Sprintf("entry.message == %q", msg),
+		Matches: func(entry logrus.Entry) bool {
+			return entry.Message == msg
 		},
 	}
 }
@@ -86,7 +95,7 @@ func (m Matcher) isMatch(entry logrus.Entry) bool {
 }
 
 type CheckError struct {
-	Entry logrus.Entry
+	Entry     logrus.Entry
 	Validator EntryPredicate
 }
 
