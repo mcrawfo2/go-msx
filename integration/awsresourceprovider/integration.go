@@ -22,6 +22,7 @@ const (
 	endpointNameGetStackOutput                    = "getStackOutput"
 	endpointNameCheckStatus                       = "checkStatus"
 	endpointNameGetInstanceType                   = "getInstanceType"
+	endpointNameGetAmiInformation                 = "getAmiInformation"
 	serviceName                                   = integration.ResourceProviderNameAws
 )
 
@@ -40,6 +41,7 @@ var (
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
 		endpointNameCheckStatus:                       {Method: "POST", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/checkstatus"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
+		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami/{{.amiName}}"},
 	}
 )
 
@@ -240,5 +242,20 @@ func (i *Integration) GetInstanceType(controlPlaneId types.UUID, region string, 
 			"availabilityZone": {availabilityZone},
 		},
 		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetAmiInformation(controlPlaneId types.UUID, amiName string, region string) (*integration.MsxResponse, error) {
+	queryParams := map[string][]string{
+		"controlPlaneId": {controlPlaneId.String()},
+		"region":         {region},
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetAmiInformation, EndpointParameters: map[string]string{
+			"amiName": amiName,
+		},
+		QueryParameters: queryParams,
+		ExpectEnvelope:  true,
+		Payload:         &AwsAmiRegion{},
 	})
 }

@@ -22,6 +22,7 @@ type Api interface {
 	GetStackOutputs(applicationId types.UUID) (*integration.MsxResponse, error)
 	CheckStatus(applicationId types.UUID, request *CheckStatusRequest) (*integration.MsxResponse, error)
 	GetInstanceType(controlPlaneId types.UUID, region string, availabilityZone string, instanceType string) (*integration.MsxResponse, error)
+	GetAmiInformation(controlPlaneId types.UUID, amiName string, region string) (*integration.MsxResponse, error)
 }
 
 // Ensure mock is up-to-date
