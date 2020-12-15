@@ -2,7 +2,7 @@ package populate
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,14 +24,12 @@ func TestCustomizeCommand(t *testing.T) {
 func TestPopulate(t *testing.T) {
 	var wasRun bool
 
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{
 			"cli.flag.list":   "false",
 			"cli.flag.dryrun": "false",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-	ctx := config.ContextWithConfig(context.Background(), cfg)
+		})
 
 	tasks = []Task{}
 	mockTask1 := new(MockTask)

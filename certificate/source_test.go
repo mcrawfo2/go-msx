@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -283,15 +283,11 @@ func TestNewSource(t *testing.T) {
 	sources = make(map[string]*Source)
 	factories = make(map[string]ProviderFactory)
 
-	ctx := context.Background()
-
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{
 			"certificate.source.test.provider": "mock",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-	ctx = config.ContextWithConfig(ctx, cfg)
+		})
 
 	clock := types.NewMockClock()
 	ctx = types.ContextWithClock(ctx, clock)

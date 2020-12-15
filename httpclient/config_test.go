@@ -1,9 +1,8 @@
 package httpclient
 
 import (
-	"context"
 	"crypto/tls"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -13,17 +12,14 @@ import (
 )
 
 func TestNewClientConfig(t *testing.T) {
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
-			"http.client.timeout":       "90s",
-			"http.client.idle-timeout":  "120s",
-			"http.client.tls-insecure":  "false",
-			"http.client.local-ca-file": "ca.crt",
-			"http.client.cert-file":     "client.crt",
-			"http.client.key-file":      "client.key",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
+	cfg := configtest.NewStaticConfig(map[string]string{
+		"http.client.timeout":       "90s",
+		"http.client.idle-timeout":  "120s",
+		"http.client.tls-insecure":  "false",
+		"http.client.local-ca-file": "ca.crt",
+		"http.client.cert-file":     "client.crt",
+		"http.client.key-file":      "client.key",
+	})
 
 	got, err := NewClientConfig(cfg)
 	assert.NoError(t, err)

@@ -1,23 +1,19 @@
 package lru
 
 import (
-	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func testCacheConfig(ttl, expireLimit, expireFrequency, root string) *config.Config {
-	provider := config.NewStatic("static", map[string]string{
+	return configtest.NewStaticConfig(map[string]string{
 		root + ".ttl":              ttl,
 		root + ".expire-limit":     expireLimit,
 		root + ".expire-frequency": expireFrequency,
 	})
-
-	cfg := config.NewConfig(provider)
-	_ = cfg.Load(context.Background())
-	return cfg
 }
 
 func TestNewCacheConfig(t *testing.T) {

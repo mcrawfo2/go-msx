@@ -2,7 +2,7 @@ package fileprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,14 +12,9 @@ func TestProviderFactory_Name(t *testing.T) {
 }
 
 func TestProviderFactory_New(t *testing.T) {
-	ctx := context.Background()
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
-			"certificate.source.success.provider": "file",
-		}))
-	err := cfg.Load(ctx)
-	assert.NoError(t, err)
-	ctx = config.ContextWithConfig(ctx, cfg)
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{"certificate.source.success.provider": "file"})
 
 	tests := []struct {
 		name         string
