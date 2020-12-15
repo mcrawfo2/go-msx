@@ -60,6 +60,29 @@ func (_m *MockAwsResourceProvider) Connect(request AwsConnectRequest) (*integrat
 	return r0, r1
 }
 
+// GetAmiInformation provides a mock function with given fields: controlPlaneId, amiName, region
+func (_m *MockAwsResourceProvider) GetAmiInformation(controlPlaneId types.UUID, amiName string, region string) (*integration.MsxResponse, error) {
+	ret := _m.Called(controlPlaneId, amiName, region)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(types.UUID, string, string) *integration.MsxResponse); ok {
+		r0 = rf(controlPlaneId, amiName, region)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(types.UUID, string, string) error); ok {
+		r1 = rf(controlPlaneId, amiName, region)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAvailabilityZones provides a mock function with given fields: controlPlaneId, region
 func (_m *MockAwsResourceProvider) GetAvailabilityZones(controlPlaneId types.UUID, region string) (*integration.MsxResponse, error) {
 	ret := _m.Called(controlPlaneId, region)

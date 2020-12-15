@@ -566,29 +566,6 @@ func (_m *MockUserManagement) GetTenantById(tenantId string) (*integration.MsxRe
 	return r0, r1
 }
 
-// GetUserById provides a mock function with given fields: userId
-func (_m *MockUserManagement) GetUserById(userId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(userId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetTenantByName provides a mock function with given fields: tenantName
 func (_m *MockUserManagement) GetTenantByName(tenantName string) (*integration.MsxResponse, error) {
 	ret := _m.Called(tenantName)
@@ -674,6 +651,29 @@ func (_m *MockUserManagement) GetTokenDetails(noDetails bool) (*integration.MsxR
 	var r1 error
 	if rf, ok := ret.Get(1).(func(bool) error); ok {
 		r1 = rf(noDetails)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserById provides a mock function with given fields: userId
+func (_m *MockUserManagement) GetUserById(userId string) (*integration.MsxResponse, error) {
+	ret := _m.Called(userId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
 	} else {
 		r1 = ret.Error(1)
 	}

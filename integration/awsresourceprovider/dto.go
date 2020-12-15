@@ -148,6 +148,17 @@ type StackOutput struct {
 	OutputValue *string `json:"OutputValue"`
 }
 
+type AwsAmiRegion struct {
+	AmiName string      `json:"amiName"`
+	Regions []AwsRegion `json:regions`
+}
+
+type AwsRegion struct {
+	RegionName string `json:"regionname"`
+	EndPoint   string `json:"endpoint"`
+	AMIId      string `json:"amiId"`
+}
+
 type StackOutputList []StackOutput
 
 func (s StackOutputList) Map() map[string]string {
