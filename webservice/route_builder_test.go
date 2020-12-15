@@ -148,7 +148,7 @@ func (r *RouteBuilderTest) checkRequest(req *restful.Request, resp *restful.Resp
 	chain.ProcessFilter(req, resp)
 }
 
-func (r *RouteBuilderTest) defaultTarget(_ *restful.Request, resp *restful.Response) {
+func (r RouteBuilderTest) defaultTarget(_ *restful.Request, resp *restful.Response) {
 	// No body required
 }
 

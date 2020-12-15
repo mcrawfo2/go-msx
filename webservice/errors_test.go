@@ -3,7 +3,6 @@ package webservice
 import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
 
@@ -14,25 +13,25 @@ func TestNewBadRequestError(t *testing.T) {
 }
 
 func TestNewConflictError(t *testing.T) {
-	err := NewBadRequestError(errors.New("some error"))
+	err := NewConflictError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 409, err.(*StatusError).StatusCode())
 }
 
 func TestNewForbiddenError(t *testing.T) {
-	err := NewBadRequestError(errors.New("some error"))
+	err := NewForbiddenError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 403, err.(*StatusError).StatusCode())
 }
 
 func TestNewInternalError(t *testing.T) {
-	err := NewBadRequestError(errors.New("some error"))
+	err := NewInternalError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 500, err.(*StatusError).StatusCode())
 }
 
 func TestNewNotFoundError(t *testing.T) {
-	err := NewBadRequestError(errors.New("some error"))
+	err := NewNotFoundError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 404, err.(*StatusError).StatusCode())
 }
@@ -93,7 +92,7 @@ func TestNewStatusError(t *testing.T) {
 }
 
 func TestNewUnauthorizedError(t *testing.T) {
-	err := NewBadRequestError(errors.New("some error"))
+	err := NewUnauthorizedError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 401, err.(*StatusError).StatusCode())
 }
@@ -110,13 +109,11 @@ func TestStatusError_Error(t *testing.T) {
 	someError := errors.New(errText)
 	err := NewBadRequestError(someError)
 	assert.Error(t, err)
-	assert.Equal(t, someError, err.(*StatusError).Error())
+	assert.Equal(t, errText, err.(*StatusError).Error())
 }
 
 func TestStatusError_StatusCode(t *testing.T) {
-	errText := "some error"
-	someError := errors.New(errText)
-	err := NewBadRequestError(someError)
+	err := NewBadRequestError(errors.New("some error"))
 	assert.Error(t, err)
 	assert.Equal(t, 400, err.(*StatusError).StatusCode())
 }
@@ -129,57 +126,18 @@ func TestStatusError_Unwrap(t *testing.T) {
 }
 
 func Test_statusCodeProviderImpl_MarshalJSON(t *testing.T) {
-	type fields struct {
-		body       interface{}
-		statusCode int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		want    []byte
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := statusCodeProviderImpl{
-				body:       tt.fields.body,
-				statusCode: tt.fields.statusCode,
-			}
-			got, err := s.MarshalJSON()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MarshalJSON() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	body := struct{}{}
+	status := 200
+	provider := NewStatusCodeProvider(body, status).(statusCodeProviderImpl)
+	assert.Equal(t, 200, provider.StatusCode())
+	bytes, err := provider.MarshalJSON()
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("{}"), bytes)
 }
 
 func Test_statusCodeProviderImpl_StatusCode(t *testing.T) {
-	type fields struct {
-		body       interface{}
-		statusCode int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   int
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := statusCodeProviderImpl{
-				body:       tt.fields.body,
-				statusCode: tt.fields.statusCode,
-			}
-			if got := s.StatusCode(); got != tt.want {
-				t.Errorf("StatusCode() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	body := struct{}{}
+	status := 200
+	provider := NewStatusCodeProvider(body, status)
+	assert.Equal(t, 200, provider.StatusCode())
 }

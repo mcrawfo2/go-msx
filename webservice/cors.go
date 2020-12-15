@@ -5,6 +5,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 )
 
@@ -66,7 +67,13 @@ const (
 )
 
 func ActivateCors(container *restful.Container) {
-	cors := restful.CrossOriginResourceSharing{
+	cors := newCors(container)
+	filter := corsFilter(container, cors)
+	container.Filter(filter)
+}
+
+func newCors(container *restful.Container) restful.CrossOriginResourceSharing {
+	return restful.CrossOriginResourceSharing{
 		AllowedHeaders: []string{
 			headerNameAuthorization,
 			headerNameAccessToken,
@@ -90,8 +97,10 @@ func ActivateCors(container *restful.Container) {
 		AllowedDomains: []string{"^.*$"},
 		Container:      container,
 	}
+}
 
-	container.Filter(func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSharing) restful.FilterFunction {
+	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		if req.Request.Header.Get("Origin") != "" {
 			resp.AddHeader(headerNameAccessControlAllowOrigin, "*")
 		}
@@ -102,15 +111,7 @@ func ActivateCors(container *restful.Container) {
 		}
 
 		if req.Request.Header.Get(headerNameAccessControlRequestMethod) == "" {
-			// Standard options request
-			allowedMethods := findAllowedMethods(container, req.Request.URL.Path)
-			if len(allowedMethods) > 0 {
-				resp.AddHeader("Allow", strings.Join(allowedMethods, ","))
-				resp.AddHeader("Cache-Control", "max-age=604800")
-				resp.WriteHeader(204)
-			} else {
-				resp.WriteHeader(404)
-			}
+			optionsHandler(container, req, resp)
 			return
 		}
 
@@ -118,7 +119,7 @@ func ActivateCors(container *restful.Container) {
 		var corsResponse = restful.NewResponse(corsRecorder)
 		cors.Filter(req, corsResponse, chain)
 
-		if corsRecorder.Code == 404 {
+		if corsRecorder.Code == http.StatusNotFound {
 			http.NotFound(resp, req.Request)
 			return
 		}
@@ -135,12 +136,9 @@ func ActivateCors(container *restful.Container) {
 		}
 
 		// Rewrite the allow header to include OPTIONS
-		allowedMethodsHeader := corsResponse.Header().Get(headerNameAccessControlAllowMethods)
-		allowedMethods := make(types.StringSet)
-		allowedMethods.AddAll(strings.Split(allowedMethodsHeader, ",")...)
-		allowedMethods.Add("OPTIONS")
-		allowHeader := strings.Join(allowedMethods.Values(), ",")
-		resp.Header().Set("Allow", allowHeader)
+		allowedMethodsResult := corsResponse.Header().Get(headerNameAccessControlAllowMethods)
+		allowHeaderValue := getAllowHeader(allowedMethodsResult)
+		resp.Header().Set("Allow", allowHeaderValue)
 
 		allowedHeader := strings.Join(cors.AllowedHeaders, ",")
 
@@ -151,9 +149,36 @@ func ActivateCors(container *restful.Container) {
 		resp.Header().Set(headerNameAccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")
 		resp.Header().Set(headerNameAccessControlAllowHeaders, allowedHeader)
 		resp.Header().Set(headerNameContentEncoding, "application/json")
-	})
+
+		resp.WriteHeader(http.StatusOK)
+	}
 }
 
+// optionsHandler handles non-CORS OPTIONS responses
+func optionsHandler(container *restful.Container, req *restful.Request, resp *restful.Response) {
+	// Standard options request
+	allowedMethods := findAllowedMethods(container, req.Request.URL.Path)
+	if len(allowedMethods) > 0 {
+		resp.AddHeader("Allow", strings.Join(allowedMethods, ","))
+		resp.AddHeader("Cache-Control", "max-age=604800")
+		resp.WriteHeader(204)
+	} else {
+		resp.WriteHeader(404)
+	}
+}
+
+// getAllowHeader adds OPTIONS to the specified comma-separated list of methods
+func getAllowHeader(allowedMethodsResult string) string {
+	allowedMethods := make(types.StringSet)
+	allowedMethods.AddAll(strings.Split(allowedMethodsResult, ",")...)
+	allowedMethods.Add("OPTIONS")
+	allowedMethodsValues := allowedMethods.Values()
+	sort.Strings(allowedMethodsValues)
+	return strings.Join(allowedMethodsValues, ",")
+}
+
+// findAllowedMethods returns the list of HTTP methods for which routes are defined in the container.
+// OPTIONS will be added if any matching routes are defined.
 func findAllowedMethods(c *restful.Container, requested string) []string {
 	var results = make(types.StringSet)
 	requestedTokens := tokenizePath(requested)
@@ -168,7 +193,9 @@ func findAllowedMethods(c *restful.Container, requested string) []string {
 	if len(results) > 0 {
 		results.Add("OPTIONS")
 	}
-	return results.Values()
+	resultValues := results.Values()
+	sort.Strings(resultValues)
+	return resultValues
 }
 
 func matchesPath(requested, available []string) bool {
