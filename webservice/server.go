@@ -393,16 +393,20 @@ func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to read CA certificate file %q", cfg.Tls.CaFile)
 	}
+
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(ca)
+
 	ciphers, err := ParseCiphers(cfg.Tls.CipherSuites)
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, err
 	}
+
 	w, err := certificate.NewSource(ctx, cfg.Tls.CertificateSource)
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, err
 	}
+
 	tlsconfig := &tls.Config{
 		ClientAuth:     tls.VerifyClientCertIfGiven,
 		ClientCAs:      caCertPool,
@@ -410,6 +414,7 @@ func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, err
 		CipherSuites:   ciphers,
 		GetCertificate: w.TlsCertificate,
 	}
+
 	return tlsconfig, nil
 }
 func (s *WebServer) getTLSListener(tlscfg *tls.Config) (net.Listener, error) {
