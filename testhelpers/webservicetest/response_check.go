@@ -88,3 +88,12 @@ func ResponseHasBodyJsonValue(path string, value interface{}) ResponsePredicate 
 		},
 	}
 }
+
+func ResponseHasBodyJsonValueType(path string, kind gjson.Type) ResponsePredicate {
+	return ResponsePredicate{
+		Description: fmt.Sprintf("response.Body[%q] == %s", path, kind.String()),
+		Matches: func(resp *httptest.ResponseRecorder) bool {
+			return gjson.GetBytes(resp.Body.Bytes(), path).Type == kind
+		},
+	}
+}
