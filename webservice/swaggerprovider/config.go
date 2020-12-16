@@ -22,7 +22,7 @@ type DocumentationConfig struct {
 			TokenPath     string `config:"default=/v2/token"`
 			AuthorizePath string `config:"default=/v2/authorize"`
 			ClientId      string `config:"default=nfv-client"`
-			ClientSecret  string `config:"default=nfv-secret"`
+			ClientSecret  string `config:"default="`
 		}
 	}
 	Ui struct {
