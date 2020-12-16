@@ -30,7 +30,7 @@ type TokenDetails struct {
 	TenantName   *string      `json:"tenant_name"`
 	ProviderId   types.UUID   `json:"provider_id"`
 	ProviderName *string      `json:"provider_name"`
-	Tenants      []types.UUID `json:"tenants"`
+	Tenants      []types.UUID `json:"assigned_tenants"`
 	Roles        []string     `json:"roles"`
 	Permissions  []string     `json:"permissions"`
 }
