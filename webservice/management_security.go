@@ -66,6 +66,7 @@ func (s ManagementSecurityFilter) Filter(request *restful.Request, response *res
 	chain.ProcessFilter(request, response)
 }
 
+// roles returns true if the current UserContext contains any of the configured authorities
 func (s ManagementSecurityFilter) roles(ctx context.Context) error {
 	userContext := security.UserContextFromContext(ctx)
 	for _, role := range s.cfg.Roles {

@@ -82,3 +82,22 @@ func TenantAssignmentInjector(tenantIds ...types.UUID) types.ContextInjector {
 		return ctx
 	}
 }
+
+func RolesInjector(roles ...string) types.ContextInjector {
+	return func(ctx context.Context) context.Context {
+		ctx = TokenDetailsProviderInjector(ctx)
+		tokenDetailsProvider := MockTokenDetailsProviderFromContext(ctx)
+		tokenDetailsProvider.Roles = append(tokenDetailsProvider.Roles, roles...)
+		return ctx
+	}
+}
+
+func AuthoritiesInjector(authorities ...string) types.ContextInjector {
+	return func(ctx context.Context) context.Context {
+		userContextPtr := security.UserContextFromContext(ctx)
+		userContext := *userContextPtr
+		userContext.Authorities = append(userContext.Authorities, authorities...)
+		ctx = security.ContextWithUserContext(ctx, &userContext)
+		return ctx
+	}
+}
