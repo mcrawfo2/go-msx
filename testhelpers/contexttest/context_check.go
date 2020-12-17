@@ -46,7 +46,13 @@ func ContextGetterHasAnyValue(fn interface{}) ContextPredicate {
 			fnValue := reflect.ValueOf(fn)
 			arguments := []reflect.Value{reflect.ValueOf(ctx)}
 			fnResults := fnValue.Call(arguments)
-			return !fnResults[0].IsNil()
+
+			switch fnResults[0].Type().Kind() {
+			case reflect.Ptr, reflect.Interface, reflect.Slice, reflect.Map:
+				return !fnResults[0].IsNil()
+			default:
+				return !fnResults[0].IsZero()
+			}
 		},
 	}
 }

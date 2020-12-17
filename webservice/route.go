@@ -1,3 +1,5 @@
+//go:generate mockery --name RestController --structname MockRestController --filename mock_RestController.go --inpackage
+
 package webservice
 
 import (
