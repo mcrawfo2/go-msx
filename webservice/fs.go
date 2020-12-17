@@ -19,6 +19,10 @@ func (nfs noIndexFileSystem) Open(path string) (http.File, error) {
 	}
 
 	s, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
 	if s.IsDir() {
 		index := filepath.Join(path, "index.html")
 		if _, err := nfs.fs.Open(index); err != nil {
@@ -41,5 +45,12 @@ func NewWebRoot(webRootPath string) (http.FileSystem, error) {
 		return nil, err
 	}
 
-	return fs.NewPrefixFileSystem(vfs, webRootPath)
+	pfs, err := fs.NewPrefixFileSystem(vfs, webRootPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return noIndexFileSystem{
+		fs: pfs,
+	}, nil
 }

@@ -206,7 +206,7 @@ func (s *WebServer) activateStatic(aliases []StaticAlias) {
 			To(HttpHandlerController(http.NotFound)))
 	}
 
-	fs := http.FileServer(noIndexFileSystem{s.webRoot})
+	fs := http.FileServer(s.webRoot)
 
 	staticUiHandler := http.StripPrefix(
 		staticService.RootPath(), fs).ServeHTTP
