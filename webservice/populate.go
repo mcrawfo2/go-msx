@@ -104,8 +104,8 @@ func (r RouteParam) populateBody(req *restful.Request, fieldValue reflect.Value)
 }
 
 func (r RouteParam) populateHeader(req *restful.Request, fieldValue reflect.Value) error {
-	headerValues, ok := req.Request.Header[r.Name]
-	if !ok || len(headerValues) == 0 {
+	headerValues := req.Request.Header.Values(r.Name)
+	if len(headerValues) == 0 {
 		if fieldValue.Kind() != reflect.Ptr {
 			return errors.Errorf("Missing non-optional header %q", r.Name)
 		}
@@ -318,56 +318,123 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 
-		case reflect.Float32, reflect.Float64:
+		case reflect.Float32:
+			floatValue, err := strconv.ParseFloat(value, 32)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := float32(floatValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Float64:
 			floatValue, err := strconv.ParseFloat(value, 64)
 			if err != nil {
 				return errorWrapper(err)
 			}
-			ptrValue := &floatValue
+			targetValue := float64(floatValue)
+			ptrValue := &targetValue
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		case reflect.Int:
 			intValue, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
 				return errorWrapper(err)
 			}
-
-			switch fieldValue.Elem().Kind() {
-			case reflect.Int:
-				targetValue := int(intValue)
-				ptrValue := &targetValue
-				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-
-			case reflect.Int8:
-				targetValue := int8(intValue)
-				ptrValue := &targetValue
-				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-
-			case reflect.Int16:
-				targetValue := int16(intValue)
-				ptrValue := &targetValue
-				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-
-			case reflect.Int32:
-				targetValue := int32(intValue)
-				ptrValue := &targetValue
-				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-
-			case reflect.Int64:
-				targetValue := int64(intValue)
-				ptrValue := &targetValue
-				fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
-			}
-
+			targetValue := int(intValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Int8:
+			intValue, err := strconv.ParseInt(value, 10, 8)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := int8(intValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Int16:
+			intValue, err := strconv.ParseInt(value, 10, 16)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := int16(intValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Int32:
+			intValue, err := strconv.ParseInt(value, 10, 32)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := int32(intValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Int64:
+			intValue, err := strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := int64(intValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint:
 			uintValue, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
 				return errorWrapper(err)
 			}
-			ptrValue := &uintValue
+			targetValue := uint(uintValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint8:
+			uintValue, err := strconv.ParseUint(value, 10, 8)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := uint8(uintValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint16:
+			uintValue, err := strconv.ParseUint(value, 10, 16)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := uint16(uintValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint32:
+			uintValue, err := strconv.ParseUint(value, 10, 32)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := uint32(uintValue)
+			ptrValue := &targetValue
+			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
+			return nil
+
+		case reflect.Uint64:
+			uintValue, err := strconv.ParseUint(value, 10, 64)
+			if err != nil {
+				return errorWrapper(err)
+			}
+			targetValue := uint64(uintValue)
+			ptrValue := &targetValue
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
 		}

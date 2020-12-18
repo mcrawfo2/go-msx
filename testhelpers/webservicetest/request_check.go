@@ -3,7 +3,10 @@ package webservicetest
 import (
 	"fmt"
 	"github.com/emicklei/go-restful"
+	"testing"
 )
+
+type RequestVerifier func(t *testing.T, req *restful.Request)
 
 type RequestCheck struct {
 	Validators []RequestPredicate

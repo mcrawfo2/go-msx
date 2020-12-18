@@ -9,11 +9,16 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 )
+
+type routeBuilderContextKey int
+
+const routeBuilderContextKeyTesting routeBuilderContextKey = iota
 
 type RouteBuilderTest struct {
 	Request struct {
@@ -21,19 +26,28 @@ type RouteBuilderTest struct {
 		Path            string
 		QueryParameters url.Values
 		Headers         http.Header
+		Body            []byte
 	}
+	WebService   *restful.WebService
 	RouteBuilder *restful.RouteBuilder
-	Funcs        []RouteBuilderFunc
-	Filters      []restful.FilterFunction
-	Target       restful.RouteFunction
-	Context      context.Context
-	Injectors    []types.ContextInjector
-	Checks       struct {
+	Route        struct {
+		Path       string
+		Parameters []*restful.Parameter
+		Funcs      []RouteBuilderFunc
+		Filters    []restful.FilterFunction
+		Target     restful.RouteFunction
+	}
+	Context   context.Context
+	Injectors []types.ContextInjector
+	Checks    struct {
 		Route    webservicetest.RouteCheck
 		Request  webservicetest.RequestCheck
 		Response webservicetest.ResponseCheck
 		Context  contexttest.ContextCheck
 		Log      []logtest.Check
+	}
+	Verifiers struct {
+		Request []webservicetest.RequestVerifier
 	}
 	Errors struct {
 		Context  []error
@@ -51,7 +65,7 @@ func (r *RouteBuilderTest) WithRecording(rec *logtest.Recording) *RouteBuilderTe
 }
 
 func (r *RouteBuilderTest) WithRouteFilter(f restful.FilterFunction) *RouteBuilderTest {
-	r.Filters = append(r.Filters, f)
+	r.Route.Filters = append(r.Route.Filters, f)
 	return r
 }
 
@@ -60,8 +74,18 @@ func (r *RouteBuilderTest) WithRouteBuilder(rb *restful.RouteBuilder) *RouteBuil
 	return r
 }
 
+func (r *RouteBuilderTest) WithWebService(ws *restful.WebService) *RouteBuilderTest {
+	r.WebService = ws
+	return r
+}
+
+func (r *RouteBuilderTest) WithRouteParameter(p *restful.Parameter) *RouteBuilderTest {
+	r.Route.Parameters = append(r.Route.Parameters, p)
+	return r
+}
+
 func (r *RouteBuilderTest) WithRouteTarget(target restful.RouteFunction) *RouteBuilderTest {
-	r.Target = target
+	r.Route.Target = target
 	return r
 }
 
@@ -71,8 +95,13 @@ func (r *RouteBuilderTest) WithRouteTargetReturn(status int) *RouteBuilderTest {
 	})
 }
 
+func (r *RouteBuilderTest) WithRoutePath(p string) *RouteBuilderTest {
+	r.Route.Path = p
+	return r
+}
+
 func (r *RouteBuilderTest) WithRouteBuilderDo(fn RouteBuilderFunc) *RouteBuilderTest {
-	r.Funcs = append(r.Funcs, fn)
+	r.Route.Funcs = append(r.Route.Funcs, fn)
 	return r
 }
 
@@ -93,7 +122,19 @@ func (r *RouteBuilderTest) WithRequestMethod(m string) *RouteBuilderTest {
 
 func (r *RouteBuilderTest) WithRequestPath(p string) *RouteBuilderTest {
 	r.Request.Path = p
+	if r.Route.Path == "" {
+		r.Route.Path = p
+	}
 	return r
+}
+
+func (r *RouteBuilderTest) WithRequestBody(body []byte) *RouteBuilderTest {
+	r.Request.Body = body
+	return r
+}
+
+func (r *RouteBuilderTest) WithRequestBodyString(body string) *RouteBuilderTest {
+	return r.WithRequestBody([]byte(body))
 }
 
 func (r *RouteBuilderTest) WithRequestQueryParameter(name, value string) *RouteBuilderTest {
@@ -127,6 +168,11 @@ func (r *RouteBuilderTest) WithRequestPredicate(p webservicetest.RequestPredicat
 	return r
 }
 
+func (r *RouteBuilderTest) WithRequestVerifier(fn webservicetest.RequestVerifier) *RouteBuilderTest {
+	r.Verifiers.Request = append(r.Verifiers.Request, fn)
+	return r
+}
+
 func (r *RouteBuilderTest) WithResponsePredicate(p webservicetest.ResponsePredicate) *RouteBuilderTest {
 	r.Checks.Response.Validators = append(r.Checks.Response.Validators, p)
 	return r
@@ -145,6 +191,12 @@ func (r *RouteBuilderTest) checkContext(req *restful.Request, resp *restful.Resp
 
 func (r *RouteBuilderTest) checkRequest(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	r.Errors.Request = r.Checks.Request.Check(req)
+	if len(r.Verifiers.Request) > 0 {
+		t := req.Request.Context().Value(routeBuilderContextKeyTesting).(*testing.T)
+		for _, v := range r.Verifiers.Request {
+			v(t, req)
+		}
+	}
 	chain.ProcessFilter(req, resp)
 }
 
@@ -153,8 +205,11 @@ func (r RouteBuilderTest) defaultTarget(_ *restful.Request, resp *restful.Respon
 }
 
 func (r *RouteBuilderTest) Test(t *testing.T) {
-	ws := new(restful.WebService)
-	ws.Path("")
+	ws := r.WebService
+	if ws == nil {
+		ws = new(restful.WebService)
+		ws.Path("")
+	}
 
 	if r.Recording == nil {
 		r.Recording = logtest.RecordLogging()
@@ -162,19 +217,35 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 
 	var rb = r.RouteBuilder
 	if rb == nil {
-		target := r.Target
+		target := r.Route.Target
 		if target == nil {
 			target = r.defaultTarget
 		}
 
-		rb = ws.Method(r.Request.Method).Path(r.Request.Path).To(target)
+		method := r.Request.Method
+		if method == "" {
+			method = "POST"
+		}
+
+		path := r.Route.Path
+		if path == "" {
+			path = "/"
+		}
+
+		rb = ws.Method(method).Path(r.Route.Path).To(target)
 	}
 
-	for _, fn := range r.Funcs {
+	//rb.Operation(r.Route.Operation)
+
+	for _, p := range r.Route.Parameters {
+		rb.Param(p)
+	}
+
+	for _, fn := range r.Route.Funcs {
 		rb.Do(fn)
 	}
 
-	for _, filter := range r.Filters {
+	for _, filter := range r.Route.Filters {
 		rb.Filter(filter)
 	}
 	rb.Filter(r.checkContext)
@@ -182,14 +253,17 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 
 	// Build the route
 	route := rb.Build()
+	ws.Route(rb)
 
 	ctx := r.Context
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
+	ctx = context.WithValue(ctx, routeBuilderContextKeyTesting, t)
+
 	ctx = ContextWithRoute(ctx, &route)
-	ctx = ContextWithRouteOperation(ctx, "RouteBuilderTest")
+	ctx = ContextWithRouteOperation(ctx, route.Operation)
 	for _, injector := range r.Injectors {
 		ctx = injector(ctx)
 	}
@@ -200,32 +274,45 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 	// Execute the request if required
 	if len(r.Checks.Context.Validators) > 0 ||
 		len(r.Checks.Request.Validators) > 0 ||
-		len(r.Checks.Response.Validators) > 0 {
+		len(r.Checks.Response.Validators) > 0 ||
+		len(r.Verifiers.Request) > 0 {
 
-		httpRequest := new(http.Request)
-		httpRequest.Method = r.Request.Method
-		httpRequest.URL = new(url.URL)
-		httpRequest.URL.Path = r.Request.Path
-		httpRequest.URL.RawQuery = r.Request.QueryParameters.Encode()
-		httpRequest.Header = r.Request.Headers
-		if httpRequest.Header == nil {
-			httpRequest.Header = make(http.Header)
+		// Create a container for dispatching
+		container := restful.NewContainer()
+		container.Router(new(restful.CurlyRouter))
+		container.Add(ws)
+
+		// Create the request
+		req := new(http.Request)
+		req.Method = route.Method
+
+		req.URL = new(url.URL)
+		req.URL.Path = r.Request.Path
+		if r.Request.Path == "" {
+			req.URL.Path = "/"
 		}
-		httpRequest = httpRequest.WithContext(ctx)
-		req := restful.NewRequest(httpRequest)
+		req.URL.RawQuery = r.Request.QueryParameters.Encode()
 
+		req.Header = r.Request.Headers
+		if req.Header == nil {
+			req.Header = make(http.Header)
+		}
+
+		if r.Request.Body != nil {
+			bodyBuffer := bytes.NewBuffer(r.Request.Body)
+			bodyReadCloser := ioutil.NopCloser(bodyBuffer)
+			req.Body = bodyReadCloser
+			req.ContentLength = int64(len(r.Request.Body))
+		}
+
+		req = req.WithContext(ctx)
+
+		// Create the response
 		rec := new(httptest.ResponseRecorder)
 		rec.Body = new(bytes.Buffer)
-		resp := restful.NewResponse(rec)
 
-		// Build the filter chain
-		filterChain := restful.FilterChain{
-			Filters: route.Filters,
-			Target:  route.Function,
-		}
-
-		// Execute the request
-		filterChain.ProcessFilter(req, resp)
+		// Dispatch the request
+		container.Dispatch(rec, req)
 
 		// Check the response
 		r.Errors.Response = r.Checks.Response.Check(rec)
