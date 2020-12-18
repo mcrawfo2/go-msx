@@ -16,11 +16,11 @@ type MockTokenDetailsProvider struct {
 
 func (m *MockTokenDetailsProvider) TokenDetails(ctx context.Context) (*security.UserContextDetails, error) {
 	return &security.UserContextDetails{
-		Active:       m.Active,
-		Username:     types.NewOptionalStringFromString(m.UserName).Ptr(),
-		Roles:        m.Roles,
-		Permissions:  m.Permissions,
-		Tenants:      m.Tenants,
+		Active:      m.Active,
+		Username:    types.NewOptionalStringFromString(m.UserName).Ptr(),
+		Roles:       m.Roles,
+		Permissions: m.Permissions,
+		Tenants:     m.Tenants,
 	}, nil
 }
 

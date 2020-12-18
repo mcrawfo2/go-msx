@@ -16,4 +16,3 @@ func DummyFilter(req *restful.Request, resp *restful.Response, chain *restful.Fi
 		chain.ProcessFilter(req, resp)
 	}()
 }
-

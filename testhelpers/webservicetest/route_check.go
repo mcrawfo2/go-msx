@@ -28,7 +28,7 @@ func (c RouteCheck) Check(route restful.Route) []error {
 
 type RoutePredicate struct {
 	Description string
-	Matches func(route restful.Route) bool
+	Matches     func(route restful.Route) bool
 }
 
 type RouteCheckError struct {
@@ -119,7 +119,7 @@ func RouteHasTag(tag string) RoutePredicate {
 			if !ok {
 				return false
 			}
-			tagProps := tagIface.( spec.TagProps)
+			tagProps := tagIface.(spec.TagProps)
 			return tagProps.Name == tag
 		},
 	}

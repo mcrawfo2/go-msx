@@ -45,18 +45,18 @@ func TestNewStatusCodeProvider(t *testing.T) {
 
 func TestNewStatusError(t *testing.T) {
 	type args struct {
-		err error
+		err    error
 		status int
 	}
 	type want struct {
-		status int
+		status  int
 		message string
 	}
 	var tests = []struct {
 		name string
 		args args
 		want want
-	} {
+	}{
 		{
 			name: "Cause",
 			args: args{
@@ -64,7 +64,7 @@ func TestNewStatusError(t *testing.T) {
 				status: 404,
 			},
 			want: want{
-				status: 404,
+				status:  404,
 				message: "some error",
 			},
 		},
@@ -75,7 +75,7 @@ func TestNewStatusError(t *testing.T) {
 				status: 404,
 			},
 			want: want{
-				status: 404,
+				status:  404,
 				message: "Unknown status error: 404",
 			},
 		},

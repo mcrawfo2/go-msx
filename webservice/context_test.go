@@ -11,7 +11,7 @@ func TestAuthenticationProviderFromContext(t *testing.T) {
 	provider := new(MockAuthenticationProvider)
 
 	type args struct {
-		ctx      context.Context
+		ctx context.Context
 	}
 	tests := []struct {
 		name string

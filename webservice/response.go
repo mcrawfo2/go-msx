@@ -140,10 +140,10 @@ func WriteSuccessEnvelope(req *restful.Request, resp *restful.Response, status i
 		envelope = *bodyPointerEnvelope
 	} else {
 		envelope = integration.MsxEnvelope{
-			Success:    true,
-			Payload:    body,
-			Command:    RouteOperationFromContext(req.Request.Context()),
-			Params:     parameters(req),
+			Success: true,
+			Payload: body,
+			Command: RouteOperationFromContext(req.Request.Context()),
+			Params:  parameters(req),
 		}
 	}
 

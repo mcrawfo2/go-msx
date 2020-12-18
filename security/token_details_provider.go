@@ -22,7 +22,7 @@ func SetTokenDetailsProvider(provider TokenDetailsProvider) {
 
 func NewUserContextDetails(ctx context.Context) (userContextDetails *UserContextDetails, err error) {
 	provider, err := getTokenDetailsProvider(ctx)
-	if err !=  nil {
+	if err != nil {
 		return nil, err
 	}
 

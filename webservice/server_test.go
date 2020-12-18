@@ -243,7 +243,7 @@ func TestWebServer_Serve(t *testing.T) {
 			"server.host": "127.0.0.10",
 			"server.port": "24203",
 		}).
-		WithWebServerVerifier(func(t*testing.T, s*WebServer) {
+		WithWebServerVerifier(func(t *testing.T, s *WebServer) {
 			errorReporter := new(background.MockErrorReporter)
 			errorChan := make(chan struct{}, 1)
 			errorReporter.On("C").Return(errorChan)
@@ -256,7 +256,7 @@ func TestWebServer_Serve(t *testing.T) {
 			assert.NoError(t, err)
 			cancel()
 
-			ctx2, cancel2 := context.WithDeadline(rootCtx, time.Now().Add(100 * time.Millisecond))
+			ctx2, cancel2 := context.WithDeadline(rootCtx, time.Now().Add(100*time.Millisecond))
 			defer cancel2()
 			err = s.StopServing(ctx2)
 			assert.NoError(t, err)

@@ -47,7 +47,6 @@ func FieldValue(name string) EntryPredicate {
 	}
 }
 
-
 func NoFieldValue(name string) EntryPredicate {
 	return EntryPredicate{
 		Description: fmt.Sprintf("entry.Data['%s'] unset", name),
@@ -57,4 +56,3 @@ func NoFieldValue(name string) EntryPredicate {
 		},
 	}
 }
-

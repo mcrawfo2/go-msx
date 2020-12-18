@@ -225,10 +225,10 @@ func TestWriteSuccessEnvelope(t *testing.T) {
 			test: new(RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					envelope := &integration.MsxEnvelope{
-						Command:    "command",
-						Message:    "message",
-						Payload:    struct{}{},
-						Success:    true,
+						Command: "command",
+						Message: "message",
+						Payload: struct{}{},
+						Success: true,
 					}
 					WriteSuccessEnvelope(request, response, 202, envelope)
 				}).

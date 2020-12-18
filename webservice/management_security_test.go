@@ -103,18 +103,18 @@ func TestManagementSecurityFilter_roles(t *testing.T) {
 		roles []string
 	}
 	tests := []struct {
-		name string
-		args args
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "HasRoles",
-			args: args{roles:[]string{"ROLE_PUBLISHER"}},
+			name:    "HasRoles",
+			args:    args{roles: []string{"ROLE_PUBLISHER"}},
 			wantErr: false,
 		},
 		{
-			name: "NotHasRoles",
-			args: args{roles:[]string{"ROLE_CONSUMER"}},
+			name:    "NotHasRoles",
+			args:    args{roles: []string{"ROLE_CONSUMER"}},
 			wantErr: true,
 		},
 	}

@@ -52,4 +52,3 @@ func ConfigureWebServer(cfg *config.Config, ctx context.Context) (err error) {
 	service, err = NewWebServerFromConfig(cfg, ctx)
 	return
 }
-

@@ -28,7 +28,7 @@ func (c ContextCheck) Check(ctx context.Context) []error {
 
 type ContextPredicate struct {
 	Description string
-	Matches func(ctx context.Context) bool
+	Matches     func(ctx context.Context) bool
 }
 
 type ContextCheckError struct {

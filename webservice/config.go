@@ -107,4 +107,3 @@ var TLSLookup = map[string]uint16{
 	"tls12": tls.VersionTLS12,
 	"tls13": tls.VersionTLS13,
 }
-

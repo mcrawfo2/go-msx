@@ -15,7 +15,7 @@ func Test_recoveryFilter(t *testing.T) {
 	tests := []struct {
 		name string
 		test testhelpers.Testable
-	} {
+	}{
 		{
 			name: "NoPanic",
 			test: new(RouteBuilderTest).
@@ -62,7 +62,6 @@ func Test_recoveryFilter(t *testing.T) {
 						logtest.FieldValue("error"),
 					},
 				}),
-
 		},
 	}
 

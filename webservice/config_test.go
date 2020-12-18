@@ -59,13 +59,13 @@ func TestParseCiphers(t *testing.T) {
 
 func TestWebServerConfig_Address(t *testing.T) {
 	tests := []struct {
-		name   string
+		name string
 		cfg  WebServerConfig
-		want   string
+		want string
 	}{
 		{
 			name: "Zeros",
-			cfg:  WebServerConfig{
+			cfg: WebServerConfig{
 				Host: "0.0.0.0",
 				Port: 80,
 			},
@@ -91,13 +91,13 @@ func TestWebServerConfig_Address(t *testing.T) {
 
 func TestWebServerConfig_Url(t *testing.T) {
 	tests := []struct {
-		name   string
+		name string
 		cfg  WebServerConfig
-		want   string
+		want string
 	}{
 		{
 			name: "Zeros",
-			cfg:  WebServerConfig{
+			cfg: WebServerConfig{
 				Host: "0.0.0.0",
 				Port: 80,
 				Tls: TLSConfig{
