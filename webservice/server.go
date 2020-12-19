@@ -248,7 +248,7 @@ func (s *WebServer) activateActuator(provider ServiceProvider) {
 	}
 
 	actuatorService := new(restful.WebService)
-	actuatorService.Path(s.cfg.ContextPath + "/admin/" + provider.EndpointName())
+	actuatorService.Path(s.cfg.ContextPath)
 
 	if s.actuatorCfg.EndpointSecurityEnabled(provider.EndpointName()) {
 		securityFilter := NewManagementSecurityFilter(s.actuatorCfg)
