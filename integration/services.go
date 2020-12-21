@@ -15,6 +15,7 @@ const (
 	ServiceNameServiceExtension = "serviceextensionservice"
 	ServiceNameUserManagement   = "usermanagementservice"
 	ServiceNameWorkflow         = "workflowservice"
+	ServiceNameIpam             = "ipamservice"
 
 	ServiceNameDnacBeat    = "probe_dnac"
 	ServiceNameEncsBeat    = "probe_encs"
