@@ -1,8 +1,11 @@
-package tokensource
+package vault
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
 )
@@ -26,7 +29,6 @@ func TestNewAppRoleConfig(t *testing.T) {
 				}),
 			},
 			want: &AppRoleConfig{
-				Path:     "/auth/approle/login",
 				RoleId:   "some-role",
 				SecretId: "some-role-secret",
 			},
@@ -45,4 +47,41 @@ func TestNewAppRoleConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppRoleSource_Renewable(t *testing.T) {
+	appRoleSource := AppRoleSource{
+		cfg: &AppRoleConfig{
+			RoleId:   "some-role",
+			SecretId: "some-role-secret",
+		},
+		conn: new(MockConnection),
+	}
+
+	assert.True(t, appRoleSource.Renewable())
+}
+
+func TestAppRoleSource_GetToken(t *testing.T) {
+	token := "expected_token"
+
+	conn := new(MockConnection)
+	conn.
+		On("LoginWithAppRole",
+			mock.AnythingOfType("*context.emptyCtx"),
+			"some-role",
+			"some-role-secret").
+		Return(token, nil)
+
+	appRoleSource := AppRoleSource{
+		cfg: &AppRoleConfig{
+			RoleId:   "some-role",
+			SecretId: "some-role-secret",
+		},
+		conn: conn,
+	}
+
+	actualToken, err := appRoleSource.GetToken(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, token, actualToken)
+
 }

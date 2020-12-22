@@ -28,7 +28,7 @@ var contextInjectors = new(types.ContextInjectors)
 func init() {
 	OnEvent(EventConfigure, PhaseAfter, configureHttpClientFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
-	OnEvent(EventConfigure, PhaseAfter, withConfig(configureVaultPool))
+	OnEvent(EventConfigure, PhaseAfter, configureVaultPool)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
 	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
@@ -94,11 +94,14 @@ func configureConsulPool(cfg *config.Config) error {
 	return nil
 }
 
-func configureVaultPool(cfg *config.Config) error {
-	if err := vault.ConfigurePool(cfg); err != nil && err != vault.ErrDisabled {
+func configureVaultPool(ctx context.Context) error {
+	if err := vault.ConfigurePool(ctx); err != nil && err != vault.ErrDisabled {
 		return err
 	} else if err != vault.ErrDisabled {
 		RegisterContextInjector(vault.ContextWithPool)
+		RegisterContextInjector(func(ctx context.Context) context.Context {
+			return vault.ContextWithConnection(ctx, vault.PoolFromContext(ctx).Connection())
+		})
 		health.RegisterCheck("vault", vaultcheck.Check)
 	}
 

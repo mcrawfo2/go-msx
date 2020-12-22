@@ -215,7 +215,7 @@ func TestRetry_Retry(t *testing.T) {
 			go func() {
 				for n := 1; n < tt.args.config.Attempts; n++ {
 					clock.Advance(1 * time.Minute)
-					clock.Trigger(delaySleepId)
+					clock.Trigger(DelaySleepId)
 				}
 			}()
 

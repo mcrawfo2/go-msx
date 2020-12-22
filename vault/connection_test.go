@@ -1,91 +1,52 @@
 package vault
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestNewConnectionConfig(t *testing.T) {
+func Test_NewConnection(t *testing.T) {
 	type args struct {
-		cfg *config.Config
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *ConnectionConfig
+		want    bool
 		wantErr bool
 	}{
 		{
-			name: "Defaults",
+			name: "Disabled",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(nil),
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(),nil),
 			},
-			want: &ConnectionConfig{
-				Enabled: true,
-				Host:    "localhost",
-				Port:    8200,
-				Scheme:  "http",
-				TokenSource: ConnectionTokenSourceConfig{
-					Source: "config",
-				},
-				Ssl: ConnectionSslConfig{
-					Cacert:     "",
-					ClientCert: "",
-					ClientKey:  "",
-					Insecure:   true,
-				},
-				Issuer: ConnectionIssuerConfig{
-					Mount: "/pki",
-				},
-			},
+			want: true,
+			wantErr: false,
 		},
 		{
-			name: "Custom",
+			name: "Enabled",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
-					"spring.cloud.vault.enabled":             "false",
-					"spring.cloud.vault.host":                "remote-vm",
-					"spring.cloud.vault.port":                "9999",
-					"spring.cloud.vault.scheme":              "https",
-					"spring.cloud.vault.token-source.source": "kubernetes",
-					"spring.cloud.vault.ssl.ca-cert":         "ca.crt",
-					"spring.cloud.vault.ssl.client-cert":     "client.crt",
-					"spring.cloud.vault.ssl.client-key":      "client.key",
-					"spring.cloud.vault.ssl.insecure":        "false",
-					"spring.cloud.vault.issuer.mount":        "/pki/vms",
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(),map[string]string{
+					"spring.cloud.vault.enabled": "false",
 				}),
 			},
-			want: &ConnectionConfig{
-				Enabled: false,
-				Host:    "remote-vm",
-				Port:    9999,
-				Scheme:  "https",
-				TokenSource: ConnectionTokenSourceConfig{
-					Source: "kubernetes",
-				},
-				Ssl: ConnectionSslConfig{
-					Cacert:     "ca.crt",
-					ClientCert: "client.crt",
-					ClientKey:  "client.key",
-					Insecure:   false,
-				},
-				Issuer: ConnectionIssuerConfig{
-					Mount: "/pki/vms",
-				},
-			},
+			want: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewConnectionConfig(tt.args.cfg)
+			got, err := NewConnection(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewConnectionConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("newConnectionFromConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewConnectionConfig() got = %v, want %v", got, tt.want)
+			if tt.want {
+				assert.NotNil(t, got)
+			} else {
+				assert.Nil(t, got)
 			}
 		})
 	}

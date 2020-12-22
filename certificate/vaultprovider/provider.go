@@ -35,7 +35,7 @@ func (f Provider) GetCertificate(ctx context.Context) (*tls.Certificate, error) 
 		IpSans:     f.cfg.IPSans,
 	}
 
-	return vault.PoolFromContext(ctx).Connection().IssueCertificate(ctx, f.cfg.Role, request)
+	return vault.ConnectionFromContext(ctx).IssueCertificate(ctx, f.cfg.Role, request)
 }
 
 func (f Provider) Renewable() bool {

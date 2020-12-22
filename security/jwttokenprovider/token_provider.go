@@ -161,7 +161,7 @@ func (j *TokenProvider) keystoreSigningKey(token *jwt.Token) (interface{}, error
 
 func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
-		vaultPool := vault.PoolFromContext(ctx)
+		connection := vault.ConnectionFromContext(ctx)
 
 		if j.cfg.KeyPath == "" {
 			return nil, errors.New("JWT Key Path not configured")
@@ -170,7 +170,7 @@ func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 		}
 
 		var keyEncoded string
-		err := vaultPool.WithConnection(func(connection *vault.Connection) error {
+		err := (func(connection vault.ConnectionApi) error {
 			results, err := connection.ListSecrets(ctx, j.cfg.KeyPath)
 			if err != nil {
 				return err
@@ -182,7 +182,7 @@ func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 			}
 
 			return nil
-		})
+		})(connection)
 
 		if err != nil {
 			return nil, err

@@ -1,8 +1,11 @@
-package tokensource
+package vault
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
 )
@@ -25,7 +28,6 @@ func TestNewKubernetesConfig(t *testing.T) {
 				}),
 			},
 			want: &KubernetesConfig{
-				Path:    "/auth/kubernetes/login",
 				JWTPath: "/run/secrets/kubernetes.io/serviceaccount/token",
 				Role:    "PlatformMicroservice",
 			},
@@ -34,13 +36,11 @@ func TestNewKubernetesConfig(t *testing.T) {
 			name: "Custom",
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
-					"spring.cloud.vault.token-source.kubernetes.path":     "/subpath",
 					"spring.cloud.vault.token-source.kubernetes.jwt-path": "/another/path/to/token",
 					"spring.cloud.vault.token-source.kubernetes.role":     "PlatformMicroservice",
 				}),
 			},
 			want: &KubernetesConfig{
-				Path:    "/subpath",
 				JWTPath: "/another/path/to/token",
 				Role:    "PlatformMicroservice",
 			},
@@ -59,4 +59,41 @@ func TestNewKubernetesConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestKubernetesSource_Renewable(t *testing.T) {
+	kubernetesSource := KubernetesSource{
+		cfg: &KubernetesConfig{
+			JWTPath: "testdata/jwt.txt",
+			Role:    "role",
+		},
+		conn: new(MockConnection),
+	}
+
+	assert.True(t, kubernetesSource.Renewable())
+}
+
+func TestKubernetesSource_GetToken(t *testing.T) {
+	token := "expected_token"
+
+	conn := new(MockConnection)
+	conn.
+		On("LoginWithKubernetes",
+			mock.AnythingOfType("*context.emptyCtx"),
+			"jwt",
+			"role").
+		Return(token, nil)
+
+	kubernetesSource := KubernetesSource{
+		cfg: &KubernetesConfig{
+			JWTPath: "testdata/jwt.txt",
+			Role:    "role",
+		},
+		conn: conn,
+	}
+
+	actualToken, err := kubernetesSource.GetToken(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, token, actualToken)
+
 }

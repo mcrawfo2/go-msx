@@ -20,14 +20,15 @@ func (p Provider) CreateKey(ctx context.Context, keyName string) (err error) {
 		return nil
 	}
 
-	return vault.PoolFromContext(ctx).WithConnection(func(connection *vault.Connection) error {
-		createRequest := vault.CreateTransitKeyRequest{
-			Type:                 p.cfg.KeyProperties.Type,
-			Exportable:           p.cfg.KeyProperties.Exportable,
-			AllowPlaintextBackup: p.cfg.KeyProperties.AllowPlaintextBackup,
-		}
-		return connection.CreateTransitKey(ctx, keyName, createRequest)
-	})
+	createRequest := vault.CreateTransitKeyRequest{
+		Type:                 p.cfg.KeyProperties.Type,
+		Exportable:           p.cfg.KeyProperties.Exportable,
+		AllowPlaintextBackup: p.cfg.KeyProperties.AllowPlaintextBackup,
+	}
+
+	return vault.
+		ConnectionFromContext(ctx).
+		CreateTransitKey(ctx, keyName, createRequest)
 }
 
 func (p Provider) Encrypt(ctx context.Context, value transit.Value) (secureValue transit.Value, err error) {
@@ -35,11 +36,9 @@ func (p Provider) Encrypt(ctx context.Context, value transit.Value) (secureValue
 		return value, nil
 	}
 
-	var ciphertext string
-	err = vault.PoolFromContext(ctx).WithConnection(func(connection *vault.Connection) error {
-		ciphertext, err = connection.TransitEncrypt(ctx, value.KeyName(), value.RawPayload())
-		return err
-	})
+	ciphertext, err := vault.
+		ConnectionFromContext(ctx).
+		TransitEncrypt(ctx, value.KeyName(), value.RawPayload())
 	if err != nil {
 		return
 	}
@@ -52,11 +51,9 @@ func (p Provider) Decrypt(ctx context.Context, secureValue transit.Value) (value
 		return secureValue, nil
 	}
 
-	var plaintext string
-	err = vault.PoolFromContext(ctx).WithConnection(func(connection *vault.Connection) error {
-		plaintext, err = connection.TransitDecrypt(ctx, secureValue.KeyName(), secureValue.RawPayload())
-		return err
-	})
+	plaintext, err := vault.
+		ConnectionFromContext(ctx).
+		TransitDecrypt(ctx, secureValue.KeyName(), secureValue.RawPayload())
 	if err != nil {
 		return
 	}

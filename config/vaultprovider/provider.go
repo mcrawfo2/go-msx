@@ -6,9 +6,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/thejerf/abtime"
 	"reflect"
 	"sort"
 	"time"
@@ -17,26 +19,27 @@ import (
 const (
 	configRootVaultConfigProvider = "spring.cloud.vault.generic"
 	configKeyAppName              = "spring.application.name"
+	VaultClockBackoffTimerId = iota
 )
 
 var logger = log.NewLogger("msx.config.vaultprovider")
 
 type ProviderConfig struct {
-	Enabled          bool   `config:"default=false"`
-	Backend          string `config:"default=secret"`
-	ProfileSeparator string `config:"default=/"`
-	DefaultContext   string `config:"default=defaultapplication"`
-	Pool             bool   `config:"default=false"`
-	Delay            int    `config:"default=20"`
+	Enabled          bool          `config:"default=false"`
+	Backend          string        `config:"default=secret"`
+	ProfileSeparator string        `config:"default=/"`
+	DefaultContext   string        `config:"default=defaultapplication"`
+	Delay            time.Duration `config:"default=20s"`
 }
 
 type Provider struct {
 	name        string
 	cfg         *ProviderConfig
 	contextPath string
-	connection  *vault.Connection
+	connection  vault.ConnectionApi
 	loaded      chan map[string]string
 	notify      chan struct{}
+	clock       abtime.AbstractTime
 }
 
 func (p *Provider) Description() string {
@@ -69,9 +72,12 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 }
 
 func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string, err error) {
+	// Ensure our clock is used by retry
+	ctx = types.ContextWithClock(ctx, p.clock)
+
 	err = retry.NewRetry(ctx, retry.RetryConfig{
 		Attempts: 10,
-		Delay:    1000 * p.cfg.Delay,
+		Delay:    int(p.cfg.Delay.Milliseconds()),
 		BackOff:  0.0,
 		Linear:   true,
 	}).Retry(func() error {
@@ -90,10 +96,10 @@ func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string
 }
 
 func (p *Provider) backoff(ctx context.Context) {
-	t := time.NewTimer(time.Duration(p.cfg.Delay) * time.Second)
+	t := p.clock.NewTimer(p.cfg.Delay, VaultClockBackoffTimerId)
 	select {
 	case <-ctx.Done():
-	case <-t.C:
+	case <-t.Channel():
 	}
 }
 
@@ -151,9 +157,29 @@ func (p *Provider) Notify() <-chan struct{} {
 	return p.notify
 }
 
-func NewProvidersFromConfig(name string, cfg *config.Config) ([]config.Provider, error) {
+func NewProvider(name string, cfg *ProviderConfig, contextPath string, conn vault.ConnectionApi, clock abtime.AbstractTime) *Provider {
+	return &Provider{
+		name:        name,
+		cfg:         cfg,
+		contextPath: contextPath,
+		connection:  conn,
+		loaded:      make(chan map[string]string, 1),
+		notify:      make(chan struct{}),
+		clock:       clock,
+	}
+}
+
+func NewProviderConfig(cfg *config.Config) (*ProviderConfig, error) {
 	var providerConfig = &ProviderConfig{}
 	var err = cfg.Populate(providerConfig, configRootVaultConfigProvider)
+	if err != nil {
+		return nil, err
+	}
+	return providerConfig, nil
+}
+
+func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config) ([]config.Provider, error) {
+	providerConfig, err := NewProviderConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -168,34 +194,20 @@ func NewProvidersFromConfig(name string, cfg *config.Config) ([]config.Provider,
 		return nil, err
 	}
 
-	var conn *vault.Connection
-	if providerConfig.Pool {
-		if err = vault.ConfigurePool(cfg); err != nil {
+	conn := vault.ConnectionFromContext(ctx)
+	if conn == nil {
+		conn, err = vault.NewConnection(ctx)
+		if err == vault.ErrDisabled {
+			return nil, nil
+		} else if err != nil {
 			return nil, err
 		}
-		conn = vault.Pool().Connection()
-	} else if conn, err = vault.NewConnectionFromConfig(cfg); err != nil && err != vault.ErrDisabled {
-		return nil, err
-	} else if err == vault.ErrDisabled {
-		return nil, nil
 	}
 
+	clock := types.NewClock(ctx)
+
 	return []config.Provider{
-		&Provider{
-			name:        name,
-			cfg:         providerConfig,
-			contextPath: providerConfig.DefaultContext,
-			connection:  conn,
-			loaded:      make(chan map[string]string, 1),
-			notify:      make(chan struct{}),
-		},
-		&Provider{
-			name:        name,
-			cfg:         providerConfig,
-			contextPath: appContext,
-			connection:  conn,
-			loaded:      make(chan map[string]string, 1),
-			notify:      make(chan struct{}),
-		},
+		NewProvider(name, providerConfig, providerConfig.DefaultContext, conn, clock),
+		NewProvider(name, providerConfig, appContext, conn, clock),
 	}, nil
 }

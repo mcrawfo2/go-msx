@@ -191,7 +191,7 @@ func registerRemoteConfigProviders(ctx context.Context) error {
 	})
 
 	RegisterProviderFactory(SourceVault, func(name string, cfg *config.Config) (providers []config.Provider, err error) {
-		providers, err = vaultprovider.NewProvidersFromConfig(name, cfg)
+		providers, err = vaultprovider.NewProvidersFromConfig(name, ctx, cfg)
 		if err != nil {
 			return nil, err
 		}
