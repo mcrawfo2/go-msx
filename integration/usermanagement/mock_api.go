@@ -474,6 +474,29 @@ func (_m *MockUserManagement) GetProviderByName(providerName string) (*integrati
 	return r0, r1
 }
 
+// GetProviderExtensionByName provides a mock function with given fields: name
+func (_m *MockUserManagement) GetProviderExtensionByName(name string) (*integration.MsxResponse, error) {
+	ret := _m.Called(name)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRoles provides a mock function with given fields: resolvePermissionNames, p
 func (_m *MockUserManagement) GetRoles(resolvePermissionNames bool, p paging.Request) (*integration.MsxResponse, error) {
 	ret := _m.Called(resolvePermissionNames, p)

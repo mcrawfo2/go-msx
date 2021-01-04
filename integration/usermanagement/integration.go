@@ -31,6 +31,8 @@ const (
 
 	endpointNameGetProviderByName = "getProviderByName"
 
+	endpointNameGetProviderExtensionByName = "getProviderExtensionByName"
+
 	endpointNameGetTenantIds   = "getTenantIds"
 	endpointNameGetMyTenants   = "getMyTenants"
 	endpointNameGetUserTenants = "getUserTenants"
@@ -89,6 +91,8 @@ var (
 
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
+
+		endpointNameGetProviderExtensionByName: {Method: "GET", Path:"/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
 
 		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantids"},
 		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},
@@ -273,6 +277,17 @@ func (i *Integration) GetProviderByName(name string) (*integration.MsxResponse, 
 			"providerName": name,
 		},
 		Payload:      &ProviderResponse{},
+		ErrorPayload: new(integration.ErrorDTO),
+	})
+}
+
+func (i *Integration) GetProviderExtensionByName(name string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetProviderExtensionByName,
+		EndpointParameters: map[string]string{
+			"providerExtensionName": name,
+		},
+		Payload:      &ProviderExtensionResponse{},
 		ErrorPayload: new(integration.ErrorDTO),
 	})
 }

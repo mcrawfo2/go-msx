@@ -85,6 +85,15 @@ type ProviderResponse struct {
 	AnyConnectURL    *string    `json:"anyConnectURL"`
 }
 
+type ProviderExtensionResponse struct {
+	Name          string   `json:"name"`
+	AllowedValues []string `json:"allowedValues"`
+	DisplayType   string   `json:"displayType"`
+	Type          string   `json:"type"`
+	Label         string   `json:"label"`
+	Value         string   `json:"value"`
+}
+
 type TenantResponse struct {
 	TenantId          types.UUID  `json:"tenantId"`
 	ParentId          *types.UUID `json:"parentId"`
