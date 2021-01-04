@@ -145,7 +145,7 @@ func RouteHasAnyWriteSample() RoutePredicate {
 
 func RouteHasParameter(kind int, name string) RoutePredicate {
 	return RoutePredicate{
-		Description: fmt.Sprintf("route.%s(%q) exists", kind, name),
+		Description: fmt.Sprintf("route.%d(%q) exists", kind, name),
 		Matches: func(route restful.Route) bool {
 			for _, parameter := range route.ParameterDocs {
 				if parameter.Data().Name == name && parameter.Data().Kind == kind {
