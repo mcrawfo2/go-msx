@@ -3,7 +3,6 @@ package gochannel
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
-	"fmt"
 )
 
 const (
@@ -22,8 +21,7 @@ type BindingConfiguration struct {
 }
 
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string, streamBindingConfig *stream.BindingConfiguration) (*BindingConfiguration, error) {
-	// TODO: config.PrefixWithName
-	prefix := fmt.Sprintf("%s.%s", configRootGoChannelBindings, key)
+	prefix := config.PrefixWithName(configRootGoChannelBindings, key)
 
 	bindingConfig := BindingConfiguration{}
 	if err := cfg.Populate(&bindingConfig, prefix); err != nil {
