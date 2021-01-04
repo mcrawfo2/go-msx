@@ -2,56 +2,12 @@ package webservice
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/emicklei/go-restful"
-	"github.com/pkg/errors"
 )
 
 const (
 	configRootWebServer = "server"
 )
-
-var (
-	ErrDisabled = errors.New("Web server disabled")
-	service     *WebServer
-)
-
-func Start(ctx context.Context) error {
-	if service == nil {
-		return nil
-	}
-	return service.Serve(ctx)
-}
-
-func Stop(ctx context.Context) error {
-	if service == nil {
-		return nil
-	}
-	return service.StopServing(ctx)
-}
-
-func ConfigureWebServer(cfg *config.Config, ctx context.Context) (err error) {
-	service, err = NewWebServerFromConfig(cfg, ctx)
-	return
-}
-
-func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer, error) {
-	var webServerConfig WebServerConfig
-	if err := cfg.Populate(&webServerConfig, configRootWebServer); err != nil {
-		return nil, err
-	}
-
-	if !webServerConfig.Enabled {
-		return nil, ErrDisabled
-	}
-
-	actuatorConfig, err := NewManagementSecurityConfig(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to read management security config")
-	}
-
-	return NewWebServer(&webServerConfig, actuatorConfig, ctx)
-}
 
 type webServerContextKey int
 
@@ -69,10 +25,16 @@ func ContextWithWebServer(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKeyWebServer, service)
 }
 
+func ContextWithWebServerValue(ctx context.Context, server *WebServer) context.Context {
+	return context.WithValue(ctx, contextKeyWebServer, server)
+}
+
 func WebServerFromContext(ctx context.Context) *WebServer {
-	webServerInterface := ctx.Value(contextKeyWebServer)
-	if webServerInterface != nil {
-		return webServerInterface.(*WebServer)
+	if v := ctx.Value(contextKeyWebServer); v != nil {
+		if r, ok := v.(*WebServer); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid web server in context: %+v", v)
 	}
 	return nil
 }
@@ -82,7 +44,13 @@ func ContextWithContainer(ctx context.Context, container *restful.Container) con
 }
 
 func ContainerFromContext(ctx context.Context) *restful.Container {
-	return ctx.Value(contextKeyContainer).(*restful.Container)
+	if v := ctx.Value(contextKeyContainer); v != nil {
+		if r, ok := v.(*restful.Container); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid container in context: %+v", v)
+	}
+	return nil
 }
 
 func ContextWithRouter(ctx context.Context, router restful.RouteSelector) context.Context {
@@ -90,7 +58,13 @@ func ContextWithRouter(ctx context.Context, router restful.RouteSelector) contex
 }
 
 func RouterFromContext(ctx context.Context) restful.RouteSelector {
-	return ctx.Value(contextKeyRouter).(restful.RouteSelector)
+	if v := ctx.Value(contextKeyRouter); v != nil {
+		if r, ok := v.(restful.RouteSelector); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid router in context: %+v", v)
+	}
+	return nil
 }
 
 func ContextWithService(ctx context.Context, service *restful.WebService) context.Context {
@@ -98,7 +72,13 @@ func ContextWithService(ctx context.Context, service *restful.WebService) contex
 }
 
 func ServiceFromContext(ctx context.Context) *restful.WebService {
-	return ctx.Value(contextKeyService).(*restful.WebService)
+	if v := ctx.Value(contextKeyService); v != nil {
+		if r, ok := v.(*restful.WebService); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid web service in context: %+v", v)
+	}
+	return nil
 }
 
 func ContextWithRoute(ctx context.Context, route *restful.Route) context.Context {
@@ -106,7 +86,13 @@ func ContextWithRoute(ctx context.Context, route *restful.Route) context.Context
 }
 
 func RouteFromContext(ctx context.Context) *restful.Route {
-	return ctx.Value(contextKeyRoute).(*restful.Route)
+	if v := ctx.Value(contextKeyRoute); v != nil {
+		if r, ok := v.(*restful.Route); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid route in context: %+v", v)
+	}
+	return nil
 }
 
 func ContextWithRouteOperation(ctx context.Context, operation string) context.Context {
@@ -114,7 +100,13 @@ func ContextWithRouteOperation(ctx context.Context, operation string) context.Co
 }
 
 func RouteOperationFromContext(ctx context.Context) string {
-	return ctx.Value(contextKeyOperation).(string)
+	if v := ctx.Value(contextKeyOperation); v != nil {
+		if r, ok := v.(string); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid route operation in context: %+v", v)
+	}
+	return ""
 }
 
 func ContextWithSecurityProvider(ctx context.Context, provider AuthenticationProvider) context.Context {
@@ -122,9 +114,11 @@ func ContextWithSecurityProvider(ctx context.Context, provider AuthenticationPro
 }
 
 func AuthenticationProviderFromContext(ctx context.Context) AuthenticationProvider {
-	providerInterface := ctx.Value(contextKeySecurityProvider)
-	if providerInterface != nil {
-		return providerInterface.(AuthenticationProvider)
+	if v := ctx.Value(contextKeySecurityProvider); v != nil {
+		if r, ok := v.(AuthenticationProvider); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid security provider in context: %+v", v)
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package certificate
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -36,14 +37,11 @@ func TestNewProvider_Success(t *testing.T) {
 	factory.On("Name").Return("mock")
 	factory.On("New", mock.AnythingOfType("*context.valueCtx"), "certificate.source.test").Return(provider, nil)
 
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{
 			"certificate.source.test.provider": "mock",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-
-	ctx := config.ContextWithConfig(context.Background(), cfg)
+		})
 
 	// Clean factory list
 	factories = make(map[string]ProviderFactory)
@@ -72,14 +70,11 @@ func TestNewProvider_SourceNotConfigured(t *testing.T) {
 }
 
 func TestNewProvider_NoSuchProvider(t *testing.T) {
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{
 			"certificate.source.test.provider": "mock",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-
-	ctx := config.ContextWithConfig(context.Background(), cfg)
+		})
 
 	// Clean factory list
 	factories = make(map[string]ProviderFactory)

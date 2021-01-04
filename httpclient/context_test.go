@@ -3,7 +3,7 @@ package httpclient
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/mocks"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -17,7 +17,7 @@ func TestConfigurerFromContext(t *testing.T) {
 		name    string
 		ctx     context.Context
 		want    Configurer
-		wantLog log.Check
+		wantLog logtest.Check
 	}{
 		{
 			name: "NotExists",
@@ -33,17 +33,17 @@ func TestConfigurerFromContext(t *testing.T) {
 			name: "Invalid",
 			ctx:  context.WithValue(context.Background(), contextKeyHttpClientConfigurer, "configurer"),
 			want: nil,
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.WarnLevel),
-					log.HasMessage(`Context http client configurer is the wrong type`),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.WarnLevel),
+					logtest.HasMessage(`Context http client configurer is the wrong type`),
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recording := log.RecordLogging()
+			recording := logtest.RecordLogging()
 
 			if got := ConfigurerFromContext(tt.ctx); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ConfigurerFromContext() = %v, want %v", got, tt.want)
@@ -69,7 +69,7 @@ func TestFactoryFromContext(t *testing.T) {
 		name    string
 		ctx     context.Context
 		want    Factory
-		wantLog log.Check
+		wantLog logtest.Check
 	}{
 		{
 			name: "NotExists",
@@ -84,10 +84,10 @@ func TestFactoryFromContext(t *testing.T) {
 		{
 			name: "Invalid",
 			ctx:  context.WithValue(context.Background(), contextKeyHttpClientFactory, "factory"),
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.WarnLevel),
-					log.HasMessage(`Context http client factory value is the wrong type`),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.WarnLevel),
+					logtest.HasMessage(`Context http client factory value is the wrong type`),
 				},
 			},
 		},
@@ -115,7 +115,7 @@ func TestOperationNameFromContext(t *testing.T) {
 		name    string
 		ctx     context.Context
 		want    string
-		wantLog log.Check
+		wantLog logtest.Check
 	}{
 		{
 			name: "NotExists",
@@ -131,10 +131,10 @@ func TestOperationNameFromContext(t *testing.T) {
 			name: "Invalid",
 			ctx:  context.WithValue(context.Background(), contextKeyOperationName, 311),
 			want: "",
-			wantLog: log.Check{
-				Validators: []log.EntryPredicate{
-					log.HasLevel(logrus.WarnLevel),
-					log.HasMessage(`Context http client operation name is the wrong type`),
+			wantLog: logtest.Check{
+				Validators: []logtest.EntryPredicate{
+					logtest.HasLevel(logrus.WarnLevel),
+					logtest.HasMessage(`Context http client operation name is the wrong type`),
 				},
 			},
 		},

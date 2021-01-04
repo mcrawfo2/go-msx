@@ -6,6 +6,7 @@ type securityContextKey int
 
 const (
 	contextKeyUserContext securityContextKey = iota
+	contextKeyTokenDetailsProvider
 )
 
 func ContextWithUserContext(ctx context.Context, userContext *UserContext) context.Context {
@@ -22,4 +23,17 @@ func UserContextFromContext(ctx context.Context) *UserContext {
 
 func UserNameFromContext(ctx context.Context) string {
 	return UserContextFromContext(ctx).UserName
+}
+
+func ContextWithTokenDetailsProvider(ctx context.Context, provider TokenDetailsProvider) context.Context {
+	return context.WithValue(ctx, contextKeyTokenDetailsProvider, provider)
+}
+
+func TokenDetailsProviderFromContext(ctx context.Context) TokenDetailsProvider {
+	tokenDetailsProviderInterface := ctx.Value(contextKeyTokenDetailsProvider)
+	if tokenDetailsProviderInterface == nil {
+		return nil
+	}
+
+	return tokenDetailsProviderInterface.(TokenDetailsProvider)
 }

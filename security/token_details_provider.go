@@ -21,10 +21,12 @@ func SetTokenDetailsProvider(provider TokenDetailsProvider) {
 }
 
 func NewUserContextDetails(ctx context.Context) (userContextDetails *UserContextDetails, err error) {
-	if tokenDetailsProvider == nil {
-		return nil, ErrNotRegistered
+	provider, err := getTokenDetailsProvider(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return tokenDetailsProvider.TokenDetails(ctx)
+
+	return provider.TokenDetails(ctx)
 }
 
 func IsTokenActive(ctx context.Context) (bool, error) {
@@ -32,4 +34,17 @@ func IsTokenActive(ctx context.Context) (bool, error) {
 		return false, ErrNotRegistered
 	}
 	return tokenDetailsProvider.IsTokenActive(ctx)
+}
+
+func getTokenDetailsProvider(ctx context.Context) (TokenDetailsProvider, error) {
+	providerFromContext := TokenDetailsProviderFromContext(ctx)
+	if providerFromContext != nil {
+		return providerFromContext, nil
+	}
+
+	if tokenDetailsProvider == nil {
+		return nil, ErrNotRegistered
+	}
+
+	return tokenDetailsProvider, nil
 }

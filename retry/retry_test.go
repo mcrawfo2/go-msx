@@ -2,10 +2,9 @@ package retry
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"time"
@@ -52,16 +51,12 @@ func TestNewRetry(t *testing.T) {
 }
 
 func TestNewRetryFromConfig(t *testing.T) {
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
-			"spring.retry.attempts": "2",
-			"spring.retry.delay":    "500",
-			"spring.retry.backoff":  "2.0",
-			"spring.retry.linear":   "true",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-	//ctx := config.ContextWithConfig(context.Background(), cfg)
+	cfg := configtest.NewStaticConfig(map[string]string{
+		"spring.retry.attempts": "2",
+		"spring.retry.delay":    "500",
+		"spring.retry.backoff":  "2.0",
+		"spring.retry.linear":   "true",
+	})
 
 	tests := []struct {
 		name    string
@@ -95,16 +90,14 @@ func TestNewRetryFromConfig(t *testing.T) {
 }
 
 func TestNewRetryFromContext(t *testing.T) {
-	cfg := config.NewConfig(
-		config.NewStatic("static", map[string]string{
+	ctx := configtest.ContextWithNewStaticConfig(
+		context.Background(),
+		map[string]string{
 			"spring.retry.attempts": "2",
 			"spring.retry.delay":    "500",
 			"spring.retry.backoff":  "2.0",
 			"spring.retry.linear":   "true",
-		}))
-	err := cfg.Load(context.Background())
-	assert.NoError(t, err)
-	ctx := config.ContextWithConfig(context.Background(), cfg)
+		})
 
 	tests := []struct {
 		name    string

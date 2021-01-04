@@ -1,3 +1,5 @@
+//go:generate mockery --name RestController --structname MockRestController --filename mock_RestController.go --inpackage
+
 package webservice
 
 import (
@@ -158,6 +160,7 @@ func ConsumesTextPlain(b *restful.RouteBuilder) {
 
 func DefaultReturns(code int) RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
+		b.Metadata(AttributeDefaultReturnCode, code)
 		b.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 			request.SetAttribute(AttributeDefaultReturnCode, code)
 			chain.ProcessFilter(request, response)
@@ -313,8 +316,11 @@ func Returns424(b *restful.RouteBuilder) {
 func Returns500(b *restful.RouteBuilder) {
 	b.Returns(http.StatusInternalServerError, "Internal Server Error", nil)
 }
+func Returns502(b *restful.RouteBuilder) {
+	b.Returns(http.StatusBadGateway, "Bad Gateway", nil)
+}
 func Returns503(b *restful.RouteBuilder) {
-	b.Returns(http.StatusInternalServerError, "Bad Gateway", nil)
+	b.Returns(http.StatusServiceUnavailable, "Service Unavailable", nil)
 }
 
 func Returns(statuses ...int) RouteBuilderFunc {
@@ -333,6 +339,8 @@ func Returns(statuses ...int) RouteBuilderFunc {
 			statusFuncs = append(statusFuncs, Returns400)
 		case 401:
 			statusFuncs = append(statusFuncs, Returns401)
+		case 403:
+			statusFuncs = append(statusFuncs, Returns403)
 		case 404:
 			statusFuncs = append(statusFuncs, Returns404)
 		case 409:
@@ -341,6 +349,8 @@ func Returns(statuses ...int) RouteBuilderFunc {
 			statusFuncs = append(statusFuncs, Returns424)
 		case 500:
 			statusFuncs = append(statusFuncs, Returns500)
+		case 502:
+			statusFuncs = append(statusFuncs, Returns502)
 		case 503:
 			statusFuncs = append(statusFuncs, Returns503)
 		}

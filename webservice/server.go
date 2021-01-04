@@ -6,9 +6,7 @@ import (
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
-	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
@@ -19,7 +17,6 @@ import (
 	"net"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -43,32 +40,8 @@ type WebServer struct {
 	webRoot       http.FileSystem
 }
 
-func NewWebRoot(webRootPath string) (http.FileSystem, error) {
-	vfs, err := resource.FileSystem()
-	if err != nil {
-		return nil, err
-	}
-
-	return fs.NewPrefixFileSystem(vfs, webRootPath)
-}
-
-func NewWebServer(cfg *WebServerConfig, actuatorConfig *ManagementSecurityConfig, ctx context.Context) (*WebServer, error) {
-	webRoot, err := NewWebRoot(cfg.StaticPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return &WebServer{
-		ctx:         ctx,
-		cfg:         cfg,
-		actuatorCfg: actuatorConfig,
-		router:      &restful.CurlyRouter{},
-		injectors:   new(types.ContextInjectors),
-		handlers:    make(map[string]http.Handler),
-		webRoot:     webRoot,
-	}, nil
-}
-
+// NewService returns an existing restful.WebService if one exists at the specified path.
+// Otherwise, it registers a new restful.WebService and returns it.
 func (s *WebServer) NewService(path string) (*restful.WebService, error) {
 	if s == nil {
 		return nil, ErrDisabled
@@ -96,9 +69,69 @@ func (s *WebServer) NewService(path string) (*restful.WebService, error) {
 	return webService, nil
 }
 
+// SetHandler registers an http.Handler at the specified path
 func (s *WebServer) SetHandler(p string, handler http.Handler) {
 	p = path.Join(s.cfg.ContextPath, p)
 	s.handlers[p] = handler
+}
+
+// AddDocumentationProvider registers a documentation provider
+func (s *WebServer) AddDocumentationProvider(provider DocumentationProvider) {
+	if provider != nil {
+		s.documentation = append(s.documentation, provider)
+	}
+}
+
+// RegisterActuator registers an (admin) endpoint actuator
+func (s *WebServer) RegisterActuator(provider ServiceProvider) {
+	if provider != nil {
+		s.actuators = append(s.actuators, provider)
+	}
+}
+
+// RegisterRestController registers a RestController
+func (s *WebServer) RegisterRestController(path string, controller RestController) (err error) {
+	svc, err := s.NewService(path)
+	if err != nil {
+		return err
+	}
+	controller.Routes(svc)
+	return nil
+}
+
+// SetAuthenticationProvider registers the specified AuthenticationProvider
+func (s *WebServer) SetAuthenticationProvider(provider AuthenticationProvider) {
+	if provider != nil {
+		s.security = provider
+	}
+}
+
+// RegisterInjector registers a context injector
+func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
+	s.injectors.Register(injector)
+}
+
+// RegisterAlias registers a static file alias
+func (s *WebServer) RegisterAlias(path, file string) {
+	s.aliases = append(s.aliases, StaticAlias{
+		Path: path,
+		File: file,
+	})
+}
+
+// Url returns the base URL of the web server
+func (s *WebServer) Url() string {
+	return s.cfg.Url()
+}
+
+// ContextPath returns the context path (prefix) of the web server
+func (s *WebServer) ContextPath() string {
+	return s.cfg.ContextPath
+}
+
+// Handler returns the root http.Handler for the server, building a restful.Container if necessary.
+func (s *WebServer) Handler() http.Handler {
+	return s.generateContainer()
 }
 
 func (s *WebServer) resetContainer() {
@@ -108,7 +141,7 @@ func (s *WebServer) resetContainer() {
 	s.container = nil
 }
 
-func (s *WebServer) Handler() http.Handler {
+func (s *WebServer) generateContainer() *restful.Container {
 	s.containerMtx.Lock()
 	defer s.containerMtx.Unlock()
 
@@ -123,7 +156,7 @@ func (s *WebServer) Handler() http.Handler {
 		s.container,
 		s.router,
 		s.security,
-		s.injectors.Clone()))
+		s.injectors.Slice()))
 	s.container.Filter(tracingFilter)
 	s.container.Filter(recoveryFilter)
 	if s.cfg.Cors {
@@ -134,32 +167,32 @@ func (s *WebServer) Handler() http.Handler {
 	s.container.Filter(auditContextFilter)
 
 	// Add all web services
-	for _, service := range s.services {
-		s.container.Add(service)
+	for _, svc := range s.services {
+		s.container.Add(svc)
 	}
 
 	// Add all handlers
-	for path, handler := range s.handlers {
-		s.container.HandleWithFilter(path, handler)
+	for p, handler := range s.handlers {
+		s.container.HandleWithFilter(p, handler)
 	}
 
 	// Add documentation provider
 	for _, documentation := range s.documentation {
-		s.actuateDocumentation(documentation)
+		s.activateDocumentation(documentation)
 	}
 
 	// Add admin actuators
 	for _, provider := range s.actuators {
-		s.actuateService(provider)
+		s.activateActuator(provider)
 	}
 
 	// Add static file server
-	s.actuateStatic(s.aliases)
+	s.activateStatic(s.aliases)
 
 	return s.container
 }
 
-func (s *WebServer) actuateStatic(aliases []StaticAlias) {
+func (s *WebServer) activateStatic(aliases []StaticAlias) {
 	staticService := new(restful.WebService)
 	staticService.Path(s.cfg.ContextPath)
 
@@ -173,7 +206,7 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 			To(HttpHandlerController(http.NotFound)))
 	}
 
-	fs := http.FileServer(customFileSystem{s.webRoot})
+	fs := http.FileServer(s.webRoot)
 
 	staticUiHandler := http.StripPrefix(
 		staticService.RootPath(), fs).ServeHTTP
@@ -199,37 +232,7 @@ func (s *WebServer) actuateStatic(aliases []StaticAlias) {
 
 }
 
-type customFileSystem struct {
-	fs http.FileSystem
-}
-
-func (nfs customFileSystem) Open(path string) (http.File, error) {
-	f, err := nfs.fs.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	s, err := f.Stat()
-	if s.IsDir() {
-		index := filepath.Join(path, "index.html")
-		if _, err := nfs.fs.Open(index); err != nil {
-			closeErr := f.Close()
-			if closeErr != nil {
-				return nil, closeErr
-			}
-
-			return nil, err
-		}
-	}
-
-	return f, nil
-}
-
-func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
-	if provider == nil {
-		return
-	}
-
+func (s *WebServer) activateDocumentation(provider DocumentationProvider) {
 	documentationService := new(restful.WebService)
 	documentationService.Path(s.cfg.ContextPath)
 	if err := provider.Actuate(s.container, documentationService); err != nil {
@@ -239,7 +242,7 @@ func (s *WebServer) actuateDocumentation(provider DocumentationProvider) {
 	}
 }
 
-func (s *WebServer) actuateService(provider ServiceProvider) {
+func (s *WebServer) activateActuator(provider ServiceProvider) {
 	if provider == nil {
 		return
 	}
@@ -259,6 +262,7 @@ func (s *WebServer) actuateService(provider ServiceProvider) {
 	}
 }
 
+// Serve starts a web server in the background.
 func (s *WebServer) Serve(ctx context.Context) error {
 	s.ctx = trace.UntracedContextFromContext(ctx)
 
@@ -306,6 +310,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	return nil
 }
 
+// StopServing stops the running background webserver.
 func (s *WebServer) StopServing(ctx context.Context) error {
 	if s.server == nil {
 		return nil
@@ -316,53 +321,7 @@ func (s *WebServer) StopServing(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *WebServer) AddDocumentationProvider(provider DocumentationProvider) {
-	if provider != nil {
-		s.documentation = append(s.documentation, provider)
-	}
-}
-
-func (s *WebServer) RegisterActuator(provider ServiceProvider) {
-	if provider != nil {
-		s.actuators = append(s.actuators, provider)
-	}
-}
-
-func (s *WebServer) RegisterRestController(path string, controller RestController) (err error) {
-	svc, err := s.NewService(path)
-	if err != nil {
-		return err
-	}
-	controller.Routes(svc)
-	return nil
-}
-
-func (s *WebServer) SetAuthenticationProvider(provider AuthenticationProvider) {
-	if provider != nil {
-		s.security = provider
-	}
-}
-
-func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
-	s.injectors.Register(injector)
-}
-
-func (s *WebServer) RegisterAlias(path, file string) {
-	s.aliases = append(s.aliases, StaticAlias{
-		Path: path,
-		File: file,
-	})
-}
-
-func (s *WebServer) Url() string {
-	return s.cfg.Url()
-}
-
-func (s *WebServer) ContextPath() string {
-	return s.cfg.ContextPath
-}
-
-func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security AuthenticationProvider, injectors *types.ContextInjectors) restful.FilterFunction {
+func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security AuthenticationProvider, injectors types.ContextInjectors) restful.FilterFunction {
 	return func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 		// Inject the container, router, security provider, request
 		ctx2 := ContextWithContainer(ctx, container)
@@ -393,16 +352,20 @@ func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to read CA certificate file %q", cfg.Tls.CaFile)
 	}
+
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(ca)
+
 	ciphers, err := ParseCiphers(cfg.Tls.CipherSuites)
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, err
 	}
+
 	w, err := certificate.NewSource(ctx, cfg.Tls.CertificateSource)
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, err
 	}
+
 	tlsconfig := &tls.Config{
 		ClientAuth:     tls.VerifyClientCertIfGiven,
 		ClientCAs:      caCertPool,
@@ -410,8 +373,10 @@ func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, err
 		CipherSuites:   ciphers,
 		GetCertificate: w.TlsCertificate,
 	}
+
 	return tlsconfig, nil
 }
+
 func (s *WebServer) getTLSListener(tlscfg *tls.Config) (net.Listener, error) {
 	addr := s.server.Addr
 	if addr == "" {
@@ -422,4 +387,21 @@ func (s *WebServer) getTLSListener(tlscfg *tls.Config) (net.Listener, error) {
 		return ln, err
 	}
 	return tls.NewListener(ln, tlscfg), nil
+}
+
+func NewWebServer(cfg *WebServerConfig, actuatorConfig *ManagementSecurityConfig, ctx context.Context) (*WebServer, error) {
+	webRoot, err := NewWebRoot(cfg.StaticPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WebServer{
+		ctx:         ctx,
+		cfg:         cfg,
+		actuatorCfg: actuatorConfig,
+		router:      &restful.CurlyRouter{},
+		injectors:   new(types.ContextInjectors),
+		handlers:    make(map[string]http.Handler),
+		webRoot:     webRoot,
+	}, nil
 }
