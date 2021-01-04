@@ -23,6 +23,8 @@ type Api interface {
 	GetMyProvider() (*integration.MsxResponse, error)
 	GetProviderByName(providerName string) (*integration.MsxResponse, error)
 
+	GetProviderExtensionByName(name string) (*integration.MsxResponse, error)
+
 	GetTenantIds() (*integration.MsxResponse, error)
 	GetMyTenants() (*integration.MsxResponse, error)
 	GetUserTenants(userId string) (*integration.MsxResponse, error)
