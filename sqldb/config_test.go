@@ -20,7 +20,7 @@ func TestNewSqlConfigFromConfig(t *testing.T) {
 		{
 			name: "EmbeddedDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"cockroach.host":                     "localhost",
 					"cockroach.port":                     "26257",
 					"spring.datasource.driver":           "postgres",
@@ -40,7 +40,7 @@ func TestNewSqlConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.datasource.driver":           "sqlite3",
 					"spring.datasource.enabled":          "true",
 					"spring.datasource.name":             "TestNewSqlConfigFromConfig",

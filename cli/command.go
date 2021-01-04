@@ -123,14 +123,14 @@ func Run(appName string) {
 		if exitCode == 0 {
 			Fatal(err)
 		}
-		logger.Error(err)
+		logger.Errorf("%+v", err)
 	}
 	Exit()
 }
 
 func Fatal(err error) {
 	if err != nil {
-		logger.Error(err)
+		logger.Errorf("%+v", err)
 		SetExitCode(1)
 		Exit()
 	}

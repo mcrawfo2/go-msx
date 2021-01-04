@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+	"net"
+	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -28,6 +31,10 @@ type ConnectionConfig struct {
 	Scheme  string `config:"default=http"`
 	Config  struct {
 		AclToken string `config:"default="`
+	}
+	Watch struct {
+		Enabled bool `config:"default=true"`
+		WaitTime int `config:"default=55"` // seconds
 	}
 }
 
@@ -58,10 +65,6 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 		entries, _, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
 		if err != nil {
 			return err
-		} else if entries == nil {
-			logger.Warningf("No config retrieved from consul (%s): %s", c.Host(), path)
-		} else {
-			logger.Infof("Retrieved %d configs from consul (%s): %s", len(entries), c.Host(), path)
 		}
 
 		prefix := path + "/"
@@ -82,6 +85,47 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 		return nil, err
 	}
 	return results, nil
+}
+
+func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIndex *uint64, waitTime *time.Duration) (resultIndex uint64, results map[string]string, err error) {
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiWatchKeyValuePairs)
+	defer span.Finish()
+
+	err = c.stats.Observe(statsApiWatchKeyValuePairs, path, func() error {
+		queryOptions := &api.QueryOptions{}
+
+		if waitIndex != nil {
+			queryOptions.WaitIndex = *waitIndex
+		}
+
+		if waitTime != nil {
+			queryOptions.WaitTime = *waitTime
+		}
+
+		entries, qm, err := c.client.KV().List(path, queryOptions.WithContext(ctx))
+		if err != nil {
+			return err
+		}
+
+		resultIndex = qm.LastIndex
+		prefix := path + "/"
+		results = make(map[string]string)
+		for _, entry := range entries {
+			if !strings.HasPrefix(entry.Key, prefix) {
+				continue
+			}
+
+			propName := strings.TrimPrefix(entry.Key, prefix)
+			results[propName] = string(entry.Value)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return 0,nil, err
+	}
+	return
 }
 
 func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte, err error) {
@@ -256,6 +300,19 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	clientConfig.Scheme = connectionConfig.Scheme
 	clientConfig.Token = connectionConfig.Config.AclToken
 	clientConfig.TLSConfig.InsecureSkipVerify = true
+	clientConfig.WaitTime = time.Duration(connectionConfig.Watch.WaitTime) * time.Second
+	clientConfig.Transport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		DisableCompression:    true,
+		MaxIdleConns:          5,
+		MaxIdleConnsPerHost:   2,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 1 * time.Minute,
+		ExpectContinueTimeout: 5 * time.Second,
+	}
 
 	if client, err := api.NewClient(clientConfig); err != nil {
 		return nil, err

@@ -21,7 +21,7 @@ func TestNewPushConfigFromConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &PushConfig{
 				Enabled:   false,
@@ -34,7 +34,7 @@ func TestNewPushConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"stats.push.enabled":   "true",
 					"stats.push.url":       "http://zipkin:16161",
 					"stats.push.job-name":  "charlie",

@@ -37,7 +37,7 @@ func TestNewProvider_Success(t *testing.T) {
 	factory.On("Name").Return("mock")
 	factory.On("New", mock.AnythingOfType("*context.valueCtx"), "certificate.source.test").Return(provider, nil)
 
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
 			"certificate.source.test.provider": "mock",
@@ -70,7 +70,7 @@ func TestNewProvider_SourceNotConfigured(t *testing.T) {
 }
 
 func TestNewProvider_NoSuchProvider(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
 			"certificate.source.test.provider": "mock",

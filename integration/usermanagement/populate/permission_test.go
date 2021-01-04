@@ -20,7 +20,7 @@ func TestNewPermissionPopulatorConfigFromConfig(t *testing.T) {
 		{
 			name: "StructDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"populate.root": "/platform-common",
 				}),
 			},
@@ -32,7 +32,7 @@ func TestNewPermissionPopulatorConfigFromConfig(t *testing.T) {
 		{
 			name: "CustomOptions",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"populate.root": "/platform-common",
 					"populate.usermanagement.permission.enabled": "true",
 				}),

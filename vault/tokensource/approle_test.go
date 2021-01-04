@@ -20,7 +20,7 @@ func TestNewAppRoleConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.vault.token-source.app-role.role-id":   "some-role",
 					"spring.cloud.vault.token-source.app-role.secret-id": "some-role-secret",
 				}),

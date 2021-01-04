@@ -14,7 +14,7 @@ func TestProviderFactory_Name(t *testing.T) {
 }
 
 func TestProviderFactory_New(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{"certificate.source.success.provider": "file"})
 
@@ -131,7 +131,7 @@ func TestNewProviderConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"certificate.source.bravo.provider": "file",
 				}),
 				configRoot: "certificate.source.bravo",
@@ -144,7 +144,7 @@ func TestNewProviderConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"certificate.source.bravo.provider":  "file",
 					"certificate.source.bravo.cert-file": "custom.crt",
 					"certificate.source.bravo.key-file":  "custom.key",

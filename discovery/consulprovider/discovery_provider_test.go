@@ -20,7 +20,7 @@ func TestNewDiscoveryProviderConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &DiscoveryProviderConfig{
 				DefaultQueryTag: "",
@@ -29,7 +29,7 @@ func TestNewDiscoveryProviderConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.consul.discovery.default-query-tag": "version=3.9.0",
 				}),
 			},

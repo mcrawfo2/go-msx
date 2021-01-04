@@ -9,7 +9,7 @@ import (
 )
 
 func testCacheConfig(ttl, expireLimit, expireFrequency, root string) *config.Config {
-	return configtest.NewStaticConfig(map[string]string{
+	return configtest.NewInMemoryConfig(map[string]string{
 		root + ".ttl":              ttl,
 		root + ".expire-limit":     expireLimit,
 		root + ".expire-frequency": expireFrequency,

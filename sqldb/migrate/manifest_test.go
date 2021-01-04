@@ -20,7 +20,7 @@ func TestNewManifestConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &ManifestConfig{
 				PostUpgrade: "",
@@ -29,7 +29,7 @@ func TestNewManifestConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"migrate.post-upgrade": "some-value",
 				}),
 			},

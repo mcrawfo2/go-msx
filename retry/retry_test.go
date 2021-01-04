@@ -52,7 +52,7 @@ func TestNewRetry(t *testing.T) {
 }
 
 func TestNewRetryFromConfig(t *testing.T) {
-	cfg := configtest.NewStaticConfig(map[string]string{
+	cfg := configtest.NewInMemoryConfig(map[string]string{
 		"spring.retry.attempts": "2",
 		"spring.retry.delay":    "500",
 		"spring.retry.backoff":  "2.0",
@@ -91,7 +91,7 @@ func TestNewRetryFromConfig(t *testing.T) {
 }
 
 func TestNewRetryFromContext(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
 			"spring.retry.attempts": "2",
@@ -243,7 +243,7 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg:  configtest.NewStaticConfig(map[string]string{}),
+				cfg:  configtest.NewInMemoryConfig(map[string]string{}),
 				root: "some.random.spot",
 			},
 			want: &RetryConfig{
@@ -256,7 +256,7 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"some.random.spot.attempts": "1",
 					"some.random.spot.delay":    "2",
 					"some.random.spot.backoff":  "3.0",

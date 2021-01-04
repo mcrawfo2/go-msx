@@ -35,10 +35,10 @@ func init() {
 			appInstance := types.RandString(5)
 
 			return []config.Provider{
-				config.NewCachedLoader(
-					cobraprovider.NewCobraSource(name, cmd, "cli.flag."),
+				config.NewCacheProvider(
+					cobraprovider.NewProvider(name, cmd, "cli.flag."),
 				),
-				config.NewCachedLoader(config.NewStatic("Built-In", map[string]string{
+				config.NewCacheProvider(config.NewInMemoryProvider("Built-In", map[string]string{
 					"spring.application.name":     strings.Fields(cli.RootCmd().Use)[0],
 					"spring.application.instance": appInstance,
 					"info.app.name":               strings.Fields(cli.RootCmd().Use)[0],

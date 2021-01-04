@@ -2,24 +2,87 @@ package config
 
 import (
 	"context"
+	"errors"
+	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 func TestResolver(t *testing.T) {
-	static := NewStatic("resolver", map[string]string{"items.server.timeout": "30"})
+	type wants struct {
+		resolved map[string]string
+		err      error
+	}
+	tests := []struct {
+		name     string
+		settings map[string]string
+		want     wants
+	}{
+		{
+			name: "Simple",
+			settings: map[string]string{
+				"alpha": "a",
+				"bravo": "${alpha}b",
+			},
+			want: wants{
+				resolved: map[string]string{
+					"alpha": "a",
+					"bravo": "ab",
+				},
+				err:      nil,
+			},
+		},
+		{
+			name: "Utf8",
+			settings: map[string]string{
+				"alpha": `a${bravo:Σ}`,
+				"charlie": `dΞf`,
+			},
+			want: wants{
+				resolved: map[string]string{
+					"alpha": "aΣ",
+					"charlie": "dΞf",
+				},
+			},
+		},
+		{
+			name: "Circular",
+			settings: map[string]string{
+				"alpha": "${charlie}a",
+				"bravo": "b${alpha}",
+				"charlie": "${bravo}c",
+			},
+			want: wants{
+				resolved: nil,
+				err:      ErrCircularReference,
+			},
 
-	mappings := map[string]string{
-		"items.server.timeout": "server.timeout",
+		},
 	}
 
-	resolver := NewResolver(static, mappings)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inMem := NewInMemoryProvider("in-memory", tt.settings)
+			entries, err := inMem.Load(context.Background())
+			assert.NoError(t, err)
+			entries.SortByNormalizedName()
 
-	settings, err := resolver.Load(context.Background())
-	if err != nil {
-		t.Error(err)
-	}
+			resolver := NewResolver(entries)
 
-	if settings["server.timeout"] != "30" {
-		t.Errorf("Timeout was '%s', expected '30'", settings["server.timeout"])
+			resolvedEntries, err := resolver.Entries()
+			if err != nil {
+				if tt.want.err == nil {
+					t.Errorf("Expected no error, got = %v", err)
+				} else if !errors.Is(err, tt.want.err) {
+					t.Errorf("Expected error = %v, got = %v", tt.want.err, err)
+				}
+				return
+			}
+
+			resolved := newSnapshotValues(resolvedEntries).Settings()
+			if !reflect.DeepEqual(tt.want.resolved, resolved) {
+				t.Errorf("Expected resolved = %v, got = %v", tt.want.resolved, resolved)
+			}
+		})
 	}
 }

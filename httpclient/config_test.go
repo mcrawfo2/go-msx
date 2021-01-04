@@ -25,7 +25,7 @@ func TestNewClientConfig(t *testing.T) {
 		{
 			name: "StructDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &ClientConfig{
 				Timeout:     30 * time.Second,
@@ -39,7 +39,7 @@ func TestNewClientConfig(t *testing.T) {
 		{
 			name: "CustomOptions",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"http.client.timeout":       "90s",
 					"http.client.idle-timeout":  "120s",
 					"http.client.tls-insecure":  "false",

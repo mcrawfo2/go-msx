@@ -21,7 +21,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"info.app.name": "TestNewRegistrationProviderConfigFromConfig/Defaults",
 				}),
 			},
@@ -40,7 +40,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.consul.discovery.enabled":               "true",
 					"spring.cloud.consul.discovery.name":                  "custom",
 					"spring.cloud.consul.discovery.register":              "false",

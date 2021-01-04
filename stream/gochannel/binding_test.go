@@ -23,7 +23,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg:                 configtest.NewStaticConfig(map[string]string{}),
+				cfg:                 configtest.NewInMemoryConfig(map[string]string{}),
 				key:                 "alpha",
 				streamBindingConfig: nil,
 			},
@@ -39,7 +39,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.gochannel.bindings.alpha.producer.output-channel-buffer":              "10",
 					"spring.cloud.stream.gochannel.bindings.alpha.producer.persistent":                         "true",
 					"spring.cloud.stream.gochannel.bindings.alpha.producer.block-publish-until-subscriber-ack": "true",

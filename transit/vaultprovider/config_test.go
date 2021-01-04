@@ -22,7 +22,7 @@ func TestNewEncryptionConfig(t *testing.T) {
 		{
 			name: "Embedded",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"per-tenant-encryption.enabled":                               "false",
 					"per-tenant-encryption.always-create-keys":                    "false",
 					"per-tenant-encryption.key-properties.type":                   "aes256-gcm96",
@@ -43,7 +43,7 @@ func TestNewEncryptionConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"per-tenant-encryption.enabled":                               "false",
 					"per-tenant-encryption.always-create-keys":                    "false",
 					"per-tenant-encryption.key-properties.type":                   "aes256-gcm96",

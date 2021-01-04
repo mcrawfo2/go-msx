@@ -20,7 +20,7 @@ func TestNewConnectionConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &ConnectionConfig{
 				Enabled: true,
@@ -44,7 +44,7 @@ func TestNewConnectionConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.vault.enabled":             "false",
 					"spring.cloud.vault.host":                "remote-vm",
 					"spring.cloud.vault.port":                "9999",

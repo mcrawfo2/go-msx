@@ -7,7 +7,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"encoding/base64"
 	"fmt"
 	"path"
@@ -58,7 +57,7 @@ var (
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",
 		"kubernetes.group":             "platformms",
-		"docker.dockerfile":            "docker/Dockerfile", // TODO: v1.0.0: switch to default 'build/package/Dockerfile'
+		"docker.dockerfile":            "docker/Dockerfile", // TODO: v0.2.0: switch to default 'build/package/Dockerfile'
 		"docker.baseimage":             "msx-base-buster:3.9.0-70",
 		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
 		"docker.username":              "",
@@ -74,6 +73,8 @@ var (
 		"artifactory.username":         "",
 		"artifactory.password":         "",
 	}
+	defaultConfigProvider = config.NewInMemoryProvider("defaults", defaultConfigs)
+	defaultConfigCache = config.NewCacheProvider(defaultConfigProvider)
 )
 
 type AppInfo struct {
@@ -330,6 +331,7 @@ func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []con
 	springAppName, _ := cfg.StringOr("spring.application.name", "build")
 	if springAppName == "build" {
 		defaultConfigs["spring.application.name"] = BuildConfig.App.Name
+		defaultConfigCache.Invalidate()
 		_ = cfg.Load(ctx)
 	}
 
@@ -358,10 +360,10 @@ func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []con
 
 func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	var providers = []config.Provider{
-		config.NewStatic("defaults", defaultConfigs),
+		defaultConfigCache,
 	}
 
-	defaultFilesProviders := config.NewHttpFileProvidersFromGlob("Defaults", resource.Defaults, "**/defaults-*")
+	defaultFilesProviders := config.EmbeddedDefaultsProviders
 	providers = append(providers, defaultFilesProviders...)
 
 	for _, configFile := range configFiles {
@@ -369,10 +371,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 		providers = append(providers, fileProvider)
 	}
 
-	envProvider := config.NewEnvironment("Environment")
+	envProvider := config.NewEnvironmentProvider("Environment")
 	providers = append(providers, envProvider)
 
-	cliProvider := pflagprovider.NewPflagSource("CommandLine", cli.RootCmd().Flags(), "cli.flag.")
+	cliProvider := pflagprovider.NewProvider("CommandLine", cli.RootCmd().Flags(), "cli.flag")
 	providers = append(providers, cliProvider)
 
 	cfg := config.NewConfig(providers...)

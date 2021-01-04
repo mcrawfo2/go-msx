@@ -77,7 +77,7 @@ func TestNewTokenProviderConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &TokenProviderConfig{
 				KeySource:   "vault",
@@ -89,7 +89,7 @@ func TestNewTokenProviderConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"security.keys.jwt.key-source":   "pem",
 					"security.keys.jwt.key-path":     "testdata/jwt-pubkey.pem",
 					"security.keys.jwt.key-name":     "ignored1",

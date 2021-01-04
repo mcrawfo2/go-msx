@@ -22,7 +22,7 @@ func TestNewProviderConfig(t *testing.T) {
 		{
 			name: "Simple",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"certificate.source.alpha.provider": "vault",
 					"certificate.source.alpha.role":     "vault-role-alpha",
 					"certificate.source.alpha.cn":       "key=value, key2=value2",

@@ -20,7 +20,7 @@ func TestNewConnectionConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name":     "test",
 					"spring.application.instance": "XYZABC",
 				}),
@@ -47,7 +47,7 @@ func TestNewConnectionConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.kafka.binder.brokers":                   "remote-vm,remote-vm2",
 					"spring.cloud.stream.kafka.binder.default-broker-port":       "9999",
 					"spring.cloud.stream.kafka.binder.zk-nodes":                  "remote-vm,remote-vm2",
