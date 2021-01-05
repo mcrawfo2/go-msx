@@ -1,9 +1,12 @@
 package jwttokenprovider
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"reflect"
 	"testing"
 )
 
@@ -50,7 +53,7 @@ func TestTokenProvider_pemSigningKey(t *testing.T) {
 	assert.NotNil(t, keyStore)
 }
 
-// TODO: Find a mock time source
+// TODO: Implement using mock clock
 //func TestTokenProvider_SecurityContextFromToken(t *testing.T) {
 //	tokenProvider := createTokenProviderPem()
 //	var token *string
@@ -60,3 +63,58 @@ func TestTokenProvider_pemSigningKey(t *testing.T) {
 //	assert.NoError(t, err)
 //	assert.NotNil(t, userContext)
 //}
+
+func TestNewTokenProviderConfig(t *testing.T) {
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *TokenProviderConfig
+		wantErr bool
+	}{
+		{
+			name: "Defaults",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{}),
+			},
+			want: &TokenProviderConfig{
+				KeySource:   "vault",
+				KeyPath:     "secret/phi_pnp",
+				KeyName:     "key",
+				KeyPassword: "",
+			},
+		},
+		{
+			name: "Custom",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{
+					"security.keys.jwt.key-source":   "pem",
+					"security.keys.jwt.key-path":     "testdata/jwt-pubkey.pem",
+					"security.keys.jwt.key-name":     "ignored1",
+					"security.keys.jwt.key-password": "ignored2",
+				}),
+			},
+			want: &TokenProviderConfig{
+				KeySource:   "pem",
+				KeyPath:     "testdata/jwt-pubkey.pem",
+				KeyName:     "ignored1",
+				KeyPassword: "ignored2",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewTokenProviderConfig(tt.args.cfg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewTokenProviderConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewTokenProviderConfig() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

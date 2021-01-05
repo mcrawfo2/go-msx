@@ -19,19 +19,28 @@ type KubernetesConfig struct {
 	Role    string
 }
 
+func NewKubernetesConfig(cfg *config.Config) (*KubernetesConfig, error) {
+	kubernetesConfig := KubernetesConfig{}
+	if err := cfg.Populate(&kubernetesConfig, configRootKubernetes); err != nil {
+		return nil, err
+	}
+	return &kubernetesConfig, nil
+}
+
 func (k *KubernetesSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
-	k8sconfig := &KubernetesConfig{}
-	if err := cfg.Populate(k8sconfig, configRootKubernetes); err != nil {
+	kubernetesConfig, err := NewKubernetesConfig(cfg)
+	if err != nil {
 		return "", err
 	}
-	jwt, err := ioutil.ReadFile(k8sconfig.JWTPath)
+
+	jwt, err := ioutil.ReadFile(kubernetesConfig.JWTPath)
 	if err != nil {
 		return "", err
 	}
 	data := make(map[string]interface{})
 	data["jwt"] = string(jwt)
-	data["role"] = k8sconfig.Role
-	login, err := client.Logical().Write(k8sconfig.Path, data)
+	data["role"] = kubernetesConfig.Role
+	login, err := client.Logical().Write(kubernetesConfig.Path, data)
 	if err != nil {
 		return "", err
 	}

@@ -2,8 +2,10 @@ package fileprovider
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -113,4 +115,61 @@ func TestProvider_Renewable(t *testing.T) {
 func TestRegisterFactory(t *testing.T) {
 	err := RegisterFactory(context.Background())
 	assert.NoError(t, err)
+}
+
+func TestNewProviderConfig(t *testing.T) {
+	type args struct {
+		cfg        *config.Config
+		configRoot string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    ProviderConfig
+		wantErr bool
+	}{
+		{
+			name: "Defaults",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{
+					"certificate.source.bravo.provider": "file",
+				}),
+				configRoot: "certificate.source.bravo",
+			},
+			want: ProviderConfig{
+				CertFile: "server.crt",
+				KeyFile:  "server.key",
+			},
+		},
+		{
+			name: "Custom",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{
+					"certificate.source.bravo.provider":  "file",
+					"certificate.source.bravo.cert-file": "custom.crt",
+					"certificate.source.bravo.key-file":  "custom.key",
+				}),
+				configRoot: "certificate.source.bravo",
+			},
+			want: ProviderConfig{
+				CertFile: "custom.crt",
+				KeyFile:  "custom.key",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ProviderConfig
+			err := tt.args.cfg.Populate(&got, tt.args.configRoot)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewProviderConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewProviderConfig() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

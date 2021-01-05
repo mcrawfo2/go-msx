@@ -52,6 +52,15 @@ type PermissionPopulatorConfig struct {
 	Root    string `config:"default=${populate.root}/usermanagement"`
 }
 
+func NewPermissionPopulatorConfigFromConfig(cfg *config.Config) (*PermissionPopulatorConfig, error) {
+	var populatorConfig PermissionPopulatorConfig
+	if err := cfg.Populate(&populatorConfig, permissionsPopulatorConfigRoot); err != nil {
+		return nil, err
+	}
+
+	return &populatorConfig, nil
+}
+
 type PermissionPopulator struct {
 	cfg PermissionPopulatorConfig
 }
@@ -220,13 +229,12 @@ func init() {
 			1000,
 			[]string{"all", "customRolesAndCapabilities", "serviceMetadata"},
 			func(ctx context.Context) (populate.Populator, error) {
-				var cfg PermissionPopulatorConfig
-				err := config.MustFromContext(ctx).Populate(&cfg, permissionsPopulatorConfigRoot)
+				cfg, err := NewPermissionPopulatorConfigFromConfig(config.MustFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
 				return &PermissionPopulator{
-					cfg: cfg,
+					cfg: *cfg,
 				}, nil
 			}))
 }

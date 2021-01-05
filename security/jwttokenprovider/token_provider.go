@@ -194,12 +194,19 @@ func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 	}
 }
 
+func NewTokenProviderConfig(cfg *config.Config) (*TokenProviderConfig, error) {
+	jwtTokenProviderConfig := new(TokenProviderConfig)
+	if err := cfg.Populate(jwtTokenProviderConfig, configRootJwtTokenProvider); err != nil {
+		return nil, err
+	}
+	return jwtTokenProviderConfig, nil
+}
+
 func RegisterTokenProvider(ctx context.Context) error {
 	logger.Info("Registering JWT token provider")
 
-	cfg := config.FromContext(ctx)
-	jwtTokenProviderConfig := new(TokenProviderConfig)
-	if err := cfg.Populate(jwtTokenProviderConfig, configRootJwtTokenProvider); err != nil {
+	jwtTokenProviderConfig, err := NewTokenProviderConfig(config.FromContext(ctx))
+	if err != nil {
 		return err
 	}
 

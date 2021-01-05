@@ -61,9 +61,18 @@ func convertToServiceInstance(sourceEntry *api.ServiceEntry) *discovery.ServiceI
 	}
 }
 
-func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProvider, err error) {
+func NewDiscoveryProviderConfigFromConfig(cfg *config.Config) (*DiscoveryProviderConfig, error) {
 	var discoveryConfig DiscoveryProviderConfig
 	if err := cfg.Populate(&discoveryConfig, configRootDiscoveryProvider); err != nil {
+		return nil, err
+	}
+
+	return &discoveryConfig, nil
+}
+
+func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProvider, err error) {
+	discoveryConfig, err := NewDiscoveryProviderConfigFromConfig(cfg)
+	if err != nil {
 		return nil, err
 	}
 
@@ -77,7 +86,7 @@ func NewDiscoveryProviderFromConfig(cfg *config.Config) (provider *DiscoveryProv
 	}
 
 	return &DiscoveryProvider{
-		cfg:  &discoveryConfig,
+		cfg:  discoveryConfig,
 		conn: conn,
 	}, nil
 }

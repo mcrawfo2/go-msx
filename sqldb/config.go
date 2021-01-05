@@ -13,10 +13,14 @@ type Config struct {
 	Enabled        bool   `config:"default=false"`
 }
 
-func NewSqlConfig(ctx context.Context) (*Config, error) {
-	var cfg Config
-	if err := config.FromContext(ctx).Populate(&cfg, configRootSpringDatasourceConfig); err != nil {
+func NewSqlConfigFromConfig(cfg *config.Config) (*Config, error) {
+	var sqlConfig Config
+	if err := cfg.Populate(&sqlConfig, configRootSpringDatasourceConfig); err != nil {
 		return nil, err
 	}
-	return &cfg, nil
+	return &sqlConfig, nil
+}
+
+func NewSqlConfig(ctx context.Context) (*Config, error) {
+	return NewSqlConfigFromConfig(config.FromContext(ctx))
 }

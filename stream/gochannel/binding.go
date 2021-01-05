@@ -10,24 +10,27 @@ const (
 	configRootGoChannelBindings = "spring.cloud.stream.gochannel.bindings"
 )
 
+type BindingProducerConfig struct {
+	OutputChannelBuffer            int64 `config:"default=16"`
+	Persistent                     bool  `config:"default=false"`
+	BlockPublishUntilSubscriberAck bool  `config:"default=false"`
+}
+
 type BindingConfiguration struct {
-	Producer struct {
-		OutputChannelBuffer            int64 `config:"default=16"`
-		Persistent                     bool  `config:"default=false"`
-		BlockPublishUntilSubscriberAck bool  `config:"default=false"`
-	}
+	Producer            BindingProducerConfig
 	StreamBindingConfig *stream.BindingConfiguration `config:"-"`
 }
 
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string, streamBindingConfig *stream.BindingConfiguration) (*BindingConfiguration, error) {
+	// TODO: config.PrefixWithName
 	prefix := fmt.Sprintf("%s.%s", configRootGoChannelBindings, key)
 
-	bindingConfig := &BindingConfiguration{}
-	if err := cfg.Populate(bindingConfig, prefix); err != nil {
+	bindingConfig := BindingConfiguration{}
+	if err := cfg.Populate(&bindingConfig, prefix); err != nil {
 		return nil, err
 	}
 
 	bindingConfig.StreamBindingConfig = streamBindingConfig
 
-	return bindingConfig, nil
+	return &bindingConfig, nil
 }

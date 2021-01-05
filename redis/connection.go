@@ -141,9 +141,18 @@ func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
 	}, nil
 }
 
-func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
+func NewConnectionConfigFromConfig(cfg *config.Config) (*ConnectionConfig, error) {
 	connectionConfig := &ConnectionConfig{}
 	if err := cfg.Populate(connectionConfig, configRootRedis); err != nil {
+		return nil, err
+	}
+
+	return connectionConfig, nil
+}
+
+func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
+	connectionConfig, err := NewConnectionConfigFromConfig(cfg)
+	if err != nil {
 		return nil, err
 	}
 

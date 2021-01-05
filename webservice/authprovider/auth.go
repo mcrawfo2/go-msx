@@ -33,6 +33,14 @@ type ResourcePatternAuthenticationConfig struct {
 	Whitelist []string `config:"default=/admin/health;/admin/info;/admin/alive"`
 }
 
+func NewResourcePatternAuthenticationConfig(cfg *config.Config) (*ResourcePatternAuthenticationConfig, error) {
+	providerConfig := new(ResourcePatternAuthenticationConfig)
+	if err := cfg.Populate(providerConfig, configRootAuthenticationProvider); err != nil {
+		return nil, err
+	}
+	return providerConfig, nil
+}
+
 type ResourcePatternAuthenticationProvider struct {
 	cfg *ResourcePatternAuthenticationConfig
 }
@@ -102,12 +110,11 @@ func NewResourcePatternAuthenticationProvider(cfg *ResourcePatternAuthentication
 }
 
 func NewResourcePatternAuthenticationProviderFromConfig(cfg *config.Config) (*ResourcePatternAuthenticationProvider, error) {
-	jwtSecurityProviderConfig := new(ResourcePatternAuthenticationConfig)
-	if err := cfg.Populate(jwtSecurityProviderConfig, configRootAuthenticationProvider); err != nil {
+	providerConfig, err := NewResourcePatternAuthenticationConfig(cfg)
+	if err != nil {
 		return nil, err
 	}
-
-	return NewResourcePatternAuthenticationProvider(jwtSecurityProviderConfig), nil
+	return NewResourcePatternAuthenticationProvider(providerConfig), nil
 }
 
 func RegisterAuthenticationProvider(ctx context.Context) error {

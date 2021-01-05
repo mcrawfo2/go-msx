@@ -12,24 +12,30 @@ const (
 	configKeyBuildVersion   = "info.build.version"
 )
 
+type DocumentationSecuritySsoConfig struct {
+	BaseUrl       string `config:"default=http://localhost:9103/idm"`
+	TokenPath     string `config:"default=/v2/token"`
+	AuthorizePath string `config:"default=/v2/authorize"`
+	ClientId      string `config:"default=nfv-client"`
+	ClientSecret  string `config:"default="`
+}
+
+type DocumentationSecurityConfig struct {
+	Sso DocumentationSecuritySsoConfig
+}
+
+type DocumentationUiConfig struct {
+	Enabled  bool   `config:"default=true"`
+	Endpoint string `config:"default=/swagger"`
+	View     string `config:"default=/swagger-ui.html"`
+}
+
 type DocumentationConfig struct {
 	Enabled     bool   `config:"default=false"`
 	ApiPath     string `config:"default=/apidocs.json"`
 	SwaggerPath string `config:"default=/swagger-resources"`
-	Security    struct {
-		Sso struct {
-			BaseUrl       string `config:"default=http://localhost:9103/idm"`
-			TokenPath     string `config:"default=/v2/token"`
-			AuthorizePath string `config:"default=/v2/authorize"`
-			ClientId      string `config:"default=nfv-client"`
-			ClientSecret  string `config:"default="`
-		}
-	}
-	Ui struct {
-		Enabled  bool   `config:"default=true"`
-		Endpoint string `config:"default=/swagger"`
-		View     string `config:"default=/swagger-ui.html"`
-	}
+	Security    DocumentationSecurityConfig
+	Ui          DocumentationUiConfig
 }
 
 func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, error) {

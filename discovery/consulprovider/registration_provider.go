@@ -354,9 +354,18 @@ func getIp(iface string) (string, error) {
 	return ip.String(), nil
 }
 
+func NewRegistrationProviderConfigFromConfig(cfg *config.Config) (*RegistrationProviderConfig, error) {
+	var providerConfig = RegistrationProviderConfig{}
+	var err = cfg.Populate(&providerConfig, configRootRegistrationProvider)
+	if err != nil {
+		return nil, err
+	}
+
+	return &providerConfig, nil
+}
+
 func NewRegistrationProviderFromConfig(cfg *config.Config) (*RegistrationProvider, error) {
-	var providerConfig = &RegistrationProviderConfig{}
-	var err = cfg.Populate(providerConfig, configRootRegistrationProvider)
+	providerConfig, err := NewRegistrationProviderConfigFromConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
