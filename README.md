@@ -10,7 +10,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 ## Requirements
 
-- Go 1.13+
+- Go 1.14+
 
     - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
         ```bash

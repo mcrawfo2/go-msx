@@ -1,6 +1,6 @@
 module cto-github.cisco.com/NFV-BU/go-msx
 
-go 1.12
+go 1.14
 
 require (
 	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
