@@ -10,10 +10,12 @@ const (
 	configRootKafkaBindings = "spring.cloud.stream.kafka.bindings"
 )
 
+type BindingProducerConfig struct {
+	Sync bool `config:"default=true"`
+}
+
 type BindingConfiguration struct {
-	Producer struct {
-		Sync bool `config:"default=true"`
-	}
+	Producer            BindingProducerConfig
 	StreamBindingConfig *stream.BindingConfiguration `config:"-"`
 }
 

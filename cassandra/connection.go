@@ -5,17 +5,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cassandra/ddl"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (
-	configRootCassandraCluster = "spring.data.cassandra"
-	keyspaceSystem             = "system"
+	keyspaceSystem = "system"
 )
 
 var (
@@ -27,60 +22,6 @@ var (
 
 func init() {
 	gocql.Logger = gocqlLogger
-}
-
-type KeyspaceOptions struct {
-	Replications             []string `config:"default=datacenter1"`
-	DefaultReplicationFactor int      `config:"default=1"`
-}
-
-func (o KeyspaceOptions) ReplicationOptions() map[string]string {
-	result := make(map[string]string)
-	for _, replication := range o.Replications {
-		parts := strings.SplitN(replication, ":", 2)
-		if len(parts) == 1 || parts[1] == "" {
-			result[parts[0]] = strconv.Itoa(o.DefaultReplicationFactor)
-		} else {
-			result[parts[0]] = parts[1]
-		}
-	}
-
-	result[ddl.ReplicationOptionsKeyClass] = ddl.ClassNetworkTopologyStrategy
-	return result
-}
-
-type ClusterConfig struct {
-	Enabled            bool          `config:"default=false"`
-	KeyspaceName       string        `config:"default=system"`
-	ContactPoints      string        `config:"default=localhost"` // comma separated
-	Port               int           `config:"default=9042"`
-	Username           string        `config:"default=cassandra"`
-	Password           string        `config:"default=cassandra"`
-	Timeout            time.Duration `config:"default=15s"`
-	Consistency        string        `config:"default=LOCAL_QUORUM"`
-	FullConsistency    string        `config:"default=ONE"`
-	PersistentSessions bool          `config:"default=false"`
-	KeyspaceOptions    KeyspaceOptions
-}
-
-func (c ClusterConfig) Hosts() []string {
-	hosts := strings.Split(c.ContactPoints, ",")
-	for i, h := range hosts {
-		hostParts := strings.SplitN(h, ":", 2)
-		if len(hostParts) == 1 {
-			hosts[i] = fmt.Sprintf("%s:%d", h, c.Port)
-		}
-	}
-	return hosts
-}
-
-func NewClusterConfigFromConfig(cfg *config.Config) (*ClusterConfig, error) {
-	clusterConfig := &ClusterConfig{}
-	if err := cfg.Populate(clusterConfig, configRootCassandraCluster); err != nil {
-		return nil, err
-	}
-
-	return clusterConfig, nil
 }
 
 type Cluster struct {

@@ -18,13 +18,13 @@ type SecurityAccountsDefaultSettings struct {
 	Password string `config:"default=system"`
 }
 
-func NewSecurityAccountsDefaultSettings(ctx context.Context) (cfg *SecurityAccountsDefaultSettings, err error) {
-	cfg = &SecurityAccountsDefaultSettings{}
-	err = config.FromContext(ctx).Populate(cfg, configRootIntegrationSecurityAccountsDefault)
-	if err != nil {
+func NewSecurityAccountsDefaultSettings(cfg *config.Config) (*SecurityAccountsDefaultSettings, error) {
+	securityAccountsConfig := &SecurityAccountsDefaultSettings{}
+	if err := cfg.Populate(securityAccountsConfig, configRootIntegrationSecurityAccountsDefault); err != nil {
 		return nil, err
 	}
-	return cfg, nil
+
+	return securityAccountsConfig, nil
 }
 
 func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (err error) {
@@ -33,7 +33,7 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 		return err
 	}
 
-	cfg, err := NewSecurityAccountsDefaultSettings(ctx)
+	cfg, err := NewSecurityAccountsDefaultSettings(config.FromContext(ctx))
 	if err != nil {
 		return err
 	}

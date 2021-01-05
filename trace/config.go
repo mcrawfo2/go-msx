@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	configRootTracing    = "trace"
-	configKeyInfoAppName = "info.app.name"
+	configRootTracing = "trace"
 )
 
 var (
@@ -28,7 +27,7 @@ var (
 
 type TracingConfig struct {
 	Enabled     bool   `config:"default=false"`
-	ServiceName string `config:"default="`
+	ServiceName string `config:"default=${info.app.name}"`
 	Reporter    TracingReporterConfig
 }
 
@@ -68,12 +67,6 @@ func NewTracingConfig(cfg *config.Config) (*TracingConfig, error) {
 	if err := cfg.Populate(&tracingConfig, configRootTracing); err != nil {
 		return nil, err
 	}
-
-	serviceName, err := cfg.String(configKeyInfoAppName)
-	if err != nil {
-		return nil, err
-	}
-	tracingConfig.ServiceName = serviceName
 
 	return &tracingConfig, nil
 }

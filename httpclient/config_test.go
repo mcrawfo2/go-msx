@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"crypto/tls"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"github.com/sirupsen/logrus"
@@ -12,23 +13,64 @@ import (
 )
 
 func TestNewClientConfig(t *testing.T) {
-	cfg := configtest.NewStaticConfig(map[string]string{
-		"http.client.timeout":       "90s",
-		"http.client.idle-timeout":  "120s",
-		"http.client.tls-insecure":  "false",
-		"http.client.local-ca-file": "ca.crt",
-		"http.client.cert-file":     "client.crt",
-		"http.client.key-file":      "client.key",
-	})
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *ClientConfig
+		wantErr bool
+	}{
+		{
+			name: "StructDefaults",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{}),
+			},
+			want: &ClientConfig{
+				Timeout:     30 * time.Second,
+				IdleTimeout: 1 * time.Second,
+				TlsInsecure: true,
+				LocalCaFile: "",
+				CertFile:    "",
+				KeyFile:     "",
+			},
+		},
+		{
+			name: "CustomOptions",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{
+					"http.client.timeout":       "90s",
+					"http.client.idle-timeout":  "120s",
+					"http.client.tls-insecure":  "false",
+					"http.client.local-ca-file": "ca.crt",
+					"http.client.cert-file":     "client.crt",
+					"http.client.key-file":      "client.key",
+				}),
+			},
+			want: &ClientConfig{
+				Timeout:     90 * time.Second,
+				IdleTimeout: 120 * time.Second,
+				TlsInsecure: false,
+				LocalCaFile: "ca.crt",
+				CertFile:    "client.crt",
+				KeyFile:     "client.key",
+			},
+		},
+	}
 
-	got, err := NewClientConfig(cfg)
-	assert.NoError(t, err)
-	assert.Equal(t, 90*time.Second, got.Timeout)
-	assert.Equal(t, 120*time.Second, got.IdleTimeout)
-	assert.Equal(t, false, got.TlsInsecure)
-	assert.Equal(t, "ca.crt", got.LocalCaFile)
-	assert.Equal(t, "client.crt", got.CertFile)
-	assert.Equal(t, "client.key", got.KeyFile)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewClientConfig(tt.args.cfg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewClientConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewClientConfig() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestNewTlsConfig(t *testing.T) {

@@ -23,27 +23,41 @@ var (
 	logger      = log.NewLogger("msx.vault")
 )
 
+type ConnectionTokenSourceConfig struct {
+	Source string `config:"default=config"`
+}
+
+type ConnectionSslConfig struct {
+	Cacert     string `config:"default="`
+	ClientCert string `config:"default="`
+	ClientKey  string `config:"default="`
+	Insecure   bool   `config:"default=true"`
+}
+
+type ConnectionIssuerConfig struct {
+	Mount string `config:"default=/pki"` //Mount sets targetted mount point for Vault PKI
+}
+
 type ConnectionConfig struct {
 	Enabled     bool   `config:"default=true"`
 	Host        string `config:"default=localhost"`
 	Port        int    `config:"default=8200"`
 	Scheme      string `config:"default=http"`
-	TokenSource struct {
-		Source string `config:"default=config"`
-	}
-	Ssl struct {
-		Cacert     string `config:"default="`
-		ClientCert string `config:"default="`
-		ClientKey  string `config:"default="`
-		Insecure   bool   `config:"default=true"`
-	}
-	Issuer struct {
-		Mount string `config:"default=/pki"` //Mount sets targetted mount point for Vault PKI
-	}
+	TokenSource ConnectionTokenSourceConfig
+	Ssl         ConnectionSslConfig
+	Issuer      ConnectionIssuerConfig
 }
 
 func (c ConnectionConfig) Address() string {
 	return fmt.Sprintf("%s://%s:%d", c.Scheme, c.Host, c.Port)
+}
+
+func NewConnectionConfig(cfg *config.Config) (*ConnectionConfig, error) {
+	connectionConfig := &ConnectionConfig{}
+	if err := cfg.Populate(connectionConfig, configRootVaultConnection); err != nil {
+		return nil, err
+	}
+	return connectionConfig, nil
 }
 
 type Connection struct {
@@ -355,10 +369,7 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 }
 
 func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
-	connectionConfig := &ConnectionConfig{}
-	if err := cfg.Populate(connectionConfig, configRootVaultConnection); err != nil {
-		return nil, err
-	}
+	connectionConfig, err := NewConnectionConfig(cfg)
 	conn, err := NewConnection(connectionConfig)
 	if err != nil {
 		return conn, err

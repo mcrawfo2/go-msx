@@ -104,25 +104,34 @@ func (t *TokenDetailsProvider) fetchDetails(ctx context.Context, token string) (
 	return details, nil
 }
 
+func NewIdmTokenDetailsProviderConfig(cfg *config.Config) (*IdmTokenDetailsProviderConfig, error) {
+	var providerConfig IdmTokenDetailsProviderConfig
+	if err := cfg.Populate(&providerConfig, configRootIdmTokenDetailsProvider); err != nil {
+		return nil, err
+	}
+
+	return &providerConfig, nil
+}
+
 func RegisterTokenDetailsProvider(ctx context.Context) error {
 	logger.Info("Registering IDM token details provider")
-	var cfg IdmTokenDetailsProviderConfig
-	if err := config.FromContext(ctx).Populate(&cfg, configRootIdmTokenDetailsProvider); err != nil {
+	providerConfig, err := NewIdmTokenDetailsProviderConfig(config.FromContext(ctx))
+	if err != nil {
 		return err
 	}
 
 	var fetcher detailsFetcher
-	if cfg.Fast {
+	if providerConfig.Fast {
 		fetcher = new(fastDetailsFetcher)
 	} else {
 		fetcher = new(slowDetailsFetcher)
 	}
 
 	security.SetTokenDetailsProvider(&TokenDetailsProvider{
-		cfg:          cfg,
+		cfg:          *providerConfig,
 		fetcher:      fetcher,
-		activeCache:  lru.NewCacheFromConfig(&cfg.ActiveCache),
-		detailsCache: lru.NewCacheFromConfig(&cfg.DetailsCache),
+		activeCache:  lru.NewCacheFromConfig(&providerConfig.ActiveCache),
+		detailsCache: lru.NewCacheFromConfig(&providerConfig.DetailsCache),
 	})
 
 	return nil

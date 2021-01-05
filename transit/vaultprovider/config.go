@@ -6,14 +6,16 @@ import (
 
 const configRootEncryptionConfig = "per-tenant-encryption"
 
+type KeyPropertiesConfig struct {
+	Type                 string
+	Exportable           *bool
+	AllowPlaintextBackup *bool
+}
+
 type Config struct {
 	Enabled          bool
 	AlwaysCreateKeys bool
-	KeyProperties    struct {
-		Type                 string
-		Exportable           *bool
-		AllowPlaintextBackup *bool
-	}
+	KeyProperties    KeyPropertiesConfig
 }
 
 func NewEncryptionConfig(cfg *config.Config) (*Config, error) {

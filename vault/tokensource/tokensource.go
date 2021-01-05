@@ -19,7 +19,7 @@ type TokenSource interface {
 func GetTokenSource(source string) TokenSource {
 	switch source {
 	case "approle":
-		return &ApproleSource{}
+		return &AppRoleSource{}
 	case "kubernetes":
 		return &KubernetesSource{}
 	default:

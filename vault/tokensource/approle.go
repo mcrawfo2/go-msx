@@ -9,31 +9,41 @@ const (
 	configRootApprole = "spring.cloud.vault.tokensource.approle"
 )
 
-type ApproleSource struct {
+type AppRoleConfig struct {
+	Path     string `config:"default=/auth/approle/login"`
+	RoleId   string
+	SecretId string
 }
 
-type ApproleConfig struct {
-	Path      string `config:"default=/auth/approle/login"`
-	Role_Id   string
-	Secret_Id string
+func NewAppRoleConfig(cfg *config.Config) (*AppRoleConfig, error) {
+	appRoleConfig := &AppRoleConfig{}
+	if err := cfg.Populate(appRoleConfig, configRootApprole); err != nil {
+		return nil, err
+	}
+
+	return appRoleConfig, nil
 }
 
-func (c *ApproleSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
-	approleconfig := &ApproleConfig{}
-	if err := cfg.Populate(approleconfig, configRootApprole); err != nil {
+type AppRoleSource struct {
+}
+
+func (c *AppRoleSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
+	appRoleConfig, err := NewAppRoleConfig(cfg)
+	if err != nil {
 		return "", err
 	}
+
 	data := make(map[string]interface{})
-	data["role_id"] = approleconfig.Role_Id
-	data["secret_id"] = approleconfig.Secret_Id
-	login, err := client.Logical().Write(approleconfig.Path, data)
+	data["role_id"] = appRoleConfig.RoleId
+	data["secret_id"] = appRoleConfig.SecretId
+	login, err := client.Logical().Write(appRoleConfig.Path, data)
 	if err != nil {
 		return "", err
 	}
 	return login.Auth.ClientToken, nil
 }
 
-func (a *ApproleSource) StartRenewer(client *api.Client) {
+func (c *AppRoleSource) StartRenewer(client *api.Client) {
 	r, err := initRenewer(client)
 	if err != nil {
 		logger.Error("Error initializing token renewer: ", err)

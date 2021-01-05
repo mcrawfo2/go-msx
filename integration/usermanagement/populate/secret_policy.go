@@ -21,6 +21,15 @@ type SecretPolicyPopulatorConfig struct {
 	Root    string `config:"default=${populate.root}/usermanagement"`
 }
 
+func NewSecretPolicyPopulatorConfigFromConfig(cfg *config.Config) (*SecretPolicyPopulatorConfig, error) {
+	var populatorConfig SecretPolicyPopulatorConfig
+	if err := cfg.Populate(&populatorConfig, secretPolicyPopulatorConfigRoot); err != nil {
+		return nil, err
+	}
+
+	return &populatorConfig, nil
+}
+
 type secretPolicyManifest struct {
 	SecretPolicies []populate.Artifact `json:"secretPolicies"`
 }
@@ -90,13 +99,12 @@ func init() {
 			1000,
 			[]string{"all", "secretPolicies", "serviceMetadata"},
 			func(ctx context.Context) (populate.Populator, error) {
-				var cfg SecretPolicyPopulatorConfig
-				err := config.MustFromContext(ctx).Populate(&cfg, secretPolicyPopulatorConfigRoot)
+				cfg, err := NewSecretPolicyPopulatorConfigFromConfig(config.MustFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
 				return &SecretPolicyPopulator{
-					cfg: cfg,
+					cfg: *cfg,
 				}, nil
 			}))
 }

@@ -2,6 +2,7 @@ package retry
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
@@ -223,6 +224,64 @@ func TestRetry_Retry(t *testing.T) {
 				if err == nil {
 					t.Errorf("Retry() error = %v, wantErr %v", err, tt.wantErr)
 				}
+			}
+		})
+	}
+}
+
+func TestNewRetryConfigFromConfig(t *testing.T) {
+	type args struct {
+		cfg  *config.Config
+		root string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *RetryConfig
+		wantErr bool
+	}{
+		{
+			name: "Defaults",
+			args: args{
+				cfg:  configtest.NewStaticConfig(map[string]string{}),
+				root: "some.random.spot",
+			},
+			want: &RetryConfig{
+				Attempts: 3,
+				Delay:    500,
+				BackOff:  0.0,
+				Linear:   true,
+			},
+		},
+		{
+			name: "Custom",
+			args: args{
+				cfg: configtest.NewStaticConfig(map[string]string{
+					"some.random.spot.attempts": "1",
+					"some.random.spot.delay":    "2",
+					"some.random.spot.backoff":  "3.0",
+					"some.random.spot.linear":   "false",
+				}),
+				root: "some.random.spot",
+			},
+			want: &RetryConfig{
+				Attempts: 1,
+				Delay:    2,
+				BackOff:  3.0,
+				Linear:   false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewRetryConfigFromConfig(tt.args.cfg, tt.args.root)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewRetryConfigFromConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewRetryConfigFromConfig() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

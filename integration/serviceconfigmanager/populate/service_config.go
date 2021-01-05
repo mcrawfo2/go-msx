@@ -20,12 +20,21 @@ const (
 	serviceConfigPopulatorConfigRoot = "populate.serviceconfig"
 )
 
+var logger = log.NewLogger("msx.integration.serviceconfigmanager.populate")
+
 type ServiceConfigPopulatorConfig struct {
 	Enabled bool   `config:"default=false"`
 	Root    string `config:"default=${populate.root}/serviceconfig"`
 }
 
-var logger = log.NewLogger("msx.integration.serviceconfigmanager.populate")
+func NewServiceConfigPopulatorConfigFromConfig(cfg *config.Config) (*ServiceConfigPopulatorConfig, error) {
+	var populatorConfig ServiceConfigPopulatorConfig
+	if err := cfg.Populate(&populatorConfig, serviceConfigPopulatorConfigRoot); err != nil {
+		return nil, err
+	}
+
+	return &populatorConfig, nil
+}
 
 type ServiceConfigPopulator struct {
 	cfg ServiceConfigPopulatorConfig
@@ -106,13 +115,13 @@ func init() {
 			1000,
 			[]string{"all", "serviceConfig", "serviceMetadata"},
 			func(ctx context.Context) (populate.Populator, error) {
-				var cfg ServiceConfigPopulatorConfig
-				err := config.MustFromContext(ctx).Populate(&cfg, serviceConfigPopulatorConfigRoot)
+				populatorConfig, err := NewServiceConfigPopulatorConfigFromConfig(config.MustFromContext(ctx))
 				if err != nil {
 					return nil, err
 				}
+
 				return &ServiceConfigPopulator{
-					cfg: cfg,
+					cfg: *populatorConfig,
 				}, nil
 			}))
 }

@@ -92,14 +92,23 @@ func NewRetry(ctx context.Context, cfg RetryConfig) Retry {
 	}
 }
 
-// NewRetryFromConfig returns a new Retry instance configured from the default RetryConfig in the specified *config.Config
-func NewRetryFromConfig(ctx context.Context, cfg *config.Config) (*Retry, error) {
+func NewRetryConfigFromConfig(cfg *config.Config, root string) (*RetryConfig, error) {
 	var retryConfig RetryConfig
-	if err := cfg.Populate(&retryConfig, configRootRetry); err != nil {
+	if err := cfg.Populate(&retryConfig, root); err != nil {
 		return nil, errors.Wrap(err, "Failed to populate default retry configuration")
 	}
 
-	retry := NewRetry(ctx, retryConfig)
+	return &retryConfig, nil
+}
+
+// NewRetryFromConfig returns a new Retry instance configured from the default RetryConfig in the specified *config.Config
+func NewRetryFromConfig(ctx context.Context, cfg *config.Config) (*Retry, error) {
+	retryConfig, err := NewRetryConfigFromConfig(cfg, configRootRetry)
+	if err != nil {
+		return nil, err
+	}
+
+	retry := NewRetry(ctx, *retryConfig)
 	return &retry, nil
 }
 

@@ -29,8 +29,8 @@ func Stop(ctx context.Context) error {
 
 // ConfigureWebServer creates a new WebServer from the supplied configuration
 func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer, error) {
-	var webServerConfig WebServerConfig
-	if err := cfg.Populate(&webServerConfig, configRootWebServer); err != nil {
+	webServerConfig, err := NewWebServerConfig(cfg)
+	if err != nil {
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer
 		return nil, errors.Wrap(err, "Failed to read management security config")
 	}
 
-	return NewWebServer(&webServerConfig, actuatorConfig, ctx)
+	return NewWebServer(webServerConfig, actuatorConfig, ctx)
 }
 
 // ConfigureWebServer creates a new WebServer from the supplied configuration and

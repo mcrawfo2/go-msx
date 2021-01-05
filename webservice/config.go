@@ -2,9 +2,9 @@ package webservice
 
 import (
 	"crypto/tls"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type WebServerConfig struct {
@@ -32,7 +32,7 @@ type TLSConfig struct {
 	CaFile string `config:"default=ca.pem"`
 	// CipherSuites is a comma separated list of desired ciphersuites to use for secure connection
 	// Default list is reasonable minimum as required by PSB
-	CipherSuites string `config:"default=TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA"`
+	CipherSuites []string `config:"default=TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305;TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256;TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384;TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA;TLS_RSA_WITH_AES_256_GCM_SHA384;TLS_RSA_WITH_AES_256_CBC_SHA"`
 }
 
 func (c WebServerConfig) Address() string {
@@ -46,16 +46,18 @@ func (c WebServerConfig) Url() string {
 	return "http://" + c.Address() + c.ContextPath
 }
 
+func NewWebServerConfig(cfg *config.Config) (*WebServerConfig, error) {
+	var webServerConfig WebServerConfig
+	if err := cfg.Populate(&webServerConfig, configRootWebServer); err != nil {
+		return nil, err
+	}
+	return &webServerConfig, nil
+}
+
 // ParseCiphers parse ciphersuites from the comma-separated string into
 // recognized slice
-func ParseCiphers(cipherStr string) ([]uint16, error) {
+func ParseCiphers(ciphers []string) ([]uint16, error) {
 	var suites []uint16
-
-	cipherStr = strings.TrimSpace(cipherStr)
-	if cipherStr == "" {
-		return nil, nil
-	}
-	ciphers := strings.Split(cipherStr, ",")
 
 	for _, cipher := range ciphers {
 		if v, ok := CipherLookup[cipher]; ok {

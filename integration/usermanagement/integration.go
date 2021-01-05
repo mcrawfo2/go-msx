@@ -92,7 +92,7 @@ var (
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
 
-		endpointNameGetProviderExtensionByName: {Method: "GET", Path:"/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
+		endpointNameGetProviderExtensionByName: {Method: "GET", Path: "/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
 
 		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantids"},
 		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},

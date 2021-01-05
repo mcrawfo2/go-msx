@@ -268,11 +268,19 @@ func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	}
 }
 
-func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
-	connectionConfig := &ConnectionConfig{}
-	if err := cfg.Populate(connectionConfig, configRootConsulConnection); err != nil {
+func NewConnectionConfigFromConfig(cfg *config.Config) (*ConnectionConfig, error) {
+	connectionConfig := ConnectionConfig{}
+	if err := cfg.Populate(&connectionConfig, configRootConsulConnection); err != nil {
 		return nil, err
 	}
 
+	return &connectionConfig, nil
+}
+
+func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
+	connectionConfig, err := NewConnectionConfigFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
 	return NewConnection(connectionConfig)
 }

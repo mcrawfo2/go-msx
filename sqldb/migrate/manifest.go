@@ -187,13 +187,22 @@ func script(filename string) string {
 	return path.Base(filename)
 }
 
-func NewManifest(cfg *config.Config) (*Manifest, error) {
+func NewManifestConfig(cfg *config.Config) (*ManifestConfig, error) {
 	var manifestConfig ManifestConfig
 	if err := cfg.Populate(&manifestConfig, configRootManifest); err != nil {
 		return nil, err
 	}
 
+	return &manifestConfig, nil
+}
+
+func NewManifest(cfg *config.Config) (*Manifest, error) {
+	manifestConfig, err := NewManifestConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Manifest{
-		cfg: &manifestConfig,
+		cfg: manifestConfig,
 	}, nil
 }
