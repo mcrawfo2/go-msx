@@ -70,9 +70,6 @@ func RegisterVaultTransitProvider(ctx context.Context) error {
 		return err
 	}
 
-	if err := config.FromContext(ctx).Populate(&cfg, configRootEncryptionConfig); err != nil {
-		return err
-	}
 	logger.Infof("Per-Tenant Encryption Enabled: %t", cfg.Enabled)
 	return transit.RegisterProvider(&Provider{
 		cfg: cfg,

@@ -5,14 +5,14 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 )
 
-func NewStaticConfig(values map[string]string) *config.Config {
-	provider := config.NewStatic("static", values)
+func NewInMemoryConfig(values map[string]string) *config.Config {
+	provider := config.NewInMemoryProvider("testdata", values)
 	cfg := config.NewConfig(provider)
 	_ = cfg.Load(context.Background())
 	return cfg
 }
 
-func ContextWithNewStaticConfig(ctx context.Context, values map[string]string) context.Context {
-	cfg := NewStaticConfig(values)
+func ContextWithNewInMemoryConfig(ctx context.Context, values map[string]string) context.Context {
+	cfg := NewInMemoryConfig(values)
 	return config.ContextWithConfig(ctx, cfg)
 }

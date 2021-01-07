@@ -3,6 +3,7 @@ package envprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"github.com/emicklei/go-restful"
@@ -12,6 +13,8 @@ import (
 const (
 	endpointName = "env"
 )
+
+var logger = log.NewLogger("msx.webservice.envprovider")
 
 type CachingProvider interface {
 	Cache() map[string]string
@@ -64,19 +67,26 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 		PropertySources: []PropertySource{},
 	}
 
-	for _, provider := range config.FromContext(req.Request.Context()).Providers {
-		propertySource := PropertySource{
-			Name: provider.Description(),
+	for _, cache := range config.FromContext(req.Request.Context()).Caches() {
+		entries, err := cache.Load(req.Request.Context())
+		if err != nil {
+			logger.
+				WithContext(req.Request.Context()).
+				WithError(err).
+				Error("Failed to load config properties from provider %q", cache.Description())
+			continue
 		}
 
-		if cachingProvider, ok := provider.(CachingProvider); ok {
-			propertySource.Properties = make(map[string]Property)
-			for k, v := range cachingProvider.Cache() {
-				if h.isSecret(k) {
-					propertySource.Properties[k] = Property{"*****"}
-				} else {
-					propertySource.Properties[k] = Property{v}
-				}
+		propertySource := PropertySource{
+			Name: cache.Description(),
+			Properties: make(map[string]Property),
+		}
+
+		for _, entry := range entries {
+			if h.isSecret(entry.Name) {
+				propertySource.Properties[entry.Name] = Property{"*****"}
+			} else {
+				propertySource.Properties[entry.Name] = Property{entry.Value}
 			}
 		}
 

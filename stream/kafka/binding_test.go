@@ -23,7 +23,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg:                 configtest.NewStaticConfig(map[string]string{}),
+				cfg:                 configtest.NewInMemoryConfig(map[string]string{}),
 				key:                 "alpha",
 				streamBindingConfig: nil,
 			},
@@ -37,7 +37,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.kafka.bindings.alpha.producer.sync": "false",
 				}),
 				key: "alpha",

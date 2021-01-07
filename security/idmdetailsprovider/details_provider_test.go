@@ -22,7 +22,7 @@ func TestNewIdmTokenDetailsProviderConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &IdmTokenDetailsProviderConfig{
 				Fast: false,
@@ -41,7 +41,7 @@ func TestNewIdmTokenDetailsProviderConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"security.token.details.fast":                           "true",
 					"security.token.details.active-cache.ttl":               "30s",
 					"security.token.details.active-cache.expire-limit":      "10",

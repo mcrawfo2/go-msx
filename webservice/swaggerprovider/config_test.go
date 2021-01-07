@@ -20,7 +20,7 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &DocumentationConfig{
 				Enabled:     false,
@@ -45,7 +45,7 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 		{
 			name: "Embedded",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"swagger.enabled": "true",
 				}),
 			},

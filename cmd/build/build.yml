@@ -27,10 +27,10 @@ generate:
   - path: skel
   - path: sqldb
   - path: stream
-  - path: resource
+  - path: config
     vfsgen:
-      filename: "defaults.go"
-      variable-name: "Defaults"
+      filename: "embedded.go"
+      variable-name: "EmbeddedDefaultsFileSystem"
       root: ".."
       includes:
         - "/**/defaults-*.{properties,yml,yaml,json,json5}"

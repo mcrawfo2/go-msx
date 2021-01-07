@@ -11,7 +11,7 @@ import (
 )
 
 func TestManagementSecurityConfig_EndpointSecurityEnabled(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(context.Background(), map[string]string{
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 		"management.security.endpoint.alice.enabled": "true",
 		"management.security.endpoint.bob.enabled":   "false",
 	})
@@ -52,7 +52,7 @@ func TestManagementSecurityConfig_EndpointSecurityEnabled(t *testing.T) {
 }
 
 func TestManagementSecurityFilter_Filter(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(context.Background(), map[string]string{})
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{})
 	cfg, err := NewManagementSecurityConfig(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg)
@@ -93,7 +93,7 @@ func TestManagementSecurityFilter_Filter(t *testing.T) {
 }
 
 func TestManagementSecurityFilter_roles(t *testing.T) {
-	ctx := configtest.ContextWithNewStaticConfig(context.Background(), map[string]string{})
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{})
 	ctx = securitytest.AuthoritiesInjector("ROLE_PUBLISHER")(ctx)
 
 	cfg, _ := NewManagementSecurityConfig(ctx)
@@ -141,7 +141,7 @@ func TestNewManagementSecurityConfig(t *testing.T) {
 		{
 			name: "ValidConfig",
 			args: args{
-				ctx: configtest.ContextWithNewStaticConfig(context.Background(), map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"management.security.endpoint.alice.enabled": "true",
 					"management.security.endpoint.bob.enabled":   "false",
 				}),

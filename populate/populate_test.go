@@ -24,7 +24,7 @@ func TestCustomizeCommand(t *testing.T) {
 func TestPopulate(t *testing.T) {
 	var wasRun bool
 
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
 			"cli.flag.list":   "false",

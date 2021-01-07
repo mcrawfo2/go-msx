@@ -20,7 +20,7 @@ func TestNewResourcePatternAuthenticationConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &ResourcePatternAuthenticationConfig{
 				Blacklist: []string{
@@ -38,7 +38,7 @@ func TestNewResourcePatternAuthenticationConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"security.resources.patterns.blacklist": "/a,/b,/c",
 					"security.resources.patterns.whitelist": "/d,/e,/f",
 				}),

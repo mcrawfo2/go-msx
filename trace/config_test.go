@@ -20,7 +20,7 @@ func TestNewTracingConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"info.app.name": "TestNewTracingConfig",
 				}),
 			},
@@ -38,7 +38,7 @@ func TestNewTracingConfig(t *testing.T) {
 		{
 			name: "Zipkin",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"info.app.name":          "TestNewTracingConfig",
 					"remote.service.address": "remote-vm",
 					"spring.zipkin.base-url": "http://${remote.service.address}:9411/",

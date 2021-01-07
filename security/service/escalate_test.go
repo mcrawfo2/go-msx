@@ -20,7 +20,7 @@ func TestNewSecurityAccountsDefaultSettings(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &SecurityAccountsDefaultSettings{
 				Username: "system",

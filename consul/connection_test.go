@@ -20,7 +20,7 @@ func TestNewConnectionConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &ConnectionConfig{
 				Enabled: true,
@@ -32,19 +32,19 @@ func TestNewConnectionConfigFromConfig(t *testing.T) {
 				}{
 					AclToken: "",
 				},
-				//Watch: struct {
-				//	Enabled  bool `config:"default=true"`
-				//	WaitTime int  `config:"default=55"`
-				//}{
-				//	Enabled:  true,
-				//	WaitTime: 55,
-				//},
+				Watch: struct {
+					Enabled  bool `config:"default=true"`
+					WaitTime int  `config:"default=55"`
+				}{
+					Enabled:  true,
+					WaitTime: 55,
+				},
 			},
 		},
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.consul.enabled":          "false",
 					"spring.cloud.consul.host":             "remote-vm",
 					"spring.cloud.consul.port":             "9999",
@@ -64,13 +64,13 @@ func TestNewConnectionConfigFromConfig(t *testing.T) {
 				}{
 					AclToken: "replace_with_token_value",
 				},
-				//Watch: struct {
-				//	Enabled  bool `config:"default=true"`
-				//	WaitTime int  `config:"default=55"`
-				//}{
-				//	Enabled:  false,
-				//	WaitTime: 35,
-				//},
+				Watch: struct {
+					Enabled  bool `config:"default=true"`
+					WaitTime int  `config:"default=55"`
+				}{
+					Enabled:  false,
+					WaitTime: 35,
+				},
 			},
 		},
 	}

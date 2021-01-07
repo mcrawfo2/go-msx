@@ -2,216 +2,383 @@ package config
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
-func TestPrecedence(t *testing.T) {
-	low := map[string]string{
-		"without.override": "false",
-		"with.override":    "false",
+func TestConfig(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha":   "a",
+		"bravo":   "${alpha}b",
+		"charlie": "${bravo}c",
+		"delta":   "${charlie}d",
+		"echo":    "${foxtrot:g}e",
+	})
+
+	config := NewConfig(inMemoryProvider)
+
+	ctx, cancelCtx := context.WithCancel(context.Background())
+
+	err := config.Load(ctx)
+	assert.NoError(t, err)
+
+	type expectedChange struct {
+		Version       int
+		Set           bool
+		Name          string
+		ResolvedValue string
 	}
 
-	high := map[string]string{
-		"with.override": "true",
+	expectedChanges := []expectedChange{
+		{
+			Version:       2,
+			Set:           true,
+			Name:          "echo",
+			ResolvedValue: "fe",
+		},
+		{
+			Version:       2,
+			Set:           true,
+			Name:          "foxtrot",
+			ResolvedValue: "f",
+		},
+		{
+			Version: 3,
+			Set:     false,
+			Name:    "charlie",
+		},
+		{
+			Version:       3,
+			Set:           true,
+			Name:          "delta",
+			ResolvedValue: "d",
+		},
 	}
 
-	c := NewConfig(
-		[]Provider{
-			NewStatic("low", low),
-			NewStatic("high", high),
-		}...,
-	)
+	go func() {
+		version := 1
 
-	if err := c.Load(context.Background()); err != nil {
-		t.Error(err)
-	}
+		for {
+			select {
+			case <-ctx.Done():
+				return
 
-	without, err := c.Bool("without.override")
-	if err != nil {
-		t.Error(err)
-	}
+			case n := <-config.Notify():
+				version++
 
-	if without == true {
-		t.Errorf("Setting 'without.override' was true, expected false")
-	}
+				for _, c := range n.Delta {
+					var expectedChange expectedChange
+					assert.NotEmpty(t, expectedChanges)
+					expectedChange, expectedChanges = expectedChanges[0], expectedChanges[1:]
+					if c.IsSet() {
+						assert.True(t, expectedChange.Set)
+						assert.Equal(t, expectedChange.Version, version)
+						assert.Equal(t, expectedChange.Name, c.NewEntry.Name)
+						assert.Equal(t, expectedChange.ResolvedValue, c.NewEntry.ResolvedValue.String())
+					} else {
+						assert.False(t, expectedChange.Set)
+						assert.Equal(t, expectedChange.Version, version)
+						assert.Equal(t, expectedChange.Name, c.OldEntry.Name)
+					}
 
-	with, err := c.Bool("with.override")
-	if err != nil {
-		t.Error(err)
-	}
+				}
 
-	if with == false {
-		t.Errorf("Setting 'with.override' was 'false', expected 'true'")
-	}
+				if len(expectedChanges) == 0 {
+					cancelCtx()
+				}
+			}
+		}
+	}()
+
+	go func() {
+		err := inMemoryProvider.SetValue("foxtrot", "f")
+		assert.NoError(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		err = inMemoryProvider.UnsetValue("charlie")
+		assert.NoError(t, err)
+	}()
+
+	config.Watch(ctx)
 }
 
-func TestTypeLookups(t *testing.T) {
-	settings := map[string]string{
-		"string": "some_string",
-		"bool":   "true",
-		"int":    "1",
-		"float":  "1.5",
-	}
+func TestConfig_Values_Strings(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "a",
+	})
 
-	c := NewConfig([]Provider{NewStatic("lookups", settings)}...)
+	config := NewConfig(inMemoryProvider)
 
-	if err := c.Load(context.Background()); err != nil {
-		t.Error(err)
-	}
+	// Errors before load
+	alpha, err := config.String("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, "", alpha)
 
-	s, err := c.String("string")
-	if err != nil {
-		t.Error(err)
-	}
+	alpha, err = config.StringOr("alpha", "z")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, "", alpha)
 
-	if s != "some_string" {
-		t.Errorf("String setting was '%s', expected 'some_string'", s)
-	}
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
 
-	b, err := c.Bool("bool")
-	if err != nil {
-		t.Error(err)
-	}
+	// Loaded
+	alpha, err = config.String("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, "a", alpha)
 
-	if b != true {
-		t.Errorf("Bool setting was 'false', expected 'true'")
-	}
+	alpha, err = config.StringOr("alpha", "z")
+	assert.NoError(t, err)
+	assert.Equal(t, "a", alpha)
 
-	i, err := c.Int("int")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if i != 1 {
-		t.Errorf("Int setting was '%d', expected '1'", i)
-	}
-
-	f, err := c.Float("float")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if f != 1.5 {
-		t.Errorf("Float setting was '%f', expected '1.5'", f)
-	}
+	// Default
+	charlie, err := config.StringOr("charlie", "z")
+	assert.NoError(t, err)
+	assert.Equal(t, "z", charlie)
 }
 
-func TestTypeOrLookups(t *testing.T) {
-	c := NewConfig()
+func TestConfig_Values_Ints(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "42",
+	})
 
-	if err := c.Load(context.Background()); err != nil {
-		t.Error(err)
-	}
+	config := NewConfig(inMemoryProvider)
 
-	s, err := c.StringOr("string", "some_string")
-	if err != nil {
-		t.Error(err)
-	}
+	// Errors before load
+	alpha, err := config.Int("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, 0, alpha)
 
-	if s != "some_string" {
-		t.Errorf("String setting was '%s', expected 'some_string'", s)
-	}
+	alpha, err = config.IntOr("alpha", 21)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, 0, alpha)
 
-	b, err := c.BoolOr("bool", true)
-	if err != nil {
-		t.Error(err)
-	}
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
 
-	if b != true {
-		t.Errorf("Bool setting was 'false', expected 'true'")
-	}
+	// Loaded
+	alpha, err = config.Int("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, 42, alpha)
 
-	i, err := c.IntOr("int", 1)
-	if err != nil {
-		t.Error(err)
-	}
+	alpha, err = config.IntOr("alpha", 21)
+	assert.NoError(t, err)
+	assert.Equal(t, 42, alpha)
 
-	if i != 1 {
-		t.Errorf("Int setting was '%d', expected '1'", i)
-	}
-
-	f, err := c.FloatOr("float", 1.5)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if f != 1.5 {
-		t.Errorf("Float setting was '%f', expected '1.5'", f)
-	}
+	// Default
+	charlie, err := config.IntOr("charlie", 21)
+	assert.NoError(t, err)
+	assert.Equal(t, 21, charlie)
 }
 
-func TestValidate(t *testing.T) {
-	c := NewConfig()
-	c.Validate = func(map[string]string) error {
-		return fmt.Errorf("some error")
-	}
+func TestConfig_Values_Uints(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "42",
+	})
 
-	if err := c.Load(context.Background()); err == nil {
-		t.Errorf("Error was nil")
-	}
+	config := NewConfig(inMemoryProvider)
+
+	// Errors before load
+	alpha, err := config.Uint("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, uint(0), alpha)
+
+	alpha, err = config.UintOr("alpha", 21)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, uint(0), alpha)
+
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
+
+	// Loaded
+	alpha, err = config.Uint("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(42), alpha)
+
+	alpha, err = config.UintOr("alpha", 21)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(42), alpha)
+
+	// Default
+	charlie, err := config.UintOr("charlie", 21)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(21), charlie)
 }
 
-type resolvevaluetest struct {
-	resolved map[string]string
-	settings map[string]string
-	input    string
-	expected string
-	desc     string
+func TestConfig_Values_Floats(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "12.5",
+	})
+
+	config := NewConfig(inMemoryProvider)
+
+	// Errors before load
+	alpha, err := config.Float("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, float64(0), alpha)
+
+	alpha, err = config.FloatOr("alpha", 21)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, float64(0), alpha)
+
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
+
+	// Loaded
+	alpha, err = config.Float("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, 12.5, alpha)
+
+	alpha, err = config.FloatOr("alpha", 6.25)
+	assert.NoError(t, err)
+	assert.Equal(t, 12.5, alpha)
+
+	// Default
+	charlie, err := config.FloatOr("charlie", 6.25)
+	assert.NoError(t, err)
+	assert.Equal(t, 6.25, charlie)
 }
 
-var resolveValueTests = []resolvevaluetest{
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "xx", "xx", "plain text"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "", "", "empty value"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${test.port:9213}", "9210", "value from settings"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${server.port:9213}", "9211", "value from resolved"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"},
-		"%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSS,UTC}){faint}%clr(%5p)%clr( ${server.port:-} ){magenta}%clr(---){faint}%clr([%15.15t]){faint}%clr(%-40.40logger{39}){cyan}%clr(:){faint[%mdc]%msg%n%ex{full}",
-		"%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSS,UTC}){faint}%clr(%5p)%clr( 9211 ){magenta}%clr(---){faint}%clr([%15.15t]){faint}%clr(%-40.40logger{39}){cyan}%clr(:){faint[%mdc]%msg%n%ex{full}",
-		"mixed in string"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${TEST.pOrT:9213}", "9210", "value from settings case insensitive"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${TE-ST.pO-r-T:9213}", "9210", "value from settings ignore '-'"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${nothing.port:9212}", "9212", "value from default field"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${nothing.port}", "", "not defined variable"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${nothing.port:}", "", "empty default value"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"}, "${management.server.port:${local.server.port:${server.port:0}}}", "9211", "nested reference"},
-	{map[string]string{"server.port": "9211"}, map[string]string{"test.port": "9210"},
-		"${management.server.port:${local.server.port:${server.port:0}}}-${management.server.port:${local.server.port:9214}}",
-		"9211-9214", "multiple nested references"},
-	{map[string]string{"test.port": "9211"}, map[string]string{"test.port": "9210"}, "${management.server.port:${local.server.port:${server.port:9215}}}", "9215", "nested reference and use default value"},
+func TestConfig_Values_Bools(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "true",
+	})
+
+	config := NewConfig(inMemoryProvider)
+
+	// Errors before load
+	alpha, err := config.Bool("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, false, alpha)
+
+	alpha, err = config.BoolOr("alpha", true)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, false, alpha)
+
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
+
+	// Loaded
+	alpha, err = config.Bool("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, true, alpha)
+
+	alpha, err = config.BoolOr("alpha", false)
+	assert.NoError(t, err)
+	assert.Equal(t, true, alpha)
+
+	// Default
+	charlie, err := config.BoolOr("charlie", true)
+	assert.NoError(t, err)
+	assert.Equal(t, true, charlie)
 }
 
-func testResolveValueOutput(t *testing.T, cfg *Config, tc *resolvevaluetest) {
+func TestConfig_Values_Durations(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "10m",
+	})
 
-	actual := cfg.resolveValue(tc.resolved, tc.settings, tc.input)
-	if actual != tc.expected {
-		t.Errorf("Actual:'%s', expected: '%s', test: '%s'", actual, tc.expected, tc.desc)
-	}
+	config := NewConfig(inMemoryProvider)
+
+	// Errors before load
+	alpha, err := config.Duration("alpha")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, time.Duration(0), alpha)
+
+	alpha, err = config.DurationOr("alpha", 15 * time.Second)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotLoaded))
+	assert.Equal(t, time.Duration(0), alpha)
+
+	// Load
+	err = config.Load(context.Background())
+	assert.NoError(t, err)
+
+	// Loaded
+	alpha, err = config.Duration("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, 10 * time.Minute, alpha)
+
+	alpha, err = config.DurationOr("alpha", 15 * time.Second)
+	assert.NoError(t, err)
+	assert.Equal(t, 10 * time.Minute, alpha)
+
+	// Default
+	charlie, err := config.DurationOr("charlie", 15 * time.Second)
+	assert.NoError(t, err)
+	assert.Equal(t, 15 * time.Second, charlie)
 }
 
-func TestResolveValue(t *testing.T) {
-	cfg := NewConfig()
-	for _, tc := range resolveValueTests {
-		testResolveValueOutput(t, cfg, &tc)
-	}
+func TestConfig_Values_Settings(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "true",
+	})
 
-	tc := resolvevaluetest{map[string]string{"server.port": "${test.port}"},
-		map[string]string{"test.port": "9210"},
-		"${management.server.port:${local.server.port:${server.port:9215}}}",
-		"9210",
-		"update resolved map"}
+	config := NewConfig(inMemoryProvider)
 
-	testResolveValueOutput(t, cfg, &tc)
-	if v, ok := tc.resolved["server.port"]; !ok || v != "9210" {
-		t.Errorf("Resolved map not updated! test: '%s'", tc.desc)
-	}
+	// Empty before load
+	settings := config.Settings()
+	assert.Empty(t, settings)
 
-	logger.Info("Negative test cases:")
+	// Load
+	err := config.Load(context.Background())
+	assert.NoError(t, err)
 
-	tc = resolvevaluetest{map[string]string{"local.server.port": "${management.server.port}"},
-		map[string]string{"test.port": "9210"},
-		"${management.server.port:${local.server.port:${server.port:9216}}}",
-		"",
-		"circular variable reference"}
-	testResolveValueOutput(t, cfg, &tc)
+	// Loaded
+	settings = config.Settings()
+	assert.Len(t, settings, 1)
+}
+
+func TestConfig_Value(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "abc",
+	})
+
+	config := NewConfig(inMemoryProvider)
+	err := config.Load(context.Background())
+	assert.NoError(t, err)
+
+	v, err := config.Value("alpha")
+	assert.NoError(t, err)
+	assert.Equal(t, "abc", v.String())
+
+	v, err = config.Value("beta")
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrNotFound))
+}
+
+func TestConfig_Each(t *testing.T) {
+	inMemoryProvider := NewInMemoryProvider("static", map[string]string{
+		"alpha": "abc",
+		"delta": "def",
+	})
+
+	config := NewConfig(inMemoryProvider)
+	err := config.Load(context.Background())
+	assert.NoError(t, err)
+
+	var count = 0
+	config.Each(func(k string, v string) {
+		assert.Equal(t, inMemoryProvider.settings[k], v)
+		count++
+	})
+	assert.Equal(t, 2, count)
 }

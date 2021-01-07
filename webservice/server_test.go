@@ -449,7 +449,7 @@ func Test_requestContextInjectorFilter(t *testing.T) {
 	const key = "testContextInjectorKey"
 	const value = "testContextInjectorValue"
 
-	ctx := configtest.ContextWithNewStaticConfig(context.Background(), map[string]string{})
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{})
 
 	ws := new(restful.WebService)
 	ws.Route(ws.

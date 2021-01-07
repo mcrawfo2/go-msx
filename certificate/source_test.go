@@ -283,7 +283,7 @@ func TestNewSource(t *testing.T) {
 	sources = make(map[string]*Source)
 	factories = make(map[string]ProviderFactory)
 
-	ctx := configtest.ContextWithNewStaticConfig(
+	ctx := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
 			"certificate.source.test.provider": "mock",

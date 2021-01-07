@@ -20,20 +20,20 @@ func TestNewConsulLeaderElectionConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name": "TestNewConsulLeaderElectionConfigFromConfig/Defaults",
 				}),
 			},
 			want: &ConsulLeaderElectionConfig{
 				Enabled:          false,
 				DefaultMasterKey: "service/TestNewConsulLeaderElectionConfigFromConfig/Defaults/leader",
-				LeaderProperties: []LeaderProperties{},
+				LeaderProperties: nil,
 			},
 		},
 		{
 			name: "Enabled",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name":        "TestNewConsulLeaderElectionConfigFromConfig/Enabled",
 					"consul.leader.election.enabled": "true",
 				}),
@@ -41,13 +41,13 @@ func TestNewConsulLeaderElectionConfigFromConfig(t *testing.T) {
 			want: &ConsulLeaderElectionConfig{
 				Enabled:          true,
 				DefaultMasterKey: "service/TestNewConsulLeaderElectionConfigFromConfig/Enabled/leader",
-				LeaderProperties: []LeaderProperties{},
+				LeaderProperties: nil,
 			},
 		},
 		{
 			name: "EmbeddedDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name":                         "TestNewConsulLeaderElectionConfigFromConfig/EmbeddedDefaults",
 					"consul.leader.election.enabled":                  "true",
 					"consul.leader.election.default-master-key":       "service/${spring.application.name}/leader",

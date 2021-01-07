@@ -1,6 +1,11 @@
 # MSX Configuration Module
 
-MSX configuration is a modified version of the [github.com/zpatrick/go-config](README.orig.md) package with added support for remote configuration stores, JSON5 files, key normalization, and structure population.
+MSX configuration is a spring-compatible dynamic configuration library.  It includes support for:
+  - remote configuration stores
+  - dynamic configuration updates
+  - JSON, JSON5, YAML, INI and Properties files 
+  - key normalization 
+  - structure population
 
 ## Model
 
@@ -60,8 +65,8 @@ You can also populate appropriately defined structures:
 ```go
 type ConnectionConfig struct {
     Name string
-    Skipped bool `config:-`
-    AnotherName int `config:somethingelse`
+    Skipped bool `config:"-"`
+    AnotherName int `config:"somethingelse"`
 }
 
 var connectionConfig ConnectionConfig
@@ -70,7 +75,7 @@ err := cfg.Populate(&connectionConfig, "some.connection")
 
 Each structure field is treated a little differently based on the contents/existence of the `config` struct tag:
 - `Name`: populated from `some.connection.name` (default behaviour)
-- `Skipped`: not populated due to the `config:-` (omit when source name is a hyphen)
+- `Skipped`: not populated due to the `config:"-"` (omit when source name is a hyphen)
 - `AnotherName`: populated from `some.connection.somethingelse` (overridden field name)
 
 ## Spring Compatibility
@@ -81,8 +86,6 @@ Several known incompatibilities and limitations currently exist:
      - Configuration keys in MSX Configuration are simply normalized to be lowercase, no hyphens, period-separated. As of Spring 2.0, configuration keys are expected to be snake-case, period-separated. MSX Configuration cannot distinguish between the `app.some-data` and `app.somedata` keys, and normalizes them both to `app.somedata`.
   1. Arbitrary Population
      - MSX Configuration currently supports `@ConfigurationProperties` style structure population.  As a consequence, all data used to populate a structure must be direct descendants of the key used to populate the structure.  We intend to support arbitrary key specification for structures in the future.
-  1. Nested Defaults
-     - MSX Configuration does not currently support nested/chained default values.
 
 ## Built-In Providers 
 

@@ -20,7 +20,7 @@ func TestNewFileSystemConfig(t *testing.T) {
 		{
 			name: "StructDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name": "TestNewFileSystemConfig",
 				}),
 			},
@@ -37,7 +37,7 @@ func TestNewFileSystemConfig(t *testing.T) {
 		{
 			name: "WithSources",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name": "TestNewFileSystemConfig",
 					"fs.sources":              "/home/ubuntu/go-msx",
 					"fs.mode":                 "release",

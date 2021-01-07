@@ -178,7 +178,7 @@ func (w *WebServerTest) Test(t *testing.T) {
 		staticConfig[k] = v
 	}
 
-	cfg := configtest.NewStaticConfig(staticConfig)
+	cfg := configtest.NewInMemoryConfig(staticConfig)
 	ctx := config.ContextWithConfig(context.Background(), cfg)
 
 	managementSecurityConfig, err := NewManagementSecurityConfig(ctx)

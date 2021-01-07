@@ -18,7 +18,7 @@ func TestConfigureWebServer(t *testing.T) {
 	}{
 		{
 			name: "Disabled",
-			cfg: configtest.NewStaticConfig(map[string]string{
+			cfg: configtest.NewInMemoryConfig(map[string]string{
 				"server.enabled": "false",
 			}),
 			wantErr:     true,
@@ -26,7 +26,7 @@ func TestConfigureWebServer(t *testing.T) {
 		},
 		{
 			name: "Enabled",
-			cfg: configtest.NewStaticConfig(map[string]string{
+			cfg: configtest.NewInMemoryConfig(map[string]string{
 				"server.enabled": "true",
 			}),
 			wantErr:     false,

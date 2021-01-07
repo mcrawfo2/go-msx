@@ -142,7 +142,7 @@ func TestNewWebServerConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(nil),
+				cfg: configtest.NewInMemoryConfig(nil),
 			},
 			want: &WebServerConfig{
 				Enabled: false,
@@ -172,7 +172,7 @@ func TestNewWebServerConfig(t *testing.T) {
 		{
 			name: "Microservice",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					// Embedded
 					"server.static-path":            "/www",
 					"server.trace-enabled":          "false",

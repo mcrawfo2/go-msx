@@ -22,7 +22,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Default",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.application.name":     "testservice",
 					"spring.application.instance": "XYZABC",
 				}),
@@ -59,7 +59,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "ConsumerDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.bravo.destination":                "SOME_TOPIC",
 					"spring.cloud.stream.bindings.bravo.group":                      "SOME_TOPIC-TEST2_GP",
 					"spring.cloud.stream.bindings.bravo.binder":                     "nats",
@@ -112,7 +112,7 @@ func TestNewBindingConfigurationFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.bravo.destination":                       "SOME_TOPIC",
 					"spring.cloud.stream.bindings.bravo.group":                             "SOME_TOPIC-TEST2_GP",
 					"spring.cloud.stream.bindings.bravo.binder":                            "nats",

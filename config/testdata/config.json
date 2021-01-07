@@ -1,0 +1,13 @@
+{
+  "server": {
+    "context-path": "www",
+    "port": 8882
+  },
+  "client": {
+    "refresh": 5.05,
+    "enabled": true,
+    "items": [
+      "abc"
+    ]
+  }
+}

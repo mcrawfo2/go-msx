@@ -20,7 +20,7 @@ func TestNewConnectionConfigFromConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &ConnectionConfig{
 				Enable:   false,
@@ -40,7 +40,7 @@ func TestNewConnectionConfigFromConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.redis.enable":          "true",
 					"spring.redis.host":            "remote-vm",
 					"spring.redis.port":            "9999",

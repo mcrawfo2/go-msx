@@ -41,6 +41,15 @@ func FullFunctionName(f interface{}) string {
 	return strings.Join(tokenized, ".")
 }
 
+func FindEntryPointDirFromStack() (string, error) {
+	file, ok := getEntryPointFile(2)
+	if !ok {
+		return "", ErrSourceDirUnavailable
+	}
+
+	return filepath.Dir(file), nil
+}
+
 func FindSourceDirFromStack() (string, error) {
 	file, ok := getEntryPointFile(2)
 	if !ok {
@@ -55,24 +64,39 @@ func FindSourceDirFromStack() (string, error) {
 	return thence, nil
 }
 
+var entryPointSuffixes = map[string]int{
+	"go-msx/app.Run": 1,
+	"testing.tRunner": -1,
+}
+
 // Hack when fs.sources is missing
 func getEntryPointFile(skip int) (string, bool) {
 	pcs := make([]uintptr, 32)
 	frameCount := runtime.Callers(skip+1, pcs)
 	frames := runtime.CallersFrames(pcs[:frameCount])
-	var lastFrame runtime.Frame
+	var frameList []runtime.Frame
+	var targetFrame = -1
 	for {
 		frame, more := frames.Next()
-		if strings.HasSuffix(frame.Function, "go-msx/app.Run") {
-			lastFrame, more = frames.Next()
+		frameList = append(frameList, frame)
+
+		for suffix, offset := range entryPointSuffixes {
+			if strings.HasSuffix(frame.Function, suffix) {
+				targetFrame = len(frameList) - 1 + offset
+				break
+			}
 		}
 		if !more {
 			break
 		}
 	}
-	if lastFrame.File != "" {
-		return lastFrame.File, true
+
+	if targetFrame > -1 {
+		if frameList[targetFrame].File != "" {
+			return frameList[targetFrame].File, true
+		}
 	}
+
 	return "", false
 }
 

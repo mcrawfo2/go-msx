@@ -21,7 +21,7 @@ func TestNewClusterConfigFromConfig(t *testing.T) {
 		{
 			name: "StructDefaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{}),
+				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &ClusterConfig{
 				Enabled:            false,
@@ -43,7 +43,7 @@ func TestNewClusterConfigFromConfig(t *testing.T) {
 		{
 			name: "CustomOptions",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.data.cassandra.enabled":                                     "true",
 					"spring.data.cassandra.keyspace-name":                               "default",
 					"spring.data.cassandra.contact-points":                              "remote-vm",

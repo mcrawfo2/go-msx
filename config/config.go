@@ -2,391 +2,332 @@ package config
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/pkg/errors"
-	"regexp"
-	"strconv"
-	"strings"
 	"time"
 )
 
-var logger = log.NewLogger("msx.config")
-
-var ErrNotLoaded = errors.New("Configuration not loaded")
-var ErrNotFound = errors.New("Missing required setting")
-
 type Config struct {
-	Providers     []Provider
-	Validate      func(map[string]string) error
-	ReloadTimeout time.Duration
-	ReloadContext context.Context
-	Notify        func([]string)
-	settings      map[string]string
-}
-
-func NewConfig(providers ...Provider) *Config {
-	return &Config{
-		Providers:     providers,
-		settings:      nil,
-		ReloadTimeout: time.Second * 90,
+	Values
+	caches   []*Cache
+	watchers []*Watcher
+	layers   []ProviderEntries
+	changes  chan WatcherNotification
+	notify   chan Snapshot
+	values   struct {
+		original SnapshotValues // from Load
+		latest   SnapshotValues // from Watch
 	}
-}
-
-func (c *Config) Loaded() bool {
-	return c.settings != nil
 }
 
 func (c *Config) Load(ctx context.Context) error {
-	if settings, err := c.reload(ctx); err != nil {
-		return err
-	} else {
-		c.settings = settings
-	}
+	layers := make(Layers, len(c.caches))
 
-	return nil
-}
-
-func (c *Config) reload(ctx context.Context) (map[string]string, error) {
-	result := map[string]string{}
-
-	// Load config from each provider, stacking appropriately
-	for _, provider := range c.Providers {
-		if settings, err := provider.Load(ctx); err != nil {
-			return nil, errors.Wrap(err, "Failed to load config")
-		} else {
-			for key, val := range settings {
-				result[key] = val
-			}
+	for i, cache := range c.caches {
+		entries, err := cache.Load(ctx)
+		if err != nil {
+			return err
 		}
+
+		layers[i] = entries
 	}
 
-	// Validate the config
-	if c.Validate != nil {
-		if err := c.Validate(result); err != nil {
-			return nil, errors.Wrap(err, "Failed to validate config")
-		}
-	}
+	merged := layers.Merge()
 
-	// Resolve variables in the config
-	if err := c.resolve(result); err != nil {
-		return nil, errors.Wrap(err, "Failed to resolve variables")
-	}
-
-	if c.Loaded() && c.Notify != nil {
-		c.compareAndNotify(result)
-	}
-
-	return result, nil
-}
-
-func (c *Config) resolveValueHelper(nested map[string]bool,
-	resolved, settings map[string]string, value string) (string, error) {
-	variableRegex, _ := regexp.Compile(`\${([\w._\-]+)(:(.*))?}`)
-	if !strings.Contains(value, "${") {
-		return value, nil
-	}
-
-	var refStrings []string
-	depth := 0
-	refString := ""
-	for i, c := range value {
-		if value[i] == '$' && i+1 < len(value) && value[i+1] == '{' {
-			depth++
-		}
-		if depth > 0 {
-			refString += string(c)
-		}
-		if value[i] == '}' && depth > 0 {
-			depth--
-		}
-		if depth == 0 && len(refString) > 0 {
-			refStrings = append(refStrings, refString)
-			refString = ""
-		}
-	}
-
-	if depth != 0 {
-		logger.Errorf("Malformed string %s", value)
-		// return raw string
-		return value, nil
-	}
-
-	for _, rs := range refStrings {
-		match := variableRegex.FindStringSubmatch(rs)
-		if len(match) > 0 {
-			//ignore case
-			refName := c.alias(match[1])
-			refValue := ""
-			//check if variable is already in the stack
-			if _, ok := nested[refName]; ok {
-				return "", errors.Errorf("Circular variable reference detected: '%s' already in %v",
-					refName, nested)
-			} else {
-				nested[refName] = true
-			}
-			// check lasted resolved values first
-			if rv, ok := resolved[refName]; ok {
-				refValue = rv
-			} else if sv, ok := settings[refName]; ok {
-				refValue = sv
-			}
-			// resolve the references in the value.
-			refValue, err := c.resolveValueHelper(nested, resolved, settings, refValue)
-			if err != nil {
-				return "", err
-			}
-			if len(refValue) > 0 {
-				resolved[refName] = refValue
-			} else if len(match) >= 4 && len(match[3]) > 0 {
-				// if not able to resolve the value and default value is set
-				refValue, err = c.resolveValueHelper(nested, resolved, settings, match[3])
-			}
-			if err != nil {
-				return "", err
-			}
-			//remove resolved variable from nested map.
-			delete(nested, refName)
-			value = strings.Replace(value, rs, refValue, -1)
-		}
-	}
-	return value, nil
-}
-
-// Expand all references to ${variables} inside value
-func (c *Config) resolveValue(resolved, settings map[string]string, value string) string {
-	nested := make(map[string]bool)
-	value, err := c.resolveValueHelper(nested, resolved, settings, value)
+	resolver := NewResolver(merged)
+	entries, err := resolver.Entries()
 	if err != nil {
-		logger.WithError(err).Error("Not able to resolve value!")
-		return ""
+		return err
 	}
-	return value
-}
+	values := newSnapshotValues(entries)
 
-// Expand all references to ${variables}
-func (c *Config) resolve(settings map[string]string) error {
-	resolved := map[string]string{}
-
-	for k, v := range settings {
-		resolved[k] = c.resolveValue(resolved, settings, v)
-	}
-
-	for k, v := range resolved {
-		settings[k] = v
-	}
+	c.layers = layers
+	c.values.original, c.values.latest = values, values
 
 	return nil
 }
 
-func (c *Config) compareAndNotify(newSettings map[string]string) {
-	// Find changed variables
-	changes := map[string]struct{}{}
-	oldSettings := c.settings
-	for k, v := range newSettings {
-		if oldValue, ok := oldSettings[k]; ok {
-			if v != oldValue {
-				changes[k] = struct{}{}
+func (c *Config) Watch(ctx context.Context) {
+	logger.WithContext(ctx).Info("Watching configuration for changes")
+
+	if len(c.watchers) > 0 || len(c.caches) == 0 {
+		return
+	}
+
+	for _, cache := range c.caches {
+		watcher := NewWatcher(cache)
+		c.watchers = append(c.watchers, watcher)
+		// *We* watch the watchers
+		go c.watch(ctx, watcher)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.
+				WithContext(ctx).
+				WithError(ctx.Err()).
+				Info("Configuration watcher context finished.  Exiting watcher.")
+			return
+
+		case change := <-c.changes:
+			logger.Info("Creating new config snapshot")
+			// resolve latest config
+			layers := append(Layers{}, c.layers...)
+			layerIndex := c.getLayerIndex(change)
+			if layerIndex == -1 {
+				logger.
+					WithContext(ctx).
+					Error("Configuration watcher received changes from unregistered provider.")
+				continue
 			}
-		} else {
-			changes[k] = struct{}{}
+			layers[layerIndex] = change.Entries
+			merged := layers.Merge()
+
+			snapshot, err := newSnapshot(merged, c.values.latest)
+			if err != nil {
+				logger.
+					WithContext(ctx).
+					WithError(err).
+					Error("Config snapshot creation failed")
+				continue
+			}
+
+			c.layers = layers
+			c.values.latest = snapshot.SnapshotValues
+			c.notify <- snapshot
+			logger.
+				WithContext(ctx).
+				Info("Config snapshot created")
+
 		}
-	}
-
-	for k := range oldSettings {
-		if _, ok := newSettings[k]; !ok {
-			changes[k] = struct{}{}
-		}
-	}
-
-	var changedVariables []string
-	for k := range changes {
-		changedVariables = append(changedVariables, k)
-		// TODO: add reverse aliases
-	}
-
-	if len(changedVariables) > 0 {
-		c.Notify(changedVariables)
 	}
 }
 
-func (c *Config) Watch(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-
-	notifier := make(chan struct{}, 1)
-	go func() {
-		defer close(notifier)
-
-		for _, provider := range c.Providers {
-			if watcher, ok := provider.(Watcher); ok {
-				watcher.Watch(notifier, ctx)
-			}
+func (c *Config) getLayerIndex(change WatcherNotification) int {
+	for i, cache := range c.caches {
+		if cache.provider == change.Provider {
+			return i
 		}
+	}
+	return -1
+}
 
-		var err error
+func (c *Config) watch(ctx context.Context, watcher *Watcher) {
+	go watcher.Watch(ctx)
 
-		for {
-			select {
-			case <-notifier:
-				// Something was invalidated
-				err = func() error {
-					subctx, cancel := context.WithTimeout(c.ReloadContext, c.ReloadTimeout)
-					defer cancel()
-					return c.Load(subctx)
-				}()
+	for {
+		select {
+		case <-ctx.Done():
+			return
 
-				if err != nil {
-					logger.Error(errors.Wrap(err, "Failed to load configuration").Error())
-				}
-
-			case <-ctx.Done():
+		case n, ok := <-watcher.Notify():
+			if !ok {
 				return
 			}
+
+			c.changes <- n
 		}
-
-	}()
-
-	return ctx.Err()
+	}
 }
 
-func (c *Config) String(key string) (string, error) {
-	if !c.Loaded() {
-		return "", ErrNotLoaded
+func (c Config) LatestValues() SnapshotValues {
+	if c.layers == nil {
+		return emptySnapshotValues
 	}
 
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return "", errors.Wrap(ErrNotFound, key)
+	return c.values.latest
+}
+
+func (c Config) OriginalValues() SnapshotValues {
+	if c.layers == nil {
+		return emptySnapshotValues
+	}
+
+	return c.values.original
+}
+
+func (c Config) Notify() <-chan Snapshot {
+	return c.notify
+}
+
+func (c Config) Caches() []Provider {
+	var results []Provider
+	for _, cache := range c.caches {
+		results = append(results, cache)
+	}
+	return results
+}
+
+func NewConfig(providers ...Provider) *Config {
+	var caches []*Cache
+	for _, provider := range providers {
+		var cache *Cache
+		// Dont double-cache providers
+		if c, ok := provider.(*Cache); ok {
+			cache = c
+		} else {
+			cache = NewCacheProvider(provider)
+		}
+		caches = append(caches, cache)
+	}
+
+	cfg := &Config{
+		caches:  caches,
+		changes: make(chan WatcherNotification),
+		notify:  make(chan Snapshot),
+	}
+	cfg.Values = configValues{cfg:cfg, original: true}
+	return cfg
+}
+
+type configValues struct {
+	cfg *Config
+	original bool
+}
+
+func (c configValues) snapshot() (values SnapshotValues, err error) {
+	if c.cfg.layers == nil {
+		err = errors.Wrap(ErrNotLoaded, "Values not available")
+		return emptySnapshotValues, err
+	}
+
+	if c.original {
+		values = c.cfg.OriginalValues()
 	} else {
-		return val, nil
+		values = c.cfg.LatestValues()
 	}
+
+	return values, nil
 }
 
-func (c *Config) StringOr(key, alt string) (string, error) {
-	if !c.Loaded() {
-		return "", ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return alt, nil
+func (c configValues) String(key string) (string, error) {
+	if values, err := c.snapshot(); err != nil {
+		return "", err
 	} else {
-		return val, nil
+		return values.String(key)
 	}
 }
 
-func (c *Config) Int(key string) (int, error) {
-	if !c.Loaded() {
-		return 0, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return 0, errors.Wrap(ErrNotFound, key)
+func (c configValues) StringOr(key, alt string) (string, error) {
+	if values, err := c.snapshot(); err != nil {
+		return "", err
 	} else {
-		return strconv.Atoi(val)
+		return values.StringOr(key, alt)
 	}
 }
 
-func (c *Config) IntOr(key string, alt int) (int, error) {
-	if !c.Loaded() {
-		return 0, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return alt, nil
+func (c configValues) Int(key string) (int, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
 	} else {
-		return strconv.Atoi(val)
+		return values.Int(key)
 	}
 }
 
-func (c *Config) Float(key string) (float64, error) {
-	if !c.Loaded() {
-		return 0, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return 0, errors.Wrap(ErrNotFound, key)
+func (c configValues) IntOr(key string, alt int) (int, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
 	} else {
-		return strconv.ParseFloat(val, 64)
+		return values.IntOr(key, alt)
 	}
 }
 
-func (c *Config) FloatOr(key string, alt float64) (float64, error) {
-	if !c.Loaded() {
-		return 0, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return alt, nil
+func (c configValues) Uint(key string) (uint, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
 	} else {
-		return strconv.ParseFloat(val, 64)
+		return values.Uint(key)
 	}
 }
 
-func (c *Config) Bool(key string) (bool, error) {
-	if !c.Loaded() {
-		return false, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return false, errors.Wrap(ErrNotFound, key)
+func (c configValues) UintOr(key string, alt uint) (uint, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
 	} else {
-		return strconv.ParseBool(val)
+		return values.UintOr(key, alt)
 	}
 }
 
-func (c *Config) BoolOr(key string, alt bool) (bool, error) {
-	if !c.Loaded() {
-		return false, ErrNotLoaded
-	}
-
-	targetKey := c.alias(key)
-	if val, ok := c.settings[targetKey]; !ok {
-		return alt, nil
+func (c configValues) Float(key string) (float64, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
 	} else {
-		return strconv.ParseBool(val)
+		return values.Float(key)
 	}
 }
 
-func (c *Config) Settings() map[string]string {
-	result := map[string]string{}
-	for k, v := range c.settings {
-		result[k] = v
-	}
-	return result
-}
-
-func (c *Config) Each(target func(string, string)) {
-	for name, value := range c.Settings() {
-		target(name, value)
+func (c configValues) FloatOr(key string, alt float64) (float64, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
+	} else {
+		return values.FloatOr(key, alt)
 	}
 }
 
-func (c *Config) Populate(target interface{}, prefix string) error {
-	// Wrap the properties map in a partial config
-	partialConfig := NewPartialConfig(c.settings, c)
-
-	// Filter by prefix
-	partialConfig = partialConfig.FilterStripPrefix(NormalizeKey(prefix))
-
-	// Populate the object from the properties map
-	return partialConfig.Populate(target)
-}
-
-func (c *Config) alias(key string) string {
-	// Return the actual target key name mapping through aliases
-	return NormalizeKey(key)
-}
-
-func (c *Config) reloadContext() context.Context {
-	if c.ReloadContext == nil {
-		return context.Background()
+func (c configValues) Bool(key string) (bool, error) {
+	if values, err := c.snapshot(); err != nil {
+		return false, err
+	} else {
+		return values.Bool(key)
 	}
-	return c.ReloadContext
+}
+
+func (c configValues) BoolOr(key string, alt bool) (bool, error) {
+	if values, err := c.snapshot(); err != nil {
+		return false, err
+	} else {
+		return values.BoolOr(key, alt)
+	}
+}
+
+func (c configValues) Duration(key string) (time.Duration, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
+	} else {
+		return values.Duration(key)
+	}
+}
+
+func (c configValues) DurationOr(key string, alt time.Duration) (time.Duration, error) {
+	if values, err := c.snapshot(); err != nil {
+		return 0, err
+	} else {
+		return values.DurationOr(key, alt)
+	}
+}
+
+func (c configValues) Value(key string) (Value, error) {
+	values, err := c.snapshot()
+	if err != nil {
+		return "", err
+	}
+
+	entry, err := values.ResolveByName(key)
+	if err != nil {
+		return "", err
+	}
+
+	return entry.ResolvedValue, nil
+}
+
+func (c configValues) Populate(target interface{}, prefix string) error {
+	if values, err := c.snapshot(); err != nil {
+		return nil
+	} else {
+		return values.Populate(target, prefix)
+	}
+}
+
+func (c configValues) Settings() map[string]string {
+	if values, err := c.snapshot(); err != nil {
+		return nil
+	} else {
+		return values.Settings()
+	}
+}
+
+func (c configValues) Each(target func(string, string)) {
+	if values, err := c.snapshot(); err == nil {
+		values.Each(target)
+	}
 }

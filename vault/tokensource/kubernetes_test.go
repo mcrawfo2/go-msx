@@ -20,7 +20,7 @@ func TestNewKubernetesConfig(t *testing.T) {
 		{
 			name: "Defaults",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.vault.token-source.kubernetes.role": "PlatformMicroservice",
 				}),
 			},
@@ -33,7 +33,7 @@ func TestNewKubernetesConfig(t *testing.T) {
 		{
 			name: "Custom",
 			args: args{
-				cfg: configtest.NewStaticConfig(map[string]string{
+				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.vault.token-source.kubernetes.path":     "/subpath",
 					"spring.cloud.vault.token-source.kubernetes.jwt-path": "/another/path/to/token",
 					"spring.cloud.vault.token-source.kubernetes.role":     "PlatformMicroservice",

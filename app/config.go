@@ -6,9 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"github.com/pkg/errors"
-	"path"
 	"strings"
 	"time"
 )
@@ -23,8 +21,10 @@ const (
 	SourceBootStrap        = "Bootstrap"
 	SourceEnvironment      = "Environment"
 	SourceOverride         = "Override"
-	SourceDefaultResources = "DefaultResources"
-	SourceDefaults         = "Defaults"
+	SourceSources          = "Sources"
+	SourceFileSystem       = "FileSystem"
+	SourceEmbeddedDefaults = "EmbeddedDefaults"
+	SourceDefaults         = "SpringDefaults"
 	SourceDefault          = "Default"
 
 	configKeyAppName     = "spring.application.name"
@@ -41,9 +41,11 @@ type Sources struct {
 	Default           config.Provider
 	DefaultsFiles     []config.Provider
 	DefaultsResources []config.Provider
+	FileSystemFiles   []config.Provider
 	BootstrapFiles    []config.Provider
 	ApplicationFiles  []config.Provider
 	BuildFiles        []config.Provider
+	Sources           config.Provider
 	Consul            []config.Provider
 	Vault             []config.Provider
 	ProfileFiles      []config.Provider
@@ -67,9 +69,11 @@ func (c Sources) Providers() []config.Provider {
 	sourcesList.Append(c.Default)
 	sourcesList.Append(c.DefaultsFiles...)
 	sourcesList.Append(c.DefaultsResources...)
+	sourcesList.Append(c.FileSystemFiles...)
 	sourcesList.Append(c.BootstrapFiles...)
 	sourcesList.Append(c.ApplicationFiles...)
 	sourcesList.Append(c.BuildFiles...)
+	sourcesList.Append(c.Sources)
 	sourcesList.Append(c.Consul...)
 	sourcesList.Append(c.Vault...)
 	sourcesList.Append(c.ProfileFiles...)
@@ -94,15 +98,19 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 }
 
 func newDefaultsProvider() config.Provider {
-	return config.NewCachedLoader(config.Defaults)
+	return config.DefaultsCache
 }
 
-func newDefaultsResourcesProviders() []config.Provider {
-	return config.NewHttpFileProvidersFromGlob(SourceDefaultResources, resource.Defaults, "**/defaults-*")
+func newEmbeddedDefaultsProviders() []config.Provider {
+	return config.EmbeddedDefaultsProviders
 }
 
 func newDefaultsFilesProviders(_ *config.Config) []config.Provider {
 	return config.NewFileProvidersFromGlob(SourceDefaults, "defaults-*")
+}
+
+func newFileSystemProviders() []config.Provider {
+	return config.NewFileProvidersFromBaseName(SourceFileSystem, "fs")
 }
 
 func newBootstrapProviders(_ *config.Config) []config.Provider {
@@ -110,11 +118,15 @@ func newBootstrapProviders(_ *config.Config) []config.Provider {
 }
 
 func newEnvironmentProvider() config.Provider {
-	return config.NewCachedLoader(config.NewEnvironment(SourceEnvironment))
+	return config.NewCacheProvider(config.NewEnvironmentProvider(SourceEnvironment))
 }
 
 func newOverrideProvider(static map[string]string) config.Provider {
-	return config.NewCachedLoader(config.NewStatic(SourceOverride, static))
+	return config.NewCacheProvider(config.NewInMemoryProvider(SourceOverride, static))
+}
+
+func newSourcesProvider() config.Provider {
+	return config.NewCacheProvider(config.NewSourcesProvider(SourceSources))
 }
 
 func newApplicationProviders(name string, cfg *config.Config) ([]config.Provider, error) {
@@ -166,26 +178,26 @@ func init() {
 
 func registerRemoteConfigProviders(ctx context.Context) error {
 	RegisterProviderFactory(SourceConsul, func(name string, cfg *config.Config) (providers []config.Provider, err error) {
-		providers, err = consulprovider.NewConfigProvidersFromConfig(name, cfg)
+		providers, err = consulprovider.NewProvidersFromConfig(name, cfg)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := range providers {
-			providers[i] = config.NewCachedLoader(providers[i])
+			providers[i] = config.NewCacheProvider(providers[i])
 		}
 
 		return providers, nil
 	})
 
 	RegisterProviderFactory(SourceVault, func(name string, cfg *config.Config) (providers []config.Provider, err error) {
-		providers, err = vaultprovider.NewConfigProvidersFromConfig(name, cfg)
+		providers, err = vaultprovider.NewProvidersFromConfig(name, cfg)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := range providers {
-			providers[i] = config.NewCachedLoader(providers[i])
+			providers[i] = config.NewCacheProvider(providers[i])
 		}
 
 		return providers, nil
@@ -195,18 +207,13 @@ func registerRemoteConfigProviders(ctx context.Context) error {
 }
 
 func watchConfig(ctx context.Context) error {
-	logger.Info("Watching configuration for changes")
-	cfg := applicationConfig
-	cfg.Notify = func(keys []string) {
-		for _, k := range keys {
-			logger.Warnf("Configuration changed: %s", k)
-		}
-		if err := application.Refresh(); err != nil {
-			logger.WithError(err).Error("Failed to refresh")
-		}
-	}
+	go applicationConfig.Watch(ctx)
 
-	return cfg.Watch(ctx)
+	// When running Config.Watch, we need to drain the watcher notification channel
+	changeLogger := config.NewChangeLogger(config.MustFromContext(ctx))
+	go changeLogger.Run(ctx)
+
+	return nil
 }
 
 func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
@@ -219,7 +226,9 @@ func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
 func loadConfig(ctx context.Context) (err error) {
 	sources := &Sources{
 		Default:           newDefaultsProvider(),
-		DefaultsResources: newDefaultsResourcesProviders(),
+		DefaultsResources: newEmbeddedDefaultsProviders(),
+		FileSystemFiles:   newFileSystemProviders(),
+		Sources:           newSourcesProvider(),
 		Environment:       newEnvironmentProvider(),
 		Override:          newOverrideProvider(overrideConfig),
 	}
@@ -235,15 +244,8 @@ func loadConfig(ctx context.Context) (err error) {
 
 	// Add any config paths from the command line
 	config.AddConfigFoldersFromPathConfig(cfg)
-	// Support single-folder installs
-	config.AddConfigFolders("./etc")
-	// Support global installs
-	appName, err := cfg.String(configKeyAppName)
-	if err == nil && appName != "" {
-		config.AddConfigFolders(path.Join("/etc", appName))
-	}
-	// Allow the build to specify the config folder in fs.configs
-	sources.BuildFiles = newBuildProvider(cfg)
+	// Add any config paths from the fs config
+	config.AddConfigFoldersFromFsConfig(cfg)
 
 	// Reload the config
 	cfg = config.NewConfig(sources.Providers()...)
@@ -251,13 +253,9 @@ func loadConfig(ctx context.Context) (err error) {
 		return err
 	}
 
-	fsConfigs, err := cfg.String(configKeyFsConfigs)
-	if err == nil && fsConfigs != "" {
-		config.AddConfigFolders(fsConfigs)
-	}
+	logger.WithContext(ctx).Infof("Config Search Path: %v", config.Folders())
 
-	logger.WithContext(ctx).Infof("Config Search Path: %v", config.ConfigFolders())
-
+	sources.BuildFiles = newBuildProvider(cfg)
 	sources.DefaultsFiles = newDefaultsFilesProviders(cfg)
 	sources.BootstrapFiles = newBootstrapProviders(cfg)
 
