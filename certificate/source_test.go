@@ -128,7 +128,7 @@ func TestSource_period(t *testing.T) {
 				certificate: generateCertificate(t, clock, 10*time.Minute),
 				clock:       clock,
 			},
-			wantMin: 5*time.Minute + 150*time.Second,
+			wantMin: 5*time.Minute + 140*time.Second,
 			wantMax: 5*time.Minute + 225*time.Second,
 			wantErr: nil,
 		},

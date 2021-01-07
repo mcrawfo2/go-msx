@@ -2,6 +2,7 @@ package manage
 
 import "testing"
 
-func Test_Dummy(t *testing.T) {
-	t.Skipped()
+func Test_Implementations(t *testing.T) {
+	// Ensure MockManage is up to date
+	var _ Api = new(MockManage)
 }

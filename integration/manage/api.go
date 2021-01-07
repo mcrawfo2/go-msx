@@ -7,7 +7,7 @@ import (
 )
 
 type Api interface {
-	GetAdminHealth() (*HealthResult, error)
+	GetAdminHealth() (*integration.MsxResponse, error)
 
 	GetSubscription(subscriptionId string) (*integration.MsxResponse, error)
 	GetSubscriptionsV3(serviceType string, page, pageSize int) (*integration.MsxResponse, error)
@@ -89,6 +89,3 @@ type Api interface {
 
 	GetEntityShard(entityId string) (*integration.MsxResponse, error)
 }
-
-// Ensure MockManage is up to date
-var _ Api = new(MockManage)
