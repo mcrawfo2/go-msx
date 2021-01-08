@@ -3,7 +3,6 @@ package manage
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
@@ -85,7 +84,6 @@ const (
 )
 
 var (
-	logger    = log.NewLogger("msx.integration.manage")
 	endpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
@@ -176,22 +174,12 @@ func NewIntegrationWithExecutor(executor integration.MsxServiceExecutor) Api {
 	}
 }
 
-func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
-	result = &HealthResult{
-		Payload: &integration.HealthDTO{},
-	}
-
-	result.Response, err = i.Execute(&integration.MsxEndpointRequest{
+func (i *Integration) GetAdminHealth() (result *integration.MsxResponse, err error) {
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetAdminHealth,
-		Payload:      result.Payload,
+		Payload:      &integration.HealthDTO{},
 		NoToken:      true,
 	})
-
-	if result.Response != nil {
-		result.Payload = result.Response.Payload.(*integration.HealthDTO)
-	}
-
-	return result, err
 }
 
 func (i *Integration) GetSubscription(subscriptionId string) (*integration.MsxResponse, error) {
@@ -889,6 +877,7 @@ func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateReque
 		ExpectEnvelope: true,
 	})
 }
+
 func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(deviceTemplateAccess)
 	if err != nil {
