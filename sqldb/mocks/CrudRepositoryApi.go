@@ -77,6 +77,20 @@ func (_m *CrudRepositoryApi) FindAllPagedBy(ctx context.Context, where map[strin
 	return r0, r1
 }
 
+// FindAllSortedBy provides a mock function with given fields: ctx, where, sortOrder, dest
+func (_m *CrudRepositoryApi) FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) error {
+	ret := _m.Called(ctx, where, sortOrder, dest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]interface{}, paging.SortOrder, interface{}) error); ok {
+		r0 = rf(ctx, where, sortOrder, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindOneBy provides a mock function with given fields: ctx, where, dest
 func (_m *CrudRepositoryApi) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) error {
 	ret := _m.Called(ctx, where, dest)

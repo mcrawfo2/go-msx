@@ -36,6 +36,7 @@ type CrudRepositoryApi interface {
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	//FindAllDataSet(ctx context.Context, ds *goqu.SelectDataset, where map[string]interface{}, dest interface{}) (err error)
+	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	Insert(ctx context.Context, value interface{}) (err error)
@@ -129,6 +130,21 @@ func (c *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 	})
 }
 
+func (c *CrudRepository) FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		stmt, args, err := c.constructSortedQueryWithArgs(conn, where, sortOrder)
+		if err != nil {
+			return err
+		}
+		return conn.SelectContext(ctx, dest, stmt, args...)
+	})
+}
+
 func (c *CrudRepository) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -151,25 +167,31 @@ func (c *CrudRepository) FindOneSortedBy(ctx context.Context, where map[string]i
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		selectDataSet := c.dialect(conn).
-			From(c.tableName).
-			Where(goqu.Ex(where))
-
-		ident := goqu.I(sortOrder.Property)
-		switch sortOrder.Direction {
-		case paging.SortDirectionDesc:
-			selectDataSet = selectDataSet.OrderAppend(ident.Desc())
-		default:
-			selectDataSet = selectDataSet.OrderAppend(ident.Asc())
-		}
-
-		stmt, args, err := selectDataSet.ToSQL()
+		stmt, args, err := c.constructSortedQueryWithArgs(conn, where, sortOrder)
 		if err != nil {
 			return err
 		}
 
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
+}
+
+func (c *CrudRepository) constructSortedQueryWithArgs(conn *sqlx.DB, where map[string]interface{}, sortOrder paging.SortOrder) (sql string, args []interface{}, err error) {
+	selectDataSet := c.dialect(conn).
+		From(c.tableName).
+		Where(goqu.Ex(where))
+
+	ident := goqu.I(sortOrder.Property)
+	switch sortOrder.Direction {
+	case paging.SortDirectionDesc:
+		selectDataSet = selectDataSet.OrderAppend(ident.Desc())
+	default:
+		selectDataSet = selectDataSet.OrderAppend(ident.Asc())
+	}
+
+	sql, args, err = selectDataSet.ToSQL()
+
+	return
 }
 
 func (c *CrudRepository) Insert(ctx context.Context, value interface{}) (err error) {
