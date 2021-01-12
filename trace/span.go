@@ -3,6 +3,7 @@ package trace
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/opentracing/opentracing-go"
 	tracelog "github.com/opentracing/opentracing-go/log"
 	"github.com/uber/jaeger-client-go"
@@ -48,7 +49,13 @@ func BackgroundOperation(ctx context.Context, operationName string, operation fu
 
 		err := Operation(newCtx, operationName, operation)
 		if err != nil {
-			logger.WithContext(newCtx).WithError(err).Errorf("Operation %q failed", operationName)
+			bt := types.BackTraceFromError(err)
+			logger.
+				WithContext(newCtx).
+				WithError(err).
+				WithField(log.FieldStack, bt.Stanza()).
+				Errorf("Operation %q failed", operationName)
+			log.Stack(logger, newCtx, bt)
 		}
 	}()
 }
