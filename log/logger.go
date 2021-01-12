@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -14,13 +15,16 @@ type Logger struct {
 
 type StdLogger logrus.StdLogger
 
-const FieldName = "logger"
+const (
+	FieldLogger = "logger"
+	FieldStack  = "stack"
+)
 
 func (logger *Logger) Fields() LogContext {
 	// Return all fields except `name`
 	result := make(logrus.Fields)
 	for k, v := range logger.fields {
-		if k != FieldName {
+		if k != FieldLogger {
 			result[k] = v
 		}
 	}
@@ -52,6 +56,10 @@ func (logger *Logger) WithError(err error) *logrus.Entry {
 
 // Add a context to the log entry.
 func (logger *Logger) WithContext(ctx context.Context) *logrus.Entry {
+	if ctx == nil {
+		return logger.newEntry()
+	}
+
 	entry := logger.newEntry().WithContext(ctx)
 	if logContext, ok := LogContextFromContext(ctx); ok {
 		entry = entry.WithFields(logrus.Fields(logContext))
@@ -262,7 +270,7 @@ func (logger *Logger) Level(level logrus.Level) StdLogger {
 
 func (logger *Logger) SetLevel(level logrus.Level) {
 	logger.ParentLogger.SetLevel(level)
-	name := logger.fields[FieldName].(string)
+	name := logger.fields[FieldLogger].(string)
 	levels[name] = level
 	if logger.levelListener != nil {
 		logger.levelListener()
@@ -301,7 +309,7 @@ func NewLogger(name string, fields ...LogContext) *Logger {
 		level = InfoLevel
 	}
 
-	fields = append([]LogContext{{FieldName: name}}, fields...)
+	fields = append([]LogContext{{FieldLogger: name}}, fields...)
 	logger := newLogger(&logrus.Logger{
 		Out:       logrus.StandardLogger().Out,
 		Formatter: logrus.StandardLogger().Formatter,
@@ -325,4 +333,14 @@ func SetLoggerLevel(name string, level logrus.Level) {
 
 func GetLoggerLevels() map[string]logrus.Level {
 	return levels
+}
+
+func Stack(logger *Logger, ctx context.Context, bt types.BackTrace) {
+	if IsDocker() {
+		return
+	}
+
+	for _, line := range bt.Lines() {
+		logger.WithContext(ctx).Error(line)
+	}
 }

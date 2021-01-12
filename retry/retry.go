@@ -52,11 +52,21 @@ func (r Retry) Retry(retryable Retryable) (err error) {
 	}
 
 	if err != nil {
+		bt := types.BackTraceFromError(err)
 		if perm, ok := err.(failure); ok && perm.IsPermanent() {
-			logger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed with permanent failure", n)
+			logger.
+				WithContext(r.Context).
+				WithError(err).
+				WithField(log.FieldStack, bt.Stanza()).
+				Errorf("Attempt %d failed with permanent failure", n)
 		} else {
-			logger.WithContext(r.Context).WithError(err).Errorf("Attempt %d failed, no more attempts", n)
+			logger.
+				WithContext(r.Context).
+				WithError(err).
+				WithField(log.FieldStack, bt.Stanza()).
+				Errorf("Attempt %d failed, no more attempts", n)
 		}
+		log.Stack(logger, r.Context, bt)
 	}
 
 	return

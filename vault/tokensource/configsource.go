@@ -12,15 +12,10 @@ const (
 type ConfigSource struct {
 }
 
-func (c *ConfigSource) GetToken(client *api.Client, cfg *config.Config) (token string, err error) {
+func (c *ConfigSource) GetToken(_ *api.Client, cfg *config.Config) (token string, err error) {
 	return cfg.StringOr(configRootVaultToken, "replace_with_token_value")
 }
 
-func (c *ConfigSource) StartRenewer(client *api.Client) {
-	r, err := initRenewer(client)
-	if err != nil {
-		logger.Error("Error initializing token renewer: ", err)
-	}
-	logger.Info("Starting token renewal.")
-	startRenewer(r)
+func (c *ConfigSource) StartRenewer(_ *api.Client) {
+	logger.Warn("Config token renewal disabled")
 }

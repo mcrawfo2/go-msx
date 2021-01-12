@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,4 +36,20 @@ func SetFormat(format string) {
 			TimestampFormat: time.RFC3339Nano,
 		})
 	}
+}
+
+var dockerOnce sync.Once
+var docker bool
+
+func IsDocker() bool {
+	dockerOnce.Do(func() {
+		_, err := os.Stat("/.dockerenv")
+		if err == nil {
+			docker = true
+		} else {
+			docker = !os.IsNotExist(err)
+		}
+	})
+
+	return docker
 }

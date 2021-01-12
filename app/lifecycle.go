@@ -91,7 +91,6 @@ func (a *MsxApplication) triggerObserver(event, phase string, observer Observer)
 	err := observer(ctx)
 	if err != nil {
 		span.LogFields(trace.Error(err))
-		logger.WithContext(ctx).Error(err)
 	}
 
 	return err
@@ -161,8 +160,13 @@ func (a *MsxApplication) Run(command string) error {
 			select {
 			case <-a.refresh:
 				if err = a.refreshEvents(a.ctx); err != nil {
-					logger.Error(errors.Wrap(err, "Refresh failed"))
-					logger.WithContext(a.ctx).Errorf("%+v", err)
+					bt := types.BackTraceFromError(err)
+					logger.
+						WithContext(a.ctx).
+						WithError(err).
+						WithField(log.FieldStack, bt.Stanza()).
+						Error("Refresh failed")
+					log.Stack(logger, a.ctx, bt)
 					a.SetExitCode(1)
 					break
 				}
@@ -178,8 +182,13 @@ func (a *MsxApplication) Run(command string) error {
 			}
 		}
 	} else {
-		logger.WithContext(a.ctx).WithError(err).Error("Startup failed")
-		logger.WithContext(a.ctx).Errorf("%+v", err)
+		bt := types.BackTraceFromError(err)
+		logger.
+			WithContext(a.ctx).
+			WithError(err).
+			WithField(log.FieldStack, bt.Stanza()).
+			Error("Startup failed")
+		log.Stack(logger, a.ctx, bt)
 		a.SetExitCode(1)
 	}
 

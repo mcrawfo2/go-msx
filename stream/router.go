@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
@@ -158,7 +159,13 @@ func listenerHandler(topic string, action ListenerAction, cfg *BindingConfigurat
 		}
 
 		if err := retry.NewRetry(msg.Context(), cfg.Retry).Retry(retryableAction); err != nil {
-			logger.WithContext(msg.Context()).WithError(err).Error("Failed to process message")
+			bt := types.BackTraceFromError(err)
+			logger.
+				WithContext(msg.Context()).
+				WithError(err).
+				WithField(log.FieldStack, bt.Stanza()).
+				Error("Failed to process message")
+			log.Stack(logger, msg.Context(), bt)
 		}
 
 		msg.Ack()

@@ -1,9 +1,8 @@
 package integration
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
-	"strconv"
-	"strings"
 )
 
 type MsxEnvelope struct {
@@ -37,63 +36,27 @@ func NewEnvelope(payload interface{}) *MsxEnvelope {
 }
 
 type Throwable struct {
-	Cause      *Throwable   `json:"cause,omitempty"`
-	StackTrace []StackFrame `json:"stackTrace,omitempty"`
-	Message    string       `json:"message"`
-}
-
-type causer interface {
-	Cause() error
+	Cause      *Throwable             `json:"cause,omitempty"`
+	StackTrace []types.BackTraceFrame `json:"stackTrace,omitempty"`
+	Message    string                 `json:"message"`
 }
 
 func NewThrowable(err error) *Throwable {
-	throwable := new(Throwable)
-
 	if err == nil {
+		throwable := new(Throwable)
 		throwable.Message = "Nil error"
 		return throwable
 	}
 
-	// Parse message
-	errMessage := err.Error()
-	lines := strings.Split(errMessage, "\n")
-	parts := strings.Split(lines[0], ": ")
-	throwable.Message = parts[0]
-
-	// Recurse
-	if errWithCause, ok := err.(causer); ok {
-		if cause := errWithCause.Cause(); cause != nil {
-			throwableCause := NewThrowable(cause)
-			// Skip over errors.Wrap artifacts
-			if throwableCause.Message == throwable.Message && throwableCause.StackTrace == nil {
-				throwableCause = throwableCause.Cause
-			}
-			throwable.Cause = throwableCause
-		}
+	var result *Throwable
+	for _, bte := range types.BackTraceFromError(err) {
+		throwable := new(Throwable)
+		// OWASP: https://owasp.org/www-community/Improper_Error_Handling
+		// throwable.StackTrace = bte.Frames
+		throwable.Message = bte.Message
+		throwable.Cause = result
+		result = throwable
 	}
 
-	return throwable
-}
-
-type StackFrame map[string]interface{}
-
-func (f StackFrame) SetLineNumber(lineNumber string) {
-	lineNumberInt, _ := strconv.Atoi(lineNumber)
-	f["lineNumber"] = lineNumberInt
-}
-
-func (f StackFrame) SetFileName(fileName string) {
-	f["fileName"] = fileName
-}
-
-func (f StackFrame) SetMethodName(methodName string) {
-	f["methodName"] = methodName
-}
-
-func (f StackFrame) SetFullFileName(extendedFileName string) {
-	f["fullFileName"] = extendedFileName
-}
-
-func (f StackFrame) SetFullMethodName(extendedMethodName string) {
-	f["fullMethodName"] = extendedMethodName
+	return result
 }
