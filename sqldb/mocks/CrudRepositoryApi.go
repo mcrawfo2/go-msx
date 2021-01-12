@@ -14,6 +14,34 @@ type CrudRepositoryApi struct {
 	mock.Mock
 }
 
+// CountAll provides a mock function with given fields: ctx, dest
+func (_m *CrudRepositoryApi) CountAll(ctx context.Context, dest *int64) error {
+	ret := _m.Called(ctx, dest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *int64) error); ok {
+		r0 = rf(ctx, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CountAllBy provides a mock function with given fields: ctx, where, dest
+func (_m *CrudRepositoryApi) CountAllBy(ctx context.Context, where map[string]interface{}, dest *int64) error {
+	ret := _m.Called(ctx, where, dest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]interface{}, *int64) error); ok {
+		r0 = rf(ctx, where, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteBy provides a mock function with given fields: ctx, where
 func (_m *CrudRepositoryApi) DeleteBy(ctx context.Context, where map[string]interface{}) error {
 	ret := _m.Called(ctx, where)
