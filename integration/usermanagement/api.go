@@ -8,7 +8,7 @@ import (
 )
 
 type Api interface {
-	GetAdminHealth() (*HealthResult, error)
+	GetAdminHealth() (*integration.MsxResponse, error)
 
 	Login(user, password string) (*integration.MsxResponse, error)
 	Logout() (*integration.MsxResponse, error)
@@ -61,6 +61,3 @@ type Api interface {
 	BatchUpdateCapabilities(populator bool, owner string, capabilities []CapabilityUpdateRequest) (*integration.MsxResponse, error)
 	DeleteCapability(populator bool, owner string, name string) (*integration.MsxResponse, error)
 }
-
-// Ensure MockUserManagement is up-to-date
-var _ Api = new(MockUserManagement)

@@ -90,6 +90,20 @@ func EndpointRequestHasEndpointParameter(name, value string) EndpointRequestPred
 	}
 }
 
+func EndpointRequestHasHeader(name, value string) EndpointRequestPredicate {
+	return EndpointRequestPredicate{
+		Description: fmt.Sprintf("request.Headers[%q] contains %q", name, value),
+		Matches: func(request *integration.MsxEndpointRequest) bool {
+			for _, header := range request.Headers[name] {
+				if header == value {
+					return true
+				}
+			}
+			return false
+		},
+	}
+}
+
 func EndpointRequestHasBodySubstring(substring string) EndpointRequestPredicate {
 	return EndpointRequestPredicate{
 		Description: fmt.Sprintf("endpointRequest.Body contains %q", substring),

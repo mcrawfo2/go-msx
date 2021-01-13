@@ -2,6 +2,8 @@ package usermanagement
 
 import "testing"
 
-func Test_Dummy(t *testing.T) {
-	t.Skipped()
+func Test_Implementations(t *testing.T) {
+	var _ Api = new(MockUserManagement)
+	var _ Api = new(Integration)
 }
+

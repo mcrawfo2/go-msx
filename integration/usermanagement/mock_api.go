@@ -291,15 +291,15 @@ func (_m *MockUserManagement) GenerateTenantSecrets(tenantId string, scope strin
 }
 
 // GetAdminHealth provides a mock function with given fields:
-func (_m *MockUserManagement) GetAdminHealth() (*HealthResult, error) {
+func (_m *MockUserManagement) GetAdminHealth() (*integration.MsxResponse, error) {
 	ret := _m.Called()
 
-	var r0 *HealthResult
-	if rf, ok := ret.Get(0).(func() *HealthResult); ok {
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*HealthResult)
+			r0 = ret.Get(0).(*integration.MsxResponse)
 		}
 	}
 
