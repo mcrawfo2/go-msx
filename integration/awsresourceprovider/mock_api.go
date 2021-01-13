@@ -221,6 +221,29 @@ func (_m *MockAwsResourceProvider) GetResources(serviceConfigurationApplicationI
 	return r0, r1
 }
 
+// GetRouteTableInformation provides a mock function with given fields: controlPlaneId, region, vpcId
+func (_m *MockAwsResourceProvider) GetRouteTableInformation(controlPlaneId types.UUID, region string, vpcId string) (*integration.MsxResponse, error) {
+	ret := _m.Called(controlPlaneId, region, vpcId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(types.UUID, string, string) *integration.MsxResponse); ok {
+		r0 = rf(controlPlaneId, region, vpcId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(types.UUID, string, string) error); ok {
+		r1 = rf(controlPlaneId, region, vpcId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetStackOutputs provides a mock function with given fields: applicationId
 func (_m *MockAwsResourceProvider) GetStackOutputs(applicationId types.UUID) (*integration.MsxResponse, error) {
 	ret := _m.Called(applicationId)
