@@ -159,6 +159,44 @@ type AwsRegion struct {
 	AMIId      string `json:"amiId"`
 }
 
+type VpcRouteTable struct {
+	Associations []struct {
+		AssociationState struct {
+			State         string  `json:"State"`
+			StatusMessage *string `json:"StatusMessage"`
+		} `json:"AssociationState"`
+		GatewayID               *string `json:"GatewayId"`
+		Main                    bool    `json:"Main"`
+		RouteTableAssociationID string  `json:"RouteTableAssociationId"`
+		RouteTableID            string  `json:"RouteTableId"`
+		SubnetID                string  `json:"SubnetId"`
+	} `json:"Associations"`
+	OwnerID         string  `json:"OwnerId"`
+	PropagatingVgws *string `json:"PropagatingVgws"`
+	RouteTableID    string  `json:"RouteTableId"`
+	Routes          []struct {
+		DestinationCidrBlock        string  `json:"DestinationCidrBlock"`
+		DestinationIpv6CidrBlock    *string `json:"DestinationIpv6CidrBlock"`
+		DestinationPrefixListID     *string `json:"DestinationPrefixListId"`
+		EgressOnlyInternetGatewayID *string `json:"EgressOnlyInternetGatewayId"`
+		GatewayID                   string  `json:"GatewayId"`
+		InstanceID                  *string `json:"InstanceId"`
+		InstanceOwnerID             *string `json:"InstanceOwnerId"`
+		LocalGatewayID              *string `json:"LocalGatewayId"`
+		NatGatewayID                *string `json:"NatGatewayId"`
+		NetworkInterfaceID          *string `json:"NetworkInterfaceId"`
+		Origin                      string  `json:"Origin"`
+		State                       string  `json:"State"`
+		TransitGatewayID            *string `json:"TransitGatewayId"`
+		VpcPeeringConnectionID      *string `json:"VpcPeeringConnectionId"`
+	} `json:"Routes"`
+	Tags []struct {
+		Key   string `json:"Key"`
+		Value string `json:"Value"`
+	} `json:"Tags"`
+	VpcID string `json:"VpcId"`
+}
+
 type StackOutputList []StackOutput
 
 func (s StackOutputList) Map() map[string]string {

@@ -23,6 +23,7 @@ const (
 	endpointNameCheckStatus                       = "checkStatus"
 	endpointNameGetInstanceType                   = "getInstanceType"
 	endpointNameGetAmiInformation                 = "getAmiInformation"
+	endpointNameGetVpcRouteTable                  = "getRouteTableInfo"
 	serviceName                                   = integration.ResourceProviderNameAws
 )
 
@@ -42,6 +43,7 @@ var (
 		endpointNameCheckStatus:                       {Method: "POST", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/checkstatus"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
 		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami/{{.amiName}}"},
+		endpointNameGetVpcRouteTable:                  {Method: "GET", Path: "/api/v1/vpc"},
 	}
 )
 
@@ -257,5 +259,18 @@ func (i *Integration) GetAmiInformation(controlPlaneId types.UUID, amiName strin
 		QueryParameters: queryParams,
 		ExpectEnvelope:  true,
 		Payload:         &AwsAmiRegion{},
+	})
+}
+
+func (i *Integration) GetRouteTableInformation(controlPlaneId types.UUID, region string, vpcId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetVpcRouteTable,
+		QueryParameters: map[string][]string{
+			"controlPlaneId": {controlPlaneId.String()},
+			"region":         {region},
+			"vpcId":          {vpcId},
+		},
+		ExpectEnvelope: true,
+		Payload:        &[]VpcRouteTable{},
 	})
 }
