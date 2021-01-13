@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=LeadershipProvider --structname=MockLeadershipProvider --filename=mock_LeadershipProvider.go
+
 package leader
 
 import (
@@ -56,7 +58,7 @@ func ReleaseLeadership(ctx context.Context, key string) error {
 	return nil
 }
 
-func ReleaseMasterLeadership(ctx context.Context, key string) error {
+func ReleaseMasterLeadership(ctx context.Context) error {
 	if !IsLeadershipProviderRegistered() {
 		return ErrLeadershipProviderNotDefined
 	}
