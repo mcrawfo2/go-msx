@@ -7,7 +7,6 @@ import (
 
 func ReportErrors(t *testing.T, name string, errs []error) {
 	for _, err := range errs {
-		t.Errorf("%s: Validator failed: %s", name, err.Error())
+		assert.Fail(t, err.Error(), "Failed %s validator", name)
 	}
-	assert.Len(t, errs, 0)
 }

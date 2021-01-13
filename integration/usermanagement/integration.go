@@ -137,28 +137,28 @@ func NewIntegration(ctx context.Context) (Api, error) {
 	integrationInstance := IntegrationFromContext(ctx)
 	if integrationInstance == nil {
 		integrationInstance = &Integration{
-			MsxService: integration.NewMsxService(ctx, serviceName, endpoints),
+			MsxContextServiceExecutor: integration.NewMsxService(ctx, serviceName, endpoints),
 		}
 	}
 	return integrationInstance, nil
 }
 
-type Integration struct {
-	*integration.MsxService
+func NewIntegrationWithExecutor(executor integration.MsxContextServiceExecutor) *Integration {
+	return &Integration{
+		MsxContextServiceExecutor: executor,
+	}
 }
 
-func (i *Integration) GetAdminHealth() (result *HealthResult, err error) {
-	result = &HealthResult{
-		Payload: &integration.HealthDTO{},
-	}
+type Integration struct {
+	integration.MsxContextServiceExecutor
+}
 
-	result.Response, err = i.Execute(&integration.MsxEndpointRequest{
+func (i *Integration) GetAdminHealth() (result *integration.MsxResponse, err error) {
+	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetAdminHealth,
-		Payload:      result.Payload,
+		Payload:      &integration.HealthDTO{},
 		NoToken:      true,
 	})
-
-	return result, err
 }
 
 func (i *Integration) Login(user, password string) (result *integration.MsxResponse, err error) {
@@ -171,7 +171,7 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 		EndpointName: endpointNameLogin,
 		Headers: http.Header(map[string][]string{
 			"Authorization": {securityClientSettings.Authorization()},
-			"Content-Type":  {"application/x-www-form-urlencoded"},
+			"Content-Type":  {httpclient.MimeTypeApplicationWwwFormUrlencoded},
 		}),
 		Body: []byte(url.Values(map[string][]string{
 			"grant_type": {"password"},
@@ -398,7 +398,7 @@ func (i *Integration) GetSystemSecrets(scope string) (result *integration.MsxRes
 		EndpointParameters: map[string]string{
 			"scope": scope,
 		},
-		Payload:        new(SecretsResponse),
+	Payload:        new(SecretsResponse),
 		ExpectEnvelope: true,
 	})
 }

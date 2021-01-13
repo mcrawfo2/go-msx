@@ -1,4 +1,5 @@
 //go:generate mockery --inpackage --name=MsxServiceExecutor
+//go:generate mockery --inpackage --name=MsxContextServiceExecutor
 
 package integration
 
@@ -19,6 +20,11 @@ var (
 
 type MsxServiceExecutor interface {
 	Execute(request *MsxEndpointRequest) (response *MsxResponse, err error)
+}
+
+type MsxContextServiceExecutor interface {
+	MsxServiceExecutor
+	Context() context.Context
 }
 
 // Ensure MockMsxServiceExecutor is up-to-date

@@ -7,7 +7,6 @@ import (
 
 type Pojo integration.Pojo
 type PojoArray integration.PojoArray
-type HealthResult integration.HealthResult
 
 type TokenDetails struct {
 	Active       bool         `json:"active"`
