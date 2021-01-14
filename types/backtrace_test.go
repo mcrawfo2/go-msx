@@ -3,11 +3,13 @@ package types
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"strconv"
 	"testing"
 )
 
 var globalError = fmt.Errorf("Global Error")
 var globalStackError = errors.New("Global Stack Error")
+var _, parseError = strconv.ParseBool("trueq")
 
 func testError3() error {
 	return fmt.Errorf("Built-In Error")
@@ -31,6 +33,10 @@ func testError5() error {
 
 func testError6() error {
 	return errors.Wrap(testError5(), "Re-wrapped Stack Error")
+}
+
+func testError7() error {
+	return errors.Wrap(parseError, "Wrapped Parse Error")
 }
 
 func TestBackTraceFromError(t *testing.T) {
@@ -210,11 +216,46 @@ func TestBackTraceFromError(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ParseError",
+			args: args{err:testError7()},
+			want: BackTrace{
+				{
+					Message: `strconv.ParseBool: parsing "trueq": invalid syntax`,
+					Frames: []BackTraceFrame{},
+				},
+				{
+					Message: "Wrapped Parse Error",
+					Frames: []BackTraceFrame{
+						{
+							FullMethod: "types.testError7",
+							FullFile: "backtrace_test.go",
+						},
+						{
+							FullMethod: "types.TestBackTraceFromError",
+							FullFile:   "backtrace_test.go",
+						},
+						{
+							FullMethod: "testing.tRunner",
+							FullFile:   "proc.go",
+						},
+						{
+							FullMethod: "runtime.goexit",
+							FullFile:   "asm_amd64.s",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := BackTraceFromError(tt.args.err); !got.Equal(tt.want) {
+			got := BackTraceFromError(tt.args.err)
+			t.Logf("Got: \n%s", got.Stanza())
+
+			if !got.Equal(tt.want) {
+				t.Logf("Wanted: \n%s", tt.want.Stanza())
 				t.Errorf("BackTraceFromError() = %v, want %v", got, tt.want)
 			}
 		})

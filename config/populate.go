@@ -55,7 +55,7 @@ func Populate(target interface{}, prefix string, source PopulatorSource) error {
 	v := reflect.ValueOf(target)
 	err = u.Populate(v, source, prefix)
 	if err != nil {
-		return errors.Wrap(err, "Failed to populate target")
+		return errors.Wrapf(err, "Failed to populate target from %q", prefix)
 	}
 
 	if validatableTarget, ok := target.(validate.Validatable); ok {
@@ -142,6 +142,8 @@ func (u structFieldPopulator) Populate(v reflect.Value, source PopulatorSource, 
 	err := u.Value.Populate(fieldValue, source, key)
 	if errors.Is(err, ErrNotFound) && u.IsOptional {
 		err = nil
+	} else if err != nil {
+		err = errors.Wrapf(err, "Failed to populate value %q", PrefixWithName(prefix, u.FieldType.Name))
 	}
 	return err
 }
@@ -338,7 +340,7 @@ func (u mapPopulator) Populate(v reflect.Value, source PopulatorSource, prefix s
 
 		err := u.Value.Populate(value, source, childNodeName.NormalizedName)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Failed to populate value %q", PrefixWithName(prefix, childNodeName.Name))
 		}
 
 		if isPtr {
@@ -406,7 +408,7 @@ func (u slicePopulator) Populate(v reflect.Value, source PopulatorSource, prefix
 
 		err := u.Value.Populate(childValue, source, childNodeName.NormalizedName)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Failed to populate value %q", PrefixWithIndex(prefix, childNodeName.Index))
 		}
 
 		if elemTypeIsPtr {
