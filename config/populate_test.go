@@ -212,6 +212,15 @@ func TestPopulateStruct(t *testing.T) {
 			},
 		},
 		{
+			name: "SliceFailure",
+			values: map[string]string{
+				"a[0]": "1",
+				"a[1]": "c",
+			},
+			arg: &sliceStruct{},
+			wantErr: true,
+		},
+		{
 			name: "SliceStructDefaults",
 			values: map[string]string{
 				"f": "1.2",
@@ -288,6 +297,7 @@ func TestPopulateStruct(t *testing.T) {
 			err = Populate(tt.arg, tt.prefix, cfg.OriginalValues())
 			if tt.wantErr {
 				assert.Error(t, err)
+				t.Log(err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want, tt.arg)

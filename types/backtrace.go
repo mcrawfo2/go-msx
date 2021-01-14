@@ -110,10 +110,14 @@ func BackTraceErrorFromError(err error) BackTraceError {
 	lines := strings.Split(errMessage, "\n")
 	message := lines[0]
 
-	// If we have a cause, trim message after the first colon
-	if _, ok := err.(causer); ok {
-		parts := strings.Split(lines[0], ": ")
-		message = parts[0]
+	// If we have a cause, trim message after the first colon if it
+	// matches the cause's message
+	if cause := errors.Unwrap(err); cause != err && cause != nil {
+		parts := strings.SplitN(lines[0], ": ", 2)
+		causerMessage := cause.Error()
+		if (len(parts) == 2 && parts[1] == causerMessage) || (errMessage == causerMessage) {
+			message = parts[0]
+		}
 	}
 
 	var frames []BackTraceFrame
