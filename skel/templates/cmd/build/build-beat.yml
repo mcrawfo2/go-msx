@@ -26,8 +26,8 @@ msx:
     includeGroups: "com.cisco.**"
 
 resources:
-  - includes:
-      - "/**/fields.yml"
+  includes:
+    - "/**/fields.yml"
 
 artifactory:
   installer: deployments/kubernetes
