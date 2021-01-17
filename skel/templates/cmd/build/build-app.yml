@@ -26,12 +26,12 @@ msx:
     includeGroups: "com.cisco.**"
 
 resources:
-  - includes:
+  includes:
 #if REPOSITORY_COCKROACH
-      - "/**/*.sql"
+    - "/**/*.sql"
 #endif REPOSITORY_COCKROACH
 #if REPOSITORY_CASSANDRA
-      - "/**/*.cql"
+    - "/**/*.cql"
 #endif REPOSITORY_CASSANDRA
 
 assemblies:
