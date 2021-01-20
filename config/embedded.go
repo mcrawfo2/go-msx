@@ -19,11 +19,11 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2020, 12, 30, 21, 48, 3, 450736656, time.UTC),
+			modTime: time.Date(2021, 1, 17, 17, 32, 18, 61670155, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2020, 12, 31, 16, 35, 13, 797263587, time.UTC),
+			modTime: time.Date(2021, 1, 19, 15, 44, 41, 298835436, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,7 +32,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/certificate": &vfsgen۰DirInfo{
 			name:    "certificate",
-			modTime: time.Date(2020, 12, 30, 21, 47, 18, 950311798, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 39, 187347106, time.UTC),
 		},
 		"/certificate/defaults-certificate.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-certificate.properties",
@@ -41,13 +41,22 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 
 			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x52\x56\x08\x4e\x2d\x2a\x4b\x2d\x52\x70\x4e\x2d\x2a\xc9\x4c\xcb\x4c\x4e\x2c\x49\xe5\x4a\x46\xb0\xf5\x8a\xf3\x4b\x8b\x92\x53\xf5\x8a\xc1\xaa\xf4\x0a\x8a\xf2\xcb\x32\x53\x52\x8b\x14\x6c\x15\xd2\x32\x73\xf0\xa9\x04\xc9\xe8\x82\xd4\x28\xd8\x2a\xa8\x54\x43\x05\x4b\x72\x8a\x11\x12\xb5\x78\x74\x67\xa7\x56\x62\xd5\x0c\x13\xaf\xe5\xe2\x52\x56\x70\xce\xc9\x4c\xcd\x2b\x21\xe4\xf2\x64\xb0\x2a\x62\x5c\x0e\x55\x89\xea\xf2\x8c\x92\x92\x02\x0c\x19\xac\x4e\x87\x2a\x42\x71\x3a\xb2\x6e\x84\xdb\x01\x01\x00\x00\xff\xff\xb7\xa8\x3d\x54\x75\x01\x00\x00"),
 		},
+		"/consul": &vfsgen۰DirInfo{
+			name:    "consul",
+			modTime: time.Date(2021, 1, 17, 17, 34, 6, 531063829, time.UTC),
+		},
+		"/consul/defaults-consul.properties": &vfsgen۰FileInfo{
+			name:    "defaults-consul.properties",
+			modTime: time.Date(2021, 1, 13, 18, 39, 4, 452446588, time.UTC),
+			content: []byte("\x73\x70\x72\x69\x6e\x67\x2e\x63\x6c\x6f\x75\x64\x2e\x63\x6f\x6e\x73\x75\x6c\x2e\x63\x6f\x6e\x66\x69\x67\x2e\x77\x61\x74\x63\x68\x2e\x77\x61\x69\x74\x2d\x74\x69\x6d\x65\x20\x3d\x20\x31\x35\x0a"),
+		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
-			modTime: time.Date(2020, 9, 29, 13, 0, 4, 718676271, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 627323521, time.UTC),
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
-			modTime: time.Date(2020, 12, 7, 16, 2, 43, 39269856, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 625866071, time.UTC),
 		},
 		"/discovery/consulprovider/defaults-discovery.properties": &vfsgen۰FileInfo{
 			name:    "defaults-discovery.properties",
@@ -56,18 +65,18 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/fs": &vfsgen۰DirInfo{
 			name:    "fs",
-			modTime: time.Date(2020, 12, 31, 16, 18, 24, 634039761, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 633073439, time.UTC),
 		},
 		"/fs/defaults-fs.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-fs.properties",
-			modTime:          time.Date(2020, 12, 31, 16, 18, 24, 633938631, time.UTC),
-			uncompressedSize: 288,
+			modTime:          time.Date(2021, 1, 13, 18, 39, 4, 453903911, time.UTC),
+			uncompressedSize: 356,
 
-			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8f\x31\x0e\x83\x30\x0c\x45\x77\x4e\x91\x81\x99\x9c\x80\xc3\x98\xd4\x44\x96\x52\x1b\xd9\xa1\x0b\xe2\xee\x95\x21\x22\xdd\xba\x39\xcf\xff\x59\x3f\xab\x4d\x2a\x52\xc3\x1c\xe2\xe0\x33\x9a\xec\x9a\xd0\x1c\x7c\x40\x63\xa1\x25\x8e\x87\x6d\x4a\x9c\x27\xd8\xb6\x42\x09\x2a\x09\x4f\x0c\x6f\x3c\x5d\x49\xc2\x2b\xe5\x4b\xc0\x9a\xfe\x84\x17\x62\x50\xba\xcf\xef\xa6\x71\x21\x76\x5c\x24\x41\x71\x76\x0d\x4e\xac\x42\x26\xce\xce\x5e\x64\x35\x7a\xc9\xa1\x95\xf5\x9a\x05\xc1\x30\xcc\x61\x3c\x1a\x3c\xfb\xb6\x7f\xe1\xda\xb6\xe7\x6f\xe0\x39\xfe\xe8\x3d\x76\x3b\x77\xe2\x1c\xbe\x01\x00\x00\xff\xff\x11\x53\x3c\x8a\x20\x01\x00\x00"),
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8f\x41\x0e\x84\x20\x0c\x45\xf7\x9e\x82\x85\x6b\x39\x81\x87\xa9\x88\xa4\x09\x14\x42\x71\x36\xc6\xbb\x4f\x0a\x44\x9c\xd5\xec\xda\xd7\xff\xdb\xdf\x83\x97\x1c\x63\x51\xab\xd2\x93\xd4\x96\xe3\x99\x8d\x65\x01\x1f\xc8\xda\xe3\xa6\xe7\x8b\x53\x46\x72\x0b\xa4\xe4\xd1\x40\xc1\x48\x0b\x41\xb0\xb7\x58\x4c\xa4\x03\x5d\x35\xd8\x62\xfe\x88\x37\x24\xc8\xd8\xd6\x9f\x9c\xf5\x86\x24\xd8\x47\x03\x5e\x58\x2d\x84\x70\x01\x87\xe4\x84\xed\xc8\x45\x4b\xc8\x76\x2d\x04\xa0\x5d\xb8\x09\xbb\x86\x94\xa6\xfe\x82\x84\xf7\x16\xd8\xaa\x55\xcd\x57\x87\xf7\x98\x8e\xc7\xea\xb4\xb7\x6f\xc1\x73\xf2\xb1\x0f\x59\xf3\x34\xc5\xcb\x33\xe2\xfc\x2c\xad\x4d\x9f\xdd\xd3\x37\x00\x00\xff\xff\xa6\x8a\xe1\x8d\x64\x01\x00\x00"),
 		},
 		"/leader": &vfsgen۰DirInfo{
 			name:    "leader",
-			modTime: time.Date(2020, 3, 18, 13, 9, 35, 358725984, time.UTC),
+			modTime: time.Date(2021, 1, 17, 17, 34, 6, 533294220, time.UTC),
 		},
 		"/leader/defaults-leader.yml": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-leader.yml",
@@ -78,7 +87,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/populate": &vfsgen۰DirInfo{
 			name:    "populate",
-			modTime: time.Date(2020, 12, 30, 21, 47, 30, 445990484, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 692220069, time.UTC),
 		},
 		"/populate/defaults-populate.properties": &vfsgen۰FileInfo{
 			name:    "defaults-populate.properties",
@@ -87,11 +96,11 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/security": &vfsgen۰DirInfo{
 			name:    "security",
-			modTime: time.Date(2020, 12, 30, 14, 9, 29, 481100023, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 713520842, time.UTC),
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
-			modTime: time.Date(2020, 12, 7, 16, 2, 43, 60372941, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 706768337, time.UTC),
 		},
 		"/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties": &vfsgen۰FileInfo{
 			name:    "defaults-security-idmdetailsprovider.properties",
@@ -100,7 +109,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
-			modTime: time.Date(2020, 12, 8, 17, 51, 32, 307355644, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 39, 199498037, time.UTC),
 		},
 		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-sqldb.properties",
@@ -111,7 +120,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/transit": &vfsgen۰DirInfo{
 			name:    "transit",
-			modTime: time.Date(2020, 12, 7, 16, 2, 43, 81573113, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 1, 754803746, time.UTC),
 		},
 		"/transit/defaults-transit.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-transit.properties",
@@ -122,7 +131,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2020, 12, 30, 14, 9, 29, 489099827, time.UTC),
+			modTime: time.Date(2021, 1, 13, 22, 18, 39, 204525488, time.UTC),
 		},
 		"/webservice/defaults-security-actuator.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-security-actuator.properties",
@@ -133,15 +142,16 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/webservice/defaults-webservice.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-webservice.properties",
-			modTime:          time.Date(2020, 12, 7, 16, 2, 43, 85929800, time.UTC),
-			uncompressedSize: 322,
+			modTime:          time.Date(2021, 1, 7, 15, 34, 17, 154063815, time.UTC),
+			uncompressedSize: 598,
 
-			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8e\xcd\x0e\x82\x30\x10\x84\xef\x3c\xc5\x26\x7a\x6d\xe5\xc8\xa5\x0f\x53\xcb\x56\x1a\x1a\x4a\x76\x57\x1a\x62\x7c\x77\x03\x52\x7f\x88\x66\x6f\x33\xdf\xce\x0c\x23\x4d\x48\x9a\xc5\x4a\x70\x6a\xb4\xd2\x81\x81\x53\xce\xb9\xda\x1c\x21\xeb\x50\xe1\x60\xcf\x11\x5b\x30\xe0\x6d\x64\x2c\xe6\x98\x48\xc0\x40\x53\x37\x75\x91\xba\xc4\x8b\x54\xeb\xf5\x8a\xba\xff\xaf\x0e\x90\x62\x0b\x12\x19\x9e\x04\xb8\x34\xf8\x70\x79\xb5\x46\xd6\x0e\x49\x94\x0f\x11\xc1\x6c\x90\x76\x24\x9f\x44\x8f\xf3\x0e\xe8\x71\xfe\x8a\xb0\xc5\x3f\xde\x7e\x25\xdf\x97\x21\x03\xe6\x75\xc8\x48\x69\x0a\xed\xdf\x29\xc1\x07\x67\x05\x15\xa7\x2b\xb9\x77\x65\xf5\x08\x00\x00\xff\xff\x37\xda\x0b\x92\x42\x01\x00\x00"),
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8e\x41\x4f\x83\x40\x14\x84\xef\xfc\x8a\x97\xe8\x51\x90\x52\x69\xb8\x70\xc0\x95\x88\x49\x8d\x46\x9a\x18\x4f\x9b\xed\xf2\x28\x9b\x6e\x58\xb2\xbb\x94\x34\xc6\xff\x6e\xc0\xa2\xb6\x29\x9a\x77\x9b\xf9\x66\xde\x18\xd4\x3b\xd4\x9e\xb1\xcc\x0a\xee\x36\xcc\x56\x10\xc3\x75\xd7\x75\xce\xc1\xb1\x9a\x71\x74\xb1\x66\x6b\x89\x05\xc4\x50\x32\x69\x70\x34\x0b\x5c\xb7\x9b\x29\xb3\x51\xda\x42\x0c\x91\x1f\xf9\xa3\x54\x29\xd3\x4b\xbe\x37\xdc\xa8\x9e\xe6\x9d\x0b\x50\xb2\x00\x2b\x0d\x7c\x11\xc0\x55\x5d\x8a\xcd\xf7\x24\x69\x3c\x8e\xda\xba\xa5\x90\x08\xf1\x01\xf2\xb8\xb6\xbf\x89\x2d\xee\x4f\x80\x2d\xee\x8f\x2a\xd8\xe8\x5f\xbe\x9f\x6b\xfe\xe8\x87\xd4\xd8\x0d\x43\x1a\xad\x76\xa2\x98\x9c\x22\x4a\xc1\x99\x45\xd7\xa8\x56\xf3\x9f\x97\x7d\x03\x17\x4d\x85\xda\x1c\x25\x06\xc9\x35\xad\xb0\x68\x20\x86\xd5\x32\xa7\x29\xb9\xcb\x52\xfa\x92\x27\xf4\xf5\x61\x95\x51\x92\x25\x24\x4b\x02\x9f\x3e\x3f\x2d\xdf\x66\x73\x3f\xbc\x3a\x03\x25\x69\x4e\x67\x41\x44\xef\xc9\x23\xcd\xb3\x24\x08\x17\x53\x54\x10\x2e\x46\x6a\x1e\xdd\xfc\x45\x91\x5b\xd2\x53\x03\xf2\x5f\xc5\x54\xd8\xf9\x0c\x00\x00\xff\xff\x99\x36\x4a\x1e\x56\x02\x00\x00"),
 		},
 	}
 	fs["/"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/app"].(os.FileInfo),
 		fs["/certificate"].(os.FileInfo),
+		fs["/consul"].(os.FileInfo),
 		fs["/discovery"].(os.FileInfo),
 		fs["/fs"].(os.FileInfo),
 		fs["/leader"].(os.FileInfo),
@@ -156,6 +166,9 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	}
 	fs["/certificate"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/certificate/defaults-certificate.properties"].(os.FileInfo),
+	}
+	fs["/consul"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
+		fs["/consul/defaults-consul.properties"].(os.FileInfo),
 	}
 	fs["/discovery"].(*vfsgen۰DirInfo).entries = []os.FileInfo{
 		fs["/discovery/consulprovider"].(os.FileInfo),
