@@ -42,7 +42,7 @@ var (
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
 		endpointNameCheckStatus:                       {Method: "POST", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/checkstatus"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
-		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami/{{.amiName}}"},
+		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami/"},
 		endpointNameGetVpcRouteTable:                  {Method: "GET", Path: "/api/v1/vpc"},
 	}
 )
@@ -251,11 +251,10 @@ func (i *Integration) GetAmiInformation(controlPlaneId types.UUID, amiName strin
 	queryParams := map[string][]string{
 		"controlPlaneId": {controlPlaneId.String()},
 		"region":         {region},
+		"amiName":        {amiName},
 	}
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetAmiInformation, EndpointParameters: map[string]string{
-			"amiName": amiName,
-		},
+		EndpointName: endpointNameGetAmiInformation,
 		QueryParameters: queryParams,
 		ExpectEnvelope:  true,
 		Payload:         &AwsAmiRegion{},
