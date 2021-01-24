@@ -64,7 +64,7 @@ func TestMigrate(t *testing.T) {
 				migratorError,
 			},
 			wantCount: 1,
-			wantErr: true,
+			wantErr:   true,
 		},
 		{
 			name: "MultipleSuccess",
@@ -83,7 +83,7 @@ func TestMigrate(t *testing.T) {
 				migratorSuccess,
 			},
 			wantCount: 2,
-			wantErr: true,
+			wantErr:   true,
 		},
 	}
 	for _, tt := range tests {

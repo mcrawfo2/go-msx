@@ -42,8 +42,8 @@ func TestFileNotifier_Notify(t *testing.T) {
 		{
 			name: "Simple",
 			fields: fields{
-				filename:       "testdata/config.json",
-				notify:         ch,
+				filename: "testdata/config.json",
+				notify:   ch,
 				watcherFactory: func(filename string) (FileWatcher, error) {
 					return new(MockFileWatcher), nil
 				},
@@ -82,8 +82,8 @@ func TestFileNotifier_Run(t *testing.T) {
 		{
 			name: "Simple",
 			fields: fields{
-				filename:       "testdata/config.json",
-				notify:         ch,
+				filename: "testdata/config.json",
+				notify:   ch,
 				watcherFactory: func(filename string) (FileWatcher, error) {
 					events := make(chan watcher.Event)
 					errs := make(chan error)
@@ -103,7 +103,7 @@ func TestFileNotifier_Run(t *testing.T) {
 						}()
 						// Wait for event
 						go func() {
-							<- ch
+							<-ch
 							mockFileWatcher.Close()
 						}()
 					}).Return(errors.New("some error"))
@@ -138,8 +138,8 @@ func TestNewWatcherFileWatcher(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Simple",
-			args:    args{
+			name: "Simple",
+			args: args{
 				filename: "testdata/config.json",
 			},
 			want:    true,

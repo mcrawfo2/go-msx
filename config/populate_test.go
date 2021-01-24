@@ -39,15 +39,15 @@ type mapStruct struct {
 }
 
 type sliceStruct struct {
-	A []int `config:"default=1;2;3"`
-	B []bool `config:"default=true;false;true"`
-	C []*string `config:"default=alpha;bravo;charlie"`
+	A []int      `config:"default=1;2;3"`
+	B []bool     `config:"default=true;false;true"`
+	C []*string  `config:"default=alpha;bravo;charlie"`
 	D []*float64 `config:"default=${f};${g}"`
 	E []mapStructSubStruct
 }
 
 type durationStruct struct {
-	A time.Duration `config:"default=10m"`
+	A time.Duration  `config:"default=10m"`
 	B *time.Duration `config:"optional"`
 }
 
@@ -71,7 +71,7 @@ type validateStruct struct {
 
 func (v *validateStruct) Validate() error {
 	return types.ErrorMap{
-		"a": validation.Validate(&v.A, validation.Required, validation.Min(time.Minute), validation.Max(30 * time.Minute)),
+		"a": validation.Validate(&v.A, validation.Required, validation.Min(time.Minute), validation.Max(30*time.Minute)),
 	}
 }
 
@@ -135,9 +135,9 @@ func TestPopulateStruct(t *testing.T) {
 		{
 			name: "MapStruct",
 			values: map[string]string{
-				"a.a": "alpha",
-				"a.b": "beta",
-				"b.a": "charlie",
+				"a.a":   "alpha",
+				"a.b":   "beta",
+				"b.a":   "charlie",
 				"c.d.a": "charlie",
 				"c.d.b": "33",
 				"c.d.d": "34",
@@ -165,23 +165,23 @@ func TestPopulateStruct(t *testing.T) {
 						A: "delta",
 						B: 21,
 						D: 42,
-										},
+					},
 				},
 			},
 		},
 		{
 			name: "SliceStruct",
 			values: map[string]string{
-				"a[0]": "1",
-				"a[2]": "2",
-				"a[4]": "3",
-				"b[0]": "true",
-				"b[1]": "false",
-				"b[2]": "true",
-				"c[0]": "alpha",
-				"c[1]": "bravo",
-				"c[3]": "charlie",
-				"d[0]": "1.2",
+				"a[0]":   "1",
+				"a[2]":   "2",
+				"a[4]":   "3",
+				"b[0]":   "true",
+				"b[1]":   "false",
+				"b[2]":   "true",
+				"c[0]":   "alpha",
+				"c[1]":   "bravo",
+				"c[3]":   "charlie",
+				"d[0]":   "1.2",
 				"e[0].a": "foxtrot",
 				"e[0].b": "21",
 				"e[2].a": "golf",
@@ -191,9 +191,9 @@ func TestPopulateStruct(t *testing.T) {
 			},
 			arg: &sliceStruct{},
 			want: &sliceStruct{
-				A: []int{1,2,3},
-				B: []bool{true,false,true},
-				C: []*string{&C3,&C6,&B5},
+				A: []int{1, 2, 3},
+				B: []bool{true, false, true},
+				C: []*string{&C3, &C6, &B5},
 				D: []*float64{&D6},
 				E: []mapStructSubStruct{
 					{
@@ -217,7 +217,7 @@ func TestPopulateStruct(t *testing.T) {
 				"a[0]": "1",
 				"a[1]": "c",
 			},
-			arg: &sliceStruct{},
+			arg:     &sliceStruct{},
 			wantErr: true,
 		},
 		{
@@ -228,19 +228,19 @@ func TestPopulateStruct(t *testing.T) {
 			},
 			arg: &sliceStruct{},
 			want: &sliceStruct{
-				A: []int{1,2,3},
-				B: []bool{true,false,true},
-				C: []*string{&C3,&C6,&B5},
-				D: []*float64{&D6,&D7},
+				A: []int{1, 2, 3},
+				B: []bool{true, false, true},
+				C: []*string{&C3, &C6, &B5},
+				D: []*float64{&D6, &D7},
 			},
 		},
 		{
-			name:    "DurationStruct",
-			values:  map[string]string{
+			name: "DurationStruct",
+			values: map[string]string{
 				"b": "600s",
 			},
-			arg:     &durationStruct{},
-			want:    &durationStruct{
+			arg: &durationStruct{},
+			want: &durationStruct{
 				A: 10 * time.Minute,
 				B: &B8,
 			},
@@ -249,7 +249,7 @@ func TestPopulateStruct(t *testing.T) {
 		{
 			name: "StructStruct",
 			values: map[string]string{
-				"env.all.GOROOT": "/usr/local/go",
+				"env.all.GOROOT":   "/usr/local/go",
 				"env.linux.GOPATH": "/home/ubuntu/go",
 			},
 			arg: &structStruct{},
@@ -266,9 +266,9 @@ func TestPopulateStruct(t *testing.T) {
 			},
 		},
 		{
-			name: "ValidatableStruct",
+			name:   "ValidatableStruct",
 			values: map[string]string{},
-			arg: &validateStruct{},
+			arg:    &validateStruct{},
 			want: &validateStruct{
 				A: time.Minute * 10,
 			},
@@ -308,7 +308,7 @@ func TestPopulateStruct(t *testing.T) {
 
 func TestPopulateSlice(t *testing.T) {
 	var intSlice []int
-	var intSliceResult = []int{1,2,3}
+	var intSliceResult = []int{1, 2, 3}
 	tests := []struct {
 		name    string
 		values  map[string]string
@@ -325,8 +325,8 @@ func TestPopulateSlice(t *testing.T) {
 				"a[3]": "3",
 			},
 			prefix: "a",
-			arg: &intSlice,
-			want: &intSliceResult,
+			arg:    &intSlice,
+			want:   &intSliceResult,
 		},
 	}
 
@@ -348,4 +348,3 @@ func TestPopulateSlice(t *testing.T) {
 	}
 
 }
-

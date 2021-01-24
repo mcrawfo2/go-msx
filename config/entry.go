@@ -118,7 +118,7 @@ func (e ProviderEntries) Compare(other ProviderEntries) ProviderDelta {
 }
 
 func (e ProviderEntries) Append(other ProviderEntries) ProviderEntries {
-	entries := make([]ProviderEntry, 0, len(e) + len(other))
+	entries := make([]ProviderEntry, 0, len(e)+len(other))
 	entries = append(entries, e...)
 	entries = append(entries, other...)
 	return entries

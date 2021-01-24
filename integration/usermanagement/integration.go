@@ -398,7 +398,7 @@ func (i *Integration) GetSystemSecrets(scope string) (result *integration.MsxRes
 		EndpointParameters: map[string]string{
 			"scope": scope,
 		},
-	Payload:        new(SecretsResponse),
+		Payload:        new(SecretsResponse),
 		ExpectEnvelope: true,
 	})
 }

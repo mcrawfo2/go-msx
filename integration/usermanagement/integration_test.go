@@ -148,7 +148,7 @@ func TestIntegration_GetTokenDetails(t *testing.T) {
 			ctx = configtest.ContextWithNewInMemoryConfig(ctx, nil)
 			ctx = security.ContextWithUserContext(ctx, &security.UserContext{
 				UserName: "username",
-				Token: "token-value",
+				Token:    "token-value",
 			})
 			return ctx
 		}).

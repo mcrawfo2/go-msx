@@ -74,7 +74,7 @@ var (
 		"artifactory.password":         "",
 	}
 	defaultConfigProvider = config.NewInMemoryProvider("defaults", defaultConfigs)
-	defaultConfigCache = config.NewCacheProvider(defaultConfigProvider)
+	defaultConfigCache    = config.NewCacheProvider(defaultConfigProvider)
 )
 
 type AppInfo struct {

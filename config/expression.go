@@ -67,7 +67,7 @@ func (v variableExpression) Resolve(r ExpressionResolver) (string, error) {
 }
 
 type expressionScanner struct {
-	Pos int
+	Pos   int
 	Value string
 }
 
@@ -81,12 +81,12 @@ func (s expressionScanner) Current() rune {
 
 // Matches compares the bytes of the supplied string to the bytes at the current cursor
 func (s expressionScanner) Matches(other string) bool {
-	if s.Pos + len(other) > len(s.Value) {
+	if s.Pos+len(other) > len(s.Value) {
 		return false
 	}
 
-	for i := s.Pos; i < s.Pos + len(other); i++ {
-		if s.Value[i] != other[i - s.Pos] {
+	for i := s.Pos; i < s.Pos+len(other); i++ {
+		if s.Value[i] != other[i-s.Pos] {
 			return false
 		}
 	}
@@ -109,7 +109,7 @@ func (s expressionScanner) Lookahead(n int) rune {
 
 func (s expressionScanner) Skip() expressionScanner {
 	return expressionScanner{
-		Pos: s.Pos+1,
+		Pos:   s.Pos + 1,
 		Value: s.Value,
 	}
 }
@@ -120,7 +120,7 @@ func (s expressionScanner) SkipOver(other string) (expressionScanner, error) {
 	}
 
 	return expressionScanner{
-		Pos: s.Pos + len(other),
+		Pos:   s.Pos + len(other),
 		Value: s.Value,
 	}, nil
 }

@@ -78,7 +78,7 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 		}
 
 		propertySource := PropertySource{
-			Name: cache.Description(),
+			Name:       cache.Description(),
 			Properties: make(map[string]Property),
 		}
 

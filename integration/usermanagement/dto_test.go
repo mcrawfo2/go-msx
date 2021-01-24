@@ -14,8 +14,8 @@ func TestSecretsResponse_Value(t *testing.T) {
 	}{
 		{
 			name: "Nil",
-			s: nil,
-			args: args{key:"any"},
+			s:    nil,
+			args: args{key: "any"},
 			want: "",
 		},
 		{
@@ -23,7 +23,7 @@ func TestSecretsResponse_Value(t *testing.T) {
 			s: SecretsResponse{
 				"secret-key-1": "secret-value-1",
 			},
-			args: args{key:"secret-key-1"},
+			args: args{key: "secret-key-1"},
 			want: "secret-value-1",
 		},
 	}

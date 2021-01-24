@@ -47,7 +47,7 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 	var settings map[string]string
 
 	select {
-	case settings = <- p.loaded:
+	case settings = <-p.loaded:
 		// receive from async loop change notification
 	default:
 		settings, err = p.loadSettings(ctx)
