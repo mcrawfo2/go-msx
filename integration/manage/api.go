@@ -4,6 +4,7 @@ package manage
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
 type Api interface {
@@ -67,14 +68,18 @@ type Api interface {
 	UpdateDeviceV4(deviceRequest DeviceUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 	UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error)
 
+	ListDeviceTemplates(serviceType string, tenantId *types.UUID) (*integration.MsxResponse, error)
+	GetDeviceTemplate(templateId types.UUID) (*integration.MsxResponse, error)
+	AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error)
+	DeleteDeviceTemplate(templateId types.UUID) (*integration.MsxResponse, error)
+
 	GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error)
 	AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error)
+	DetachDeviceTemplates(deviceId string) (*integration.MsxResponse, error)
+	DetachDeviceTemplate(deviceId string, templateId types.UUID) (*integration.MsxResponse, error)
 	UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error)
-	AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error)
+
 	CreateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error)
-	// UpdateDeviceTemplates
-	// DetachDeviceTemplates
-	// DetachDeviceTemplate
 
 	GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error)
 	CreateControlPlane(tenantId, name, url, resourceProvider, authenticationType string, tlsInsecure bool, attributes map[string]string) (*integration.MsxResponse, error)

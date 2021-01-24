@@ -63,7 +63,11 @@ const (
 	endpointNameUpdateDeviceTemplates    = "updateDeviceTemplates"
 	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
 	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
-	endpointNameSetDeviceTemplate        = "setDeviceTemplate"
+
+	endpointNameListDeviceTemplates  = "listDeviceTemplates"
+	endpointNameGetDeviceTemplate    = "getDeviceTemplate"
+	endpointNameSetDeviceTemplate    = "setDeviceTemplate"
+	endpointNameDeleteDeviceTemplate = "deleteDeviceTemplate"
 
 	endpointNameGetAllControlPlanes          = "getAllControlPlanes"
 	endpointNameCreateControlPlane           = "createControlPlane"
@@ -136,7 +140,11 @@ var (
 		endpointNameUpdateDeviceTemplates:    {Method: "PUT", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameDetachDeviceTemplates:    {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameDetachDeviceTemplate:     {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates/{{.templateId}}"},
-		endpointNameSetDeviceTemplate:        {Method: "POST", Path: "/api/v1/devicetemplates"},
+
+		endpointNameListDeviceTemplates:  {Method: "GET", Path: "/api/v1/devicetemplates"},
+		endpointNameGetDeviceTemplate:    {Method: "GET", Path: "/api/v1/devicetemplates/{{.id}}"},
+		endpointNameSetDeviceTemplate:    {Method: "POST", Path: "/api/v1/devicetemplates"},
+		endpointNameDeleteDeviceTemplate: {Method: "DELETE", Path: "/api/v1/devicetemplates/{{.id}}"},
 
 		endpointNameGetAllControlPlanes:          {Method: "GET", Path: "/api/v1/controlplanes"},
 		endpointNameCreateControlPlane:           {Method: "POST", Path: "/api/v1/controlplanes"},
@@ -843,6 +851,58 @@ func (i *Integration) UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateReques
 	})
 }
 
+func (i *Integration) ListDeviceTemplates(serviceType string, tenantId *types.UUID) (*integration.MsxResponse, error) {
+	queryParameters := make(url.Values)
+	queryParameters.Set("serviceType", serviceType)
+	if tenantId != nil {
+		queryParameters.Set("tenantId", tenantId.String())
+	}
+
+	responsePayload := []DeviceTemplateListItemResponse{}
+
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:    endpointNameListDeviceTemplates,
+		QueryParameters: queryParameters,
+		Payload:         &responsePayload,
+		ExpectEnvelope:  true,
+	})
+
+}
+
+func (i *Integration) GetDeviceTemplate(templateId types.UUID) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameListDeviceTemplates,
+		EndpointParameters: map[string]string{
+			"id": templateId.String(),
+		},
+		Payload:        new(DeviceTemplateResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error) {
+	bodyBytes, err := json.Marshal(deviceTemplateCreateRequest)
+	if err != nil {
+		return nil, err
+	}
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName:   endpointNameSetDeviceTemplate,
+		Body:           bodyBytes,
+		Payload:        new(DeviceTemplateCreateResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) DeleteDeviceTemplate(templateId types.UUID) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDeleteDeviceTemplate,
+		EndpointParameters: map[string]string{
+			"id": templateId.String(),
+		},
+		ExpectEnvelope: true,
+	})
+}
+
 func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetDeviceTemplateHistory,
@@ -853,13 +913,6 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 		ExpectEnvelope: true,
 	})
 }
-
-/*
-	TODO: v3 device templates
-	endpointNameUpdateDeviceTemplates    = "updateDeviceTemplates"
-	endpointNameDetachDeviceTemplates    = "detachDeviceTemplates"
-	endpointNameDetachDeviceTemplate     = "detachDeviceTemplate"
-*/
 
 func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateRequest AttachTemplateRequest) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(attachTemplateRequest)
@@ -878,6 +931,33 @@ func (i *Integration) AttachDeviceTemplates(deviceId string, attachTemplateReque
 	})
 }
 
+/*
+	TODO: "updateDeviceTemplates"
+*/
+
+func (i *Integration) DetachDeviceTemplates(deviceId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDetachDeviceTemplates,
+		EndpointParameters: map[string]string{
+			"deviceInstanceId": deviceId,
+		},
+		Payload:        new(AttachTemplateResponse),
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) DetachDeviceTemplate(deviceId string, templateId types.UUID) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameDetachDeviceTemplate,
+		EndpointParameters: map[string]string{
+			"deviceInstanceId": deviceId,
+			"templateId":       templateId.String(),
+		},
+		Payload:        new(AttachTemplateResponse),
+		ExpectEnvelope: true,
+	})
+}
+
 func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error) {
 	bodyBytes, err := json.Marshal(deviceTemplateAccess)
 	if err != nil {
@@ -890,19 +970,6 @@ func (i *Integration) UpdateTemplateAccess(templateId string, deviceTemplateAcce
 		},
 		Body:           bodyBytes,
 		Payload:        new(DeviceTemplateAccessResponse),
-		ExpectEnvelope: true,
-	})
-}
-
-func (i *Integration) AddDeviceTemplate(deviceTemplateCreateRequest DeviceTemplateCreateRequest) (*integration.MsxResponse, error) {
-	bodyBytes, err := json.Marshal(deviceTemplateCreateRequest)
-	if err != nil {
-		return nil, err
-	}
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   endpointNameSetDeviceTemplate,
-		Body:           bodyBytes,
-		Payload:        new(DeviceTemplateCreateResponse),
 		ExpectEnvelope: true,
 	})
 }
