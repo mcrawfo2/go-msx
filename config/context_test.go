@@ -45,7 +45,7 @@ func TestLatestValuesFromContext(t *testing.T) {
 
 	// Test injected latest values
 	cfg.values.latest = SnapshotValues{
-		index: map[string]int{},
+		index:   map[string]int{},
 		entries: nil,
 	}
 

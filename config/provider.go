@@ -17,7 +17,7 @@ func (n Named) Description() string {
 }
 
 func NewNamed(name string) Named {
-	return Named {
+	return Named{
 		name: name,
 	}
 }

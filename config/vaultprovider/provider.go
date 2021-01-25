@@ -51,7 +51,7 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 	var settings map[string]string
 
 	select {
-	case settings = <- p.loaded:
+	case settings = <-p.loaded:
 		// receive from async loop change notification
 	default:
 		settings, err = p.loadSettings(ctx)
@@ -98,6 +98,7 @@ func (p *Provider) backoff(ctx context.Context) {
 }
 
 var nullSeparator = []byte{0}
+
 func (p *Provider) settingsHash(settings map[string]string) []byte {
 	var keys []string
 	for k := range settings {

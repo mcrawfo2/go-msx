@@ -303,7 +303,7 @@ func TestConfig_Values_Durations(t *testing.T) {
 	assert.True(t, errors.Is(err, ErrNotLoaded))
 	assert.Equal(t, time.Duration(0), alpha)
 
-	alpha, err = config.DurationOr("alpha", 15 * time.Second)
+	alpha, err = config.DurationOr("alpha", 15*time.Second)
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, ErrNotLoaded))
 	assert.Equal(t, time.Duration(0), alpha)
@@ -315,16 +315,16 @@ func TestConfig_Values_Durations(t *testing.T) {
 	// Loaded
 	alpha, err = config.Duration("alpha")
 	assert.NoError(t, err)
-	assert.Equal(t, 10 * time.Minute, alpha)
+	assert.Equal(t, 10*time.Minute, alpha)
 
-	alpha, err = config.DurationOr("alpha", 15 * time.Second)
+	alpha, err = config.DurationOr("alpha", 15*time.Second)
 	assert.NoError(t, err)
-	assert.Equal(t, 10 * time.Minute, alpha)
+	assert.Equal(t, 10*time.Minute, alpha)
 
 	// Default
-	charlie, err := config.DurationOr("charlie", 15 * time.Second)
+	charlie, err := config.DurationOr("charlie", 15*time.Second)
 	assert.NoError(t, err)
-	assert.Equal(t, 15 * time.Second, charlie)
+	assert.Equal(t, 15*time.Second, charlie)
 }
 
 func TestConfig_Values_Settings(t *testing.T) {

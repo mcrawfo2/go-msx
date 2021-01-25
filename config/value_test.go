@@ -167,15 +167,15 @@ func Test_Value_Bool(t *testing.T) {
 
 func Test_Value_StringSlice(t *testing.T) {
 	tests := []struct {
-		name    string
-		val     string
-		sep     string
-		want    []string
+		name string
+		val  string
+		sep  string
+		want []string
 	}{
 		{
 			name: "Zero",
-			val: "",
-			sep: ";",
+			val:  "",
+			sep:  ";",
 			want: nil,
 		},
 		{

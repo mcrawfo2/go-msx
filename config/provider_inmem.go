@@ -10,10 +10,10 @@ type ActionFunc func()
 
 type InMemoryProvider struct {
 	Describer
-	settings map[string]string
+	settings    map[string]string
 	settingsMtx sync.Mutex
-	work     chan ActionFunc
-	notify   chan struct{}
+	work        chan ActionFunc
+	notify      chan struct{}
 }
 
 func (p *InMemoryProvider) Load(ctx context.Context) (ProviderEntries, error) {

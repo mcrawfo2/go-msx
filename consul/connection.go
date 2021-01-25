@@ -33,8 +33,8 @@ type ConnectionConfig struct {
 		AclToken string `config:"default="`
 	}
 	Watch struct {
-		Enabled bool `config:"default=true"`
-		WaitTime int `config:"default=55"` // seconds
+		Enabled  bool `config:"default=true"`
+		WaitTime int  `config:"default=55"` // seconds
 	}
 }
 
@@ -123,7 +123,7 @@ func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIn
 	})
 
 	if err != nil {
-		return 0,nil, err
+		return 0, nil, err
 	}
 	return
 }

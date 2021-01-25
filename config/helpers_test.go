@@ -8,4 +8,3 @@ func NewInMemoryConfig(values map[string]string) *Config {
 	_ = cfg.Load(context.Background())
 	return cfg
 }
-

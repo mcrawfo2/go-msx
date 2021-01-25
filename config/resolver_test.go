@@ -29,18 +29,18 @@ func TestResolver(t *testing.T) {
 					"alpha": "a",
 					"bravo": "ab",
 				},
-				err:      nil,
+				err: nil,
 			},
 		},
 		{
 			name: "Utf8",
 			settings: map[string]string{
-				"alpha": `a${bravo:Σ}`,
+				"alpha":   `a${bravo:Σ}`,
 				"charlie": `dΞf`,
 			},
 			want: wants{
 				resolved: map[string]string{
-					"alpha": "aΣ",
+					"alpha":   "aΣ",
 					"charlie": "dΞf",
 				},
 			},
@@ -48,15 +48,14 @@ func TestResolver(t *testing.T) {
 		{
 			name: "Circular",
 			settings: map[string]string{
-				"alpha": "${charlie}a",
-				"bravo": "b${alpha}",
+				"alpha":   "${charlie}a",
+				"bravo":   "b${alpha}",
 				"charlie": "${bravo}c",
 			},
 			want: wants{
 				resolved: nil,
 				err:      ErrCircularReference,
 			},
-
 		},
 	}
 

@@ -176,12 +176,12 @@ func NewConfig(providers ...Provider) *Config {
 		changes: make(chan WatcherNotification),
 		notify:  make(chan Snapshot),
 	}
-	cfg.Values = configValues{cfg:cfg, original: true}
+	cfg.Values = configValues{cfg: cfg, original: true}
 	return cfg
 }
 
 type configValues struct {
-	cfg *Config
+	cfg      *Config
 	original bool
 }
 

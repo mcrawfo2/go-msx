@@ -14,10 +14,10 @@ type ChangeLogger struct {
 func (c *ChangeLogger) Run(ctx context.Context) {
 	for {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return
 
-		case snapshot := <- c.cfg.Notify():
+		case snapshot := <-c.cfg.Notify():
 			for _, change := range snapshot.Delta {
 				if change.IsSet() {
 					if change.OldEntry.ProviderEntry.Source == nil {
@@ -34,5 +34,5 @@ func (c *ChangeLogger) Run(ctx context.Context) {
 }
 
 func NewChangeLogger(cfg *Config) *ChangeLogger {
-	return &ChangeLogger{cfg:cfg}
+	return &ChangeLogger{cfg: cfg}
 }
