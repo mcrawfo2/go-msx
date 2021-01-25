@@ -42,7 +42,7 @@ var (
 		endpointNameGetStackOutput:                    {Method: "GET", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/outputs"},
 		endpointNameCheckStatus:                       {Method: "POST", Path: "/api/v1/serviceconfigurations/applications/{{.applicationId}}/checkstatus"},
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
-		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami/"},
+		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami"},
 		endpointNameGetVpcRouteTable:                  {Method: "GET", Path: "/api/v1/vpc"},
 	}
 )
