@@ -16,7 +16,7 @@ type Message struct {
 	Service     string               `json:"service"`
 	Type        string               `json:"type"`
 	Subtype     string               `json:"subtype"`
-	Action      string               `json:"action"`
+	Action      string               `json:"action,omitempty"`
 	Severity    string               `json:"severity"`
 	Trace       TraceAuditContext    `json:"trace"`
 	Security    SecurityAuditContext `json:"security"`
