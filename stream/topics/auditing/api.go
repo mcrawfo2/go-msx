@@ -60,4 +60,5 @@ const (
 	ActionCreate = "CREATE"
 	ActionUpdate = "UPDATE"
 	ActionDelete = "DELETE"
+	ActionForceDelete = "FORCEDELETE"
 )
