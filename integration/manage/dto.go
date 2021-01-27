@@ -282,8 +282,8 @@ type TemplateParams struct {
 }
 
 type DeviceTemplateAccess struct {
-	Global  bool     `json:"global"`
-	Tenants []string `json:"tenants"`
+	Global  bool     `json:"global,omitempty"`
+	Tenants []string `json:"tenants,omitempty"`
 }
 
 type DeviceTemplateAccessResponse struct {

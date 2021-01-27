@@ -80,6 +80,7 @@ type Api interface {
 	UpdateTemplateAccess(templateId string, deviceTemplateAccess DeviceTemplateAccess) (*integration.MsxResponse, error)
 
 	CreateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error)
+	UpdateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error)
 
 	GetAllControlPlanes(tenantId *string) (*integration.MsxResponse, error)
 	CreateControlPlane(tenantId, name, url, resourceProvider, authenticationType string, tlsInsecure bool, attributes map[string]string) (*integration.MsxResponse, error)
