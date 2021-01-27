@@ -1150,6 +1150,29 @@ func (_m *MockManage) UpdateDevice(deviceInstanceId string, deviceAttribute map[
 	return r0, r1
 }
 
+// UpdateDeviceActions provides a mock function with given fields: deviceActionList
+func (_m *MockManage) UpdateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error) {
+	ret := _m.Called(deviceActionList)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(DeviceActionCreateRequests) *integration.MsxResponse); ok {
+		r0 = rf(deviceActionList)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(DeviceActionCreateRequests) error); ok {
+		r1 = rf(deviceActionList)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateDeviceStatusV4 provides a mock function with given fields: deviceStatus, deviceId
 func (_m *MockManage) UpdateDeviceStatusV4(deviceStatus DeviceStatusUpdateRequest, deviceId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceStatus, deviceId)
