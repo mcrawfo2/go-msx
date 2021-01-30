@@ -28,7 +28,7 @@ type Message struct {
 type SecurityAuditContext struct {
 	ClientId         string `json:"clientId"`
 	UserId           string `json:"userId"`
-	Username         string `json:"userName"`
+	Username         string `json:"username"`
 	TenantId         string `json:"tenantId"`
 	TenantName       string `json:"tenantName"`
 	ProviderId       string `json:"providerId"`
