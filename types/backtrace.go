@@ -163,6 +163,19 @@ func (b BackTrace) Stanza() string {
 	return buf.String()
 }
 
+func (b BackTrace) Causes() []string {
+	var buf []string
+	for i, bte := range b {
+		if i == 0 {
+			buf = append(buf, "Root Cause: "+bte.Message)
+		} else {
+			buf = append(buf, "Caused: "+bte.Message)
+		}
+	}
+
+	return buf
+}
+
 func (b BackTrace) Lines() []string {
 	var buf []string
 	for i, bte := range b {
