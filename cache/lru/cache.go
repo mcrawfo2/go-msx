@@ -40,9 +40,13 @@ func (c *HeapMapCache) Get(key string) (interface{}, bool) {
 }
 
 func (c *HeapMapCache) Set(key string, value interface{}) {
+	c.SetWithTtl(key, value, c.ttl)
+}
+
+func (c *HeapMapCache) SetWithTtl(key string, value interface{}, ttl time.Duration) {
 	c.Lock()
 	defer c.Unlock()
-	expires := c.timeSource.Now().Add(c.ttl).UnixNano()
+	expires := c.timeSource.Now().Add(ttl).UnixNano()
 	e, exists := c.index[key]
 	if exists {
 		e.value = value
