@@ -54,7 +54,9 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 				return msxKafka.CreateTopics(context.Background(), connection, streamBinding.Destination)
 			})
 		})
-		if err != nil && err != ErrTopicAlreadyExists {
+		if errors.Is(err, ErrTopicAlreadyExists) {
+			err = nil
+		} else if err != nil {
 			return nil, errors.Wrap(err, "Failed to create topic")
 		}
 	}
