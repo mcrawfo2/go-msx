@@ -52,7 +52,7 @@ func CreateTopics(ctx context.Context, conn *Connection, topics ...string) (err 
 			var topicError *sarama.TopicError
 			ok := errors.As(err, &topicError)
 			if ok && topicError.Err == sarama.ErrTopicAlreadyExists {
-				err = ErrTopicAlreadyExists
+				return ErrTopicAlreadyExists
 			}
 		}
 
