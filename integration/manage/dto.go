@@ -267,6 +267,7 @@ type AttachTemplateResponse []struct {
 	TemplateID     string           `json:"templateId"`
 	TemplateParams []TemplateParams `json:"templateParams"`
 	Status         string           `json:"status"`
+	StatusError    string           `json:"statusError"`
 	LastUpdated    string           `json:"lastUpdated"`
 	UserID         string           `json:"userId"`
 }
@@ -288,8 +289,8 @@ type DeviceTemplateAccess struct {
 
 type DeviceTemplateAccessResponse struct {
 	Global               bool     `json:"global"`
-	SuccessListOfTenants []string `json:successListOfTenants`
-	FailureListOfTenants []string `json:failureListOfTenants`
+	SuccessListOfTenants []string `json:"successListOfTenants"`
+	FailureListOfTenants []string `json:"failureListOfTenants"`
 }
 
 type DeviceTemplateCreateRequest struct {

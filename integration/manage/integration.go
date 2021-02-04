@@ -927,7 +927,7 @@ func (i *Integration) GetDeviceTemplateHistory(deviceInstanceId string) (*integr
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
 		},
-		Payload:        new(PojoArray),
+		Payload:        new(AttachTemplateResponse),
 		ExpectEnvelope: true,
 	})
 }
