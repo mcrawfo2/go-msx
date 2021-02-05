@@ -73,7 +73,7 @@ func (h Provider) report(req *restful.Request) (body interface{}, err error) {
 			logger.
 				WithContext(req.Request.Context()).
 				WithError(err).
-				Error("Failed to load config properties from provider %q", cache.Description())
+				Errorf("Failed to load config properties from provider %q", cache.Description())
 			continue
 		}
 
