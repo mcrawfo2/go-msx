@@ -564,7 +564,7 @@ func (r RouteParams) Populate(req *restful.Request, paramsValue reflect.Value) e
 }
 
 var routeParamsMtx sync.Mutex
-var routeParamsIndex = make(map[*restful.Route]*RouteParams)
+var routeParamsIndex = make(map[reflect.Type]*RouteParams)
 
 func getRouteParams(ctx context.Context, params interface{}) (*RouteParams, error) {
 	routeParamsMtx.Lock()
@@ -575,19 +575,24 @@ func getRouteParams(ctx context.Context, params interface{}) (*RouteParams, erro
 		return nil, NewInternalError(errors.New("Route not set in context"))
 	}
 
-	if result, ok := routeParamsIndex[route]; ok {
-		return result, nil
-	}
-
-	result, err := generateRouteParams(ctx, route, params)
+	paramsType, err := getParamsType(params)
 	if err != nil {
 		return nil, err
 	}
-	routeParamsIndex[route] = result
+
+	if result, ok := routeParamsIndex[paramsType]; ok {
+		return result, nil
+	}
+
+	result, err := generateRouteParams(ctx, route, paramsType)
+	if err != nil {
+		return nil, err
+	}
+	routeParamsIndex[paramsType] = result
 	return result, nil
 }
 
-func generateRouteParams(ctx context.Context, route *restful.Route, params interface{}) (*RouteParams, error) {
+func getParamsType(params interface{}) (reflect.Type, error) {
 	var paramsType = reflect.TypeOf(params)
 
 	if paramsType.Kind() != reflect.Ptr {
@@ -599,6 +604,10 @@ func generateRouteParams(ctx context.Context, route *restful.Route, params inter
 		return nil, NewInternalError(errors.New("Parameters value not a pointer to struct"))
 	}
 
+	return paramsType, nil
+}
+
+func generateRouteParams(ctx context.Context, route *restful.Route, paramsType reflect.Type) (*RouteParams, error) {
 	routeParams := &RouteParams{
 		Type:   paramsType,
 		Fields: nil,
