@@ -68,6 +68,7 @@ func NewRenderOptions() RenderOptions {
 	return RenderOptions{
 		Variables: map[string]string{
 			"app.name":                     skeletonConfig.AppName,
+			"app.shortname":                strings.TrimSuffix(skeletonConfig.AppName, "service"),
 			"app.description":              skeletonConfig.AppDescription,
 			"app.displayname":              skeletonConfig.AppDisplayName,
 			"app.version":                  skeletonConfig.AppVersion,
