@@ -19,8 +19,10 @@ dist:
 debug:
 	$(BUILDER) build-debug-executable
 
-docker:
+vendor:
 	go mod vendor
+
+docker: vendor
 	$(BUILDER) docker-build
 
 publish:
