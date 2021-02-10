@@ -6,7 +6,9 @@ def GITHUB_APP_ID_SONARQUBE = '7'
 def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
+def SOURCEGRAPH_ENDPOINT = 'https://sourcegraph.infra.ciscomsx.com'
 def TRUNK = 'master'
+def TOOLS = ''
 
 pipeline {
 
@@ -39,6 +41,9 @@ pipeline {
                         env.BRANCH_NAME = env.GIT_BRANCH.replaceAll("origin/", "")
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
                     }
+
+                    TOOLS = env.WORKSPACE + "/bin"
+                    sh "mkdir -p ${TOOLS}"
                 }
             }
         }
@@ -77,6 +82,31 @@ pipeline {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
                         sh 'make test'
                     }}
+                }
+            }
+        }
+
+        stage('Index') {
+            steps {
+                sshagent([VMSBLD_CREDENTIALS]) {
+                    withEnv([
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "SRC_ENDPOINT=${SOURCEGRAPH_ENDPOINT}",
+                        "SRC_ACCESS_TOKEN=61c7d21117906e724ac8b8871c09f59fff3aa94d",
+                    ]) { dir("$WORKSPACE") {
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                    script {
+                        // Download sourcegraph indexers
+                        sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
+                        sh "chmod +x ${TOOLS}/lsif-go"
+
+                        // Download sourcegraph cli
+                        sh "curl -L ${SOURCEGRAPH_ENDPOINT}/.api/src-cli/src_linux_amd64 -o ${TOOLS}/src"
+                        sh "chmod +x ${TOOLS}/src"
+
+                        sh "${TOOLS}/lsif-go"
+                        sh "${TOOLS}/src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
+                    }}}}
                 }
             }
         }
