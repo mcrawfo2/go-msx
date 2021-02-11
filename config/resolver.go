@@ -66,7 +66,6 @@ func (r *Resolver) Resolve(entry ProviderEntry) (ResolvedEntry, error) {
 	}
 	defer r.setInactive(entry)
 
-
 	expr, err := parseExpression(entry.Value)
 	if err != nil {
 		return ResolvedEntry{}, err
@@ -108,4 +107,3 @@ func NewResolver(entries ProviderEntries) Resolver {
 		resolved: make(map[string]ResolvedEntry),
 	}
 }
-

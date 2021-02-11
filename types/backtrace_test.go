@@ -177,7 +177,7 @@ func TestBackTraceFromError(t *testing.T) {
 		},
 		{
 			name: "StackWrapped",
-			args:args{err: testError5()},
+			args: args{err: testError5()},
 			want: BackTrace{
 				{
 					Message: "Stack Error",
@@ -189,7 +189,7 @@ func TestBackTraceFromError(t *testing.T) {
 						},
 						{
 							FullMethod: "types.testError5",
-							FullFile: "backtrace_test.go",
+							FullFile:   "backtrace_test.go",
 						},
 					},
 				},
@@ -198,7 +198,7 @@ func TestBackTraceFromError(t *testing.T) {
 					Frames: []BackTraceFrame{
 						{
 							FullMethod: "types.testError5",
-							FullFile: "backtrace_test.go",
+							FullFile:   "backtrace_test.go",
 						},
 						{
 							FullMethod: "types.TestBackTraceFromError",
@@ -218,18 +218,18 @@ func TestBackTraceFromError(t *testing.T) {
 		},
 		{
 			name: "ParseError",
-			args: args{err:testError7()},
+			args: args{err: testError7()},
 			want: BackTrace{
 				{
 					Message: `strconv.ParseBool: parsing "trueq": invalid syntax`,
-					Frames: []BackTraceFrame{},
+					Frames:  []BackTraceFrame{},
 				},
 				{
 					Message: "Wrapped Parse Error",
 					Frames: []BackTraceFrame{
 						{
 							FullMethod: "types.testError7",
-							FullFile: "backtrace_test.go",
+							FullFile:   "backtrace_test.go",
 						},
 						{
 							FullMethod: "types.TestBackTraceFromError",

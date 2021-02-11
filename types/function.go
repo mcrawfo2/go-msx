@@ -65,7 +65,7 @@ func FindSourceDirFromStack() (string, error) {
 }
 
 var entryPointSuffixes = map[string]int{
-	"go-msx/app.Run": 1,
+	"go-msx/app.Run":  1,
 	"testing.tRunner": -1,
 }
 

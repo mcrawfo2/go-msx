@@ -3,6 +3,7 @@ package manage
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"time"
 )
 
 type Pojo integration.Pojo
@@ -266,6 +267,7 @@ type AttachTemplateResponse []struct {
 	TemplateID     string           `json:"templateId"`
 	TemplateParams []TemplateParams `json:"templateParams"`
 	Status         string           `json:"status"`
+	StatusError    string           `json:"statusError"`
 	LastUpdated    string           `json:"lastUpdated"`
 	UserID         string           `json:"userId"`
 }
@@ -281,14 +283,14 @@ type TemplateParams struct {
 }
 
 type DeviceTemplateAccess struct {
-	Global  bool     `json:"global"`
-	Tenants []string `json:"tenants"`
+	Global  bool     `json:"global,omitempty"`
+	Tenants []string `json:"tenants,omitempty"`
 }
 
 type DeviceTemplateAccessResponse struct {
 	Global               bool     `json:"global"`
-	SuccessListOfTenants []string `json:successListOfTenants`
-	FailureListOfTenants []string `json:failureListOfTenants`
+	SuccessListOfTenants []string `json:"successListOfTenants"`
+	FailureListOfTenants []string `json:"failureListOfTenants"`
 }
 
 type DeviceTemplateCreateRequest struct {
@@ -327,6 +329,36 @@ type DeviceTemplateCreateResponse struct {
 	TemplateStandard     string                     `json:"templateStandard"`
 	Validators           []DeviceTemplateValidators `json:"validators"`
 	Version              string                     `json:"version"`
+}
+
+type DeviceTemplateListItemResponse struct {
+	Id               types.UUID                 `json:"id"`
+	Name             string                     `json:"name"`
+	Version          string                     `json:"version"`
+	ServiceType      string                     `json:"serviceType"`
+	DeviceModels     []string                   `json:"deviceModels"`
+	ResourceProvider string                     `json:"resourceProvider"`
+	TemplateStandard string                     `json:"templateStandard"`
+	CreatedOn        time.Time                  `json:"createdOn"`
+	UserId           *types.UUID                `json:"userId"`
+	Description      string                     `json:"description"`
+	Validators       []DeviceTemplateValidators `json:"validators"`
+}
+
+type DeviceTemplateResponse struct {
+	Id                   types.UUID                 `json:"id"`
+	Name                 string                     `json:"name"`
+	Version              string                     `json:"version"`
+	ServiceType          string                     `json:"serviceType"`
+	DeviceModels         []string                   `json:"deviceModels"`
+	ConfigContent        string                     `json:"configContent"`
+	ResourceProvider     string                     `json:"resourceProvider"`
+	TemplateStandard     string                     `json:"templateStandard"`
+	CreatedOn            time.Time                  `json:"createdOn"`
+	UserId               *types.UUID                `json:"userId"`
+	Description          string                     `json:"description"`
+	Validators           []DeviceTemplateValidators `json:"validators"`
+	DeviceTemplateAccess DeviceTemplateAccess       `json:"access"`
 }
 
 type DeviceTemplateValidators struct {

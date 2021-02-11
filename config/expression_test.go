@@ -41,7 +41,7 @@ func TestParseExpression(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "VariableWithDefault",
+			name:  "VariableWithDefault",
 			value: "${variable:default}",
 			wantExpr: variableExpression{
 				Name:    "variable",
@@ -50,26 +50,26 @@ func TestParseExpression(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "VariableWithRequiredKey",
+			name:  "VariableWithRequiredKey",
 			value: "${variable:?}",
 			wantExpr: variableExpression{
-				Name: "variable",
+				Name:        "variable",
 				RequiredKey: true,
 			},
 			wantErr: false,
 		},
 		{
-			name: "VariableWithRequiredValue",
+			name:  "VariableWithRequiredValue",
 			value: "${variable:!}",
 			wantExpr: variableExpression{
-				Name: "variable",
-				RequiredKey: true,
+				Name:          "variable",
+				RequiredKey:   true,
 				RequiredValue: true,
 			},
 			wantErr: false,
 		},
 		{
-			name: "NestedVariable",
+			name:  "NestedVariable",
 			value: "${variable:a ${nested:b ${crested} c} default}",
 			wantExpr: variableExpression{
 				Name: "variable",
@@ -86,7 +86,6 @@ func TestParseExpression(t *testing.T) {
 									},
 									literalExpression(" c"),
 								},
-
 							},
 						},
 						literalExpression(" default"),
@@ -95,33 +94,33 @@ func TestParseExpression(t *testing.T) {
 			},
 		},
 		{
-			name: "UnmatchedBraces",
-			value: "${value",
+			name:    "UnmatchedBraces",
+			value:   "${value",
 			wantErr: true,
 		},
 		{
-			name: "UnmatchedBracesInDefault",
-			value: "${value:",
+			name:    "UnmatchedBracesInDefault",
+			value:   "${value:",
 			wantErr: true,
 		},
 		{
-			name: "DeeplyUnmatchedBraces",
-			value: "${a:${b:${c:d}",
+			name:    "DeeplyUnmatchedBraces",
+			value:   "${a:${b:${c:d}",
 			wantErr: true,
 		},
 		{
-			name: "DynamicVariableName",
-			value: "${a${b}c:d}",
+			name:    "DynamicVariableName",
+			value:   "${a${b}c:d}",
 			wantErr: true,
 		},
 		{
-			name: "Log",
+			name:  "Log",
 			value: "%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSS,UTC}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%mdc] %msg%n%ex{full}",
 			wantExpr: concatenateExpression{
 				Parts: []expression{
 					literalExpression("%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSS,UTC}){faint} %clr(%5p) %clr("),
 					variableExpression{
-						Name: "PID",
+						Name:    "PID",
 						Default: literalExpression("- "),
 					},
 					literalExpression("){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%mdc] %msg%n%ex{full}"),

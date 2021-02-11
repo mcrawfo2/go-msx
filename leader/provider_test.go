@@ -12,13 +12,13 @@ func TestRegisterLeadershipProvider(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
+		name           string
+		args           args
 		wantRegistered bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
+			name:           "Nil",
+			args:           args{},
 			wantRegistered: false,
 		},
 		{
@@ -49,15 +49,15 @@ func TestIsLeader(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name    string
+		args    args
+		want    bool
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
-			want: false,
+			name:    "Nil",
+			args:    args{},
+			want:    false,
 			wantErr: true,
 		},
 		{
@@ -65,7 +65,7 @@ func TestIsLeader(t *testing.T) {
 			args: args{
 				provider: provider,
 			},
-			want: true,
+			want:    true,
 			wantErr: false,
 		},
 	}
@@ -99,15 +99,15 @@ func TestIsMasterLeader(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name    string
+		args    args
+		want    bool
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
-			want: false,
+			name:    "Nil",
+			args:    args{},
+			want:    false,
 			wantErr: true,
 		},
 		{
@@ -115,7 +115,7 @@ func TestIsMasterLeader(t *testing.T) {
 			args: args{
 				provider: provider,
 			},
-			want: true,
+			want:    true,
 			wantErr: false,
 		},
 	}
@@ -144,13 +144,13 @@ func TestReleaseLeadership(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
+			name:    "Nil",
+			args:    args{},
 			wantErr: true,
 		},
 		{
@@ -189,13 +189,13 @@ func TestReleaseMasterLeadership(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
+			name:    "Nil",
+			args:    args{},
 			wantErr: true,
 		},
 		{
@@ -231,13 +231,13 @@ func TestStart(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
+			name:    "Nil",
+			args:    args{},
 			wantErr: true,
 		},
 		{
@@ -273,13 +273,13 @@ func TestStop(t *testing.T) {
 		provider LeadershipProvider
 	}
 	tests := []struct {
-		name string
-		args args
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "Nil",
-			args: args{},
+			name:    "Nil",
+			args:    args{},
 			wantErr: true,
 		},
 		{

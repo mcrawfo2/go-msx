@@ -1307,7 +1307,7 @@ func TestIntegration_UpdateTemplateAccess(t *testing.T) {
 	NewManageIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
 			accessRequest := DeviceTemplateAccess{
-				Global:  false,
+				Global: false,
 				Tenants: []string{
 					tenantId,
 				},
@@ -1335,7 +1335,7 @@ func TestIntegration_AddDeviceTemplate(t *testing.T) {
 	NewManageIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
 			createRequest := DeviceTemplateCreateRequest{
-				ConfigContent:        configContent,
+				ConfigContent: configContent,
 			}
 			return api.AddDeviceTemplate(createRequest)
 		}).
@@ -1588,7 +1588,7 @@ func TestIntegration_CreateDeviceConnection(t *testing.T) {
 	NewManageIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
 			createRequest := DeviceConnectionCreateRequest{
-				DeviceInstanceId:  deviceInstanceId,
+				DeviceInstanceId: deviceInstanceId,
 			}
 			response, _, err := api.CreateDeviceConnection(createRequest)
 			return response, err
@@ -1607,7 +1607,6 @@ func TestIntegration_CreateDeviceConnection(t *testing.T) {
 		).
 		Test(t)
 }
-
 
 func TestIntegration_DeleteDeviceConnection(t *testing.T) {
 	const deviceConnectionId = "device-connection-id"

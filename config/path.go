@@ -49,8 +49,8 @@ func NewHttpFileProvidersFromGlob(name string, fs http.FileSystem, glob string) 
 
 type fsConfig struct {
 	Configs string
-	Local string
-	Roots struct {
+	Local   string
+	Roots   struct {
 		Sources string
 		Staging string
 		Release string
@@ -71,8 +71,8 @@ func AddConfigFoldersFromFsConfig(cfg *Config) {
 		}
 
 		AddConfigFolders(
-			fs.Roots.Sources + fs.Local,
-			fs.Roots.Staging + fs.Configs)
+			fs.Roots.Sources+fs.Local,
+			fs.Roots.Staging+fs.Configs)
 	}
 
 	if fs.Roots.Release != "" {
@@ -169,4 +169,3 @@ func NewFileProvidersFromGlob(name, glob string) []Provider {
 
 	return results
 }
-

@@ -134,8 +134,8 @@ func (i *FileNotifier) Run(ctx context.Context) {
 
 func NewFileNotifier(filename string) *FileNotifier {
 	return &FileNotifier{
-		filename: filename,
-		notify:   make(chan struct{}),
+		filename:       filename,
+		notify:         make(chan struct{}),
 		watcherFactory: NewWatcherFileWatcher,
 	}
 }
