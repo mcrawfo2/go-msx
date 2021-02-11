@@ -19,11 +19,11 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2021, 1, 17, 17, 32, 18, 61670155, time.UTC),
+			modTime: time.Date(2021, 2, 11, 19, 43, 38, 109981316, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2021, 1, 19, 15, 44, 41, 298835436, time.UTC),
+			modTime: time.Date(2021, 1, 30, 16, 57, 46, 932523365, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -43,7 +43,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/consul": &vfsgen۰DirInfo{
 			name:    "consul",
-			modTime: time.Date(2021, 1, 17, 17, 34, 6, 531063829, time.UTC),
+			modTime: time.Date(2021, 2, 11, 19, 35, 29, 823152676, time.UTC),
 		},
 		"/consul/defaults-consul.properties": &vfsgen۰FileInfo{
 			name:    "defaults-consul.properties",
@@ -76,7 +76,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/leader": &vfsgen۰DirInfo{
 			name:    "leader",
-			modTime: time.Date(2021, 1, 17, 17, 34, 6, 533294220, time.UTC),
+			modTime: time.Date(2021, 2, 11, 19, 35, 29, 831945809, time.UTC),
 		},
 		"/leader/defaults-leader.yml": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-leader.yml",
@@ -131,7 +131,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2021, 1, 13, 22, 18, 39, 204525488, time.UTC),
+			modTime: time.Date(2021, 2, 11, 19, 43, 38, 114267467, time.UTC),
 		},
 		"/webservice/defaults-security-actuator.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-security-actuator.properties",

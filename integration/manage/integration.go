@@ -40,11 +40,11 @@ const (
 	endpointNameDeleteDeviceFromSiteV3 = "deleteDeviceFromSiteV3"
 	endpointNameUpdateSiteStatusV3     = "updateSiteStatusV3"
 
-	endpointNameGetDevice           = "getDevice"
-	endpointNameGetDevices          = "getDevices"
-	endpointNameCreateDevice        = "createDevice"
-	endpointNameUpdateDevice        = "updateDevice"
-	endpointNameDeleteDevice        = "deleteDevice"
+	endpointNameGetDevice    = "getDevice"
+	endpointNameGetDevices   = "getDevices"
+	endpointNameCreateDevice = "createDevice"
+	endpointNameUpdateDevice = "updateDevice"
+	endpointNameDeleteDevice = "deleteDevice"
 
 	endpointNameCreateDeviceActions = "createDeviceActions"
 	endpointNameUpdateDeviceActions = "updateDeviceActions"
@@ -136,8 +136,8 @@ var (
 		endpointNameUpdateDeviceV4:       {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}"},
 		endpointNameUpdateDeviceStatusV4: {Method: "PUT", Path: "/api/v4/devices/{{.deviceId}}/status"},
 
-		endpointNameCreateDeviceActions:  {Method: "POST", Path: "/api/v1/deviceActions"},
-		endpointNameUpdateDeviceActions:  {Method: "PUT", Path: "/api/v1/deviceActions"},
+		endpointNameCreateDeviceActions: {Method: "POST", Path: "/api/v1/deviceActions"},
+		endpointNameUpdateDeviceActions: {Method: "PUT", Path: "/api/v1/deviceActions"},
 
 		endpointNameGetDeviceTemplateHistory: {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},
 		endpointNameAttachDeviceTemplates:    {Method: "POST", Path: "/api/v3/devices/{{.deviceInstanceId}}/templates"},

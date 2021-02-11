@@ -57,8 +57,8 @@ const (
 )
 
 const (
-	ActionCreate = "CREATE"
-	ActionUpdate = "UPDATE"
-	ActionDelete = "DELETE"
+	ActionCreate      = "CREATE"
+	ActionUpdate      = "UPDATE"
+	ActionDelete      = "DELETE"
 	ActionForceDelete = "FORCEDELETE"
 )
