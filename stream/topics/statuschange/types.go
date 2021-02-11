@@ -18,4 +18,5 @@ type Message struct {
 	EntityType string `json:"entityType"`
 	EntityId   string `json:"entityId"`
 	Status     string `json:"status"`
+	Message    string `json:"message"`
 }
