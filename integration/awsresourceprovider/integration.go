@@ -254,7 +254,7 @@ func (i *Integration) GetAmiInformation(controlPlaneId types.UUID, amiName strin
 		"amiName":        {amiName},
 	}
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetAmiInformation,
+		EndpointName:    endpointNameGetAmiInformation,
 		QueryParameters: queryParams,
 		ExpectEnvelope:  true,
 		Payload:         &AwsAmiRegion{},

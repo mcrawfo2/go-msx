@@ -103,7 +103,7 @@ func (p DeviceTemplatePopulator) Populate(ctx context.Context) error {
 		logger.WithContext(ctx).Info("Populating device templates")
 
 		for _, artifact := range m.DeviceTemplate {
-			var	deviceTemplate deviceTemplateInstance
+			var deviceTemplate deviceTemplateInstance
 			err := resource.
 				Reference(filepath.Join(p.cfg.Root, artifact.FileName)).
 				Unmarshal(&deviceTemplate)
