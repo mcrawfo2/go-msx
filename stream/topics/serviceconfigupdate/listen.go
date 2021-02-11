@@ -2,8 +2,9 @@ package serviceconfigupdate
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"encoding/json"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 )
@@ -82,4 +83,20 @@ func AddUpdateListener(fn UpdateRequestHandler) error {
 		stream.FilterByMetaData(MetaDataEventType, EventTypeUpdate),
 	})
 	return stream.AddListener(TopicServiceConfigUpdateTopic, listener)
+}
+
+func NewUpdateListener(fn UpdateRequestHandler) stream.ListenerAction {
+	return NewUpdateRequestListener(fn, nil)
+}
+
+func NewApplicationStatusUpdateListener(fn ApplicationStatusUpdateRequestHandler) stream.ListenerAction {
+	return NewApplicationStatusUpdateRequestListener(fn, nil)
+}
+
+func AddServiceConfigUpdateTopicListeners(metadataHeaderActions map[stream.MetadataHeader]stream.ListenerAction) error {
+	dispatcher, err := stream.NewMetadataDispatcher(MetaDataEventType, metadataHeaderActions)
+	if err != nil {
+		return err
+	}
+	return stream.AddListener(TopicServiceConfigUpdateTopic, dispatcher.Dispatch)
 }
