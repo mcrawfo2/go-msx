@@ -6,14 +6,20 @@ def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
+def SLACK_BOT_CREDENTIALS = 'slack-bot-secret'
+def SLACK_CHANNEL = 'go-msx-build'
 def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
 def SOURCEGRAPH_ENDPOINT = 'https://sourcegraph.infra.ciscomsx.com'
-def SOURCEGRAPH_TOKEN = '61c7d21117906e724ac8b8871c09f59fff3aa94d'
+def SOURCEGRAPH_CREDENTIALS = 'sourcegraph-lsif-token'
 def BUILD_FLAGS = ""
 def TRUNK = 'develop'
 def TRUNK_MANIFEST_FOLDER = 'Build-Stable'
 def PUBLISH = false
 def TOOLS = ''
+def TRIGGER = ''
+def TRIGGER_URL = ''
+def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-group/com/cisco/vms/manifest'
+def FULL_VERSION = ''
 
 pipeline {
 
@@ -38,13 +44,19 @@ pipeline {
 
                     if (env.BRANCH_NAME) {
                         currentBuild.description = env.BRANCH_NAME + " (Manual)"
+                        TRIGGER = currentBuild.description
+                        TRIGGER_URL = "https://cto-github.cisco.com/NFV-BU/${REPO_NAME}/tree/" + env.BRANCH_NAME
                     } else if (env.sha1) {
                         // When called from GitHub PR Builder
                         env.BRANCH_NAME = env.sha1
+                        TRIGGER = currentBuild.description
+                        TRIGGER_URL = env.ghprbPullLink
                     } else if (env.GIT_BRANCH) {
                         // When called from GitHub Push Notifier
                         env.BRANCH_NAME = env.GIT_BRANCH.replaceAll("origin/", "")
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
+                        TRIGGER = currentBuild.description
+                        TRIGGER_URL = "https://cto-github.cisco.com/NFV-BU/${REPO_NAME}/tree/" + env.BRANCH_NAME
                     }
 
                     BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
@@ -124,10 +136,10 @@ pipeline {
                 sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
-                        "SRC_ENDPOINT=${SOURCEGRAPH_ENDPOINT}",
-                        "SRC_ACCESS_TOKEN=${SOURCEGRAPH_TOKEN}",
+                        "SRC_ENDPOINT=${SOURCEGRAPH_ENDPOINT}"
                     ]) { dir("$WORKSPACE") {
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                    withCredentials([string(credentialsId: SOURCEGRAPH_CREDENTIALS, variable: 'SRC_ACCESS_TOKEN')]) {
                     script {
                         if (env.BRANCH_NAME == TRUNK || env.BRANCH_NAME == 'master') {
                             // Download sourcegraph go indexer
@@ -148,7 +160,7 @@ pipeline {
                                 sh "src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
                             }
                         }
-                    }}}}
+                    }}}}}
                 }
             }
         }
@@ -264,4 +276,79 @@ pipeline {
         }
 
     }
+
+    post {
+        always {
+            script {
+                def RESULT_EMOJIS = [
+                    "SUCCESS": ":white_check_mark:",
+                    "UNSTABLE": ":jenkins_unstable:",
+                    "FAILURE": ":x:",
+                    "ABORTED": ":abort:"
+                ]
+
+                if (SLACK_CHANNEL != "") {
+                    def RESULT_EMOJI = RESULT_EMOJIS[currentBuild.currentResult]
+                    def startTimeString = new Date(currentBuild.startTimeInMillis).format("MMM dd HH:mm")
+                    def durationString = currentBuild.durationString.replace(" and counting", "")
+
+                    def section = { label, text -> ["type": "section", "fields": [ [ "type": "mrkdwn", "text": "*" + label + ":*\n" + text ] ] ] }
+                    def section2 = { label1, text1, label2, text2 -> ["type": "section", "fields": [ [ "type": "mrkdwn", "text": "*" + label1 + ":*\n" + text1 ], [ "type": "mrkdwn", "text": "*" + label2 + ":*\n" + text2 ] ] ] }
+                    def header = { text -> ["type": "header", "text": [ "type": "plain_text", "emoji": true, "text": text ] ] }
+
+                    def blocks = [
+                        header("${RESULT_EMOJI} ${REPO_NAME} #${env.BUILD_NUMBER}"),
+                        section2(
+                            "Job", "<${env.RUN_DISPLAY_URL}|${REPO_NAME}/${env.BUILD_NUMBER}>",
+                            "Trigger", "<${TRIGGER_URL}|${TRIGGER}>")
+                    ]
+
+                    if (PUBLISH && currentBuild.currentResult == 'SUCCESS') {
+
+                        def skelJson = readJSON(file:"${REPO_NAME}/.skel.json")
+                        FULL_VERSION = skelJson.appVersion + "-" + env.BUILD_NUMBER
+                        PUBLISH_URL = "${PUBLISH_URL}/${env.MANIFEST_FOLDER}/${MANIFEST_NAME}/${FULL_VERSION}/${MANIFEST_NAME}-${FULL_VERSION}-resources.zip"
+
+                        blocks.add(section2(
+                            "Built", "${startTimeString} - _${durationString}_",
+                            "Published", "<${PUBLISH_URL}|${env.MANIFEST_FOLDER} ${FULL_VERSION}>"))
+                    } else {
+                        blocks.add(section(
+                            "Built", "${startTimeString} - _${durationString}_"))
+                    }
+
+                    def testSummaryMicroservice = "Unknown Result"
+                    try {
+                        def summary = junit(
+                            testResults: "${REPO_NAME}/test/junit-report.xml",
+                            allowEmptyResults: true)
+
+                        testSummaryMicroservice = "Passed: ${summary.passCount} / ${summary.totalCount}\n" +
+                                                    "Failed: ${summary.failCount}\n" +
+                                                    "Skipped: ${summary.skipCount}"
+                    } catch (e) {}
+
+                    def testSummaryUI = "Unknown Result"
+                    try {
+                        def summary = junit(
+                            testResults: "${REPO_NAME}/ui/test/junit-report.xml",
+                            allowEmptyResults: true)
+
+                        testSummaryUI = "Passed: ${summary.passCount} / ${summary.totalCount}\n" +
+                                                    "Failed: ${summary.failCount}\n" +
+                                                    "Skipped: ${summary.skipCount}"
+                    } catch (e) {}
+
+                    blocks.add(section2("Microservice Tests", testSummaryMicroservice, "UI Tests", testSummaryUI))
+
+                    slackSend(
+                        channel: SLACK_CHANNEL,
+                        blocks: blocks,
+                        botUser: true,
+                        tokenCredentialId: SLACK_BOT_CREDENTIALS)
+                }
+            }
+        }
+    }
+
 }
