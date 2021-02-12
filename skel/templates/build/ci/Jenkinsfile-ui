@@ -1,14 +1,18 @@
-def REPO_NAME = 'go-msx'
-def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
+def REPO_NAME = '${app.name}'
 def GIT_CREDENTIALS = 'msx-jenkins-gen-ssh-key'
 def GITHUB_CREDENTIALS = 'msx-jenkins-gen-token-secret-text'
 def GITHUB_APP_ID_SONARQUBE = '7'
 def GITHUB_APP_NAME_SONARQUBE = 'engit-sonar-int-gen-GPK'
 def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
+def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
+def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
 def SOURCEGRAPH_ENDPOINT = 'https://sourcegraph.infra.ciscomsx.com'
 def SOURCEGRAPH_TOKEN = '61c7d21117906e724ac8b8871c09f59fff3aa94d'
-def TRUNK = 'master'
+def BUILD_FLAGS = ""
+def TRUNK = 'develop'
+def TRUNK_MANIFEST_FOLDER = 'Build-Stable'
+def PUBLISH = false
 def TOOLS = ''
 
 pipeline {
@@ -43,6 +47,21 @@ pipeline {
                         currentBuild.description = env.BRANCH_NAME + " (Push)"
                     }
 
+                    BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
+
+                    if (env.BRANCH_NAME == TRUNK && !env.MANIFEST_FOLDER) {
+                        env.MANIFEST_FOLDER = TRUNK_MANIFEST_FOLDER
+                    }
+
+                    if (env.MANIFEST_FOLDER) {
+                        BUILD_FLAGS = "${BUILD_FLAGS} --manifest.folder=${env.MANIFEST_FOLDER}"
+                        PUBLISH = true
+                    }
+
+                    if (env.BUILD_FLAGS) {
+                        BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
+                    }
+
                     TOOLS = env.WORKSPACE + "/bin"
                     sh "mkdir -p ${TOOLS}"
                 }
@@ -73,15 +92,28 @@ pipeline {
         stage('Perform Build') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {
+                    withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME/ui"]) { dir ("$WORKSPACE") {
+                        withCredentials([usernamePassword(
+                           credentialsId: DOCKER_CREDENTIALS,
+                           passwordVariable: 'DOCKER_PASSWORD',
+                           usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh "npm install"
+                            sh "npm run docker:build"
+                        }
+                    }}
+                }
+
+                sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
                         "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
-                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "BUILD_FLAGS=$BUILD_FLAGS"
                     ]) { dir ("$WORKSPACE") {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
-                        sh 'make test'
+                        sh 'make all'
                     }}
                 }
             }
@@ -97,16 +129,25 @@ pipeline {
                     ]) { dir("$WORKSPACE") {
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                     script {
-                        // Download sourcegraph indexers
-                        sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
-                        sh "chmod +x ${TOOLS}/lsif-go"
+                        if (env.BRANCH_NAME == TRUNK || env.BRANCH_NAME == 'master') {
+                            // Download sourcegraph go indexer
+                            sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
+                            sh "chmod +x ${TOOLS}/lsif-go"
 
-                        // Download sourcegraph cli
-                        sh "curl -L ${SOURCEGRAPH_ENDPOINT}/.api/src-cli/src_linux_amd64 -o ${TOOLS}/src"
-                        sh "chmod +x ${TOOLS}/src"
+                            // Download sourcegraph cli
+                            sh "curl -L ${SOURCEGRAPH_ENDPOINT}/.api/src-cli/src_linux_amd64 -o ${TOOLS}/src"
+                            sh "chmod +x ${TOOLS}/src"
 
-                        sh "${TOOLS}/lsif-go"
-                        sh "${TOOLS}/src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
+                            // Index go
+                            sh "${TOOLS}/lsif-go"
+                            sh "${TOOLS}/src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
+
+                            // Index TS/JS
+                            docker.image("dockerhub.cisco.com/vms-platform-dev-docker/sourcegraph-lsif-node:latest").inside("-u root") {
+                                sh "lsif-tsc -p ui/tsconfig.json"
+                                sh "src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
+                            }
+                        }
                     }}}}
                 }
             }
@@ -119,7 +160,6 @@ pipeline {
                     junit 'test/junit-report.xml'
 
                     publishCoverage adapters: [coberturaAdapter('test/cobertura-coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
-
 
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                         withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
@@ -148,17 +188,54 @@ pipeline {
                                 def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                                 def sonarCommand = "$sonarHome/bin/sonar-scanner"
                                 sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
-                                sonarCommand = sonarCommand + " -Dproject.settings=sonar-project.properties"
+                                sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
                                 sh sonarCommand
                             }
                         }
                     }
+                }}
 
+                withEnv(["WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") {
+
+                    junit 'ui/test/junit-report.xml'
+
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                        withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
+                            script {
+                                def sonarProperties = [
+                                    'userHome': env.WORKSPACE,
+                                    'links.ci': env.JOB_URL,
+                                    'github.oauth': env.GITHUB_ACCESS_TOKEN,
+                                    'sonar.alm.github.app.id': GITHUB_APP_ID_SONARQUBE,
+                                    'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
+                                ]
+
+                                if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
+                                    if (env.ghprbTargetBranch) {
+                                        sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
+                                        sonarProperties['pullrequest.provider'] = "github"
+                                        sonarProperties['pullrequest.key'] = env.ghprbPullId
+                                        sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
+                                        sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
+                                    } else {
+                                        sonarProperties['branch.name'] = env.BRANCH_NAME
+                                        sonarProperties['branch.target'] = TRUNK
+                                    }
+                                }
+
+                                def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                                def sonarCommand = "$sonarHome/bin/sonar-scanner"
+                                sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
+                                sonarCommand = sonarCommand + " -Dproject.settings=ui/bin/ci/sonar-project.properties"
+                                sh sonarCommand
+                            }
+                        }
+                    }
                 }}
             }
         }
 
-        stage('Skel') {
+        stage('Publish Artifacts') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {
                     withEnv([
@@ -166,17 +243,23 @@ pipeline {
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
                         "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
-                        "WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") { withCredentials([usernamePassword(
-                    credentialsId: ARTIFACTORY_CREDENTIALS,
-                    passwordVariable: 'ARTIFACTORY_PASSWORD',
-                    usernameVariable: 'ARTIFACTORY_USERNAME')]) {
-                    script {
-                        if (env.BRANCH_NAME == TRUNK) {
-                            sh "make skel"
-                            sh "make publish-skel"
-                        }
-                    }
-                }}}}
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "BUILD_FLAGS=$BUILD_FLAGS"
+                    ]) { dir ("$WORKSPACE") {
+                        script { withCredentials([usernamePassword(
+                            credentialsId: DOCKER_CREDENTIALS,
+                            passwordVariable: 'DOCKER_PASSWORD',
+                            usernameVariable: 'DOCKER_USERNAME')]) { withCredentials([usernamePassword(
+                                credentialsId: ARTIFACTORY_CREDENTIALS,
+                                passwordVariable: 'ARTIFACTORY_PASSWORD',
+                                usernameVariable: 'ARTIFACTORY_USERNAME')]) {
+                                if (PUBLISH) {
+                                    sh "make publish"
+                                    sh "make tag"
+                                }
+                        }}}
+                    }}
+                }
             }
         }
 
