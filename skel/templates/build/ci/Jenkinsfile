@@ -7,10 +7,13 @@ def SONARQUBE_CREDENTIALS = 'SONARQUBE_GPK_ACCESS_TOKEN'
 def SONARQUBE_INSTALLATION = 'GPK SonarQube'
 def DOCKER_CREDENTIALS = '992579b4-1041-4bd1-827c-6d507970e355'
 def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
+def SOURCEGRAPH_ENDPOINT = 'https://sourcegraph.infra.ciscomsx.com'
+def SOURCEGRAPH_TOKEN = '61c7d21117906e724ac8b8871c09f59fff3aa94d'
 def BUILD_FLAGS = ""
 def TRUNK = 'develop'
 def TRUNK_MANIFEST_FOLDER = 'Build-Stable'
 def PUBLISH = false
+def TOOLS = ''
 
 pipeline {
 
@@ -58,6 +61,9 @@ pipeline {
                     if (env.BUILD_FLAGS) {
                         BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
                     }
+
+                    TOOLS = env.WORKSPACE + "/bin"
+                    sh "mkdir -p ${TOOLS}"
                 }
             }
         }
@@ -97,6 +103,34 @@ pipeline {
                         sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
                         sh 'make all'
                     }}
+                }
+            }
+        }
+
+        stage('Index') {
+            steps {
+                sshagent([GIT_CREDENTIALS]) {
+                    withEnv([
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME",
+                        "SRC_ENDPOINT=${SOURCEGRAPH_ENDPOINT}",
+                        "SRC_ACCESS_TOKEN=${SOURCEGRAPH_TOKEN}",
+                    ]) { dir("$WORKSPACE") {
+                    withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
+                    script {
+                        if (env.BRANCH_NAME == TRUNK || env.BRANCH_NAME == 'master') {
+                            // Download sourcegraph go indexer
+                            sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
+                            sh "chmod +x ${TOOLS}/lsif-go"
+
+                            // Download sourcegraph cli
+                            sh "curl -L ${SOURCEGRAPH_ENDPOINT}/.api/src-cli/src_linux_amd64 -o ${TOOLS}/src"
+                            sh "chmod +x ${TOOLS}/src"
+
+                            // Index go
+                            sh "${TOOLS}/lsif-go"
+                            sh "${TOOLS}/src lsif upload -github-token=${GITHUB_ACCESS_TOKEN} -ignore-upload-failure"
+                        }
+                    }}}}
                 }
             }
         }
@@ -174,8 +208,8 @@ pipeline {
                                 passwordVariable: 'ARTIFACTORY_PASSWORD',
                                 usernameVariable: 'ARTIFACTORY_USERNAME')]) {
                                 if (PUBLISH) {
-                                    sh "make tag"
                                     sh "make publish"
+                                    sh "make tag"
                                 }
                         }}}
                     }}
