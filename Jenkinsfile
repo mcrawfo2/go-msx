@@ -219,14 +219,6 @@ pipeline {
                     def section2 = { label1, text1, label2, text2 -> ["type": "section", "fields": [ [ "type": "mrkdwn", "text": "*" + label1 + ":*\n" + text1 ], [ "type": "mrkdwn", "text": "*" + label2 + ":*\n" + text2 ] ] ] }
                     def header = { text -> ["type": "header", "text": [ "type": "plain_text", "emoji": true, "text": text ] ] }
 
-                    def blocks = [
-                        header("${RESULT_EMOJI} ${REPO_NAME} #${env.BUILD_NUMBER}"),
-                        section2(
-                            "Job", "<${env.RUN_DISPLAY_URL}|${REPO_NAME}/${env.BUILD_NUMBER}>",
-                            "Trigger", "<${TRIGGER_URL}|${TRIGGER}>${TRIGGER_SUFFIX}"),
-                        section("Built", "${startTimeString} - _${durationString}_")
-                    ]
-
                     def testSummary = "Unknown Result"
                     if (TEST_SUMMARY != null) {
                         testSummary = "_Passed_: ${TEST_SUMMARY.passCount} " +
@@ -234,11 +226,18 @@ pipeline {
                             "_Failed_: ${TEST_SUMMARY.failCount}, " +
                             "_Skipped_: ${TEST_SUMMARY.skipCount}"
                     }
-                    blocks.add(section("Tests", testSummary))
 
                     slackSend(
                         channel: SLACK_CHANNEL,
-                        blocks: blocks,
+                        blocks: [
+                            header("${RESULT_EMOJI} ${REPO_NAME} #${env.BUILD_NUMBER}"),
+                            section2(
+                                "Job", "<${env.RUN_DISPLAY_URL}|${REPO_NAME}/${env.BUILD_NUMBER}>",
+                                "Built", "_Start_: ${startTimeString}\n_Duration_: ${durationString}"),
+                            section2(
+                                "Trigger", "<${TRIGGER_URL}|${TRIGGER}>${TRIGGER_SUFFIX}",
+                                "Tests", testSummary),
+                        ],
                         botUser: true,
                         tokenCredentialId: SLACK_BOT_CREDENTIALS)
                 }
