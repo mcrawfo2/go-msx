@@ -27,7 +27,7 @@ func init() {
 }
 
 // Root command
-func GenerateSkeleton(args []string) error {
+func GenerateSkeleton(_ []string) error {
 	var generators []string
 
 	// Common pre-generators
@@ -54,7 +54,7 @@ func GenerateSkeleton(args []string) error {
 	return ExecTargets(generators...)
 }
 
-func GenerateSkelJson(args []string) error {
+func GenerateSkelJson(_ []string) error {
 	logger.Info("Generating skel config")
 
 	bytes, err := json.Marshal(skeletonConfig)
@@ -72,7 +72,7 @@ func GenerateSkelJson(args []string) error {
 	return template.Render(NewRenderOptions())
 }
 
-func GenerateBuild(args []string) error {
+func GenerateBuild(_ []string) error {
 	logger.Info("Generating build command")
 
 	templates := TemplateSet{
@@ -97,7 +97,7 @@ func GenerateBuild(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateInstallerManifest(args []string) error {
+func GenerateInstallerManifest(_ []string) error {
 	logger.Info("Generating installer manifest")
 	templates := TemplateSet{
 		{
@@ -121,12 +121,14 @@ func GenerateInstallerManifest(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateJenkinsCi(args []string) error {
+func GenerateJenkinsCi(_ []string) error {
 	logger.Info("Generating Jenkins CI")
+
 	templates := TemplateSet{
 		{
 			Name:       "Creating Jenkinsfile",
-			SourceFile: "build/ci/Jenkinsfile",
+			SourceFile: iff(hasUI(), "build/ci/Jenkinsfile-ui", "build/ci/Jenkinsfile"),
+			DestFile:   "build/ci/Jenkinsfile",
 			Format:     FileFormatGroovy,
 		},
 		{
@@ -144,7 +146,7 @@ func GenerateJenkinsCi(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateLocal(args []string) error {
+func GenerateLocal(_ []string) error {
 	logger.Info("Generating local profiles")
 	template := Template{
 		Name:       "Creating remote profile",
@@ -156,7 +158,7 @@ func GenerateLocal(args []string) error {
 	return template.Render(NewRenderOptions())
 }
 
-func GenerateApp(args []string) error {
+func GenerateApp(_ []string) error {
 	logger.Info("Generating application")
 	templates := TemplateSet{
 		{
@@ -193,7 +195,7 @@ func GenerateApp(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateMigrate(args []string) error {
+func GenerateMigrate(_ []string) error {
 	logger.Info("Generating migration scanner")
 
 	templates := TemplateSet{
@@ -227,7 +229,7 @@ func GenerateMigrate(args []string) error {
 	return err
 }
 
-func AddGoMsxDependency(args []string) error {
+func AddGoMsxDependency(_ []string) error {
 	logger.Info("Add go-msx dependency")
 
 	targetDirectory := skeletonConfig.TargetDirectory()
@@ -262,7 +264,7 @@ func AddGoMsxDependency(args []string) error {
 	return exec.ExecutePipes(pipes...)
 }
 
-func GenerateGoland(args []string) error {
+func GenerateGoland(_ []string) error {
 	logger.Info("Generating Goland project")
 	templates := TemplateSet{
 		{
@@ -366,7 +368,7 @@ func GenerateGoland(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateVsCode(args []string) error {
+func GenerateVsCode(_ []string) error {
 	logger.Info("Generating VSCode project")
 	templates := TemplateSet{
 		{
@@ -386,7 +388,7 @@ func GenerateVsCode(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateDockerfile(args []string) error {
+func GenerateDockerfile(_ []string) error {
 	logger.Info("Generating Dockerfile")
 	template := Template{
 		Name:       "Creating Dockerfile",
@@ -397,7 +399,7 @@ func GenerateDockerfile(args []string) error {
 	return template.Render(NewRenderOptions())
 }
 
-func GenerateKubernetes(args []string) error {
+func GenerateKubernetes(_ []string) error {
 	logger.Info("Generating kubernetes manifest templates")
 	templates := TemplateSet{
 		{
@@ -423,7 +425,7 @@ func GenerateKubernetes(args []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
-func GenerateGit(args []string) error {
+func GenerateGit(_ []string) error {
 	logger.Info("Generating git repository")
 	template := Template{
 		Name:       "Creating git ignore list",

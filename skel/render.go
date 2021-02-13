@@ -346,3 +346,10 @@ func hasUI() bool {
 		return !st.IsDir() && st.Size() > 0
 	}
 }
+
+func iff(cond bool, truth, falsehood string) string {
+	if cond {
+		return truth
+	}
+	return falsehood
+}
