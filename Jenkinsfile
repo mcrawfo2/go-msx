@@ -12,6 +12,7 @@ def SOURCEGRAPH_ENDPOINT = 'https://sourcegraph.infra.ciscomsx.com'
 def SOURCEGRAPH_CREDENTIALS = 'sourcegraph-lsif-token'
 def TRIGGER = ''
 def TRIGGER_URL = ''
+def TRIGGER_SUFFIX = ''
 def TRUNK = 'master'
 def TOOLS = ''
 def TEST_SUMMARY = null
@@ -44,7 +45,8 @@ pipeline {
                     } else if (env.sha1) {
                         // When called from GitHub PR Builder
                         env.BRANCH_NAME = env.sha1
-                        TRIGGER = currentBuild.description
+                        TRIGGER = "PR #" + ghprbPullId
+                        TRIGGER_SUFFIX = ": " + env.ghprbPullTitle
                         TRIGGER_URL = env.ghprbPullLink
                     } else if (env.GIT_BRANCH) {
                         // When called from GitHub Push Notifier
@@ -221,7 +223,7 @@ pipeline {
                         header("${RESULT_EMOJI} ${REPO_NAME} #${env.BUILD_NUMBER}"),
                         section2(
                             "Job", "<${env.RUN_DISPLAY_URL}|${REPO_NAME}/${env.BUILD_NUMBER}>",
-                            "Trigger", "<${TRIGGER_URL}|${TRIGGER}>"),
+                            "Trigger", "<${TRIGGER_URL}|${TRIGGER}>${TRIGGER_SUFFIX}"),
                         section("Built", "${startTimeString} - _${durationString}_")
                     ]
 
