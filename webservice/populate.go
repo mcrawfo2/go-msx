@@ -130,25 +130,7 @@ func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value
 		return nil
 	}
 
-	if fieldValue.Kind() == reflect.Slice {
-		// Slice type
-		sliceType := fieldValue.Type()
-		// Element type
-		sliceElemype := sliceType.Elem()
-		fieldValue.Set(reflect.MakeSlice(sliceType, len(queryValues), len(queryValues)))
-		for i, queryValue := range queryValues {
-			fieldValueElem := reflect.New(sliceElemype)
- 			err := r.populateScalar(fieldValueElem, queryValue)
- 			if err != nil {
- 				return err
-			}
-			fieldValue.Index(i).Set(fieldValueElem.Elem())
-		}
-		return nil;
-	}
-
-	queryValue := queryValues[0]
-	return r.populateScalar(fieldValue, queryValue)
+	return r.populateFields(fieldValue, queryValues)
 }
 
 func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value) error {
@@ -256,6 +238,14 @@ func (r RouteParam) populateFile(fieldValue reflect.Value, header *multipart.Fil
 
 	fieldValue.Set(reflect.ValueOf(header))
 	return nil
+}
+func (r RouteParam) populateFields(fieldValue reflect.Value, values []string) (err error) {
+	switch fieldValue.Kind() {
+	case reflect.Slice:
+		return r.populateSlice(fieldValue, values)
+	default:
+		return r.populateScalar(fieldValue, values[0])
+	}
 }
 
 func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err error) {
@@ -479,6 +469,24 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 	}
 
 	return NewInternalError(errors.Errorf("Cannot marshal string %q into field %q", value, r.Name))
+}
+
+
+func (r RouteParam) populateSlice(fieldValue reflect.Value, values []string) error {
+	// Slice type
+	sliceType := fieldValue.Type()
+	// Element type
+	sliceElemype := sliceType.Elem()
+	fieldValue.Set(reflect.MakeSlice(sliceType, len(values), len(values)))
+	for i, queryValue := range values {
+		fieldValueElem := reflect.New(sliceElemype)
+		err := r.populateScalar(fieldValueElem, queryValue)
+		if err != nil {
+			return err
+		}
+		fieldValue.Index(i).Set(fieldValueElem.Elem())
+	}
+	return nil;
 }
 
 func NewRouteParam(ctx context.Context, route *restful.Route, field reflect.StructField) *RouteParam {
