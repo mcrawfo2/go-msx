@@ -130,6 +130,23 @@ func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value
 		return nil
 	}
 
+	if fieldValue.Kind() == reflect.Slice {
+		// Slice type
+		sliceType := fieldValue.Type()
+		// Element type
+		sliceElemype := sliceType.Elem()
+		fieldValue.Set(reflect.MakeSlice(sliceType, len(queryValues), len(queryValues)))
+		for i, queryValue := range queryValues {
+			fieldValueElem := reflect.New(sliceElemype)
+ 			err := r.populateScalar(fieldValueElem, queryValue)
+ 			if err != nil {
+ 				return err
+			}
+			fieldValue.Index(i).Set(fieldValueElem.Elem())
+		}
+		return nil;
+	}
+
 	queryValue := queryValues[0]
 	return r.populateScalar(fieldValue, queryValue)
 }
