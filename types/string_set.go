@@ -24,3 +24,13 @@ func (s StringSet) Values() []string {
 	}
 	return result
 }
+
+func (s StringSet) Sub(other StringSet) []string {
+	var results []string
+	for k := range s {
+		if !other.Contains(k) {
+			results = append(results, k)
+		}
+	}
+	return results
+}
