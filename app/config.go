@@ -178,6 +178,7 @@ func init() {
 
 func registerRemoteConfigProviders(ctx context.Context) error {
 	RegisterProviderFactory(SourceConsul, func(name string, cfg *config.Config) (providers []config.Provider, err error) {
+		ctx = config.ContextWithConfig(ctx, cfg)
 		providers, err = consulprovider.NewProvidersFromConfig(name, cfg)
 		if err != nil {
 			return nil, err
@@ -191,6 +192,7 @@ func registerRemoteConfigProviders(ctx context.Context) error {
 	})
 
 	RegisterProviderFactory(SourceVault, func(name string, cfg *config.Config) (providers []config.Provider, err error) {
+		ctx = config.ContextWithConfig(ctx, cfg)
 		providers, err = vaultprovider.NewProvidersFromConfig(name, ctx, cfg)
 		if err != nil {
 			return nil, err
