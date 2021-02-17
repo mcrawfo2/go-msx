@@ -7,14 +7,14 @@ import (
 const configRootEncryptionConfig = "per-tenant-encryption"
 
 type KeyPropertiesConfig struct {
-	Type                 string
-	Exportable           *bool
-	AllowPlaintextBackup *bool
+	Type                 string `config:"default=aes256-gcm96"`
+	Exportable           *bool `config:"default=false"`
+	AllowPlaintextBackup *bool `config:"default=false"`
 }
 
 type Config struct {
-	Enabled          bool
-	AlwaysCreateKeys bool
+	Enabled          bool		`config:"default=false"`
+	AlwaysCreateKeys bool		`config:"default=false"`
 	KeyProperties    KeyPropertiesConfig
 }
 

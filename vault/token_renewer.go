@@ -1,11 +1,18 @@
-package tokensource
+package vault
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/hashicorp/vault/api"
+	"time"
 )
 
-func initRenewer(client *api.Client) (*api.Renewer, error) {
+type renewer struct {
+	client  *api.Client
+	renewer *api.Renewer
+}
+
+func newRenewer(client *api.Client) (*renewer, error) {
 	secret, err := client.Auth().Token().LookupSelf()
 	if err != nil {
 		return nil, err
@@ -29,25 +36,30 @@ func initRenewer(client *api.Client) (*api.Renewer, error) {
 		},
 		Increment: int(increment),
 	})
-	return r, nil
+
+	return &renewer{
+		client:  client,
+		renewer: r,
+	}, nil
 }
 
-func startRenewer(r *api.Renewer) {
-	go r.Renew()
-	defer r.Stop()
+func (r renewer) Run(ctx context.Context) {
+	go r.renewer.Renew()
+	defer r.renewer.Stop()
 	for {
 		select {
-		case err := <-r.DoneCh():
+		case <-ctx.Done():
+			return
+
+		case err := <-r.renewer.DoneCh():
 			if err != nil {
-				logger.Error(err)
+				logger.WithContext(ctx).Error(err)
 				return
 			}
 
 			// Renewal is now over
-		case renewal := <-r.RenewCh():
-
-			logger.Infof("Successfully renewed token at %s",
-				renewal.RenewedAt.Format("2006-01-02T15:04:05.999999-07:00"))
+		case renewal := <-r.renewer.RenewCh():
+			logger.Infof("Successfully renewed token at %s", renewal.RenewedAt.Format(time.RFC3339Nano))
 		}
 	}
 }

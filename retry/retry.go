@@ -12,7 +12,7 @@ import (
 
 const (
 	configRootRetry = "spring.retry"
-	delaySleepId    = iota
+	DelaySleepId    = iota
 )
 
 var logger = log.NewLogger("msx.retry")
@@ -85,7 +85,7 @@ func (r Retry) delay(currentDelay int64, n int) int64 {
 		r.clock = types.NewClock(r.Context)
 	}
 
-	r.clock.Sleep(time.Duration(currentDelay), delaySleepId)
+	r.clock.Sleep(time.Duration(currentDelay), DelaySleepId)
 
 	return currentDelay
 }
