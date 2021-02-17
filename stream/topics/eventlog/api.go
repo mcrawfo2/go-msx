@@ -1,3 +1,4 @@
+// Deprecated:  Event log implementation has been removed from platform in 3.11.0.  Audit events should be used instead.
 package eventlog
 
 import (
