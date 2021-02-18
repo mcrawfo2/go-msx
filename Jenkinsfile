@@ -105,6 +105,23 @@ pipeline {
             }
         }
 
+        stage('Perform Build Example') {
+            steps {
+                sshagent([GIT_CREDENTIALS]) {
+                    withEnv([
+                        "GOPATH=${env.WORKSPACE}/go",
+                        "GOPRIVATE=cto-github.cisco.com/NFV-BU",
+                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "PATH+GOBIN=${env.WORKSPACE}/go/bin",
+                        "WORKSPACE=$WORKSPACE/$REPO_NAME"
+                    ]) { dir ("$WORKSPACE") {
+                        sh 'git config --global url."git@cto-github.cisco.com:".insteadOf "https://cto-github.cisco.com/"'
+                        sh 'make dist'
+                    }}
+                }
+            }
+        }
+
         stage('Index') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {

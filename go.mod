@@ -50,7 +50,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.6.4
 	github.com/uber/jaeger-client-go v2.19.0+incompatible

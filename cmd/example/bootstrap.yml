@@ -1,5 +1,5 @@
 info.app:
-  name: someservice
+  name: exampleservice
   description: Does Something
   attributes:
     displayName: Some Microservice
@@ -8,21 +8,25 @@ info.app:
 
 info.build:
   artifact: ${info.app.name}
-  buildDateTime: "2019-01-01T00:00:00.000000Z"
+  buildDateTime: "2021-02-17T00:00:00.000000Z"
   buildNumber: SNAPSHOT
-  release: 3.9.0
+  release: 3.11.0
   group: com.cisco.msx
   name: ${info.app.description}
   version: ${info.build.release}-${info.build.buildNumber}
 
 server:
   port: 9293
-  contextPath: /someservice
+  contextPath: /exampleservice
   enabled: true
 
 spring.data.cassandra:
   keyspace-name: ${info.app.name}
-  enabled: true
+  enabled: false
+
+spring.datasource:
+  name: ${info.app.name}
+  enabled: false
 
 spring.cloud.consul:
   enabled: true
@@ -37,13 +41,10 @@ spring.cloud.vault:
     enabled: true
 
 spring.cloud.stream.kafka.binder:
-  enabled: true
-
-spring.cloud.stream.bindings:
-  LOOPBACK_TOPIC.binder: gochannel
+  enabled: false
 
 spring.redis:
-  enable: true
+  enable: false
 
 stats:
   enabled: true
