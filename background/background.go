@@ -1,4 +1,5 @@
 //go:generate mockery --inpackage --name=ErrorReporter --structname=MockErrorReporter --filename mock_ErrorReporter.go
+
 package background
 
 import "context"

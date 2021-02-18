@@ -171,10 +171,22 @@ func TestWriteError(t *testing.T) {
 					WriteError(request, response, 403, errors.New("some error"))
 				}).
 				WithLogCheck(logtest.Check{
+					Filters: []logtest.EntryPredicate{
+						logtest.HasMessage("Request failed"),
+					},
 					Validators: []logtest.EntryPredicate{
 						logtest.HasLevel(logrus.ErrorLevel),
 						logtest.HasFieldValue("status", 403),
 						logtest.HasMessage("Request failed"),
+					},
+				}).
+				WithLogCheck(logtest.Check{
+					Filters: []logtest.EntryPredicate{
+						logtest.HasMessage(`Response serialization failed - invalid error payload type "*struct {}"`),
+					},
+					Validators: []logtest.EntryPredicate{
+						logtest.HasLevel(logrus.ErrorLevel),
+						logtest.HasMessage(`Response serialization failed - invalid error payload type "*struct {}"`),
 					},
 				}).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(403)).

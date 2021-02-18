@@ -2,6 +2,7 @@ package logtest
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -49,8 +50,15 @@ func (c Check) Check(r *Recording) []error {
 	}
 
 	var results []error
+	var entries = matcher.MatchEntries(r)
 
-	for _, entry := range matcher.MatchEntries(r) {
+	if (len(entries) == 0) && (len(c.Filters) != 0) {
+		return []error{
+			errors.New("Log check matched 0 entries"),
+		}
+	}
+
+	for _, entry := range entries {
 		for _, predicate := range c.Validators {
 			if !predicate.Matches(entry) {
 				results = append(results, CheckError{
