@@ -38,6 +38,9 @@ func Test_recoveryFilter(t *testing.T) {
 				WithResponsePredicate(webservicetest.ResponseHasStatus(500)).
 				WithResponsePredicate(DummyFilterResponseCheck).
 				WithLogCheck(logtest.Check{
+					Filters: []logtest.EntryPredicate{
+						logtest.HasMessage("Recovered from panic"),
+					},
 					Validators: []logtest.EntryPredicate{
 						logtest.HasLevel(logrus.ErrorLevel),
 						logtest.HasMessage("Recovered from panic"),
@@ -56,6 +59,9 @@ func Test_recoveryFilter(t *testing.T) {
 				WithResponsePredicate(webservicetest.ResponseHasStatus(500)).
 				WithResponsePredicate(DummyFilterResponseCheck).
 				WithLogCheck(logtest.Check{
+					Filters: []logtest.EntryPredicate{
+						logtest.HasMessage("Recovered from panic"),
+					},
 					Validators: []logtest.EntryPredicate{
 						logtest.HasLevel(logrus.ErrorLevel),
 						logtest.HasMessage("Recovered from panic"),

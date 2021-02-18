@@ -299,6 +299,12 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 	}
 }
 
+type GlobalFormatter struct {}
+
+func (g GlobalFormatter) Format(e *logrus.Entry) ([]byte, error) {
+	return logrus.StandardLogger().Formatter.Format(e)
+}
+
 var loggers = make(map[string]*Logger)
 var levels = make(map[string]logrus.Level)
 
@@ -312,7 +318,7 @@ func NewLogger(name string, fields ...LogContext) *Logger {
 	fields = append([]LogContext{{FieldLogger: name}}, fields...)
 	logger := newLogger(&logrus.Logger{
 		Out:       logrus.StandardLogger().Out,
-		Formatter: logrus.StandardLogger().Formatter,
+		Formatter: GlobalFormatter{},
 		Level:     level,
 	}, fields...)
 

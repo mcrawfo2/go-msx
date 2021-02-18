@@ -30,7 +30,7 @@ func HasMessage(msg string) EntryPredicate {
 
 func HasFieldValue(name string, value interface{}) EntryPredicate {
 	return EntryPredicate{
-		Description: fmt.Sprintf("entry.Data['%s'] = %q", name, value),
+		Description: fmt.Sprintf("entry.Data['%s'] = %v", name, value),
 		Matches: func(entry logrus.Entry) bool {
 			return entry.Data[name] == value
 		},
