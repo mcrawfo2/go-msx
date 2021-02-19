@@ -9,6 +9,7 @@ executable:
 generate:
   - path: background
   - path: certificate
+  - path: discovery
   - path: integration/awsresourceprovider
   - path: integration/manage
   - path: integration/monitor

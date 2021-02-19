@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=DiscoveryProvider --structname=MockDiscoveryProvider --case underscore
+//go:generate mockery --inpackage --name=RegistrationProvider --structname=MockRegistrationProvider --case underscore
 package discovery
 
 import (
