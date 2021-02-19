@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	pathpkg "path"
+	"strings"
 )
 
 func NewGlobFileSystem(source http.FileSystem, includes []string, excludes []string) (http.FileSystem, error) {
@@ -30,6 +31,9 @@ func NewGlobFileSystem(source http.FileSystem, includes []string, excludes []str
 
 		var excluded = false
 		for _, exc := range excludes {
+			if !strings.HasPrefix(exc, "/") && !strings.HasPrefix(exc, "**/") && exc != "**" {
+				exc = "/" + exc
+			}
 			if excluded, err2 = doublestar.Match(exc, path); err != nil {
 				return
 			} else if excluded {

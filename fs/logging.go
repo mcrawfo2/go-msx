@@ -15,14 +15,19 @@ func (l LoggingFilesystem) Open(name string) (http.File, error) {
 }
 
 type RootLoggingFilesystem struct {
-	Fs http.Dir
+	Dir http.Dir
+	fs http.FileSystem
 }
 
 func (l RootLoggingFilesystem) Open(name string) (http.File, error) {
-	logger.Debugf("root.Open(%s : %s)", l.Fs, name)
-	f, err := l.Fs.Open(name)
+	logger.Debugf("root.Open(%s : %s)", l.Dir, name)
+	fs := l.fs
+	if fs == nil {
+		fs = l.Dir
+	}
+	f, err := fs.Open(name)
 	if err != nil {
-		logger.WithError(err).Debugf("Failed to open %s : %s", l.Fs, name)
+		logger.WithError(err).Debugf("Failed to open %s : %s", l.Dir, name)
 	}
 	return f, err
 }

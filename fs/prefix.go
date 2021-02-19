@@ -4,7 +4,10 @@ import (
 	"github.com/pkg/errors"
 	"net/http"
 	"path"
+	"strings"
 )
+
+var ErrInvalidFileName = errors.New("Invalid filename")
 
 type PrefixFileSystem struct {
 	fs   http.FileSystem
@@ -13,6 +16,9 @@ type PrefixFileSystem struct {
 
 func (t PrefixFileSystem) Open(name string) (http.File, error) {
 	prefixedName := path.Clean(path.Join(t.root, name))
+	if !strings.HasPrefix(prefixedName, t.root + "/") {
+		return nil, errors.Wrap(ErrInvalidFileName, name)
+	}
 	return t.fs.Open(prefixedName)
 }
 
