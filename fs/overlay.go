@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"time"
 )
 
@@ -84,7 +85,7 @@ func (o OverlayFileSystem) Open(name string) (f http.File, err error) {
 		return nil, &os.PathError{
 			Op:   "open",
 			Path: name,
-			Err:  errors.Wrap(os.ErrNotExist, "Object does in either top or bottom of overlay"),
+			Err:  errors.Wrap(os.ErrNotExist, "Object does not exist in either top or bottom of overlay"),
 		}
 	}
 
@@ -169,6 +170,10 @@ func (o OverlayFileSystem) merge(top, bottom []os.FileInfo) []os.FileInfo {
 		rfi[i] = fi
 		i++
 	}
+
+	sort.Slice(rfi, func(i, j int) bool {
+		return rfi[i].Name() < rfi[j].Name()
+	})
 
 	return rfi
 }

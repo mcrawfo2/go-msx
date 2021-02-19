@@ -486,7 +486,7 @@ func (r RouteParam) populateSlice(fieldValue reflect.Value, values []string) err
 		}
 		fieldValue.Index(i).Set(fieldValueElem.Elem())
 	}
-	return nil;
+	return nil
 }
 
 func NewRouteParam(ctx context.Context, route *restful.Route, field reflect.StructField) *RouteParam {

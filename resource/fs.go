@@ -71,14 +71,13 @@ func newStagingFileSystem() (http.FileSystem, error) {
 		Name: "staging",
 		Fs:   stagingFileSystem,
 	}, nil
-
 }
 
 func newReleaseFileSystem(name, root string) http.FileSystem {
 	return fs.LoggingFilesystem{
 		Name: name,
 		Fs: fs.RootLoggingFilesystem{
-			Fs: http.Dir(root),
+			Dir: http.Dir(root),
 		},
 	}
 }
