@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"net/http"
@@ -70,6 +71,9 @@ const (
 	endpointNameSetSecretPolicy   = "setSecretPolicy"
 	endpointNameUnsetSecretPolicy = "unsetSecretPolicy"
 
+	endpointTenantHierarchyRoot   = "getTenantHierarchyRoot"
+	endpointTenantHierarchyParent = "getTenantHierarchyParent"
+
 	serviceName = integration.ServiceNameUserManagement
 )
 
@@ -130,6 +134,9 @@ var (
 		endpointNameGetSecretPolicy:   {Method: "GET", Path: "/api/v2/secrets/policy/{policyName}"},
 		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
 		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
+
+		endpointTenantHierarchyRoot:   {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
+		endpointTenantHierarchyParent: {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
 	}
 )
 
@@ -781,4 +788,49 @@ func (i *Integration) DeleteSecretPolicy(name string) (*integration.MsxResponse,
 		},
 		ExpectEnvelope: true,
 	})
+}
+
+func (i *Integration) GetTenantHierarchyRoot() (*integration.MsxResponse, error) {
+	msxEndpointRequest, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.Execute(msxEndpointRequest)
+}
+
+func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error) {
+
+	msxEndpointRequest, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyParent)
+	if err != nil {
+		return nil, err
+	}
+
+	qp := url.Values{}
+	qp.Set("tenantId", tenantId.String())
+	msxEndpointRequest.QueryParameters = qp
+
+	return i.Execute(msxEndpointRequest)
+}
+
+func (i *Integration) buildTenantHierarchyMsxEndpointRequest(endpointName string) (*integration.MsxEndpointRequest, error) {
+
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	if err != nil {
+		return nil, err
+	}
+
+	var headers = make(http.Header)
+	headers.Set("Authorization", securityClientSettings.Authorization())
+	headers.Set("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)
+	headers.Set("Accept", httpclient.MimeTypeApplicationJson)
+
+	return &integration.MsxEndpointRequest{
+		EndpointName:   endpointName,
+		Headers:        headers,
+		ExpectEnvelope: false,
+		NoToken:        true,
+		Payload:        nil,
+		ErrorPayload:   new(integration.ErrorDTO3),
+	}, nil
 }

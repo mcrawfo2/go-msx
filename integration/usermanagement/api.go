@@ -5,6 +5,7 @@ package usermanagement
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
 type Api interface {
@@ -60,4 +61,7 @@ type Api interface {
 	BatchCreateCapabilities(populator bool, owner string, capabilities []CapabilityCreateRequest) (*integration.MsxResponse, error)
 	BatchUpdateCapabilities(populator bool, owner string, capabilities []CapabilityUpdateRequest) (*integration.MsxResponse, error)
 	DeleteCapability(populator bool, owner string, name string) (*integration.MsxResponse, error)
+
+	GetTenantHierarchyRoot() (*integration.MsxResponse, error)
+	GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error)
 }
