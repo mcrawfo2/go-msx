@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/clienttest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -982,5 +983,57 @@ func TestIntegration_DeleteSecretPolicy(t *testing.T) {
 		WithEndpointPredicates(
 			clienttest.ServiceEndpointHasMethod(http.MethodDelete),
 			clienttest.ServiceEndpointHasPath("/api/v2/secrets/policy/{policyName}")).
+		Test(t)
+}
+
+func TestIntegration_GetTenantHierarchyRoot(t *testing.T) {
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
+	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+
+	NewUserManagementIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.GetTenantHierarchyRoot()
+		}).
+		WithInjector(func(ctx context.Context) context.Context {
+			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Authorization", securityClientSettings.Authorization())).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Accept", httpclient.MimeTypeApplicationJson)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointTenantHierarchyRoot),
+			clienttest.EndpointRequestHasToken(false),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/root")).
+		Test(t)
+}
+
+func TestIntegration_GetTenantHierarchyParent(t *testing.T) {
+	var tenantId, _ = types.NewUUID()
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
+	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+
+	NewUserManagementIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.GetTenantHierarchyParent(tenantId)
+		}).
+		WithInjector(func(ctx context.Context) context.Context {
+			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Authorization", securityClientSettings.Authorization())).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Accept", httpclient.MimeTypeApplicationJson)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointTenantHierarchyParent),
+			clienttest.EndpointRequestHasQueryParam("tenantId", tenantId.String()),
+			clienttest.EndpointRequestHasToken(false),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/parent")).
 		Test(t)
 }
