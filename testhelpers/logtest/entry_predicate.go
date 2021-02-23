@@ -37,6 +37,32 @@ func HasFieldValue(name string, value interface{}) EntryPredicate {
 	}
 }
 
+func HasError(message string) EntryPredicate {
+	return EntryPredicate{
+		Description: fmt.Sprintf("entry.Data['error'].Error() = %q", message),
+		Matches: func(entry logrus.Entry) bool {
+			return entry.Data["error"].(error).Error() == message
+		},
+	}
+}
+
+func Index(skip int, keep int) EntryPredicate {
+	return EntryPredicate{
+		Description: fmt.Sprintf("entry index %d < n < %d", skip, keep),
+		Matches: func(entry logrus.Entry) bool {
+			if skip > 0 {
+				skip--
+				return false
+			}
+			if keep > 0 {
+				keep--
+				return true
+			}
+			return false
+		},
+	}
+}
+
 func FieldValue(name string) EntryPredicate {
 	return EntryPredicate{
 		Description: fmt.Sprintf("entry.Data['%s'] set", name),
