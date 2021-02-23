@@ -240,12 +240,12 @@ func (r RouteParam) populateFile(fieldValue reflect.Value, header *multipart.Fil
 	return nil
 }
 func (r RouteParam) populateFields(fieldValue reflect.Value, values []string) (err error) {
-	switch fieldValue.Kind() {
-	case reflect.Slice:
+	if len(r.Field.Tag.Get("req")) != 0 &&
+		r.Field.Tag.Get("req") == "query,multi" {
 		return r.populateSlice(fieldValue, values)
-	default:
-		return r.populateScalar(fieldValue, values[0])
 	}
+
+	return r.populateScalar(fieldValue, values[0])
 }
 
 func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err error) {
@@ -476,10 +476,10 @@ func (r RouteParam) populateSlice(fieldValue reflect.Value, values []string) err
 	// Slice type
 	sliceType := fieldValue.Type()
 	// Element type
-	sliceElemype := sliceType.Elem()
+	sliceElemType := sliceType.Elem()
 	fieldValue.Set(reflect.MakeSlice(sliceType, len(values), len(values)))
 	for i, queryValue := range values {
-		fieldValueElem := reflect.New(sliceElemype)
+		fieldValueElem := reflect.New(sliceElemType)
 		err := r.populateScalar(fieldValueElem, queryValue)
 		if err != nil {
 			return err
@@ -576,6 +576,7 @@ type RouteParams struct {
 	Type   reflect.Type
 	Fields []*RouteParam
 }
+
 
 func (r RouteParams) Populate(req *restful.Request, paramsValue reflect.Value) error {
 	for _, routeParam := range r.Fields {

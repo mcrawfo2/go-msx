@@ -3,8 +3,10 @@ package webservice
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -358,5 +360,91 @@ func Test_populateScalar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+
+func TestRouteParam_populateFields(t *testing.T) {
+	type fields struct {
+		Field     reflect.StructField
+		Source    string
+		Name      string
+		Options   map[string]string
+		Parameter restful.ParameterData
+	}
+	type args struct {
+		fieldValue reflect.Value
+		values     []string
+	}
+	structUUIDField := reflect.StructField{
+		Name: "Id",
+		Tag: "req:\"query\"",
+		Type: reflect.TypeOf(types.UUID{}),
+	}
+	uuidFields := fields{
+		Field:     structUUIDField,
+		Source:    "query",
+		Name:      "id",
+		Parameter: restful.ParameterData{Name: "id", DataType: "uuid"},
+	}
+	testID := "56b36e70-72bc-11eb-a576-ef1d86082c19"
+	uuidArgs := args{
+		fieldValue: reflect.New(structUUIDField.Type),
+		values: []string{ testID },
+	}
+
+	tenantIdSlice := reflect.SliceOf(reflect.TypeOf(types.UUID{}))
+
+	logger.Info(tenantIdSlice)
+
+	logger.Info(tenantIdSlice.Elem())
+
+	uuidMultiField := reflect.StructField{
+		Name: "tenantId",
+		Tag: "req:\"query,multi\"",
+		Type: tenantIdSlice,
+	}
+
+	multiFields := fields{
+		Field:     uuidMultiField,
+		Source:    "query,multi",
+		Name:      "tenantId",
+		Parameter: restful.ParameterData{Name: "tenantId", AllowMultiple: true},
+	}
+
+	multiUUIDArgs := args{
+		fieldValue: reflect.New(tenantIdSlice).Elem(),
+		values: []string{ testID },
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{"uuid_query", uuidFields, uuidArgs, false},
+		{"uuid_query_multi", multiFields, multiUUIDArgs, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := RouteParam{
+				Field:     tt.fields.Field,
+				Source:    tt.fields.Source,
+				Name:      tt.fields.Name,
+				Options:   tt.fields.Options,
+				Parameter: tt.fields.Parameter,
+			}
+			if err := r.populateFields(tt.args.fieldValue, tt.args.values); (err != nil) != tt.wantErr {
+				t.Errorf("populateFields() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			returned := fmt.Sprintf("%s", tt.args.fieldValue)
+			if tt.args.fieldValue.Kind() == reflect.Slice {
+				returned = fmt.Sprintf("%s", tt.args.fieldValue.Index(0))
+			}
+
+			if returned != testID {
+				t.Errorf("populateFields() got value = %v, wanted %v",  returned, testID)
+			}
+		})
 	}
 }
