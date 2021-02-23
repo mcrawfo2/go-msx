@@ -130,7 +130,7 @@ func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value
 		return nil
 	}
 
-	return r.populateFields(fieldValue, queryValues)
+	return r.populateField(fieldValue, queryValues)
 }
 
 func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value) error {
@@ -239,13 +239,25 @@ func (r RouteParam) populateFile(fieldValue reflect.Value, header *multipart.Fil
 	fieldValue.Set(reflect.ValueOf(header))
 	return nil
 }
-func (r RouteParam) populateFields(fieldValue reflect.Value, values []string) (err error) {
-	if len(r.Field.Tag.Get("req")) != 0 &&
-		r.Field.Tag.Get("req") == "query,multi" {
-		return r.populateSlice(fieldValue, values)
+
+func (r RouteParam) populateField(fieldValue reflect.Value, values []string) (err error) {
+	// Handle pointers
+	elemKind := fieldValue.Kind()
+	if elemKind == reflect.Ptr {
+		elemKind = fieldValue.Type().Elem().Kind()
 	}
 
-	return r.populateScalar(fieldValue, values[0])
+	if r.Options["multi"] == "true" {
+		switch elemKind {
+		case reflect.Slice:
+			return r.populateSlice(fieldValue, values)
+		default:
+			return errors.Errorf("Cannot unmarshal multiple values into field %s", r.Name)
+		}
+	} else {
+		return r.populateScalar(fieldValue, values[0])
+	}
+
 }
 
 func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err error) {
@@ -473,19 +485,29 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 
 
 func (r RouteParam) populateSlice(fieldValue reflect.Value, values []string) error {
-	// Slice type
 	sliceType := fieldValue.Type()
-	// Element type
-	sliceElemType := sliceType.Elem()
-	fieldValue.Set(reflect.MakeSlice(sliceType, len(values), len(values)))
+	isPtr := sliceType.Kind() == reflect.Ptr
+	if isPtr {
+		sliceType = sliceType.Elem()
+	}
+
+	sliceValue := reflect.MakeSlice(sliceType, len(values), len(values))
+
 	for i, queryValue := range values {
-		fieldValueElem := reflect.New(sliceElemType)
-		err := r.populateScalar(fieldValueElem, queryValue)
+		err := r.populateScalar(sliceValue.Index(i), queryValue)
 		if err != nil {
 			return err
 		}
-		fieldValue.Index(i).Set(fieldValueElem.Elem())
 	}
+
+	if isPtr {
+		x := reflect.New(sliceType)
+		x.Elem().Set(sliceValue)
+		fieldValue.Set(x)
+	} else {
+		fieldValue.Set(sliceValue)
+	}
+
 	return nil
 }
 
