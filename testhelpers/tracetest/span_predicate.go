@@ -3,7 +3,7 @@ package tracetest
 import (
 	"fmt"
 	"github.com/opentracing/opentracing-go"
-	tracelog "github.com/opentracing/opentracing-go/log"
+	"github.com/opentracing/opentracing-go/mocktracer"
 )
 
 type SpanPredicate struct {
@@ -33,20 +33,20 @@ func HasTag(name string, val interface{}) SpanPredicate {
 	return SpanPredicate{
 		Description: fmt.Sprintf("span.Tags[%q] == %q", name, val),
 		Matches: func(span opentracing.Span) bool {
-			var tags = span.(*Span).Tags
+			var tags = span.(*mocktracer.MockSpan).Tags()
 			return tags[name] == val
 		},
 	}
 }
 
-func HasLogWithField(field tracelog.Field) SpanPredicate {
+func HasLogWithField(key string, value string) SpanPredicate {
 	return SpanPredicate{
-		Description: fmt.Sprintf("span.Logs.*.Fields[%q] == %+v", field.Key(), field.Value()),
+		Description: fmt.Sprintf("span.Logs.*.Fields[%q] == %s", key, value),
 		Matches: func(span opentracing.Span) bool {
-			var logs = span.(*Span).Logs
+			var logs = span.(*mocktracer.MockSpan).Logs()
 			for _, log := range logs {
 				for _, logField := range log.Fields {
-					if logField.Key() == field.Key() && logField.Value() == field.Value() {
+					if logField.Key == key && logField.ValueString == value {
 						return true
 					}
 				}

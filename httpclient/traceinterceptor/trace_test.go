@@ -34,7 +34,7 @@ func TestNewInterceptor(t *testing.T) {
 				tracetest.HasTag(trace.FieldOperation, requestOperation),
 				tracetest.HasTag(trace.FieldHttpMethod, requestMethod),
 				tracetest.HasTag(trace.FieldHttpUrl, requestUrl),
-				tracetest.HasLogWithField(trace.HttpCode(200)),
+				tracetest.HasLogWithField(trace.FieldHttpCode, "200"),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestNewInterceptor(t *testing.T) {
 				tracetest.HasTag(trace.FieldOperation, requestOperation),
 				tracetest.HasTag(trace.FieldHttpMethod, requestMethod),
 				tracetest.HasTag(trace.FieldHttpUrl, requestUrl),
-				tracetest.HasLogWithField(trace.Error(err)),
+				tracetest.HasLogWithField("error", err.Error()),
 			},
 		},
 	}
