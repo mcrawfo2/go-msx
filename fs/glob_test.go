@@ -13,10 +13,10 @@ func TestNewGlobFileSystem(t *testing.T) {
 		excludes []string
 	}
 	tests := []struct {
-		name    string
-		args    args
+		name      string
+		args      args
 		wantFiles []string
-		wantErr bool
+		wantErr   bool
 	}{
 		{
 			name: "NoOverlay",

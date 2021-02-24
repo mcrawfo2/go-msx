@@ -1,4 +1,4 @@
-//go:generate staticfiles -o templates.go templates/
+//go:generate staticfiles -o templates.go _templates/
 
 package skel
 

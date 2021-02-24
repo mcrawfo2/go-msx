@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-
 const (
 	statsSubsystemVault         = "vault"
 	statsGaugeVaultCalls        = "calls"
@@ -52,7 +51,6 @@ func (s statsConnection) Observe(api, param string, fn queryFunc) (err error) {
 	err = fn()
 	return err
 }
-
 
 func (s statsConnection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
 	err = s.Observe(statsApiListSecrets, path, func() error {

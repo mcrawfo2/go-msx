@@ -5,7 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx-beats/meta"
 	"cto-github.cisco.com/NFV-BU/go-msx-beats/state"
 	"cto-github.cisco.com/NFV-BU/go-msx-beats/webconfig"
-	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/beats/api"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/beats/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"

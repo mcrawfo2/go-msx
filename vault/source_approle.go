@@ -15,8 +15,8 @@ type AppRoleConfig struct {
 }
 
 type AppRoleSource struct {
-	cfg    *AppRoleConfig
-	conn   ConnectionApi
+	cfg  *AppRoleConfig
+	conn ConnectionApi
 }
 
 func (c *AppRoleSource) GetToken(ctx context.Context) (token string, err error) {
@@ -42,7 +42,7 @@ func NewAppRoleSource(cfg *config.Config, conn ConnectionApi) (*AppRoleSource, e
 	}
 
 	return &AppRoleSource{
-		cfg: appRoleConfig,
+		cfg:  appRoleConfig,
 		conn: conn,
 	}, nil
 }

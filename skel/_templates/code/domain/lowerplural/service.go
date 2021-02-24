@@ -7,7 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/repository"
-	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
 	"github.com/pkg/errors"
 )
 

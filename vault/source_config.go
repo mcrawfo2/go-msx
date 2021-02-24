@@ -22,5 +22,5 @@ func (c ConfigSource) Renewable() bool {
 }
 
 func NewConfigSource(cfg *config.Config) ConfigSource {
-	return ConfigSource{cfg:cfg}
+	return ConfigSource{cfg: cfg}
 }

@@ -71,7 +71,7 @@ func GenerateServicePack(args []string) error {
 
 	options := NewRenderOptions()
 	options.AddStrings(inflections)
-	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/sp/api", apiPackageUrl)
+	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/sp/api", apiPackageUrl)
 
 	if err := templates.Render(options); err != nil {
 		return err

@@ -19,7 +19,7 @@ import (
 const (
 	configRootVaultConfigProvider = "spring.cloud.vault.generic"
 	configKeyAppName              = "spring.application.name"
-	VaultClockBackoffTimerId = iota
+	VaultClockBackoffTimerId      = iota
 )
 
 var logger = log.NewLogger("msx.config.vaultprovider")

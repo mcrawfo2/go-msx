@@ -16,7 +16,7 @@ type connectionImpl struct {
 
 func (c connectionImpl) LoginWithKubernetes(ctx context.Context, jwt, role string) (token string, err error) {
 	payload := map[string]interface{}{
-		"jwt": jwt,
+		"jwt":  jwt,
 		"role": role,
 	}
 
@@ -30,7 +30,7 @@ func (c connectionImpl) LoginWithKubernetes(ctx context.Context, jwt, role strin
 
 func (c connectionImpl) LoginWithAppRole(ctx context.Context, roleId, secretId string) (token string, err error) {
 	payload := map[string]interface{}{
-		"role_id": roleId,
+		"role_id":   roleId,
 		"secret_id": secretId,
 	}
 

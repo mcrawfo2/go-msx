@@ -645,4 +645,3 @@ func Test_traceConnection_TransitEncrypt(t *testing.T) {
 		})
 	}
 }
-

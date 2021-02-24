@@ -6,7 +6,7 @@ import (
 	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	//#endif TENANT_DOMAIN
-	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
 	//#if TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	//#endif TENANT_DOMAIN

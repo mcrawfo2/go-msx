@@ -8,13 +8,13 @@ const configRootEncryptionConfig = "per-tenant-encryption"
 
 type KeyPropertiesConfig struct {
 	Type                 string `config:"default=aes256-gcm96"`
-	Exportable           *bool `config:"default=false"`
-	AllowPlaintextBackup *bool `config:"default=false"`
+	Exportable           *bool  `config:"default=false"`
+	AllowPlaintextBackup *bool  `config:"default=false"`
 }
 
 type Config struct {
-	Enabled          bool		`config:"default=false"`
-	AlwaysCreateKeys bool		`config:"default=false"`
+	Enabled          bool `config:"default=false"`
+	AlwaysCreateKeys bool `config:"default=false"`
 	KeyProperties    KeyPropertiesConfig
 }
 

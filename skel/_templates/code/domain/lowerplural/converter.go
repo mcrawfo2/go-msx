@@ -1,6 +1,6 @@
 package lowerplural
 
-import "cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api"
+import "cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
 
 type lowerCamelSingularConverter struct{}
 
