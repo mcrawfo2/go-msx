@@ -21,13 +21,13 @@ func TestNewSqlConfigFromConfig(t *testing.T) {
 			name: "EmbeddedDefaults",
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
-					"cockroach.host":                     "localhost",
-					"cockroach.port":                     "26257",
+					"db.cockroach.host":                  "localhost",
+					"db.cockroach.port":                  "26257",
 					"spring.datasource.driver":           "postgres",
 					"spring.datasource.name":             "",
 					"spring.datasource.username":         "root",
 					"spring.datasource.password":         "",
-					"spring.datasource.data-source-name": "postgresql://${spring.datasource.username}:${spring.datasource.password}@${cockroach.host}:${cockroach.port}/${spring.datasource.name}?sslmode=disable",
+					"spring.datasource.data-source-name": "postgresql://${spring.datasource.username}:${spring.datasource.password}@${db.cockroach.host}:${db.cockroach.port}/${spring.datasource.name}?sslmode=disable",
 				}),
 			},
 			want: &Config{
