@@ -21,6 +21,7 @@ func RegisterProvider(name string, provider Provider) {
 	providers[name] = provider
 }
 
+// NewPublisher creates a Publisher instance based on the specified binding name
 func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
 	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name)
 	if err != nil {
@@ -40,6 +41,7 @@ func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
 	return NewStatsPublisher(publisher, bindingConfig), nil
 }
 
+// NewSubscriber creates a Subscriber instance based on the specified binding name
 func NewSubscriber(cfg *config.Config, name string) (message.Subscriber, error) {
 	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name)
 	if err != nil {

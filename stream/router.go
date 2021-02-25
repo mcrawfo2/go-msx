@@ -26,6 +26,10 @@ var (
 	routerLogger          = log.NewLogger("watermill.router")
 	routerWatermillLogger = NewWatermillLoggerAdapter(log.NewLogger("watermill.router"))
 	handlerCounter        atomic.Int32
+
+	ErrRouterRunning      = errors.New("Router already running")
+	ErrTopicNotSpecified  = errors.New("Topic not specified")
+	ErrActionNotSpecified = errors.New("ListenerAction not specified")
 )
 
 func StartRouter(ctx context.Context) error {
@@ -129,8 +133,16 @@ func AddListener(topic string, action ListenerAction) error {
 	listenerMux.Lock()
 	defer listenerMux.Unlock()
 
+	var err error
 	if listeners == nil {
-		return errors.New("Router already running")
+		err = ErrRouterRunning
+	} else if action == nil {
+		return ErrActionNotSpecified
+	} else if topic == "" {
+		return ErrTopicNotSpecified
+	}
+	if err != nil {
+		return errors.Wrap(err, "Failed to add listener")
 	}
 
 	if _, ok := listeners[topic]; !ok {

@@ -21,6 +21,3 @@ func NewPublisherService(ctx context.Context) PublisherService {
 	}
 	return service
 }
-
-// Ensure MockPublisherService is up-to-date
-var _ PublisherService = new(MockPublisherService)

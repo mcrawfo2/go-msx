@@ -6,8 +6,11 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
+// MessageFilter returns true if the message should be processed
 type MessageFilter func(ctx context.Context, metadata message.Metadata) bool
 
+// FilterByMetaData returns a new MessageFilter that allows messages
+// which have any of the specified values in the specified Metadata key
 func FilterByMetaData(key string, values ...string) MessageFilter {
 	return func(ctx context.Context, metadata message.Metadata) bool {
 		metaDataValue := metadata[key]
@@ -20,6 +23,7 @@ func FilterByMetaData(key string, values ...string) MessageFilter {
 	}
 }
 
+// FilterMessage returns true if the message is allowed by all of the specified filters
 func FilterMessage(msg *message.Message, filters []MessageFilter) bool {
 	for _, filter := range filters {
 		if !filter(msg.Context(), msg.Metadata) {
