@@ -34,6 +34,51 @@ func TestHasTenant_Implicit(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestHasAccessToTenant(t *testing.T) {
+
+	tenantId, _ := types.NewUUID()
+	tenantBadId, _ := types.NewUUID()
+
+	//mock responses
+	rootTenantId, _ := types.NewUUID()
+	parentTenantId, _ := types.NewUUID()
+
+	rootTenantIdMsxResponse := &integration.MsxResponse{
+		StatusCode: 200,
+		BodyString: rootTenantId.String(),
+	}
+
+	parentTenantIdMsxResponse := &integration.MsxResponse{
+		StatusCode: 200,
+		BodyString: parentTenantId.String(),
+	}
+
+	badTenantIdMsxResponse := &integration.MsxResponse{
+		StatusCode: 200,
+		BodyString: "",
+	}
+
+	//build mocked context
+	ctx := context.Background()
+	userManagementApi := new(usermanagement.MockUserManagement)
+	ctx = usermanagement.ContextWithIntegration(context.Background(), userManagementApi)
+	setMockTokenDetailsProvider(ctx, []types.UUID{tenantId}, []string{})
+
+	mockedUsermanagement := usermanagement.IntegrationFromContext(ctx).(*usermanagement.MockUserManagement)
+	mockedUsermanagement.On("GetTenantHierarchyRoot").Return(rootTenantIdMsxResponse, nil).Maybe()
+	mockedUsermanagement.On("GetTenantHierarchyParent", tenantId).Return(parentTenantIdMsxResponse, nil).Maybe()
+
+	//validate
+	err := HasAccessToTenant(ctx, tenantId)
+	assert.NoError(t, err)
+
+	mockedUsermanagement.On("GetTenantHierarchyParent", tenantBadId).Return(badTenantIdMsxResponse, nil).Maybe()
+	notValid := HasAccessToTenant(ctx, tenantBadId)
+	assert.Error(t, notValid, ErrTenantDoesNotExist)
+
+	mockedUsermanagement.AssertExpectations(t)
+}
+
 func Test_ValidateTenant(t *testing.T) {
 
 	rootTenantId, _ := types.NewUUID()
@@ -58,7 +103,7 @@ func Test_ValidateTenant(t *testing.T) {
 		BodyString: "",
 	}
 
-	//build modked context
+	//build mocked context
 	ctx := context.Background()
 	userManagementApi := new(usermanagement.MockUserManagement)
 	ctx = usermanagement.ContextWithIntegration(context.Background(), userManagementApi)
