@@ -48,7 +48,22 @@ func HasTenant(ctx context.Context, tenantId types.UUID) error {
 	return nil
 }
 
-// ValidateTenant Checks if the tenant is valid
+// HasAccessToTenant validates that the user has access to the tenant.
+// Error returned if user does not have access to tenant (or child/descendent of tenant), nil otherwise
+func HasAccessToTenant(ctx context.Context, tenantId types.UUID) error {
+
+	//check if this is an PermissionAccessAllTenants account
+	allTenants, _ := HasAccessAllTenants(ctx)
+
+	if allTenants {
+		return ValidateTenant(ctx, tenantId)
+	}
+
+	return HasTenant(ctx, tenantId)
+}
+
+// ValidateTenant Checks if the tenant id is a valid tenant. See securitytest.MockedTenantValidation for test mocking
+// Must NOT be used for checking access control.
 func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 	userManagementApi, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
@@ -56,7 +71,7 @@ func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 	}
 
 	//all tenants belong to the root tenantid, or have a parent
-	rootTenant, err := getRootTenant(ctx)
+	rootTenant, err := GetRootTenant(ctx)
 	if err != nil {
 		return errors.Wrap(err, "Error getting Root TenantId.")
 	}
@@ -77,7 +92,9 @@ func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 	return ErrTenantDoesNotExist
 }
 
-func getRootTenant(ctx context.Context) (token types.UUID, err error) {
+// GetRootTenant fetches and locally caches the root tenant id
+// Services should generally avoid using this method and not depend on the value of the root tenant ID
+func GetRootTenant(ctx context.Context) (types.UUID, error) {
 	//fetch the root token; it's system wide so we only need to do this once
 	if rootTenantId.Load() == nil {
 		userManagementApi, err := usermanagement.NewIntegration(ctx)
