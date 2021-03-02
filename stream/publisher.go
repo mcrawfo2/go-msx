@@ -14,7 +14,7 @@ type Publisher interface {
 	Close() error
 }
 
-func Publish(ctx context.Context, topic string, payload []byte, metadata map[string]string) (err error) {
+func Publish(ctx context.Context, binding string, payload []byte, metadata map[string]string) (err error) {
 	msg := message.NewMessage(watermill.NewUUID(), payload)
 	for k, v := range metadata {
 		msg.Metadata.Set(k, v)
@@ -27,10 +27,11 @@ func Publish(ctx context.Context, topic string, payload []byte, metadata map[str
 	}
 
 	var publisher Publisher
-	if publisher, err = NewPublisher(cfg, topic); err != nil && err != ErrBinderNotEnabled {
-		return errors.Wrap(err, "Failed to create stream publisher")
-	} else if err == ErrBinderNotEnabled {
+	publisher, err = NewPublisher(cfg, binding)
+	if err == ErrBinderNotEnabled {
 		return err
+	} else if err != nil {
+		return errors.Wrap(err, "Failed to create stream publisher")
 	}
 	defer publisher.Close()
 
@@ -41,16 +42,16 @@ func Publish(ctx context.Context, topic string, payload []byte, metadata map[str
 	return nil
 }
 
-func PublishObject(ctx context.Context, topic string, payload interface{}, metadata map[string]string) (err error) {
+func PublishObject(ctx context.Context, binding string, payload interface{}, metadata map[string]string) (err error) {
 	bytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	return Publish(ctx, topic, bytes, metadata)
-
+	return Publish(ctx, binding, bytes, metadata)
 }
 
+// TopicPublisher adapts a message.Publisher to publish to a pre-determined topic
 type TopicPublisher struct {
 	cfg       *BindingConfiguration
 	publisher message.Publisher
@@ -64,6 +65,7 @@ func (p *TopicPublisher) Close() error {
 	return p.publisher.Close()
 }
 
+// NewTopicPublisher creates a new TopicPublisher instance
 func NewTopicPublisher(publisher message.Publisher, cfg *BindingConfiguration) Publisher {
 	return NewTracePublisher(
 		&TopicPublisher{
@@ -73,6 +75,7 @@ func NewTopicPublisher(publisher message.Publisher, cfg *BindingConfiguration) P
 		cfg)
 }
 
+// IntransientPublisher adapts a Publisher to ignore the Close signal
 type IntransientPublisher struct {
 	publisher Publisher
 }
@@ -85,11 +88,14 @@ func (n *IntransientPublisher) Close() error {
 	return nil
 }
 
+// NewIntransientPublisher creates a new IntransientPublisher instance from the supplied Publisher
 func NewIntransientPublisher(publisher Publisher) Publisher {
 	return &IntransientPublisher{
 		publisher: publisher,
 	}
 }
 
-// Ensure MockPublisher is up-to-date
-var _ Publisher = new(MockPublisher)
+// MessagePublisher is the low-level watermill Publisher interface
+type MessagePublisher interface {
+	message.Publisher
+}
