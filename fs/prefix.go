@@ -16,7 +16,7 @@ type PrefixFileSystem struct {
 
 func (t PrefixFileSystem) Open(name string) (http.File, error) {
 	prefixedName := path.Clean(path.Join(t.root, name))
-	if !strings.HasPrefix(prefixedName, t.root+"/") {
+	if !strings.HasPrefix(prefixedName, t.root+"/") && prefixedName != t.root {
 		return nil, errors.Wrap(ErrInvalidFileName, name)
 	}
 	return t.fs.Open(prefixedName)
