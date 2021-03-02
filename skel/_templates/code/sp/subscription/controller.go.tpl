@@ -4,7 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/app"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
-	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/sp/api"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/sp/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"errors"
 	"github.com/emicklei/go-restful"

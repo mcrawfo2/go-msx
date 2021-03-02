@@ -20,19 +20,19 @@ func Test_NewConnection(t *testing.T) {
 		{
 			name: "Disabled",
 			args: args{
-				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(),nil),
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), nil),
 			},
-			want: true,
+			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "Enabled",
 			args: args{
-				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(),map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.cloud.vault.enabled": "false",
 				}),
 			},
-			want: false,
+			want:    false,
 			wantErr: true,
 		},
 	}

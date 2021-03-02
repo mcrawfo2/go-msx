@@ -19,23 +19,23 @@ func TestIssueCertificateRequest_Data(t *testing.T) {
 		want   map[string]interface{}
 	}{
 		{
-			name:   "Simple",
+			name: "Simple",
 			fields: fields{
 				CommonName: "TestIssueCertificateRequest_Data",
 				Ttl:        30 * time.Minute,
-				AltNames:   []string{
+				AltNames: []string{
 					"TestIssueCertificateRequest",
 					"localhost",
 				},
-				IpSans:     []string{
+				IpSans: []string{
 					"127.0.0.1",
 				},
 			},
-			want:   map[string]interface{}{
+			want: map[string]interface{}{
 				"common_name": "TestIssueCertificateRequest_Data",
-				"ttl": "30m0s",
-				"alt_names": "TestIssueCertificateRequest,localhost",
-				"ip_sans": "127.0.0.1",
+				"ttl":         "30m0s",
+				"alt_names":   "TestIssueCertificateRequest,localhost",
+				"ip_sans":     "127.0.0.1",
 			},
 		},
 		{
@@ -44,13 +44,12 @@ func TestIssueCertificateRequest_Data(t *testing.T) {
 				CommonName: "TestIssueCertificateRequest_Data",
 				Ttl:        30 * time.Minute,
 			},
-			want:   map[string]interface{}{
+			want: map[string]interface{}{
 				"common_name": "TestIssueCertificateRequest_Data",
-				"ttl": "30m0s",
-				"alt_names": "",
-				"ip_sans": "",
+				"ttl":         "30m0s",
+				"alt_names":   "",
+				"ip_sans":     "",
 			},
-
 		},
 	}
 	for _, tt := range tests {

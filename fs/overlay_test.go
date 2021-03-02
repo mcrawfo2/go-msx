@@ -91,10 +91,10 @@ func TestOverlayFileSystem_Open_Dir(t *testing.T) {
 		name string
 	}
 	tests := []struct {
-		name     string
-		args     args
+		name          string
+		args          args
 		wantFileNames []string
-		wantErr  bool
+		wantErr       bool
 	}{
 		{
 			name: "Deep",
@@ -189,7 +189,7 @@ func Test_overlayDir_Thunks(t *testing.T) {
 	assert.Equal(t, int64(0), size)
 
 	mode := s.Mode()
-	assert.Equal(t, os.FileMode(0755 | os.ModeDir), mode)
+	assert.Equal(t, os.FileMode(0755|os.ModeDir), mode)
 
 	modTime := s.ModTime()
 	assert.NotEqual(t, time.Unix(0, 0), modTime)

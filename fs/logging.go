@@ -16,7 +16,7 @@ func (l LoggingFilesystem) Open(name string) (http.File, error) {
 
 type RootLoggingFilesystem struct {
 	Dir http.Dir
-	fs http.FileSystem
+	fs  http.FileSystem
 }
 
 func (l RootLoggingFilesystem) Open(name string) (http.File, error) {

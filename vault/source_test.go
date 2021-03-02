@@ -27,7 +27,7 @@ func TestNewTokenSource(t *testing.T) {
 			args: args{
 				source: "config",
 				cfg:    emptyCfg,
-				conn: nil,
+				conn:   nil,
 			},
 			wantTokenSource: ConfigSource{
 				cfg: emptyCfg,

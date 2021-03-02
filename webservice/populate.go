@@ -483,7 +483,6 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 	return NewInternalError(errors.Errorf("Cannot marshal string %q into field %q", value, r.Name))
 }
 
-
 func (r RouteParam) populateSlice(fieldValue reflect.Value, values []string) error {
 	sliceType := fieldValue.Type()
 	isPtr := sliceType.Kind() == reflect.Ptr
@@ -598,7 +597,6 @@ type RouteParams struct {
 	Type   reflect.Type
 	Fields []*RouteParam
 }
-
 
 func (r RouteParams) Populate(req *restful.Request, paramsValue reflect.Value) error {
 	for _, routeParam := range r.Fields {

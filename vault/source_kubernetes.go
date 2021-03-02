@@ -16,8 +16,8 @@ type KubernetesConfig struct {
 }
 
 type KubernetesSource struct {
-	cfg    *KubernetesConfig
-	conn   ConnectionApi
+	cfg  *KubernetesConfig
+	conn ConnectionApi
 }
 
 func (k *KubernetesSource) GetToken(ctx context.Context) (token string, err error) {

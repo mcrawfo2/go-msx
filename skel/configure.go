@@ -54,11 +54,11 @@ func (c SkeletonConfig) RepositoryQueryFileExtension() string {
 
 var skeletonConfig = &SkeletonConfig{
 	Archetype:         archetypeKeyApp,
-	TargetParent:      path.Join(os.Getenv("HOME"), "msx"),
+	TargetParent:      func() string { wd, _ := os.Getwd(); return wd }(),
 	AppName:           "someservice",
 	AppDisplayName:    "Some Microservice",
 	AppDescription:    "Does Something",
-	AppVersion:        "3.10.0",
+	AppVersion:        "3.11.0",
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",

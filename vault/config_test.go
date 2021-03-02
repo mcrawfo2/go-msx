@@ -13,11 +13,11 @@ func TestNewConnectionConfig(t *testing.T) {
 		cfg *config.Config
 	}
 	tests := []struct {
-		name        string
-		args        args
-		want        *ConnectionConfig
-		wantAddress string
-		wantErr     bool
+		name             string
+		args             args
+		want             *ConnectionConfig
+		wantAddress      string
+		wantErr          bool
 		wantClientConfig bool
 	}{
 		{
@@ -45,11 +45,11 @@ func TestNewConnectionConfig(t *testing.T) {
 				Kubernetes: ConnectionKubernetesConfig{
 					LoginPath: "/auth/kubernetes/login",
 				},
-				AppRole:    ConnectionAppRoleConfig{
+				AppRole: ConnectionAppRoleConfig{
 					LoginPath: "/auth/approle/login",
 				},
 			},
-			wantAddress: "http://localhost:8200",
+			wantAddress:      "http://localhost:8200",
 			wantClientConfig: true,
 		},
 		{
@@ -59,7 +59,7 @@ func TestNewConnectionConfig(t *testing.T) {
 					"spring.cloud.vault.enabled": "foo",
 				}),
 			},
-			wantErr: true,
+			wantErr:          true,
 			wantClientConfig: true,
 		},
 		{
@@ -98,12 +98,12 @@ func TestNewConnectionConfig(t *testing.T) {
 				Kubernetes: ConnectionKubernetesConfig{
 					LoginPath: "/auth/kubernetes/login",
 				},
-				AppRole:    ConnectionAppRoleConfig{
+				AppRole: ConnectionAppRoleConfig{
 					LoginPath: "/auth/approle/login",
 				},
 			},
 			wantClientConfig: false,
-			wantAddress: "https://remote-vm:9999",
+			wantAddress:      "https://remote-vm:9999",
 		},
 	}
 
@@ -118,7 +118,7 @@ func TestNewConnectionConfig(t *testing.T) {
 				t.Errorf("newConnectionConfig() got = %v, want %v", got, tt.want)
 			}
 			if got != nil {
-			 	assert.Equal(t, got.Address(), tt.wantAddress)
+				assert.Equal(t, got.Address(), tt.wantAddress)
 
 				clientConfig, err := got.ClientConfig()
 				if tt.wantClientConfig {
@@ -132,4 +132,3 @@ func TestNewConnectionConfig(t *testing.T) {
 		})
 	}
 }
-

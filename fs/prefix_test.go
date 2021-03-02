@@ -20,27 +20,26 @@ func TestNewPrefixFileSystem(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Absolute",
-			args:    args{
+			name: "Absolute",
+			args: args{
 				fs:   mockFileSystem,
 				root: "/root",
 			},
-			want:    PrefixFileSystem{
+			want: PrefixFileSystem{
 				fs:   mockFileSystem,
 				root: "/root",
 			},
 			wantErr: false,
 		},
 		{
-			name:    "Relative",
-			args:    args{
+			name: "Relative",
+			args: args{
 				fs:   mockFileSystem,
 				root: "root",
 			},
 			want:    nil,
 			wantErr: true,
 		},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,16 +73,16 @@ func TestPrefixFileSystem_Open(t1 *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Open",
-			fields:  fields{
-				fs:   func() http.FileSystem {
+			name: "Open",
+			fields: fields{
+				fs: func() http.FileSystem {
 					fs := new(MockFileSystem)
 					fs.On("Open", "/root/test.json").Return(mockFile, nil)
 					return fs
 				}(),
 				root: "/root",
 			},
-			args:    args{
+			args: args{
 				name: "test.json",
 			},
 			want:    mockFile,
@@ -91,16 +90,16 @@ func TestPrefixFileSystem_Open(t1 *testing.T) {
 		},
 
 		{
-			name:    "Clean",
-			fields:  fields{
-				fs:   func() http.FileSystem {
+			name: "Clean",
+			fields: fields{
+				fs: func() http.FileSystem {
 					fs := new(MockFileSystem)
 					fs.On("Open", "/test.json").Return(mockFile, nil)
 					return fs
 				}(),
 				root: "/root",
 			},
-			args:    args{
+			args: args{
 				name: "../test.json",
 			},
 			want:    nil,

@@ -1,6 +1,6 @@
 package subscription
 
-import "cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/sp/api"
+import "cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/sp/api"
 
 type subscriptionConverter struct{}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	consume "cto-github.cisco.com/NFV-BU/catalogservice/pkg/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/manage"
-	"cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/sp/api"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/sp/api"
 	"github.com/pkg/errors"
 )
 

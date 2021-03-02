@@ -157,7 +157,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 
 	options := NewRenderOptions()
 	options.AddStrings(inflections)
-	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/templates/code/domain/api", apiPackageUrl)
+	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api", apiPackageUrl)
 	options.AddConditions(conditions)
 
 	err = templates.Render(options)

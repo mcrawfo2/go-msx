@@ -299,7 +299,7 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 	}
 }
 
-type GlobalFormatter struct {}
+type GlobalFormatter struct{}
 
 func (g GlobalFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	return logrus.StandardLogger().Formatter.Format(e)
