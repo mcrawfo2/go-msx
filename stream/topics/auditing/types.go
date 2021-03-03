@@ -75,14 +75,13 @@ func NewMessage(ctx context.Context) (Message, error) {
 		securityAudit.TenantName = types.NewOptionalString(userContext.TenantName).OrEmpty()
 		securityAudit.OriginalUsername = types.NewOptionalString(userContext.Username).OrEmpty()
 		securityAudit.ProviderId = types.NewOptional(userContext.ProviderId).OrElse(types.EmptyUUID()).(types.UUID).String()
+	}
 
-		logContext, exists := log.LogContextFromContext(ctx)
-
-		if exists {
-			trace.ParentId = logContext[log.FieldParentId].(string)
-			trace.SpanId = logContext[log.FieldSpanId].(string)
-			trace.TraceId = logContext[log.FieldTraceId].(string)
-		}
+	logContext, exists := log.LogContextFromContext(ctx)
+	if exists {
+		trace.ParentId = logContext[log.FieldParentId].(string)
+		trace.SpanId = logContext[log.FieldSpanId].(string)
+		trace.TraceId = logContext[log.FieldTraceId].(string)
 	}
 
 	return Message{
