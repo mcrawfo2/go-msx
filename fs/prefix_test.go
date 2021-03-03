@@ -105,6 +105,23 @@ func TestPrefixFileSystem_Open(t1 *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+
+		{
+			name: "Root",
+			fields: fields{
+				fs: func() http.FileSystem {
+					fs := new(MockFileSystem)
+					fs.On("Open", "/root").Return(mockFile, nil)
+					return fs
+				}(),
+				root: "/root",
+			},
+			args: args{
+				name: "/",
+			},
+			want:    mockFile,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
