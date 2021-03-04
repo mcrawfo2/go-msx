@@ -12,6 +12,7 @@ const (
 	StateDeprovisioningFailed = "deprovisioningFailed"
 
 	TopicStatusChange = "STATUS_CHANGE_TOPIC"
+	TopicName         = TopicStatusChange
 )
 
 type Message struct {
