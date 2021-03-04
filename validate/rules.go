@@ -20,6 +20,7 @@ var (
 		"deviceType",
 		"deviceSubType",
 		"providerId",
+		"serialKey",
 		"serviceId",
 		"serviceType",
 		"shardId",
