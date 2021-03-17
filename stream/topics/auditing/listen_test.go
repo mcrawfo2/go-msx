@@ -13,9 +13,9 @@ func TestNewMessageListener(t *testing.T) {
 		filters []MessageFilter
 	}
 	tests := []struct {
-		name    string
-		args    args
-		test    *streamtest.TopicReceiveTest
+		name string
+		args args
+		test *streamtest.TopicReceiveTest
 	}{
 		{
 			name: "NoFilter",

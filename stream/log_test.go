@@ -82,7 +82,7 @@ func TestWatermillLoggerAdapter_Error(t *testing.T) {
 	}{
 		{
 			name: "Message",
-			err: errors.New("Message"),
+			err:  errors.New("Message"),
 			wantLog: []logtest.Check{
 				{
 					Validators: []logtest.EntryPredicate{
@@ -95,7 +95,7 @@ func TestWatermillLoggerAdapter_Error(t *testing.T) {
 		},
 		{
 			name: "MessageWithFields",
-			err: errors.New("MessageWithFields"),
+			err:  errors.New("MessageWithFields"),
 			fields: watermill.LogFields{
 				"Key": "Value",
 			},
@@ -129,7 +129,8 @@ func TestWatermillLoggerAdapter_Error(t *testing.T) {
 				testhelpers.ReportErrors(t, "Log", check.Check(r))
 			}
 		})
-	}}
+	}
+}
 
 func TestWatermillLoggerAdapter_Trace(t *testing.T) {
 	tests := []struct {
@@ -299,4 +300,5 @@ func TestWatermillLoggerAdapter_With(t *testing.T) {
 				testhelpers.ReportErrors(t, "Log", check.Check(r))
 			}
 		})
-	}}
+	}
+}

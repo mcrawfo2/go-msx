@@ -26,4 +26,3 @@ func Publish(ctx context.Context, message Message) error {
 	}
 	return stream.Publish(ctx, TopicStatusChange, bytes, nil)
 }
-

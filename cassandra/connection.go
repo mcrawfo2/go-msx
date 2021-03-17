@@ -66,6 +66,7 @@ func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {
 
 	cluster := gocql.NewCluster(clusterConfig.Hosts()...)
 	cluster.Timeout = clusterConfig.Timeout
+	cluster.ConnectTimeout = clusterConfig.ConnectTimeout
 	cluster.Keyspace = clusterConfig.KeyspaceName
 	cluster.Consistency = gocql.ParseConsistency(clusterConfig.Consistency)
 

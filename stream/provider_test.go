@@ -68,7 +68,7 @@ func TestNewPublisher(t *testing.T) {
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.mybinding.binder": "mock",
-					"spring.application.name": "TestNewPublisher",
+					"spring.application.name":                       "TestNewPublisher",
 				}),
 				name: "mybinding",
 			},
@@ -91,7 +91,7 @@ func TestNewPublisher(t *testing.T) {
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.errbinding.binder": "mock",
-					"spring.application.name": "TestNewPublisher",
+					"spring.application.name":                        "TestNewPublisher",
 				}),
 				name: "errbinding",
 			},
@@ -138,7 +138,7 @@ func TestNewSubscriber(t *testing.T) {
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.mybinding.binder": "mock",
-					"spring.application.name": "TestNewSubscriber",
+					"spring.application.name":                       "TestNewSubscriber",
 				}),
 				name: "mybinding",
 			},
@@ -160,7 +160,7 @@ func TestNewSubscriber(t *testing.T) {
 			name: "NotEnabled",
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
-					"spring.application.name": "TestNewSubscriber",
+					"spring.application.name":                           "TestNewSubscriber",
 					"spring.cloud.stream.default.consumer.auto-startup": "false",
 				}),
 				name: "anotherbinding",
@@ -173,7 +173,7 @@ func TestNewSubscriber(t *testing.T) {
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.bindings.errbinding.binder": "mock",
-					"spring.application.name": "TestNewSubscriber",
+					"spring.application.name":                        "TestNewSubscriber",
 				}),
 				name: "errbinding",
 			},

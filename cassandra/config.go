@@ -39,6 +39,7 @@ type ClusterConfig struct {
 	Username           string        `config:"default=cassandra"`
 	Password           string        `config:"default=cassandra"`
 	Timeout            time.Duration `config:"default=15s"`
+	ConnectTimeout     time.Duration `config:"default=5s"`
 	Consistency        string        `config:"default=LOCAL_QUORUM"`
 	FullConsistency    string        `config:"default=ONE"`
 	PersistentSessions bool          `config:"default=false"`

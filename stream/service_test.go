@@ -68,7 +68,7 @@ func Test_publisherFunc_Publish(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Success",
+			name: "Success",
 			p: func(ctx context.Context, topic string, payload []byte, metadata map[string]string) (err error) {
 				t := ctx.Value(contextKeyTestingT).(*testing.T)
 				a := ctx.Value(contextKeyArgs).(args)
@@ -79,7 +79,7 @@ func Test_publisherFunc_Publish(t *testing.T) {
 
 				return nil
 			},
-			args:    args{
+			args: args{
 				ctx:      context.Background(),
 				topic:    "mock",
 				payload:  []byte("{}"),
@@ -88,11 +88,11 @@ func Test_publisherFunc_Publish(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Failure",
+			name: "Failure",
 			p: func(ctx context.Context, topic string, payload []byte, metadata map[string]string) (err error) {
 				return errors.New("error")
 			},
-			args:    args{
+			args: args{
 				ctx:      context.Background(),
 				topic:    "mock",
 				payload:  []byte("{}"),

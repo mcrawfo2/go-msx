@@ -35,7 +35,7 @@ func TestAddListener(t *testing.T) {
 				action: dummyAction,
 			},
 			listeners: make(map[string][]ListenerAction),
-			wantErr: true,
+			wantErr:   true,
 		},
 		{
 			name: "NoAction",
@@ -44,7 +44,7 @@ func TestAddListener(t *testing.T) {
 				action: nil,
 			},
 			listeners: make(map[string][]ListenerAction),
-			wantErr: true,
+			wantErr:   true,
 		},
 		{
 			name: "Running",
@@ -53,7 +53,7 @@ func TestAddListener(t *testing.T) {
 				action: dummyAction,
 			},
 			listeners: nil,
-			wantErr: true,
+			wantErr:   true,
 		},
 	}
 	for _, tt := range tests {
