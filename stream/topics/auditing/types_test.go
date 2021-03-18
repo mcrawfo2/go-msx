@@ -48,15 +48,15 @@ func TestNewMessage(t *testing.T) {
 				injector := securitytest.TenantAssignmentInjector()
 				ctx := injector(context.Background())
 				ctx = log.ExtendContext(ctx, log.LogContext{
-					log.FieldSpanId: "span-id",
-					log.FieldTraceId: "trace-id",
+					log.FieldSpanId:   "span-id",
+					log.FieldTraceId:  "trace-id",
 					log.FieldParentId: "parent-id",
 				})
 				return ctx
 			}(),
 			want: Message{
-				Time:  topics.Time(time.Now()),
-				Type:  "GP",
+				Time: topics.Time(time.Now()),
+				Type: "GP",
 				Trace: TraceAuditContext{
 					TraceId:  "trace-id",
 					SpanId:   "span-id",
@@ -76,8 +76,8 @@ func TestNewMessage(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "NoUserContextDetails",
-			ctx: context.Background(),
+			name:    "NoUserContextDetails",
+			ctx:     context.Background(),
 			wantErr: true,
 		},
 		{

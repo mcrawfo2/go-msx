@@ -22,13 +22,13 @@ func TestNewInterceptor(t *testing.T) {
 		name     string
 		response *http.Response
 		err      error
-		wantSpan  tracetest.Check
+		wantSpan tracetest.Check
 	}{
 		{
 			name: "Success",
 			response: &http.Response{
-				Status:           "OK",
-				StatusCode:       200,
+				Status:     "OK",
+				StatusCode: 200,
 			},
 			wantSpan: tracetest.Check{
 				tracetest.HasTag(trace.FieldOperation, requestOperation),
@@ -38,9 +38,9 @@ func TestNewInterceptor(t *testing.T) {
 			},
 		},
 		{
-			name: "Error",
+			name:     "Error",
 			response: nil,
-			err: err,
+			err:      err,
 			wantSpan: tracetest.Check{
 				tracetest.HasTag(trace.FieldOperation, requestOperation),
 				tracetest.HasTag(trace.FieldHttpMethod, requestMethod),

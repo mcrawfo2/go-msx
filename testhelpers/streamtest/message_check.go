@@ -25,7 +25,6 @@ func (r MessageCheck) Check(msg *message.Message) []error {
 	return results
 }
 
-
 type MessageCheckError struct {
 	Validator MessagePredicate
 }
@@ -36,12 +35,12 @@ func (c MessageCheckError) Error() string {
 
 type MessagePredicate struct {
 	Description string
-	Matches stream.MessageFilter
+	Matches     stream.MessageFilter
 }
 
 func MessageHasMetadata(key, value string) MessagePredicate {
 	return MessagePredicate{
 		Description: fmt.Sprintf("request.Metadata[%q] == %q", key, value),
-		Matches: stream.FilterByMetaData(key, value),
+		Matches:     stream.FilterByMetaData(key, value),
 	}
 }

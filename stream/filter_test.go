@@ -19,8 +19,8 @@ func TestFilterByMetaData(t *testing.T) {
 		wantNegative []message.Metadata
 	}{
 		{
-			name:         "Single",
-			args:         args{
+			name: "Single",
+			args: args{
 				key:    "EntityType",
 				values: []string{"TENANT"},
 			},
@@ -55,7 +55,7 @@ func TestFilterMessage(t *testing.T) {
 		{
 			name: "SingleFilterTrue",
 			args: args{
-				msg:     &message.Message{
+				msg: &message.Message{
 					Metadata: message.Metadata{
 						"EntityType": "TENANT",
 					},
@@ -69,7 +69,7 @@ func TestFilterMessage(t *testing.T) {
 		{
 			name: "SingleFilterFalse",
 			args: args{
-				msg:     &message.Message{
+				msg: &message.Message{
 					Metadata: message.Metadata{
 						"EntityType": "TENANT",
 					},
@@ -83,10 +83,10 @@ func TestFilterMessage(t *testing.T) {
 		{
 			name: "MultiFilterTrue",
 			args: args{
-				msg:     &message.Message{
+				msg: &message.Message{
 					Metadata: message.Metadata{
 						"EntityType": "TENANT",
-						"Status": "CREATED",
+						"Status":     "CREATED",
 					},
 				},
 				filters: []MessageFilter{
@@ -99,10 +99,10 @@ func TestFilterMessage(t *testing.T) {
 		{
 			name: "MultiFilterFalse",
 			args: args{
-				msg:     &message.Message{
+				msg: &message.Message{
 					Metadata: message.Metadata{
 						"EntityType": "TENANT",
-						"Status": "CREATED",
+						"Status":     "CREATED",
 					},
 				},
 				filters: []MessageFilter{

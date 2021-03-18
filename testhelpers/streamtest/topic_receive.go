@@ -12,6 +12,7 @@ import (
 type TopicReceiveTestCall func(*testing.T, context.Context) error
 
 type contextTopicKey int
+
 const contextTopicReceiveTestKey contextTopicKey = iota
 
 func ContextWithTopicReceiveTest(ctx context.Context, test *TopicReceiveTest) context.Context {

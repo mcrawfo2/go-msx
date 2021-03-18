@@ -36,7 +36,7 @@ func TestNewMessage(t *testing.T) {
 						Name: "test-tenant",
 					},
 				},
-				Payload:   map[string]interface{}{},
+				Payload: map[string]interface{}{},
 			},
 			wantErr: false,
 		},
@@ -46,8 +46,8 @@ func TestNewMessage(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "NoProviderId",
-			ctx:     func() context.Context {
+			name: "NoProviderId",
+			ctx: func() context.Context {
 				return securitytest.TokenDetailsProviderCustomizer(func(provider *securitytest.MockTokenDetailsProvider) {
 					provider.ProviderId = nil
 				})(context.Background())
