@@ -2,11 +2,6 @@
 
 package sqldb
 
-import (
-	"cto-github.cisco.com/NFV-BU/go-msx/sqldb/mocks"
-	"testing"
-)
-
-func TestImplementations(t *testing.T) {
-	var _ CrudRepositoryApi = &mocks.CrudRepositoryApi{}
-}
+//func TestImplementations(t *testing.T) {
+//	var _ CrudRepositoryApi = &mocks.CrudRepositoryApi{}
+//}
