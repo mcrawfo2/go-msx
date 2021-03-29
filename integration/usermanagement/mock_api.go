@@ -361,29 +361,6 @@ func (_m *MockUserManagement) GetMyCapabilities() (*integration.MsxResponse, err
 	return r0, r1
 }
 
-// GetMyPersonalInfo provides a mock function with given fields:
-func (_m *MockUserManagement) GetMyPersonalInfo() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetMyProvider provides a mock function with given fields:
 func (_m *MockUserManagement) GetMyProvider() (*integration.MsxResponse, error) {
 	ret := _m.Called()
@@ -409,29 +386,6 @@ func (_m *MockUserManagement) GetMyProvider() (*integration.MsxResponse, error) 
 
 // GetMyTenants provides a mock function with given fields:
 func (_m *MockUserManagement) GetMyTenants() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetMyUserId provides a mock function with given fields:
-func (_m *MockUserManagement) GetMyUserId() (*integration.MsxResponse, error) {
 	ret := _m.Called()
 
 	var r0 *integration.MsxResponse
@@ -660,29 +614,6 @@ func (_m *MockUserManagement) GetTenantHierarchyRoot() (*integration.MsxResponse
 	return r0, r1
 }
 
-// GetTenantIds provides a mock function with given fields:
-func (_m *MockUserManagement) GetTenantIds() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetTenantSecrets provides a mock function with given fields: tenantId, scope
 func (_m *MockUserManagement) GetTenantSecrets(tenantId string, scope string) (*integration.MsxResponse, error) {
 	ret := _m.Called(tenantId, scope)
@@ -754,29 +685,6 @@ func (_m *MockUserManagement) GetUserById(userId string) (*integration.MsxRespon
 
 // GetUserCapabilities provides a mock function with given fields: userId
 func (_m *MockUserManagement) GetUserCapabilities(userId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(userId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetUserTenants provides a mock function with given fields: userId
-func (_m *MockUserManagement) GetUserTenants(userId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(userId)
 
 	var r0 *integration.MsxResponse

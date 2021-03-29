@@ -18,17 +18,13 @@ type Api interface {
 
 	GetMyCapabilities() (*integration.MsxResponse, error)
 	GetUserCapabilities(userId string) (*integration.MsxResponse, error)
-	GetMyUserId() (*integration.MsxResponse, error)
-	GetMyPersonalInfo() (*integration.MsxResponse, error)
 
 	GetMyProvider() (*integration.MsxResponse, error)
 	GetProviderByName(providerName string) (*integration.MsxResponse, error)
 
 	GetProviderExtensionByName(name string) (*integration.MsxResponse, error)
 
-	GetTenantIds() (*integration.MsxResponse, error)
 	GetMyTenants() (*integration.MsxResponse, error)
-	GetUserTenants(userId string) (*integration.MsxResponse, error)
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)
 

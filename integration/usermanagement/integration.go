@@ -26,17 +26,13 @@ const (
 
 	endpointNameGetMyCapabilities   = "getMyCapabilities"
 	endpointNameGetUserCapabilities = "getUserCapabilities"
-	endpointNameGetMyUserId         = "getMyIdentity"
-	endpointNameGetMyPersonalInfo   = "getMyPersonalInfo"
 	endpointNameGetMyProvider       = "getMyProvider"
 
 	endpointNameGetProviderByName = "getProviderByName"
 
 	endpointNameGetProviderExtensionByName = "getProviderExtensionByName"
 
-	endpointNameGetTenantIds   = "getTenantIds"
-	endpointNameGetMyTenants   = "getMyTenants"
-	endpointNameGetUserTenants = "getUserTenants"
+	endpointNameGetMyTenants = "getMyTenants"
 
 	endpointNameGetTenantById   = "getTenantById"
 	endpointNameGetTenantByName = "getTenantByName"
@@ -90,17 +86,13 @@ var (
 
 		endpointNameGetMyCapabilities:   {Method: "GET", Path: "/api/v1/users/capabilities"},
 		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
-		endpointNameGetMyUserId:         {Method: "GET", Path: "/api/v1/currentuser"},
-		endpointNameGetMyPersonalInfo:   {Method: "GET", Path: "/api/v1/personalinfo"},
 
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
 
 		endpointNameGetProviderExtensionByName: {Method: "GET", Path: "/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
 
-		endpointNameGetTenantIds:   {Method: "GET", Path: "/api/v1/tenantids"},
-		endpointNameGetMyTenants:   {Method: "GET", Path: "/api/v1/users/tenants"},
-		endpointNameGetUserTenants: {Method: "GET", Path: "/api/v1/users/{{.userId}}/tenants"},
+		endpointNameGetMyTenants: {Method: "GET", Path: "/api/v1/users/tenants"},
 
 		endpointNameGetTenantById:   {Method: "GET", Path: "/api/v3/tenants/{{.tenantId}}"},
 		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
@@ -253,22 +245,6 @@ func (i *Integration) GetUserCapabilities(userId string) (result *integration.Ms
 	})
 }
 
-func (i *Integration) GetMyUserId() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetMyUserId,
-		Payload:      &UserIdResponse{},
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-}
-
-func (i *Integration) GetMyPersonalInfo() (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetMyPersonalInfo,
-		Payload:      &UserPersonalInfoResponse{},
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-}
-
 func (i *Integration) GetMyProvider() (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyProvider,
@@ -302,46 +278,6 @@ func (i *Integration) GetProviderExtensionByName(name string) (*integration.MsxR
 func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
 	result, err = i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyTenants,
-		Payload:      new(TenantListResponse),
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-
-	if result != nil && result.StatusCode == 404 {
-		logger.Info("Converting 404 on list to 200")
-		result = &integration.MsxResponse{
-			StatusCode: 200,
-			Status:     "200 OK",
-			Headers:    result.Headers,
-			Envelope: &integration.MsxEnvelope{
-				Success:    true,
-				HttpStatus: "OK",
-				Payload:    new(TenantListResponse),
-			},
-		}
-		result.Payload = result.Envelope.Payload
-		result.Body, _ = json.Marshal(result.Envelope)
-		result.BodyString = string(result.Body)
-		err = nil
-	}
-
-	return result, err
-}
-
-func (i *Integration) GetTenantIds() (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetTenantIds,
-		Payload:      new(TenantIdList),
-	})
-
-	return result, err
-}
-
-func (i *Integration) GetUserTenants(userId string) (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetUserTenants,
-		EndpointParameters: map[string]string{
-			"userId": userId,
-		},
 		Payload:      new(TenantListResponse),
 		ErrorPayload: new(integration.ErrorDTO),
 	})

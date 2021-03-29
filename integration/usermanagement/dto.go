@@ -60,19 +60,6 @@ type UserCapabilityResponse struct {
 	Name string `json:"name"`
 }
 
-type UserIdResponse struct {
-	Uuid types.UUID `json:"uuid"`
-}
-
-type UserPersonalInfoResponse struct {
-	FirstName *string  `json:"firstName"`
-	LastName  *string  `json:"lastName"`
-	UserId    string   `json:"userId"`
-	Email     *string  `json:"email"`
-	Locale    *string  `json:"locale"`
-	Roles     []string `json:"roles"`
-}
-
 type ProviderResponse struct {
 	Name             string     `json:"name"`
 	DisplayName      *string    `json:"displayName"`
@@ -115,8 +102,6 @@ type TenantResponse struct {
 type TenantListResponse struct {
 	Tenants []TenantResponse `json:"tenants"`
 }
-
-type TenantIdList []types.UUID
 
 type LoginResponse struct {
 	AccessToken string      `json:"access_token"`

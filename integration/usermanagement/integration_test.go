@@ -204,38 +204,6 @@ func TestIntegration_GetUserCapabilities(t *testing.T) {
 		Test(t)
 }
 
-func TestIntegration_GetMyUserId(t *testing.T) {
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetMyUserId()
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(UserIdResponse)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetMyUserId),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/currentuser")).
-		Test(t)
-}
-
-func TestIntegration_GetMyPersonalInfo(t *testing.T) {
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetMyPersonalInfo()
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(UserIdResponse)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetMyPersonalInfo),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/personalinfo")).
-		Test(t)
-}
-
 func TestIntegration_GetMyProvider(t *testing.T) {
 	NewUserManagementIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
@@ -290,22 +258,6 @@ func TestIntegration_GetProviderExtensionByName(t *testing.T) {
 		Test(t)
 }
 
-func TestIntegration_GetTenantIds(t *testing.T) {
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetTenantIds()
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(TenantIdList)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetTenantIds),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/tenantids")).
-		Test(t)
-}
-
 func TestIntegration_GetMyTenants(t *testing.T) {
 	NewUserManagementIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
@@ -319,25 +271,6 @@ func TestIntegration_GetMyTenants(t *testing.T) {
 		WithEndpointPredicates(
 			clienttest.ServiceEndpointHasMethod(http.MethodGet),
 			clienttest.ServiceEndpointHasPath("/api/v1/users/tenants")).
-		Test(t)
-}
-
-func TestIntegration_GetUserTenants(t *testing.T) {
-	const userId = "user-id"
-
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetUserTenants(userId)
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(TenantListResponse)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetUserTenants),
-			clienttest.EndpointRequestHasEndpointParameter("userId", userId),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/users/{{.userId}}/tenants")).
 		Test(t)
 }
 
