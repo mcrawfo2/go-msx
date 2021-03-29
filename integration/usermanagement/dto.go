@@ -52,14 +52,6 @@ type GenerateSecretRequestDTO struct {
 	Encrypt *Pojo    `json:"encrypt"`
 }
 
-type UserCapabilityListResponse struct {
-	Capabilities []UserCapabilityResponse `json:"capabilities"`
-}
-
-type UserCapabilityResponse struct {
-	Name string `json:"name"`
-}
-
 type ProviderResponse struct {
 	Name             string     `json:"name"`
 	DisplayName      *string    `json:"displayName"`
@@ -97,10 +89,6 @@ type TenantResponse struct {
 	TenantExtension   struct {
 		Parameters interface{} `json:"parameters"`
 	} `json:"tenantExtension"`
-}
-
-type TenantListResponse struct {
-	Tenants []TenantResponse `json:"tenants"`
 }
 
 type LoginResponse struct {

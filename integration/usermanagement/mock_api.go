@@ -338,54 +338,8 @@ func (_m *MockUserManagement) GetCapabilities(p paging.Request) (*integration.Ms
 	return r0, r1
 }
 
-// GetMyCapabilities provides a mock function with given fields:
-func (_m *MockUserManagement) GetMyCapabilities() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetMyProvider provides a mock function with given fields:
 func (_m *MockUserManagement) GetMyProvider() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetMyTenants provides a mock function with given fields:
-func (_m *MockUserManagement) GetMyTenants() (*integration.MsxResponse, error) {
 	ret := _m.Called()
 
 	var r0 *integration.MsxResponse
@@ -662,29 +616,6 @@ func (_m *MockUserManagement) GetTokenDetails(noDetails bool) (*integration.MsxR
 
 // GetUserById provides a mock function with given fields: userId
 func (_m *MockUserManagement) GetUserById(userId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(userId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetUserCapabilities provides a mock function with given fields: userId
-func (_m *MockUserManagement) GetUserCapabilities(userId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(userId)
 
 	var r0 *integration.MsxResponse

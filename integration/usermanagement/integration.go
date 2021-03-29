@@ -24,15 +24,11 @@ const (
 	endpointNameIsTokenValid    = "isTokenValid"
 	endpointNameGetTokenDetails = "getTokenDetails"
 
-	endpointNameGetMyCapabilities   = "getMyCapabilities"
-	endpointNameGetUserCapabilities = "getUserCapabilities"
-	endpointNameGetMyProvider       = "getMyProvider"
+	endpointNameGetMyProvider = "getMyProvider"
 
 	endpointNameGetProviderByName = "getProviderByName"
 
 	endpointNameGetProviderExtensionByName = "getProviderExtensionByName"
-
-	endpointNameGetMyTenants = "getMyTenants"
 
 	endpointNameGetTenantById   = "getTenantById"
 	endpointNameGetTenantByName = "getTenantByName"
@@ -84,15 +80,10 @@ var (
 		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 
-		endpointNameGetMyCapabilities:   {Method: "GET", Path: "/api/v1/users/capabilities"},
-		endpointNameGetUserCapabilities: {Method: "GET", Path: "/api/v1/users/{{.userId}}/capabilities"},
-
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
 
 		endpointNameGetProviderExtensionByName: {Method: "GET", Path: "/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
-
-		endpointNameGetMyTenants: {Method: "GET", Path: "/api/v1/users/tenants"},
 
 		endpointNameGetTenantById:   {Method: "GET", Path: "/api/v3/tenants/{{.tenantId}}"},
 		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
@@ -226,25 +217,6 @@ func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse,
 	})
 }
 
-func (i *Integration) GetMyCapabilities() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetMyCapabilities,
-		Payload:      &UserCapabilityListResponse{},
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-}
-
-func (i *Integration) GetUserCapabilities(userId string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetUserCapabilities,
-		EndpointParameters: map[string]string{
-			"userId": userId,
-		},
-		Payload:      &UserCapabilityListResponse{},
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-}
-
 func (i *Integration) GetMyProvider() (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyProvider,
@@ -275,34 +247,7 @@ func (i *Integration) GetProviderExtensionByName(name string) (*integration.MsxR
 	})
 }
 
-func (i *Integration) GetMyTenants() (result *integration.MsxResponse, err error) {
-	result, err = i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetMyTenants,
-		Payload:      new(TenantListResponse),
-		ErrorPayload: new(integration.ErrorDTO),
-	})
-
-	if result != nil && result.StatusCode == 404 {
-		logger.Info("Converting 404 on list to 200")
-		result = &integration.MsxResponse{
-			StatusCode: 200,
-			Status:     "200 OK",
-			Headers:    result.Headers,
-			Envelope: &integration.MsxEnvelope{
-				Success:    true,
-				HttpStatus: "OK",
-				Payload:    new(TenantListResponse),
-			},
-		}
-		result.Payload = result.Envelope.Payload
-		result.Body, _ = json.Marshal(result.Envelope)
-		result.BodyString = string(result.Body)
-		err = nil
-	}
-
-	return result, err
-}
-
+// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetUserById,
@@ -314,6 +259,7 @@ func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, erro
 	})
 }
 
+// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxResponse, err error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantById,
@@ -325,6 +271,8 @@ func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxRes
 	})
 }
 
+// Deprecated: Tenants should generally be access by ID, not tenantName.  The REST API is retired
+// and due for decomissioning.
 func (i *Integration) GetTenantByName(tenantName string) (result *integration.MsxResponse, err error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantByName,

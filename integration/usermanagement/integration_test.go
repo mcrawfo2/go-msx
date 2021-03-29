@@ -171,39 +171,6 @@ func TestIntegration_GetTokenDetails(t *testing.T) {
 		Test(t)
 }
 
-func TestIntegration_GetMyCapabilities(t *testing.T) {
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetMyCapabilities()
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(UserCapabilityListResponse)).
-		WithRequestPredicate(clienttest.EndpointRequestHasName(endpointNameGetMyCapabilities)).
-		WithRequestPredicate(clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicate(clienttest.ServiceEndpointHasMethod(http.MethodGet)).
-		WithEndpointPredicate(clienttest.ServiceEndpointHasPath("/api/v1/users/capabilities")).
-		Test(t)
-}
-
-func TestIntegration_GetUserCapabilities(t *testing.T) {
-	const userId = "user-id"
-
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetUserCapabilities(userId)
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(UserCapabilityListResponse)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetUserCapabilities),
-			clienttest.EndpointRequestHasEndpointParameter("userId", userId),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/users/{{.userId}}/capabilities")).
-		Test(t)
-}
-
 func TestIntegration_GetMyProvider(t *testing.T) {
 	NewUserManagementIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
@@ -255,22 +222,6 @@ func TestIntegration_GetProviderExtensionByName(t *testing.T) {
 		WithEndpointPredicates(
 			clienttest.ServiceEndpointHasMethod(http.MethodGet),
 			clienttest.ServiceEndpointHasPath("/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}")).
-		Test(t)
-}
-
-func TestIntegration_GetMyTenants(t *testing.T) {
-	NewUserManagementIntegrationTest().
-		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.GetMyTenants()
-		}).
-		WithResponseStatus(http.StatusOK).
-		WithResponsePayload(new(TenantListResponse)).
-		WithRequestPredicates(
-			clienttest.EndpointRequestHasName(endpointNameGetMyTenants),
-			clienttest.EndpointRequestHasToken(true)).
-		WithEndpointPredicates(
-			clienttest.ServiceEndpointHasMethod(http.MethodGet),
-			clienttest.ServiceEndpointHasPath("/api/v1/users/tenants")).
 		Test(t)
 }
 
