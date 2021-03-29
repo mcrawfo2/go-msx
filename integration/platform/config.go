@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	platform "cto-github.cisco.com/NFV-BU/msx-platform-go-client"
 	"net/http"
@@ -18,8 +19,10 @@ func tokenInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 	}
 }
 
-func newPlatformClientConfigFromContext(ctx context.Context, serviceName string) *platform.Configuration {
+func newPlatformClientConfigFromContext(ctx context.Context, serviceName integration.ServiceName) *platform.Configuration {
 	httpClient := httpclient.FactoryFromContext(ctx).NewHttpClient()
+	remoteServiceConfig := integration.NewRemoteServiceConfig(ctx, serviceName)
+	var remoteServiceName = remoteServiceConfig.ServiceName
 
 	transport := httpClient.Transport.RoundTrip
 	transport = tokenInterceptor(transport)
@@ -30,15 +33,16 @@ func newPlatformClientConfigFromContext(ctx context.Context, serviceName string)
 	httpClient.Transport = httpclient.DoFunc(transport)
 
 	return &platform.Configuration{
-		Host:       serviceName,
+		Host:       remoteServiceName,
 		Scheme:     "http",
 		HTTPClient: httpClient,
 	}
 }
 
-func newSecurityClientConfigFromContext(ctx context.Context, serviceName string) *platform.Configuration {
+func newSecurityClientConfigFromContext(ctx context.Context, serviceName integration.ServiceName) *platform.Configuration {
 	httpClient := httpclient.FactoryFromContext(ctx).NewHttpClient()
-
+	remoteServiceConfig := integration.NewRemoteServiceConfig(ctx, serviceName)
+	var remoteServiceName = remoteServiceConfig.ServiceName
 	transport := httpClient.Transport.RoundTrip
 	transport = traceinterceptor.NewInterceptor(transport)
 	transport = discoveryinterceptor.NewInterceptor(transport)
@@ -47,7 +51,7 @@ func newSecurityClientConfigFromContext(ctx context.Context, serviceName string)
 	httpClient.Transport = httpclient.DoFunc(transport)
 
 	return &platform.Configuration{
-		Host:       serviceName,
+		Host:       remoteServiceName,
 		Scheme:     "http",
 		HTTPClient: httpClient,
 	}
