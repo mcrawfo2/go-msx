@@ -33,3 +33,5 @@ dist/
 vendor/
 local/
 test/
+deployments/kubernetes/${deployment.group}_variables.yml
+deployments/${deployment.group}_variables.yml
