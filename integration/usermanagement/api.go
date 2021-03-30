@@ -16,22 +16,18 @@ type Api interface {
 	IsTokenActive() (*integration.MsxResponse, error)
 	GetTokenDetails(noDetails bool) (*integration.MsxResponse, error)
 
-	GetMyCapabilities() (*integration.MsxResponse, error)
-	GetUserCapabilities(userId string) (*integration.MsxResponse, error)
-	GetMyUserId() (*integration.MsxResponse, error)
-	GetMyPersonalInfo() (*integration.MsxResponse, error)
-
 	GetMyProvider() (*integration.MsxResponse, error)
 	GetProviderByName(providerName string) (*integration.MsxResponse, error)
 
 	GetProviderExtensionByName(name string) (*integration.MsxResponse, error)
 
-	GetTenantIds() (*integration.MsxResponse, error)
-	GetMyTenants() (*integration.MsxResponse, error)
-	GetUserTenants(userId string) (*integration.MsxResponse, error)
+	// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
+	// Deprecated: Tenants should generally be retrieved by ID, not tenantName.  The underlying REST API is
+	// current retired and due for decommissioning.
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)
 
+	// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 	GetUserById(userId string) (*integration.MsxResponse, error)
 
 	GetSystemSecrets(scope string) (*integration.MsxResponse, error)

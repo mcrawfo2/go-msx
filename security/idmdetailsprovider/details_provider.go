@@ -17,7 +17,6 @@ var (
 )
 
 type IdmTokenDetailsProviderConfig struct {
-	Fast         bool `config:"default=false"`
 	ActiveCache  lru.CacheConfig
 	DetailsCache lru.CacheConfig
 }
@@ -37,11 +36,7 @@ func (t *TokenDetailsProvider) IsTokenActive(ctx context.Context) (active bool, 
 
 	activeInterface, exists := t.activeCache.Get(token)
 	if !exists {
-		if t.cfg.Fast {
-			active, err = t.fetchActiveCombined(ctx, token)
-		} else {
-			active, err = t.fetchActiveSeparate(ctx, token)
-		}
+		active, err = t.fetchActiveCombined(ctx, token)
 	} else {
 		active = activeInterface.(bool)
 	}
@@ -120,16 +115,9 @@ func RegisterTokenDetailsProvider(ctx context.Context) error {
 		return err
 	}
 
-	var fetcher detailsFetcher
-	if providerConfig.Fast {
-		fetcher = new(fastDetailsFetcher)
-	} else {
-		fetcher = new(slowDetailsFetcher)
-	}
-
 	security.SetTokenDetailsProvider(&TokenDetailsProvider{
 		cfg:          *providerConfig,
-		fetcher:      fetcher,
+		fetcher:      new(fastDetailsFetcher),
 		activeCache:  lru.NewCacheFromConfig(&providerConfig.ActiveCache),
 		detailsCache: lru.NewCacheFromConfig(&providerConfig.DetailsCache),
 	})

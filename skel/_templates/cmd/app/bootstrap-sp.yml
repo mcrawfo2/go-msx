@@ -28,8 +28,6 @@ server:
   context-path: ${server.contextPath}
   enabled: true
 
-security.token.details.fast: true
-
 spring.data.cassandra:
   keyspace-name: ${app.name}
   enabled: ${repository.cassandra.enabled}

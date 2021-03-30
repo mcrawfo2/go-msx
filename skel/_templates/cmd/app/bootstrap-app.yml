@@ -15,8 +15,6 @@ info.build:
   name: ${app.description}
   version: ${info.build.release}-${info.build.buildNumber}
 
-security.token.details.fast: true
-
 server:
   port: ${server.port}
   context-path: ${server.contextPath}

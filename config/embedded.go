@@ -19,7 +19,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2021, 3, 17, 21, 10, 21, 43406507, time.UTC),
+			modTime: time.Date(2021, 3, 29, 20, 1, 45, 307229034, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
@@ -32,7 +32,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/certificate": &vfsgen۰DirInfo{
 			name:    "certificate",
-			modTime: time.Date(2021, 3, 17, 21, 10, 17, 450136153, time.UTC),
+			modTime: time.Date(2021, 3, 29, 23, 48, 48, 749915096, time.UTC),
 		},
 		"/certificate/defaults-certificate.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-certificate.properties",
@@ -52,7 +52,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
-			modTime: time.Date(2021, 3, 17, 21, 10, 21, 2818704, time.UTC),
+			modTime: time.Date(2021, 3, 29, 23, 48, 48, 752418057, time.UTC),
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
@@ -87,7 +87,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/populate": &vfsgen۰DirInfo{
 			name:    "populate",
-			modTime: time.Date(2021, 3, 17, 21, 10, 17, 517643287, time.UTC),
+			modTime: time.Date(2021, 3, 29, 23, 48, 48, 760705521, time.UTC),
 		},
 		"/populate/defaults-populate.properties": &vfsgen۰FileInfo{
 			name:    "defaults-populate.properties",
@@ -100,12 +100,12 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/security/idmdetailsprovider": &vfsgen۰DirInfo{
 			name:    "idmdetailsprovider",
-			modTime: time.Date(2021, 3, 17, 21, 10, 17, 524093145, time.UTC),
+			modTime: time.Date(2021, 3, 29, 20, 44, 28, 132034941, time.UTC),
 		},
 		"/security/idmdetailsprovider/defaults-security-idmdetailsprovider.properties": &vfsgen۰FileInfo{
 			name:    "defaults-security-idmdetailsprovider.properties",
-			modTime: time.Date(2021, 3, 17, 21, 10, 17, 523282590, time.UTC),
-			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x66\x61\x73\x74\x3a\x20\x74\x72\x75\x65"),
+			modTime: time.Date(2021, 3, 29, 20, 6, 48, 461608906, time.UTC),
+			content: []byte("\x73\x65\x63\x75\x72\x69\x74\x79\x2e\x74\x6f\x6b\x65\x6e\x2e\x64\x65\x74\x61\x69\x6c\x73\x2e\x61\x63\x74\x69\x76\x65\x2d\x63\x61\x63\x68\x65\x2e\x74\x74\x6c\x3a\x20\x35\x73\x0a"),
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",

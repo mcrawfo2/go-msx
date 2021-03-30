@@ -36,8 +36,6 @@ server:
   context-path: ""
   enabled: true
 
-security.token.details.fast: true
-
 spring.data.cassandra:
   keyspace-name: ${info.app.name}
   enabled: false
