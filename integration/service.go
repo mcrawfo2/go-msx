@@ -139,9 +139,11 @@ func (v *MsxService) Context() context.Context {
 	return v.ctx
 }
 
-func NewMsxService(ctx context.Context, serviceName string, endpoints map[string]MsxServiceEndpoint) *MsxService {
+func NewMsxService(ctx context.Context, serviceName ServiceName, endpoints map[string]MsxServiceEndpoint) *MsxService {
+	remoteServiceConfig := NewRemoteServiceConfig(ctx, serviceName)
+	var remoteServiceName = remoteServiceConfig.ServiceName
 	return &MsxService{
-		serviceName: serviceName,
+		serviceName: remoteServiceName,
 		endpoints:   endpoints,
 		ctx:         ctx,
 		serviceType: ServiceTypeMicroservice,

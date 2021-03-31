@@ -19,6 +19,19 @@ func TestNewIntegration(t *testing.T) {
 	type args struct {
 		ctx context.Context
 	}
+
+	ctxWithConfig := configtest.ContextWithNewInMemoryConfig(
+		context.Background(),
+		map[string]string{
+			"remoteservice.usermanagementservice.service": "usermanagementservice",
+		})
+
+	ctxWithConfigDifferentName := configtest.ContextWithNewInMemoryConfig(
+		context.Background(),
+		map[string]string{
+			"remoteservice.usermanagementservice.service": "testservice",
+		})
+
 	tests := []struct {
 		name string
 		args args
@@ -27,18 +40,36 @@ func TestNewIntegration(t *testing.T) {
 		{
 			name: "NonExisting",
 			args: args{
-				ctx: context.Background(),
+				ctx: ctxWithConfig,
 			},
 			want: &Integration{
-				MsxContextServiceExecutor: integration.NewMsxService(context.Background(), serviceName, endpoints),
+				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfig, serviceName, endpoints),
 			},
 		},
 		{
 			name: "Existing",
 			args: args{
-				ctx: ContextWithIntegration(context.Background(), &Integration{}),
+				ctx: ContextWithIntegration(ctxWithConfig, &Integration{}),
 			},
 			want: &Integration{},
+		},
+		{
+			name: "ServiceName",
+			args: args{
+				ctx: ctxWithConfig,
+			},
+			want: &Integration{
+				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfig, serviceName, endpoints),
+			},
+		},
+		{
+			name: "DifferentServiceName",
+			args: args{
+				ctx: ctxWithConfigDifferentName,
+			},
+			want: &Integration{
+				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice", endpoints),
+			},
 		},
 	}
 	for _, tt := range tests {
