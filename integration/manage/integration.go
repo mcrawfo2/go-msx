@@ -2,13 +2,13 @@ package manage
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration"
-	"cto-github.cisco.com/NFV-BU/go-msx/paging"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"net/url"
 	"strconv"
-	"strings"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
 const (
@@ -26,11 +26,6 @@ const (
 	endpointNameUpdateServiceInstance           = "updateServiceInstance"
 	endpointNameDeleteServiceInstance           = "deleteServiceInstance"
 
-	endpointNameGetSite    = "getSite"
-	endpointNameCreateSite = "createSite"
-	endpointNameUpdateSite = "updateSite"
-	endpointNameDeleteSite = "deleteSite"
-
 	endpointNameCreateSiteV3           = "createSiteV3"
 	endpointNameGetSitesV3             = "getSitesV3"
 	endpointNameGetSiteV3              = "getSiteV3"
@@ -40,18 +35,10 @@ const (
 	endpointNameDeleteDeviceFromSiteV3 = "deleteDeviceFromSiteV3"
 	endpointNameUpdateSiteStatusV3     = "updateSiteStatusV3"
 
-	endpointNameGetDevice    = "getDevice"
-	endpointNameGetDevices   = "getDevices"
-	endpointNameCreateDevice = "createDevice"
-	endpointNameUpdateDevice = "updateDevice"
-	endpointNameDeleteDevice = "deleteDevice"
-
 	endpointNameCreateDeviceActions = "createDeviceActions"
 	endpointNameUpdateDeviceActions = "updateDeviceActions"
 
-	endpointNameCreateManagedDevice = "createManagedDevice"
-	endpointNameDeleteManagedDevice = "deleteManagedDevice"
-	endpointNameGetDeviceConfig     = "getDeviceConfig"
+	endpointNameGetDeviceConfig = "getDeviceConfig"
 
 	endpointNameGetDevicesV4         = "getDevicesV4"
 	endpointNameGetDeviceV4          = "getDeviceV4"
@@ -106,11 +93,6 @@ var (
 		endpointNameUpdateServiceInstance:           {Method: "PUT", Path: "/api/v1/serviceinstances/{{.serviceInstanceId}}"},
 		endpointNameDeleteServiceInstance:           {Method: "DELETE", Path: "/api/v1/serviceinstances/{{.serviceInstanceId}}"},
 
-		endpointNameGetSite:    {Method: "GET", Path: "/api/v1/sites/{{.siteId}}"},
-		endpointNameCreateSite: {Method: "POST", Path: "/api/v1/sites/subscriptions/{{.subscriptionId}}"},
-		endpointNameUpdateSite: {Method: "PUT", Path: "/api/v1/sites/{{.siteId}}"},
-		endpointNameDeleteSite: {Method: "DELETE", Path: "/api/v1/site/{{.siteId}}"},
-
 		endpointNameCreateSiteV3:           {Method: "POST", Path: "/api/v3/sites"},
 		endpointNameGetSitesV3:             {Method: "GET", Path: "/api/v3/sites"},
 		endpointNameGetSiteV3:              {Method: "GET", Path: "/api/v3/sites/{{.siteId}}"},
@@ -120,14 +102,7 @@ var (
 		endpointNameDeleteDeviceFromSiteV3: {Method: "DELETE", Path: "/api/v3/sites/{{.siteId}}/devices/{{.deviceId}}"},
 		endpointNameUpdateSiteStatusV3:     {Method: "PUT", Path: "/api/v3/sites/{{.siteId}}/status"},
 
-		endpointNameGetDevice:           {Method: "GET", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
-		endpointNameGetDevices:          {Method: "GET", Path: "/api/v2/devices"},
-		endpointNameCreateDevice:        {Method: "POST", Path: "/api/v1/devices/subscriptions/{{.subscriptionId}}"},
-		endpointNameUpdateDevice:        {Method: "PUT", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
-		endpointNameDeleteDevice:        {Method: "DELETE", Path: "/api/v1/devices/{{.deviceInstanceId}}"},
-		endpointNameCreateManagedDevice: {Method: "POST", Path: "/api/v3/devices"},
-		endpointNameDeleteManagedDevice: {Method: "DELETE", Path: "/api/v3/devices/{{.deviceInstanceId}}"},
-		endpointNameGetDeviceConfig:     {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/config"},
+		endpointNameGetDeviceConfig: {Method: "GET", Path: "/api/v3/devices/{{.deviceInstanceId}}/config"},
 
 		endpointNameGetDevicesV4:         {Method: "GET", Path: "/api/v4/devices"},
 		endpointNameGetDeviceV4:          {Method: "GET", Path: "/api/v4/devices/{{.deviceId}}"},
@@ -374,84 +349,6 @@ func (i *Integration) DeleteServiceInstance(serviceInstanceId string) (*integrat
 	})
 }
 
-// Deprecated: Use v3 Endpoint Instead
-func (i *Integration) GetSite(siteId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetSite,
-		EndpointParameters: map[string]string{
-			"siteId": siteId,
-		},
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v3 Endpoint Instead
-func (i *Integration) CreateSite(subscriptionId, serviceInstanceId string, siteId, siteName, siteType, displayName *string,
-	siteAttributes, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
-	bodyBytes, err := json.Marshal(&Pojo{
-		"serviceInstanceId": serviceInstanceId,
-		"siteId":            siteId,
-		"siteName":          siteName,
-		"siteType":          siteType,
-		"displayName":       displayName,
-		"siteAttributes":    siteAttributes,
-		"siteDefAttributes": siteDefAttributes,
-		"devices":           devices,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameCreateSite,
-		EndpointParameters: map[string]string{
-			"subscriptionId": subscriptionId,
-		},
-		Body:           bodyBytes,
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v3 Endpoint Instead
-func (i *Integration) UpdateSite(siteId string, siteType, displayName *string,
-	siteAttributes, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
-	bodyBytes, err := json.Marshal(&Pojo{
-		"siteId":            siteId,
-		"siteType":          siteType,
-		"displayName":       displayName,
-		"siteAttributes":    siteAttributes,
-		"siteDefAttributes": siteDefAttributes,
-		"devices":           devices,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameUpdateSite,
-		EndpointParameters: map[string]string{
-			"siteId": siteId,
-		},
-		Body:           bodyBytes,
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v3 Endpoint Instead
-func (i *Integration) DeleteSite(siteId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameDeleteSite,
-		EndpointParameters: map[string]string{
-			"siteId": siteId,
-		},
-		ExpectEnvelope: true,
-	})
-}
-
 func (i *Integration) GetSitesV3(siteFilters SiteQueryFilter, page, pageSize int) (*integration.MsxResponse, error) {
 	pageString := strconv.Itoa(page)
 	pageSizeString := strconv.Itoa(pageSize)
@@ -590,149 +487,9 @@ func (i *Integration) UpdateSiteStatusV3(siteStatus SiteStatusUpdateRequest, sit
 	})
 }
 
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) CreateManagedDevice(tenantId string, deviceModel, deviceOnboardType string, deviceOnboardInfo map[string]string) (*integration.MsxResponse, error) {
-	deviceUuid, _ := types.NewUUID()
-	deviceInstanceId := "CPE-" + strings.ToLower(deviceUuid.MustMarshalText())
-
-	bodyBytes, err := json.Marshal(&Pojo{
-		"tenantId":             tenantId,
-		"deviceInstanceId":     deviceInstanceId,
-		"deviceName":           deviceInstanceId,
-		"deviceModel":          deviceModel,
-		"deviceOnboardingType": deviceOnboardType,
-		"deviceOnboardInfo":    deviceOnboardInfo,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:   endpointNameCreateManagedDevice,
-		Body:           bodyBytes,
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) DeleteManagedDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameDeleteManagedDevice,
-		EndpointParameters: map[string]string{
-			"deviceInstanceId": deviceInstanceId,
-		},
-		ExpectEnvelope: true,
-	})
-}
-
 func (i *Integration) GetDeviceConfig(deviceInstanceId string) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetDeviceConfig,
-		EndpointParameters: map[string]string{
-			"deviceInstanceId": deviceInstanceId,
-		},
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) GetDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetDevice,
-		EndpointParameters: map[string]string{
-			"deviceInstanceId": deviceInstanceId,
-		},
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) GetDevices(deviceInstanceId, subscriptionId, serialKey, tenantId *string, page, pageSize int) (*integration.MsxResponse, error) {
-	pageString := strconv.Itoa(page)
-	pageSizeString := strconv.Itoa(pageSize)
-
-	searchParameters := map[string]*string{
-		"deviceID":       deviceInstanceId,
-		"serialKey":      serialKey,
-		"subscriptionID": subscriptionId,
-		"tenantId":       tenantId,
-		"page":           &pageString,
-		"pageSize":       &pageSizeString,
-	}
-
-	// Convert optional search queries into query parameters
-	queryParameters := make(url.Values)
-	for k, v := range searchParameters {
-		if v != nil && *v != "" {
-			queryParameters[k] = []string{*v}
-		}
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName:    endpointNameGetDevices,
-		QueryParameters: queryParameters,
-		ExpectEnvelope:  true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) CreateDevice(subscriptionId string, deviceInstanceId *string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error) {
-	if deviceInstanceId == nil {
-		deviceUuid, _ := types.NewUUID()
-		deviceInstanceIdString := "CPE-" + strings.ToLower(deviceUuid.MustMarshalText())
-		deviceInstanceId = &deviceInstanceIdString
-	}
-
-	bodyBytes, err := json.Marshal(&Pojo{
-		"deviceInstanceId":   deviceInstanceId,
-		"deviceAttribute":    deviceAttribute,
-		"deviceDefAttribute": deviceDefAttribute,
-		"status":             status,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameCreateDevice,
-		EndpointParameters: map[string]string{
-			"subscriptionId": subscriptionId,
-		},
-		Body:           bodyBytes,
-		Payload:        new(Pojo),
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) UpdateDevice(deviceInstanceId string, deviceAttribute, deviceDefAttribute, status map[string]string) (*integration.MsxResponse, error) {
-	bodyBytes, err := json.Marshal(&Pojo{
-		"deviceAttribute":    deviceAttribute,
-		"deviceDefAttribute": deviceDefAttribute,
-		"status":             status,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameUpdateDevice,
-		EndpointParameters: map[string]string{
-			"deviceInstanceId": deviceInstanceId,
-		},
-		Body:           bodyBytes,
-		ExpectEnvelope: true,
-	})
-}
-
-// Deprecated: Use v4 Endpoint Instead
-func (i *Integration) DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameDeleteDevice,
 		EndpointParameters: map[string]string{
 			"deviceInstanceId": deviceInstanceId,
 		},
