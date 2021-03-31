@@ -3,7 +3,7 @@ BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.ym
 .PHONY: all test dist debug assemblies docker docker-publish manifest publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build
 
-all: clean test docker assemblies manifest
+all: clean test docker assemblies deployment manifest
 
 test:
 	$(BUILDER) download-test-deps
@@ -19,6 +19,9 @@ dist:
 
 debug:
 	$(BUILDER) build-debug-executable
+
+deployment:
+	${BUILDER} generate-deployment-variables
 
 assemblies:
 	$(BUILDER) build-assemblies
