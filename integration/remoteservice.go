@@ -1,6 +1,13 @@
 package integration
 
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+)
+
 const (
+	remoteServiceConfigRoot = "remoteservice"
+
 	ServiceNameAdministration   = "administrationservice"
 	ServiceNameAlert            = "alertservice"
 	ServiceNameAuditing         = "auditingservice"
@@ -32,3 +39,19 @@ const (
 	ResourceProviderNameAws     = "aws"
 	ResourceProviderNameViptela = "viptelaservice"
 )
+
+type RemoteServiceConfig struct {
+	ServiceName string `config:"key=service,default="`
+}
+
+func NewRemoteServiceConfig(ctx context.Context, serviceName string) *RemoteServiceConfig {
+	cfg := config.FromContext(ctx)
+	var remoteService RemoteServiceConfig
+	if err := cfg.Populate(&remoteService, config.PrefixWithName(remoteServiceConfigRoot, serviceName)); err != nil {
+		logger.Errorf("Not able to load remote service config for `%s`", serviceName)
+	}
+	if len(remoteService.ServiceName) == 0 {
+		remoteService.ServiceName = serviceName
+	}
+	return &remoteService
+}

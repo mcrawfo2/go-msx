@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/clienttest"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"net/http"
 	"reflect"
@@ -16,6 +17,11 @@ func TestNewIntegration(t *testing.T) {
 	type args struct {
 		ctx context.Context
 	}
+	ctxWithConfig := configtest.ContextWithNewInMemoryConfig(
+		context.Background(),
+		map[string]string{
+			"remoteservice.manageservice.service": "manageservice",
+		})
 	tests := []struct {
 		name string
 		args args
@@ -24,16 +30,16 @@ func TestNewIntegration(t *testing.T) {
 		{
 			name: "NonExisting",
 			args: args{
-				ctx: context.Background(),
+				ctx: ctxWithConfig,
 			},
 			want: &Integration{
-				MsxServiceExecutor: integration.NewMsxService(context.Background(), serviceName, endpoints),
+				MsxServiceExecutor: integration.NewMsxService(ctxWithConfig, serviceName, endpoints),
 			},
 		},
 		{
 			name: "Existing",
 			args: args{
-				ctx: ContextWithIntegration(context.Background(), &Integration{}),
+				ctx: ContextWithIntegration(ctxWithConfig, &Integration{}),
 			},
 			want: &Integration{},
 		},
