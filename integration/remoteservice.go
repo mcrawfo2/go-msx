@@ -14,11 +14,11 @@ type RemoteServiceConfig struct {
 }
 
 
-func NewRemoteServiceConfig(ctx context.Context, serviceName ServiceName) *RemoteServiceConfig {
+func NewRemoteServiceConfig(ctx context.Context, serviceName string) *RemoteServiceConfig {
 	cfg := config.FromContext(ctx)
 	var remoteService RemoteServiceConfig
-	if err := cfg.Populate(&remoteService, remoteServiceConfigRoot + "." + string(serviceName)); err != nil {
-		logger.Errorf("Not able to load remote service config for `%s`", string(serviceName))
+	if err := cfg.Populate(&remoteService, remoteServiceConfigRoot + "." + serviceName); err != nil {
+		logger.Errorf("Not able to load remote service config for `%s`", serviceName)
 	}
 	if len(remoteService.ServiceName) == 0 {
 		remoteService.ServiceName = string(serviceName)
@@ -26,24 +26,23 @@ func NewRemoteServiceConfig(ctx context.Context, serviceName ServiceName) *Remot
 	return &remoteService
 }
 
-type ServiceName string
 
 const (
-	ServiceNameAdministration  ServiceName = "administrationservice"
-	ServiceNameAlert           ServiceName = "alertservice"
-	ServiceNameAuditing        ServiceName = "auditingservice"
-	ServiceNameBilling         ServiceName = "billingservice"
-	ServiceNameConsume         ServiceName = "consumeservice"
-	ServiceNameManage          ServiceName = "manageservice"
-	ServiceNameMonitor          ServiceName = "monitorservice"
-	ServiceNameNotification     ServiceName = "notificationservice"
-	ServiceNameOrchestration    ServiceName = "orchestrationservice"
-	ServiceNameRouter           ServiceName = "routerservice"
-	ServiceNameServiceConfig    ServiceName = "templateservice"
-	ServiceNameServiceExtension ServiceName = "serviceextensionservice"
-	ServiceNameUserManagement   ServiceName = "usermanagementservice"
-	ServiceNameWorkflow         ServiceName = "workflowservice"
-	ServiceNameIpam             ServiceName = "ipamservice"
+	ServiceNameAdministration    = "administrationservice"
+	ServiceNameAlert             = "alertservice"
+	ServiceNameAuditing          = "auditingservice"
+	ServiceNameBilling           = "billingservice"
+	ServiceNameConsume           = "consumeservice"
+	ServiceNameManage            = "manageservice"
+	ServiceNameMonitor           = "monitorservice"
+	ServiceNameNotification      = "notificationservice"
+	ServiceNameOrchestration     = "orchestrationservice"
+	ServiceNameRouter            = "routerservice"
+	ServiceNameServiceConfig     = "templateservice"
+	ServiceNameServiceExtension  = "serviceextensionservice"
+	ServiceNameUserManagement    = "usermanagementservice"
+	ServiceNameWorkflow          = "workflowservice"
+	ServiceNameIpam              = "ipamservice"
 
 	ServiceNameDnacBeat    = "probe_dnac"
 	ServiceNameEncsBeat    = "probe_encs"

@@ -19,7 +19,7 @@ func tokenInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 	}
 }
 
-func newPlatformClientConfigFromContext(ctx context.Context, serviceName integration.ServiceName) *platform.Configuration {
+func newPlatformClientConfigFromContext(ctx context.Context, serviceName string) *platform.Configuration {
 	httpClient := httpclient.FactoryFromContext(ctx).NewHttpClient()
 	remoteServiceConfig := integration.NewRemoteServiceConfig(ctx, serviceName)
 	var remoteServiceName = remoteServiceConfig.ServiceName
@@ -39,7 +39,7 @@ func newPlatformClientConfigFromContext(ctx context.Context, serviceName integra
 	}
 }
 
-func newSecurityClientConfigFromContext(ctx context.Context, serviceName integration.ServiceName) *platform.Configuration {
+func newSecurityClientConfigFromContext(ctx context.Context, serviceName string) *platform.Configuration {
 	httpClient := httpclient.FactoryFromContext(ctx).NewHttpClient()
 	remoteServiceConfig := integration.NewRemoteServiceConfig(ctx, serviceName)
 	var remoteServiceName = remoteServiceConfig.ServiceName
