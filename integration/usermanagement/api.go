@@ -21,13 +21,13 @@ type Api interface {
 
 	GetProviderExtensionByName(name string) (*integration.MsxResponse, error)
 
-	// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead
+	// Deprecated: Use v8/TenantsApiService (or newer)
 	GetTenantById(tenantId string) (*integration.MsxResponse, error)
 	// Deprecated: Tenants should generally be retrieved by ID, not tenantName.  The underlying REST API is
 	// current retired and due for decommissioning.
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)
 
-	// Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
+	// Deprecated: Use v8/UsersApiService (or newer).
 	GetUserById(userId string) (*integration.MsxResponse, error)
 
 	GetSystemSecrets(scope string) (*integration.MsxResponse, error)

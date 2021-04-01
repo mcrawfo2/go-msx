@@ -152,29 +152,6 @@ func (_m *MockManage) CreateControlPlane(tenantId string, name string, url strin
 	return r0, r1
 }
 
-// CreateDevice provides a mock function with given fields: subscriptionId, deviceInstanceId, deviceAttribute, deviceDefAttribute, status
-func (_m *MockManage) CreateDevice(subscriptionId string, deviceInstanceId *string, deviceAttribute map[string]string, deviceDefAttribute map[string]string, status map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(subscriptionId, deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, *string, map[string]string, map[string]string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(subscriptionId, deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, *string, map[string]string, map[string]string, map[string]string) error); ok {
-		r1 = rf(subscriptionId, deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // CreateDeviceActions provides a mock function with given fields: deviceActionList
 func (_m *MockManage) CreateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceActionList)
@@ -253,29 +230,6 @@ func (_m *MockManage) CreateDeviceV4(deviceRequest DeviceCreateRequest) (*integr
 	return r0, r1
 }
 
-// CreateManagedDevice provides a mock function with given fields: tenantId, deviceModel, deviceOnboardType, deviceOnboardInfo
-func (_m *MockManage) CreateManagedDevice(tenantId string, deviceModel string, deviceOnboardType string, deviceOnboardInfo map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(tenantId, deviceModel, deviceOnboardType, deviceOnboardInfo)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, string, string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(tenantId, deviceModel, deviceOnboardType, deviceOnboardInfo)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, map[string]string) error); ok {
-		r1 = rf(tenantId, deviceModel, deviceOnboardType, deviceOnboardInfo)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // CreateServiceInstance provides a mock function with given fields: subscriptionId, serviceInstanceId, serviceAttribute, serviceDefAttribute, status
 func (_m *MockManage) CreateServiceInstance(subscriptionId string, serviceInstanceId string, serviceAttribute map[string]string, serviceDefAttribute map[string]string, status map[string]string) (*integration.MsxResponse, error) {
 	ret := _m.Called(subscriptionId, serviceInstanceId, serviceAttribute, serviceDefAttribute, status)
@@ -292,29 +246,6 @@ func (_m *MockManage) CreateServiceInstance(subscriptionId string, serviceInstan
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, map[string]string, map[string]string, map[string]string) error); ok {
 		r1 = rf(subscriptionId, serviceInstanceId, serviceAttribute, serviceDefAttribute, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// CreateSite provides a mock function with given fields: subscriptionId, serviceInstanceId, siteId, siteName, siteType, displayName, siteAttributes, siteDefAttributes, devices
-func (_m *MockManage) CreateSite(subscriptionId string, serviceInstanceId string, siteId *string, siteName *string, siteType *string, displayName *string, siteAttributes map[string]string, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
-	ret := _m.Called(subscriptionId, serviceInstanceId, siteId, siteName, siteType, displayName, siteAttributes, siteDefAttributes, devices)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, string, *string, *string, *string, *string, map[string]string, map[string]string, []string) *integration.MsxResponse); ok {
-		r0 = rf(subscriptionId, serviceInstanceId, siteId, siteName, siteType, displayName, siteAttributes, siteDefAttributes, devices)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, *string, *string, *string, *string, map[string]string, map[string]string, []string) error); ok {
-		r1 = rf(subscriptionId, serviceInstanceId, siteId, siteName, siteType, displayName, siteAttributes, siteDefAttributes, devices)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -384,29 +315,6 @@ func (_m *MockManage) DeleteControlPlane(controlPlaneId string) (*integration.Ms
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(controlPlaneId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeleteDevice provides a mock function with given fields: deviceInstanceId
-func (_m *MockManage) DeleteDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceInstanceId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(deviceInstanceId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(deviceInstanceId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -506,29 +414,6 @@ func (_m *MockManage) DeleteDeviceV4(deviceId string, force string) (*integratio
 	return r0, r1
 }
 
-// DeleteManagedDevice provides a mock function with given fields: deviceInstanceId
-func (_m *MockManage) DeleteManagedDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceInstanceId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(deviceInstanceId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(deviceInstanceId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeleteServiceInstance provides a mock function with given fields: serviceInstanceId
 func (_m *MockManage) DeleteServiceInstance(serviceInstanceId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(serviceInstanceId)
@@ -545,29 +430,6 @@ func (_m *MockManage) DeleteServiceInstance(serviceInstanceId string) (*integrat
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(serviceInstanceId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeleteSite provides a mock function with given fields: siteId
-func (_m *MockManage) DeleteSite(siteId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(siteId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(siteId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(siteId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -736,29 +598,6 @@ func (_m *MockManage) GetControlPlane(controlPlaneId string) (*integration.MsxRe
 	return r0, r1
 }
 
-// GetDevice provides a mock function with given fields: deviceInstanceId
-func (_m *MockManage) GetDevice(deviceInstanceId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceInstanceId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(deviceInstanceId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(deviceInstanceId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetDeviceConfig provides a mock function with given fields: deviceInstanceId
 func (_m *MockManage) GetDeviceConfig(deviceInstanceId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceInstanceId)
@@ -851,29 +690,6 @@ func (_m *MockManage) GetDeviceV4(deviceId string) (*integration.MsxResponse, er
 	return r0, r1
 }
 
-// GetDevices provides a mock function with given fields: deviceInstanceId, subscriptionId, serialKey, tenantId, page, pageSize
-func (_m *MockManage) GetDevices(deviceInstanceId *string, subscriptionId *string, serialKey *string, tenantId *string, page int, pageSize int) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceInstanceId, subscriptionId, serialKey, tenantId, page, pageSize)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(*string, *string, *string, *string, int, int) *integration.MsxResponse); ok {
-		r0 = rf(deviceInstanceId, subscriptionId, serialKey, tenantId, page, pageSize)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*string, *string, *string, *string, int, int) error); ok {
-		r1 = rf(deviceInstanceId, subscriptionId, serialKey, tenantId, page, pageSize)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetDevicesV4 provides a mock function with given fields: requestQuery, page, pageSize
 func (_m *MockManage) GetDevicesV4(requestQuery map[string][]string, page int, pageSize int) (*integration.MsxResponse, error) {
 	ret := _m.Called(requestQuery, page, pageSize)
@@ -936,29 +752,6 @@ func (_m *MockManage) GetServiceInstance(serviceInstanceId string) (*integration
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(serviceInstanceId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetSite provides a mock function with given fields: siteId
-func (_m *MockManage) GetSite(siteId string) (*integration.MsxResponse, error) {
-	ret := _m.Called(siteId)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string) *integration.MsxResponse); ok {
-		r0 = rf(siteId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(siteId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1127,29 +920,6 @@ func (_m *MockManage) UpdateControlPlane(controlPlaneId string, tenantId string,
 	return r0, r1
 }
 
-// UpdateDevice provides a mock function with given fields: deviceInstanceId, deviceAttribute, deviceDefAttribute, status
-func (_m *MockManage) UpdateDevice(deviceInstanceId string, deviceAttribute map[string]string, deviceDefAttribute map[string]string, status map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, map[string]string, map[string]string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, map[string]string, map[string]string, map[string]string) error); ok {
-		r1 = rf(deviceInstanceId, deviceAttribute, deviceDefAttribute, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateDeviceActions provides a mock function with given fields: deviceActionList
 func (_m *MockManage) UpdateDeviceActions(deviceActionList DeviceActionCreateRequests) (*integration.MsxResponse, error) {
 	ret := _m.Called(deviceActionList)
@@ -1235,29 +1005,6 @@ func (_m *MockManage) UpdateServiceInstance(serviceInstanceId string, serviceAtt
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, map[string]string, map[string]string, map[string]string) error); ok {
 		r1 = rf(serviceInstanceId, serviceAttribute, serviceDefAttribute, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UpdateSite provides a mock function with given fields: siteId, siteType, displayName, siteAttributes, siteDefAttributes, devices
-func (_m *MockManage) UpdateSite(siteId string, siteType *string, displayName *string, siteAttributes map[string]string, siteDefAttributes map[string]string, devices []string) (*integration.MsxResponse, error) {
-	ret := _m.Called(siteId, siteType, displayName, siteAttributes, siteDefAttributes, devices)
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, *string, *string, map[string]string, map[string]string, []string) *integration.MsxResponse); ok {
-		r0 = rf(siteId, siteType, displayName, siteAttributes, siteDefAttributes, devices)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, *string, *string, map[string]string, map[string]string, []string) error); ok {
-		r1 = rf(siteId, siteType, displayName, siteAttributes, siteDefAttributes, devices)
 	} else {
 		r1 = ret.Error(1)
 	}
