@@ -10,14 +10,13 @@ const (
 )
 
 type RemoteServiceConfig struct {
-	ServiceName string   `config:"key=service,default="`
+	ServiceName string `config:"key=service,default="`
 }
-
 
 func NewRemoteServiceConfig(ctx context.Context, serviceName string) *RemoteServiceConfig {
 	cfg := config.FromContext(ctx)
 	var remoteService RemoteServiceConfig
-	if err := cfg.Populate(&remoteService, remoteServiceConfigRoot + "." + serviceName); err != nil {
+	if err := cfg.Populate(&remoteService, remoteServiceConfigRoot+"."+serviceName); err != nil {
 		logger.Errorf("Not able to load remote service config for `%s`", serviceName)
 	}
 	if len(remoteService.ServiceName) == 0 {
@@ -26,23 +25,22 @@ func NewRemoteServiceConfig(ctx context.Context, serviceName string) *RemoteServ
 	return &remoteService
 }
 
-
 const (
-	ServiceNameAdministration    = "administrationservice"
-	ServiceNameAlert             = "alertservice"
-	ServiceNameAuditing          = "auditingservice"
-	ServiceNameBilling           = "billingservice"
-	ServiceNameConsume           = "consumeservice"
-	ServiceNameManage            = "manageservice"
-	ServiceNameMonitor           = "monitorservice"
-	ServiceNameNotification      = "notificationservice"
-	ServiceNameOrchestration     = "orchestrationservice"
-	ServiceNameRouter            = "routerservice"
-	ServiceNameServiceConfig     = "templateservice"
-	ServiceNameServiceExtension  = "serviceextensionservice"
-	ServiceNameUserManagement    = "usermanagementservice"
-	ServiceNameWorkflow          = "workflowservice"
-	ServiceNameIpam              = "ipamservice"
+	ServiceNameAdministration   = "administrationservice"
+	ServiceNameAlert            = "alertservice"
+	ServiceNameAuditing         = "auditingservice"
+	ServiceNameBilling          = "billingservice"
+	ServiceNameConsume          = "consumeservice"
+	ServiceNameManage           = "manageservice"
+	ServiceNameMonitor          = "monitorservice"
+	ServiceNameNotification     = "notificationservice"
+	ServiceNameOrchestration    = "orchestrationservice"
+	ServiceNameRouter           = "routerservice"
+	ServiceNameServiceConfig    = "templateservice"
+	ServiceNameServiceExtension = "serviceextensionservice"
+	ServiceNameUserManagement   = "usermanagementservice"
+	ServiceNameWorkflow         = "workflowservice"
+	ServiceNameIpam             = "ipamservice"
 
 	ServiceNameDnacBeat    = "probe_dnac"
 	ServiceNameEncsBeat    = "probe_encs"
