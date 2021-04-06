@@ -7,6 +7,10 @@ import (
 )
 
 var parameterizedTypeNames = make(map[reflect.Type]string)
+var customTypeNames = map[string]struct{}{
+	"types.UUID": {},
+	"types.Time": {},
+}
 
 func NewParameterizedStruct(structType reflect.Type, payloadField string, payload interface{}) reflect.Type {
 	var structFields []reflect.StructField
@@ -44,15 +48,23 @@ func GetTypeName(instanceType reflect.Type, root bool) string {
 		instanceType = instanceType.Elem()
 	}
 
-	if typeName, ok := parameterizedTypeNames[instanceType]; ok {
+	typeNamePrefix, typeNameSuffix, typeName := "", "", ""
+	ok := false
+
+	if typeName, ok = parameterizedTypeNames[instanceType]; ok {
 		return typeName
 	}
 
-	typeNamePrefix, typeNameSuffix, typeName := "", "", ""
+	if typeName, ok = GetNamedTypeName(instanceType); ok {
+		if _, ok = customTypeNames[typeName]; ok {
+			return typeName
+		}
+	}
 
 	switch instanceType.Kind() {
 	case reflect.Array, reflect.Slice:
 		if root {
+			// marked as an array in parent
 			return GetTypeName(instanceType.Elem(), false)
 		} else {
 			typeNamePrefix = "List«"
@@ -75,16 +87,20 @@ func GetTypeName(instanceType reflect.Type, root bool) string {
 		return instanceType.Name()
 
 	default:
-		instanceTypePackagePath := instanceType.PkgPath()
-		instanceTypePackageName := ""
-		if instanceTypePackagePath != "" {
-			instanceTypePackageName = path.Base(instanceTypePackagePath)
-			if instanceTypePackageName != "" {
-				instanceTypePackageName += "."
-			}
-		} else {
-			return ""
-		}
-		return instanceTypePackageName + instanceType.Name()
+		return typeName
 	}
+}
+
+func GetNamedTypeName(instanceType reflect.Type) (string, bool) {
+	instanceTypePackagePath := instanceType.PkgPath()
+	instanceTypePackageName := ""
+	if instanceTypePackagePath != "" {
+		instanceTypePackageName = path.Base(instanceTypePackagePath)
+		if instanceTypePackageName != "" {
+			instanceTypePackageName += "."
+		}
+	} else {
+		return "", false
+	}
+	return instanceTypePackageName + instanceType.Name(), true
 }

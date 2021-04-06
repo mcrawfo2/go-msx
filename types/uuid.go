@@ -83,6 +83,13 @@ func (u UUID) String() string {
 	return u.MustMarshalText()
 }
 
+func (u UUID) SwaggerSchemaJson() string {
+	return `{
+		"type": "string",
+		"format": "uuid"
+	}`
+}
+
 func ParseUUID(value string) (UUID, error) {
 	return uuid.ParseUUID(value)
 }

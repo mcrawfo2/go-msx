@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"encoding/json"
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
@@ -19,11 +20,16 @@ var (
 	logger      = log.NewLogger("msx.webservice.swaggerprovider")
 )
 
+type SwaggerSchemaSource interface {
+	SwaggerSchemaJson() string
+}
+
 type SwaggerProvider struct {
-	ctx  context.Context
-	cfg  *DocumentationConfig
-	spec *spec.Swagger
-	info spec.Info
+	ctx        context.Context
+	cfg        *DocumentationConfig
+	spec       *spec.Swagger
+	appInfo    *AppInfo
+	customizer SwaggerCustomizer
 }
 
 func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
@@ -105,42 +111,12 @@ func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err er
 
 func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
 	return func(swagger *spec.Swagger) {
-		// Inject info blob
-		swagger.Info = &p.info
-
-		// Register tags definitions from all of the routes
-		var existingTags = types.StringStack{}
-		for _, svc := range container.RegisteredWebServices() {
-			for _, route := range svc.Routes() {
-				if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
-					routeTagDefinition := routeTagDefinitionInterface.(spec.TagProps)
-					if !existingTags.Contains(routeTagDefinition.Name) {
-						existingTags = append(existingTags, routeTagDefinition.Name)
-						swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
-					}
-				}
-			}
-		}
-
-		// Factor out contextPath into basePath
-		if contextPath != "/" {
-			newPaths := make(map[string]spec.PathItem)
-			for path, pathItem := range swagger.Paths.Paths {
-				if strings.HasPrefix(path, contextPath) {
-					path = strings.TrimPrefix(path, contextPath)
-				}
-				newPaths[path] = pathItem
-			}
-			swagger.Paths.Paths = newPaths
-			swagger.BasePath = contextPath
-		}
-
-		// Sort tags
-		sort.Slice(swagger.Tags, func(i, j int) bool {
-			iTagName := swagger.Tags[i].Name
-			jTagName := swagger.Tags[j].Name
-			return strings.Compare(iTagName, jTagName) < 0
-		})
+		c := SwaggerCustomizer{}
+		c.CustomizeInfo(swagger, p.appInfo)
+		c.CustomizeTags(swagger, container)
+		c.CustomizeBasePath(swagger, contextPath)
+		c.CustomizeTypeDefinitions(swagger)
+		c.SortTags(swagger)
 	}
 }
 
@@ -192,6 +168,95 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	return nil
 }
 
+type SwaggerCustomizer struct {}
+
+func (c SwaggerCustomizer) CustomizeInfo(swagger *spec.Swagger, appInfo *AppInfo) {
+	swagger.Info = &spec.Info{
+		InfoProps: spec.InfoProps{
+			Title: "MSX API Documentation for " + appInfo.Name,
+			Description: "<h3>This is the REST API documentation for " + appInfo.Name + "</h3>\n \n" +
+				appInfo.Description + "\n" +
+				"+ API Authorization \n" +
+				"    + Authorization header is <b>required</b>. \n" +
+				"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
+			TermsOfService: "http://www.cisco.com",
+			Contact: &spec.ContactInfo{
+				ContactInfoProps: spec.ContactInfoProps{
+					Name:  "Cisco Systems Inc.",
+					URL:   "http://www.cisco.com",
+					Email: "somecontact@cisco.com",
+				},
+			},
+			License: &spec.License{
+				LicenseProps: spec.LicenseProps{
+					Name: "Apache License Version 2.0",
+					URL:  "http://www.apache.org/licenses/LICENSE-2.0.html",
+				},
+			},
+			Version: appInfo.Version,
+		},
+	}
+}
+
+func (c SwaggerCustomizer) CustomizeTags(swagger *spec.Swagger, container *restful.Container) {
+	// Register tags definitions from all of the routes
+	var existingTags = types.StringStack{}
+	for _, svc := range container.RegisteredWebServices() {
+		for _, route := range svc.Routes() {
+			if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
+				routeTagDefinition := routeTagDefinitionInterface.(spec.TagProps)
+				if !existingTags.Contains(routeTagDefinition.Name) {
+					existingTags = append(existingTags, routeTagDefinition.Name)
+					swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
+				}
+			}
+		}
+	}
+}
+
+func (c SwaggerCustomizer) CustomizeBasePath(swagger *spec.Swagger, contextPath string) {
+	// Factor out contextPath into basePath
+	if contextPath != "/" {
+		newPaths := make(map[string]spec.PathItem)
+		for path, pathItem := range swagger.Paths.Paths {
+			if strings.HasPrefix(path, contextPath) {
+				path = strings.TrimPrefix(path, contextPath)
+			}
+			newPaths[path] = pathItem
+		}
+		swagger.Paths.Paths = newPaths
+		swagger.BasePath = contextPath
+	}
+}
+
+func (c SwaggerCustomizer) SortTags(swagger *spec.Swagger) {
+	sort.Slice(swagger.Tags, func(i, j int) bool {
+		iTagName := swagger.Tags[i].Name
+		jTagName := swagger.Tags[j].Name
+		return strings.Compare(iTagName, jTagName) < 0
+	})
+}
+
+func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
+	var schemaSources = []SwaggerSchemaSource{
+		new(types.Time),
+		new(types.UUID),
+	}
+
+	for _, schemaSource := range schemaSources {
+		typeName := types.GetInstanceTypeName(schemaSource)
+		schemaJson := schemaSource.SwaggerSchemaJson()
+
+		var schemaDef *spec.Schema
+		if err := json.Unmarshal([]byte(schemaJson), &schemaDef); err != nil {
+			logger.WithError(err).Errorf("Failed to parse Swagger Schema for %q", typeName)
+			continue
+		}
+
+		swagger.Definitions[typeName] = *schemaDef
+	}
+}
+
 func RegisterSwaggerProvider(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	if server == nil {
@@ -215,27 +280,7 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 	server.AddDocumentationProvider(&SwaggerProvider{
 		ctx: ctx,
 		cfg: cfg,
-		info: spec.Info{
-			InfoProps: spec.InfoProps{
-				Title: "MSX API Documentation for " + appInfo.Name,
-				Description: "<h3>This is the REST API documentation for " + appInfo.Name + "</h3>\n \n" +
-					appInfo.Description + "\n" +
-					"+ API Authorization \n" +
-					"    + Authorization header is <b>required</b>. \n" +
-					"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
-				TermsOfService: "http://www.cisco.com",
-				Contact: &spec.ContactInfo{
-					Name:  "Cisco Systems Inc.",
-					URL:   "http://www.cisco.com",
-					Email: "somecontact@cisco.com",
-				},
-				License: &spec.License{
-					Name: "Apache License Version 2.0",
-					URL:  "http://www.apache.org/licenses/LICENSE-2.0.html",
-				},
-				Version: appInfo.Version,
-			},
-		},
+		appInfo: appInfo,
 	})
 	return nil
 }

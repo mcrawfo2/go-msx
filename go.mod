@@ -21,7 +21,7 @@ require (
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
-	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
+	github.com/go-openapi/spec v0.20.3
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
@@ -54,7 +54,7 @@ require (
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.6.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
 
