@@ -71,6 +71,20 @@ func (p *ConnectionPool) WithSqlConnection(ctx context.Context, action SqlAction
 	})
 }
 
+func (p *ConnectionPool) NewSqlConnection() (*sql.DB, error) {
+	driverName, err := observerDriverName(p.cfg.Driver)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open(driverName, p.cfg.DataSourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func observerDriverName(driverName string) (string, error) {
 	if strings.HasPrefix(driverName, "observer-") {
 		return driverName, nil
@@ -146,6 +160,10 @@ func CreateDatabaseForPool(ctx context.Context) error {
 	}
 
 	return err
+}
+
+func Pool() *ConnectionPool {
+	return pool
 }
 
 func ConfigurePool(ctx context.Context) error {

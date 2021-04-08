@@ -5,13 +5,11 @@ go 1.14
 require (
 	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
 	github.com/AlecAivazis/survey/v2 v2.0.5
-	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
-	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0
+	github.com/ThreeDotsLabs/watermill-sql v1.3.4
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/axw/gocov v1.0.0 // indirect
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dave/jennifer v1.4.1
@@ -33,8 +31,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/lib/pq v1.2.0
+	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/otiai10/copy v1.0.2
@@ -55,11 +52,9 @@ require (
 	github.com/tidwall/gjson v1.6.4
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
-	github.com/yosuke-furukawa/json5 v0.1.1
-	go.uber.org/atomic v1.4.0
+	go.uber.org/atomic v1.6.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
 
