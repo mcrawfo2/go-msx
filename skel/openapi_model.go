@@ -422,7 +422,7 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 	case "object":
 		switch schemaRef.Value.Format {
 		case "json":
-			return NewFrameworkType(schemaRef, pkgJson, "api", "RawMessage", required), nil
+			return NewFrameworkType(schemaRef, pkgJson, "json", "RawMessage", required), nil
 		default:
 			return NewDictType(schemaRef, required), nil
 		}
