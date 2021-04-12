@@ -17,7 +17,7 @@ type causer interface {
 }
 
 type BackTraceFrame struct {
-	pc         uintptr
+	pc         uintptr `json:"-"`
 	Method     string `json:"methodName"`
 	FullMethod string `json:"fullMethodName"`
 	FullFile   string `json:"fullFileName"`
