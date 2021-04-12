@@ -65,6 +65,13 @@ func (t Time) ToTimeTime() time.Time {
 	return time.Time(t)
 }
 
+func (t Time) SwaggerSchemaJson() string {
+	return `{
+		"type": "string",
+		"format": "date-time"
+	}`
+}
+
 func NewTime(t time.Time) Time {
 	return Time(t)
 }
