@@ -84,6 +84,21 @@ func (_m *CrudRepositoryApi) FindAllBy(ctx context.Context, where map[string]int
 	return r0
 }
 
+// FindDistinctBy provides a mock function with given fields: ctx, distinct, where, dest
+func (_m *CrudRepositoryApi) FindDistinctBy(ctx context.Context, distinct []string ,where map[string]interface{}, dest interface{}) error {
+	ret := _m.Called(ctx, distinct, where, dest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, map[string]interface{}, interface{}) error); ok {
+		r0 = rf(ctx, distinct, where, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+
 // FindAllPagedBy provides a mock function with given fields: ctx, where, preq, dest
 func (_m *CrudRepositoryApi) FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (paging.Response, error) {
 	ret := _m.Called(ctx, where, preq, dest)
