@@ -23,6 +23,7 @@ const (
 	PermissionManageMetadata        = "MANAGE_METADATA"
 	PermissionViewScheduledTask     = "VIEW_SCHEDULE_TASK"
 	PermissionManageScheduledTask   = "MANAGE_SCHEDULE_TASK"
+	PermissionViewBulkImport        = "VIEW_BULK_IMPORT"
 	PermissionManageBulkImport      = "MANAGE_BULK_IMPORT"
 	PermissionViewAlertService      = "VIEW_ALERT_SERVICE"
 	PermissionManageAlertService    = "MANAGE_ALERT_SERVICE"
