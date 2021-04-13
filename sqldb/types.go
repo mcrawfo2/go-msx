@@ -7,6 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrDataInvalid = errors.New("invalid data")
+var errNotByteArray = errors.Wrap(ErrDataInvalid, "expecting []byte")
+
 type MapStrStr map[string]string
 
 // Make the Attrs struct implement the driver.Valuer interface. This method
@@ -20,7 +23,7 @@ func (a MapStrStr) Value() (driver.Value, error) {
 func (a *MapStrStr) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
-		return errors.New("type assertion to []byte failed")
+		return errNotByteArray
 	}
 
 	return json.Unmarshal(b, &a)
@@ -40,7 +43,7 @@ func (b Bytes) Value() (driver.Value, error) {
 func (b *Bytes) Scan(value interface{}) error {
 	data, ok := value.([]byte)
 	if !ok {
-		return errors.New("type assertion to []byte failed")
+		return errNotByteArray
 	}
 
 	if data[0] != 'x' || data[1] != '\'' || data[len(data)-1] != '\'' {
