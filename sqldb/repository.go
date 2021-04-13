@@ -35,7 +35,7 @@ type CrudRepositoryApi interface {
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
-	FindDistinctBy(ctx context.Context,distinct []string, where map[string]interface{}, dest interface{}) (err error)
+	FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error)
 	//FindAllDataSet(ctx context.Context, ds *goqu.SelectDataset, where map[string]interface{}, dest interface{}) (err error)
 	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
@@ -161,7 +161,7 @@ func (c *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 	})
 }
 
-func (c *CrudRepository) FindDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
+func (c *CrudRepository) FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err

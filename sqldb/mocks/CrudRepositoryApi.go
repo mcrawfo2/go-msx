@@ -85,7 +85,7 @@ func (_m *CrudRepositoryApi) FindAllBy(ctx context.Context, where map[string]int
 }
 
 // FindDistinctBy provides a mock function with given fields: ctx, distinct, where, dest
-func (_m *CrudRepositoryApi) FindDistinctBy(ctx context.Context, distinct []string ,where map[string]interface{}, dest interface{}) error {
+func (_m *CrudRepositoryApi) FindAllDistinctBy(ctx context.Context, distinct []string ,where map[string]interface{}, dest interface{}) error {
 	ret := _m.Called(ctx, distinct, where, dest)
 
 	var r0 error
