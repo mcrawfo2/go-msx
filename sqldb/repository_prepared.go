@@ -2,93 +2,76 @@ package sqldb
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
-	"database/sql"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 	"strings"
 )
 
-var logger = log.NewLogger("msx.sql")
-var ErrNotFound = sql.ErrNoRows
-var ErrNotImplemented = errors.New("Feature not implemented")
-
-type CrudRepositoryApi interface {
-	CountAll(ctx context.Context, dest *int64) error
-	CountAllBy(ctx context.Context, where map[string]interface{}, dest *int64) error
-	FindAll(ctx context.Context, dest interface{}) (err error)
-	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
-	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
-	FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error)
-	FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error)
-	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
-	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
-	FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
-	Insert(ctx context.Context, value interface{}) (err error)
-	Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error)
-	Save(ctx context.Context, value interface{}) (err error)
-	SaveAll(ctx context.Context, values []interface{}) (err error)
-	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
-	Truncate(ctx context.Context) error
-}
-
-// Deprecated.  Use CrudPreparedRepository instead.
-type CrudRepository struct {
+type CrudPreparedRepository struct {
 	tableName string
 }
 
-func (c *CrudRepository) CountAll(ctx context.Context, dest *int64) error {
+func (c *CrudPreparedRepository) Rebind(conn *sqlx.DB, stmt string) string {
+	driver := conn.DriverName()
+	baseDriver := baseDriverName(driver)
+	bindType := sqlx.BindType(baseDriver)
+	return sqlx.Rebind(bindType, stmt)
+}
+
+func (c *CrudPreparedRepository) CountAll(ctx context.Context, dest *int64) error {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) CountAllBy(ctx context.Context, where map[string]interface{}, dest *int64) error {
+func (c *CrudPreparedRepository) CountAllBy(ctx context.Context, where map[string]interface{}, dest *int64) error {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Where(goqu.Ex(where)).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) dialect(conn *sqlx.DB) goqu.DialectWrapper {
+func (c *CrudPreparedRepository) dialect(conn *sqlx.DB) goqu.DialectWrapper {
 	return goqu.Dialect(conn.DriverName())
 }
 
-func (c *CrudRepository) FindAll(ctx context.Context, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindAll(ctx context.Context, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]interface{}, pagingRequest paging.Request, dest interface{}) (pagingResponse paging.Response, err error) {
+func (c *CrudPreparedRepository) FindAllPagedBy(ctx context.Context, where map[string]interface{}, pagingRequest paging.Request, dest interface{}) (pagingResponse paging.Response, err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return pagingResponse, err
@@ -111,11 +94,12 @@ func (c *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 			}
 		}
 
-		stmt, args, err := selectDataSet.ToSQL()
+		stmt, args, err := selectDataSet.Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
 
+		stmt = c.Rebind(conn, stmt)
 		err = conn.SelectContext(ctx, dest, stmt, args...)
 		if err != nil {
 			return err
@@ -133,52 +117,55 @@ func (c *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 	return pagingResponse, err
 }
 
-func (c *CrudRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Where(goqu.Ex(where)).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Distinct(distinct).Where(goqu.Ex(where)).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Distinct(distinct).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
@@ -189,26 +176,28 @@ func (c *CrudRepository) FindAllSortedBy(ctx context.Context, where map[string]i
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).From(c.tableName).Where(goqu.Ex(where)).ToSQL()
+		stmt, args, err := c.dialect(conn).From(c.tableName).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
+func (c *CrudPreparedRepository) FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
@@ -219,12 +208,12 @@ func (c *CrudRepository) FindOneSortedBy(ctx context.Context, where map[string]i
 		if err != nil {
 			return err
 		}
-
+		stmt = c.Rebind(conn, stmt)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
 
-func (c *CrudRepository) constructSortedQueryWithArgs(conn *sqlx.DB, where map[string]interface{}, sortOrder paging.SortOrder) (sql string, args []interface{}, err error) {
+func (c *CrudPreparedRepository) constructSortedQueryWithArgs(conn *sqlx.DB, where map[string]interface{}, sortOrder paging.SortOrder) (sql string, args []interface{}, err error) {
 	selectDataSet := c.dialect(conn).
 		From(c.tableName).
 		Where(goqu.Ex(where))
@@ -237,68 +226,46 @@ func (c *CrudRepository) constructSortedQueryWithArgs(conn *sqlx.DB, where map[s
 		selectDataSet = selectDataSet.OrderAppend(ident.Asc())
 	}
 
-	sql, args, err = selectDataSet.ToSQL()
+	sql, args, err = selectDataSet.Prepared(true).ToSQL()
 
 	return
 }
 
-func (c *CrudRepository) Insert(ctx context.Context, value interface{}) (err error) {
+func (c *CrudPreparedRepository) Insert(ctx context.Context, value interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).ToSQL()
+		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
 }
 
-func (c *CrudRepository) Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error) {
+func (c *CrudPreparedRepository) Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Update(c.tableName).Where(goqu.Ex(where)).Set(value).ToSQL()
+		stmt, args, err := c.dialect(conn).Update(c.tableName).Where(goqu.Ex(where)).Set(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
 }
 
-func (c *CrudRepository) Save(ctx context.Context, value interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Cockroach only for now
-	if pool.Config().Driver != "postgres" {
-		return ErrNotImplemented
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).ToSQL()
-		if err != nil {
-			return err
-		}
-
-		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
-
-		_, err = conn.ExecContext(ctx, stmt, args...)
-		return err
-	})
-}
-
-func (c *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err error) {
+func (c *CrudPreparedRepository) Save(ctx context.Context, value interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
@@ -310,53 +277,78 @@ func (c *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(values...).ToSQL()
+		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
 
 		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
-
+		stmt = c.Rebind(conn, stmt)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
 }
 
-func (c *CrudRepository) DeleteBy(ctx context.Context, where map[string]interface{}) (err error) {
+func (c *CrudPreparedRepository) SaveAll(ctx context.Context, values []interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Cockroach only for now
+	if pool.Config().Driver != "postgres" {
+		return ErrNotImplemented
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(values...).Prepared(true).ToSQL()
+		if err != nil {
+			return err
+		}
+
+		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
+		stmt = c.Rebind(conn, stmt)
+		_, err = conn.ExecContext(ctx, stmt, args...)
+		return err
+	})
+}
+
+func (c *CrudPreparedRepository) DeleteBy(ctx context.Context, where map[string]interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Delete(c.tableName).Where(goqu.Ex(where)).ToSQL()
+		stmt, args, err := c.dialect(conn).Delete(c.tableName).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
 }
 
-func (c *CrudRepository) Truncate(ctx context.Context) (err error) {
+func (c *CrudPreparedRepository) Truncate(ctx context.Context) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
-		stmt, args, err := c.dialect(conn).Truncate(c.tableName).ToSQL()
+		stmt, args, err := c.dialect(conn).Truncate(c.tableName).Prepared(true).ToSQL()
 		if err != nil {
 			return err
 		}
+		stmt = c.Rebind(conn, stmt)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
 }
 
-// Deprecated.  Use newCrudPreparedRepository instead.
-func newCrudRepository(tableName string) CrudRepositoryApi {
-	return &CrudRepository{
+func newCrudPreparedRepository(tableName string) CrudRepositoryApi {
+	return &CrudPreparedRepository{
 		tableName: tableName,
 	}
 }
