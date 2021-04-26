@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"runtime/debug"
 	"strconv"
 	"testing"
 )
@@ -272,4 +273,68 @@ func TestBackTrace_Stanza(t *testing.T) {
 		stanza := BackTraceFromError(testError1()).Stanza()
 		fmt.Println(stanza)
 	})
+}
+
+func TestBackTraceErrorFromDebugStackTrace(t *testing.T) {
+	type args struct {
+		stackTraceBytes []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want BackTraceError
+	}{
+		{
+			name: "Standard",
+			args: args{
+				stackTraceBytes: []byte(`goroutine 19 [running]:
+runtime/debug.Stack(0x0, 0xc000036500, 0x37e)
+	/usr/local/go/src/runtime/debug/stack.go:24 +0x9d
+runtime/debug.PrintStack()
+	/usr/local/go/src/runtime/debug/stack.go:16 +0x22
+cto-github.cisco.com/NFV-BU/go-msx/types.TestPanic.func1()
+	/Users/mcrawfo2/vms-3.1/go-msx/types/backtrace_test.go:314 +0x42
+panic(0x12f1920, 0x13d1c30)
+	/usr/local/go/src/runtime/panic.go:967 +0x15d
+cto-github.cisco.com/NFV-BU/go-msx/types.TestPanic(0xc0000d47e0)
+	/Users/mcrawfo2/vms-3.1/go-msx/types/backtrace_test.go:317 +0x5b
+testing.tRunner(0xc0000d47e0, 0x137ec48)
+	/usr/local/go/src/testing/testing.go:992 +0xdc
+created by testing.(*T).Run
+	/usr/local/go/src/testing/testing.go:1043 +0x357`),
+			},
+			want: BackTraceError{
+				Message: "panic",
+				Frames: []BackTraceFrame{
+					{
+						Method:     "TestPanic",
+						FullMethod: "cto-github.cisco.com/NFV-BU/go-msx/types.TestPanic",
+						File:       "backtrace_test.go",
+					},
+					{
+						Method:     "tRunner",
+						FullMethod: "testing.tRunner",
+						File:       "testing.go",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := BackTraceErrorFromDebugStackTrace(tt.args.stackTraceBytes); !tt.want.Equal(got) {
+				t.Errorf("BackTraceErrorFromDebugStackTrace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func GeneratePanicBacktrace(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			debug.PrintStack()
+		}
+	}()
+	panic("implement me")
 }

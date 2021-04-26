@@ -18,11 +18,11 @@ type causer interface {
 
 type BackTraceFrame struct {
 	pc         uintptr `json:"-"`
-	Method     string `json:"methodName"`
-	FullMethod string `json:"fullMethodName"`
-	FullFile   string `json:"fullFileName"`
-	File       string `json:"fileName"`
-	Line       int    `json:"lineNumber"`
+	Method     string  `json:"methodName"`
+	FullMethod string  `json:"fullMethodName"`
+	FullFile   string  `json:"fullFileName"`
+	File       string  `json:"fileName"`
+	Line       int     `json:"lineNumber"`
 }
 
 func (b BackTraceFrame) Equals(other BackTraceFrame) bool {
@@ -131,6 +131,94 @@ func BackTraceErrorFromError(err error) BackTraceError {
 	return BackTraceError{
 		Message: message,
 		Frames:  frames,
+	}
+}
+
+func BackTraceErrorFromDebugStackTrace(stackTraceBytes []byte) BackTraceError {
+	var frames []BackTraceFrame
+	var frame BackTraceFrame
+	var state = 0
+	var stackTrace = string(stackTraceBytes)
+
+	for _, line := range strings.Split(stackTrace, "\n") {
+		switch state {
+		case 0:
+			state = 1
+			if strings.HasPrefix(line, "goroutine") {
+				continue
+			}
+			fallthrough
+		case 1:
+			if strings.HasPrefix(line, "created by") {
+				// eat last two lines
+				state = 3
+				continue
+			}
+
+			paramsOffset := strings.LastIndex(line, "(")
+
+			// Long function name
+			fullMethod := line
+			if paramsOffset > 0 {
+				fullMethod = line[:paramsOffset]
+			}
+
+			// Short function name
+			i := strings.LastIndex(fullMethod, "/")
+			method := fullMethod[i+1:]
+			i = strings.Index(method, ".")
+			method = method[i+1:]
+
+			frame = BackTraceFrame{
+				Method:     method,
+				FullMethod: fullMethod,
+			}
+			state = 2
+		case 2:
+			pcOffset := strings.LastIndex(line, " ")
+			if pcOffset < 0 {
+				pcOffset = len(line)
+			}
+
+			fullFileLine := strings.TrimSpace(line[:pcOffset])
+			lineOffset := strings.LastIndex(fullFileLine, ":")
+
+			fullFile := fullFileLine
+			if lineOffset >= 0 {
+				frame.Line, _ = strconv.Atoi(fullFileLine[lineOffset+1:])
+				fullFile = fullFileLine[:lineOffset]
+			}
+
+			// Long file name
+			frame.FullFile = fullFile
+
+			// Short file name
+			i := strings.LastIndex(fullFile, "/")
+			frame.File = fullFile[i+1:]
+
+			frames = append(frames, frame)
+			state = 1
+		case 3:
+			state = 1
+		}
+	}
+
+	for n, f := range frames {
+		if f.FullMethod == "panic" {
+			frames = frames[n+1:]
+			break
+		}
+	}
+
+	return BackTraceError{
+		Message: "panic",
+		Frames:  frames,
+	}
+}
+
+func BackTraceFromDebugStackTrace(stackTrace []byte) BackTrace {
+	return BackTrace{
+		BackTraceErrorFromDebugStackTrace(stackTrace),
 	}
 }
 
