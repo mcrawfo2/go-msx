@@ -6,10 +6,14 @@ import (
 )
 
 type CrudRepositoryFactory struct {
-	Repository *CrudRepositoryApi
+	Repository         *CrudRepositoryApi
 }
 
-func (c CrudRepositoryFactory) NewCrudRepository(tableName string) sqldb.CrudRepositoryApi {
+func (c CrudRepositoryFactory) NewCrudRepository(_ string) sqldb.CrudRepositoryApi {
+	return c.Repository
+}
+
+func (c CrudRepositoryFactory) NewCrudPreparedRepository(_ string) sqldb.CrudRepositoryApi {
 	return c.Repository
 }
 

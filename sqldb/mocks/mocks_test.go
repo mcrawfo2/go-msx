@@ -7,4 +7,5 @@ import (
 
 func TestImplementations(t *testing.T) {
 	var _ sqldb.CrudRepositoryApi = &CrudRepositoryApi{}
+	var _ sqldb.CrudRepositoryFactoryApi = &CrudRepositoryFactory{}
 }
