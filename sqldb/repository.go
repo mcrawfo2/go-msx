@@ -35,8 +35,8 @@ type CrudRepositoryApi interface {
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
+	FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error)
 	FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error)
-	//FindAllDataSet(ctx context.Context, ds *goqu.SelectDataset, where map[string]interface{}, dest interface{}) (err error)
 	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
@@ -154,6 +154,21 @@ func (c *CrudRepository) FindAllBy(ctx context.Context, where map[string]interfa
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
 		stmt, args, err := c.dialect(conn).From(c.tableName).Where(goqu.Ex(where)).ToSQL()
+		if err != nil {
+			return err
+		}
+		return conn.SelectContext(ctx, dest, stmt, args...)
+	})
+}
+
+func (c *CrudRepository) FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).ToSQL()
 		if err != nil {
 			return err
 		}
