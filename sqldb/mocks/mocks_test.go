@@ -1,5 +1,3 @@
-//go:generate mockery --name CrudRepositoryApi
-
 package mocks
 
 import (
