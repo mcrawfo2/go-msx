@@ -34,6 +34,7 @@ type CrudRepositoryApi interface {
 	Truncate(ctx context.Context) error
 }
 
+// Deprecated.  Use CrudPreparedRepository instead.
 type CrudRepository struct {
 	tableName string
 }
@@ -353,6 +354,7 @@ func (c *CrudRepository) Truncate(ctx context.Context) (err error) {
 	})
 }
 
+// Deprecated.  Use newCrudPreparedRepository instead.
 func newCrudRepository(tableName string) CrudRepositoryApi {
 	return &CrudRepository{
 		tableName: tableName,
