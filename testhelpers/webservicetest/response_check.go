@@ -7,7 +7,10 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"strings"
+	"testing"
 )
+
+type ResponseVerifier func(t *testing.T, resp *httptest.ResponseRecorder)
 
 type ResponseCheck struct {
 	Validators []ResponsePredicate

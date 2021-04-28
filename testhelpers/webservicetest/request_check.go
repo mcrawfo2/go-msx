@@ -48,3 +48,12 @@ func RequestHasAttribute(name string, value interface{}) RequestPredicate {
 		},
 	}
 }
+
+func RequestHasPathParameter(name string, value interface{}) RequestPredicate {
+	return RequestPredicate{
+		Description: fmt.Sprintf("request.Attribute(%q) == %v", name, value),
+		Matches: func(request *restful.Request) bool {
+			return request.PathParameter(name) == value
+		},
+	}
+}
