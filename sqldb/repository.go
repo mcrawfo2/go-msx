@@ -155,6 +155,9 @@ func (c *CrudRepository) FindAllByExpression(ctx context.Context, where goqu.Exp
 	}
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
 		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).ToSQL()
 		if err != nil {
 			return err
