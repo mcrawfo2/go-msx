@@ -60,5 +60,5 @@ require (
 
 replace (
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
-	github.com/dave/jennifer v1.4.1 => cto-github.cisco.com/mcrawfo2/jennifer v1.4.1
+	github.com/dave/jennifer => github.com/mcrawfo2/jennifer v1.4.2
 )
