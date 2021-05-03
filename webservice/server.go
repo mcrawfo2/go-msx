@@ -165,6 +165,7 @@ func (s *WebServer) generateContainer() *restful.Container {
 	s.container.Filter(securityContextFilter)
 	s.container.Filter(authenticationFilter)
 	s.container.Filter(auditContextFilter)
+	s.container.Filter(filterFilter)
 
 	// Add all web services
 	for _, svc := range s.services {
@@ -264,7 +265,7 @@ func (s *WebServer) activateActuator(provider ServiceProvider) {
 
 // Serve starts a web server in the background.
 func (s *WebServer) Serve(ctx context.Context) error {
-	s.ctx = trace.UntracedContextFromContext(ctx)
+	s.SetContext(ctx)
 
 	s.server = &http.Server{
 		Addr:     s.cfg.Address(),
@@ -319,6 +320,11 @@ func (s *WebServer) StopServing(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.server.Shutdown(ctx)
+}
+
+// SetContext allows context specification for tests
+func (s *WebServer) SetContext(ctx context.Context) {
+	s.ctx = trace.UntracedContextFromContext(ctx)
 }
 
 func requestContextInjectorFilter(ctx context.Context, container *restful.Container, router restful.RouteSelector, security AuthenticationProvider, injectors types.ContextInjectors) restful.FilterFunction {

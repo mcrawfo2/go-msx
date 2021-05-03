@@ -110,6 +110,14 @@ func NewUUID() (UUID, error) {
 	return uuid.GenerateRandomBytes(16)
 }
 
+func MustNewUUID() UUID {
+	result, err := NewUUID()
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
 func (u UUID) Validate() error {
 	return validation.Validate([]byte(u), validation.Length(16, 16))
 }

@@ -62,6 +62,14 @@ func StandardAccept(b *restful.RouteBuilder) {
 	b.Do(AcceptReturns, ProducesJson, ConsumesJson)
 }
 
+func StandardNoContent(b *restful.RouteBuilder) {
+	b.Do(NoContentReturns, ProducesJson, ConsumesJson)
+}
+
+func NoBodyNoContent(b *restful.RouteBuilder) {
+	b.Do(NoContentReturns, ProducesJson, ConsumesAny)
+}
+
 func ResponseTypeName(t reflect.Type) (string, bool) {
 	typeName := types.GetTypeName(t, true)
 	return typeName, typeName != ""
@@ -150,6 +158,10 @@ func ConsumesJson(b *restful.RouteBuilder) {
 	b.Consumes(MIME_JSON)
 }
 
+func ConsumesAny(b *restful.RouteBuilder) {
+	b.Consumes("*/*")
+}
+
 func ProducesTextPlain(b *restful.RouteBuilder) {
 	b.Produces(MIME_TEXT_PLAIN)
 }
@@ -186,6 +198,14 @@ func securityContextFilter(req *restful.Request, resp *restful.Response, chain *
 		req.Request = req.Request.WithContext(ctx)
 	}
 
+	chain.ProcessFilter(req, resp)
+}
+
+func filterFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	filters := FiltersFromContext(req.Request.Context())
+	if filters != nil {
+		chain.Filters = append(chain.Filters, filters...)
+	}
 	chain.ProcessFilter(req, resp)
 }
 

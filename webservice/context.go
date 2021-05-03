@@ -19,6 +19,7 @@ const (
 	contextKeyRoute
 	contextKeyOperation
 	contextKeySecurityProvider
+	contextKeyFilters
 )
 
 func ContextWithWebServer(ctx context.Context) context.Context {
@@ -119,6 +120,20 @@ func AuthenticationProviderFromContext(ctx context.Context) AuthenticationProvid
 			return r
 		}
 		logger.WithContext(ctx).Errorf("Invalid security provider in context: %+v", v)
+	}
+	return nil
+}
+
+func ContextWithFilters(ctx context.Context, filters ...restful.FilterFunction) context.Context {
+	return context.WithValue(ctx, contextKeyFilters, filters)
+}
+
+func FiltersFromContext(ctx context.Context) []restful.FilterFunction {
+	if v := ctx.Value(contextKeyFilters); v != nil {
+		if r, ok := v.([]restful.FilterFunction); ok {
+			return r
+		}
+		logger.WithContext(ctx).Errorf("Invalid filters in context: %+v", v)
 	}
 	return nil
 }
