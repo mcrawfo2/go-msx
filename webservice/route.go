@@ -66,6 +66,10 @@ func StandardNoContent(b *restful.RouteBuilder) {
 	b.Do(NoContentReturns, ProducesJson, ConsumesJson)
 }
 
+func NoBodyNoContent(b *restful.RouteBuilder) {
+	b.Do(NoContentReturns, ProducesJson, ConsumesAny)
+}
+
 func ResponseTypeName(t reflect.Type) (string, bool) {
 	typeName := types.GetTypeName(t, true)
 	return typeName, typeName != ""
@@ -152,6 +156,10 @@ func ProducesJson(b *restful.RouteBuilder) {
 
 func ConsumesJson(b *restful.RouteBuilder) {
 	b.Consumes(MIME_JSON)
+}
+
+func ConsumesAny(b *restful.RouteBuilder) {
+	b.Consumes("*/*")
 }
 
 func ProducesTextPlain(b *restful.RouteBuilder) {
