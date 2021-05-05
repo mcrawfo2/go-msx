@@ -46,6 +46,11 @@ func (c *Config) Load(ctx context.Context) error {
 	return nil
 }
 
+// DeepCopy clones this object for tests.
+func (c *Config) DeepCopy() interface{} {
+	return c
+}
+
 func (c *Config) Watch(ctx context.Context) {
 	logger.WithContext(ctx).Info("Watching configuration for changes")
 

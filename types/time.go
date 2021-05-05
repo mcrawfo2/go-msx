@@ -72,6 +72,10 @@ func (t Time) SwaggerSchemaJson() string {
 	}`
 }
 
+func (t Time) DeepCopy() interface{} {
+	return t
+}
+
 func NewTime(t time.Time) Time {
 	return Time(t)
 }
