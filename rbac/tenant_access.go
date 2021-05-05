@@ -82,3 +82,29 @@ func NewTenantAccessForOptionalTenant(ctx context.Context, tenantId *types.UUID)
 		return NewTenantAccessForTenant(ctx, *tenantId)
 	}
 }
+
+func NewTenantAccessForTenantSlice(ctx context.Context, tenantIds []types.UUID) (result TenantAccess, err error) {
+	if accessAllTenants, err := HasAccessAllTenants(ctx); err != nil {
+		return TenantAccess{}, err
+	} else if accessAllTenants {
+		result.TenantIds = tenantIds[:]
+		return result, nil
+	}
+
+	userContextDetails, err := security.NewUserContextDetails(ctx)
+	if err != nil {
+		return TenantAccess{}, err
+	}
+
+	userTenantIds := make(types.UUIDSet)
+	userTenantIds.Add(userContextDetails.Tenants...)
+
+	for _, tenantId := range tenantIds {
+		if !userTenantIds.Contains(tenantId) {
+			return TenantAccess{}, ErrTenantDoesNotExist
+		}
+	}
+
+	result.TenantIds = tenantIds[:]
+	return result, err
+}

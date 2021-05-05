@@ -127,3 +127,18 @@ func (u UUID) ToByteArray() [16]byte {
 	copy(result[:], u[0:16])
 	return result
 }
+
+type UUIDSet map[[16]byte]struct{}
+
+func (s UUIDSet) Add(uuids ...UUID) {
+	for _, u := range uuids {
+		s[u.ToByteArray()] = struct{}{}
+	}
+}
+
+func (s UUIDSet) Contains(u UUID) bool {
+	_, ok := s[u.ToByteArray()]
+	return ok
+}
+
+type UUIDSlice []UUID
