@@ -2,6 +2,7 @@ package maintenanceprovider
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"encoding/json"
@@ -23,7 +24,7 @@ func (h MaintenanceProvider) updateMaintenance(req *restful.Request) (interface{
 	if err != nil {
 		return nil, err
 	}
-	err =  maintenanceUpdateReq.Validate()
+	err =  validate.Validate(&maintenanceUpdateReq)
 	if err != nil {
 		return nil, err
 	}
