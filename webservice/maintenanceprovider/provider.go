@@ -5,7 +5,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"encoding/json"
-	"errors"
 	"github.com/emicklei/go-restful"
 	"io/ioutil"
 )
@@ -24,9 +23,9 @@ func (h MaintenanceProvider) updateMaintenance(req *restful.Request) (interface{
 	if err != nil {
 		return nil, err
 	}
-	if maintenanceUpdateReq.Mode != "NORMAL" &&
-		maintenanceUpdateReq.Mode != "MAINTENANCE"  {
-		return nil, webservice.NewBadRequestError(errors.New("mode can be either NORMAL or MAINTENANCE"))
+	err =  maintenanceUpdateReq.Validate()
+	if err != nil {
+		return nil, err
 	}
 	resp := MaintenanceResponse{}
 	var maintenanceDetail []MaintenanceTask

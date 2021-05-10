@@ -3,6 +3,7 @@ package maintenanceprovider
 import (
 	"bytes"
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"github.com/emicklei/go-restful"
 	"io/ioutil"
@@ -215,7 +216,7 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "INVALID_REQUES",
+			name: "INVALID_REQUEST",
 			args: args{
 				req: mockInvalidRequestBody(),
 			},
@@ -228,8 +229,11 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 			h := MaintenanceProvider{}
 			got, err := h.updateMaintenance(tt.args.req)
 			if (err != nil) != tt.wantErr {
+				err := err.(types.ErrorMap)
+				if err["mode"] == nil {
+					return
+				}
 				t.Errorf("updateMaintenance() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("updateMaintenance() got = %v, want %v", got, tt.want)
