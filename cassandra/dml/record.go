@@ -2,6 +2,8 @@ package dml
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
+	"errors"
 	"github.com/gocql/gocql"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
@@ -11,7 +13,7 @@ type Record map[string]interface{}
 
 func (r Record) Columns() []string {
 	var result []string
-	for k, _ := range r {
+	for k := range r {
 		result = append(result, k)
 	}
 	return result
@@ -55,11 +57,30 @@ func ScanTable(ctx context.Context, session *gocql.Session, table string, column
 			return
 		}
 	}
-
 	return
 }
 
 func DeleteRecord(ctx context.Context, session *gocql.Session, table string, where ...qb.Cmp) error {
 	stmt, names := qb.Delete(table).Where(where...).ToCql()
 	return gocqlx.Query(session.Query(stmt), names).WithContext(ctx).ExecRelease()
+}
+
+func TableExists(ctx context.Context, session *gocql.Session, table string) (bool, error) {
+	if len(table) == 0 {
+		return false, errors.New("table name is empty")
+	}
+	cassandraPool, err := cassandra.PoolFromContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	schemas, err := session.KeyspaceMetadata(cassandraPool.ClusterConfig().KeyspaceName)
+	if err != nil {
+		return false, err
+	}
+	tables := schemas.Tables
+	if _, ok := tables[table]; !ok {
+		return false, nil
+	}
+
+	return true, nil
 }
