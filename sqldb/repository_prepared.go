@@ -152,6 +152,56 @@ func (c *CrudPreparedRepository) FindAllByExpression(ctx context.Context, where 
 	})
 }
 
+func (c *CrudPreparedRepository) FindAllPagedByExpression(ctx context.Context, where goqu.Expression, pagingRequest paging.Request, dest interface{}) (pagingResponse paging.Response, err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+
+		ds := c.dialect(conn).
+			From(c.tableName).
+			Where(where).
+			Limit(pagingRequest.Size).
+			Offset(pagingRequest.Page * pagingRequest.Size)
+
+		for _, sortOrder := range pagingRequest.Sort {
+			ident := goqu.I(sortOrder.Property)
+			switch sortOrder.Direction {
+			case paging.SortDirectionDesc:
+				ds = ds.OrderAppend(ident.Desc())
+			default:
+				ds = ds.OrderAppend(ident.Asc())
+			}
+		}
+
+		stmt, args, err := ds.Prepared(true).ToSQL()
+		if err != nil {
+			return err
+		}
+		stmt = c.Rebind(conn, stmt)
+		err = conn.SelectContext(ctx, dest, stmt, args...)
+		if err != nil {
+			return err
+		}
+
+		pagingResponse = paging.Response{
+			Content: dest,
+			Size:    pagingRequest.Size,
+			Number:  pagingRequest.Page,
+			Sort:    pagingRequest.Sort,
+		}
+
+		return nil
+	})
+
+	return
+}
+
 func (c *CrudPreparedRepository) FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
