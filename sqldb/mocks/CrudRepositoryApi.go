@@ -135,6 +135,27 @@ func (_m *CrudRepositoryApi) FindAllPagedBy(ctx context.Context, where map[strin
 	return r0, r1
 }
 
+// FindAllPagedByExpression provides a mock function with given fields: ctx, where, preq, dest
+func (_m *CrudRepositoryApi) FindAllPagedByExpression(ctx context.Context, where exp.Expression, preq paging.Request, dest interface{}) (paging.Response, error) {
+	ret := _m.Called(ctx, where, preq, dest)
+
+	var r0 paging.Response
+	if rf, ok := ret.Get(0).(func(context.Context, exp.Expression, paging.Request, interface{}) paging.Response); ok {
+		r0 = rf(ctx, where, preq, dest)
+	} else {
+		r0 = ret.Get(0).(paging.Response)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, exp.Expression, paging.Request, interface{}) error); ok {
+		r1 = rf(ctx, where, preq, dest)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindAllSortedBy provides a mock function with given fields: ctx, where, sortOrder, dest
 func (_m *CrudRepositoryApi) FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) error {
 	ret := _m.Called(ctx, where, sortOrder, dest)

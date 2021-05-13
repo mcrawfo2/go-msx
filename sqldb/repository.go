@@ -22,6 +22,7 @@ type CrudRepositoryApi interface {
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindAllByExpression(ctx context.Context, where goqu.Expression, dest interface{}) (err error)
+	FindAllPagedByExpression(ctx context.Context, where goqu.Expression, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error)
 	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
@@ -164,6 +165,57 @@ func (c *CrudRepository) FindAllByExpression(ctx context.Context, where goqu.Exp
 		}
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
+}
+
+func (c *CrudRepository) FindAllPagedByExpression(ctx context.Context, where goqu.Expression, pagingRequest paging.Request, dest interface{}) (pagingResponse paging.Response, err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+
+		ds := c.dialect(conn).
+			From(c.tableName).
+			Where(where).
+			Limit(pagingRequest.Size).
+			Offset(pagingRequest.Page * pagingRequest.Size)
+
+		for _, sortOrder := range pagingRequest.Sort {
+			ident := goqu.I(sortOrder.Property)
+			switch sortOrder.Direction {
+			case paging.SortDirectionDesc:
+				ds = ds.OrderAppend(ident.Desc())
+			default:
+				ds = ds.OrderAppend(ident.Asc())
+			}
+		}
+
+		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).ToSQL()
+		if err != nil {
+			return err
+		}
+
+		err = conn.SelectContext(ctx, dest, stmt, args...)
+		if err != nil {
+			return err
+		}
+
+		pagingResponse = paging.Response{
+			Content: dest,
+			Size:    pagingRequest.Size,
+			Number:  pagingRequest.Page,
+			Sort:    pagingRequest.Sort,
+		}
+
+		return nil
+
+	})
+
+	return
 }
 
 func (c *CrudRepository) FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error) {
