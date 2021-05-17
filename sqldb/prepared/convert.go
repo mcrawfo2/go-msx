@@ -61,3 +61,29 @@ func ToOptionalModelTime(v *types.Time) *time.Time {
 	return &r
 }
 
+func ToApiIp(i Ip) string {
+	return i.String()
+}
+
+func ToModelIp(ip string) Ip {
+	i, _ := NewIp(ip)
+	return i
+}
+
+func ToApiCidr(c Cidr) string {
+	return c.String()
+}
+
+func ToModelCidr(cidr string) Cidr {
+	c, _ := NewCidr(cidr)
+	return c
+}
+
+func ToApiIpPort(i IpPort) string {
+	return i.String()
+}
+
+func ToModelIpPort(ipPort string) IpPort {
+	i, _ := NewIpPort(ipPort)
+	return i
+}
