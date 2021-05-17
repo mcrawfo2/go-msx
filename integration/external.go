@@ -77,6 +77,13 @@ func normalizePathTemplate(path string) string {
 	return path
 }
 
+//go:generate mockery --inpackage --name=ExternalServiceApi --structname=MockExternalServiceApi --filename mock_external_service_api.go
+type ExternalServiceApi interface {
+	AddInterceptor(interceptor httpclient.RequestInterceptor)
+	Request(endpoint Endpoint, uriVariables map[string]string, queryVariables url.Values, headers http.Header, body []byte) (req *http.Request, err error)
+	Do(req *http.Request, responseBody interface{}) (*http.Response, []byte, error)
+}
+
 type ExternalService struct {
 	ctx          context.Context
 	baseUrl      string
