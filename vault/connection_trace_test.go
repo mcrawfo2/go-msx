@@ -645,3 +645,74 @@ func Test_traceConnection_TransitEncrypt(t *testing.T) {
 		})
 	}
 }
+
+func Test_traceConnection_GenerateRandomBytes(t *testing.T) {
+	type fields struct {
+		ConnectionApi ConnectionApi
+	}
+	type args struct {
+		ctx    context.Context
+		length int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []byte
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			fields: fields{
+				ConnectionApi: func() ConnectionApi {
+					mockConnection := new(MockConnection)
+					mockConnection.
+						On("GenerateRandomBytes",
+							mock.AnythingOfType("*context.valueCtx"),
+							3).
+						Return([]byte{1, 2, 3}, nil).
+						Once()
+					return mockConnection
+				}(),
+			},
+			args: args{
+				ctx:    context.Background(),
+				length: 3,
+			},
+			want: []byte{1,2,3},
+			wantErr: false,
+		},
+		{
+			name: "Error",
+			fields: fields{
+				ConnectionApi: func() ConnectionApi {
+					mockConnection := new(MockConnection)
+					mockConnection.
+						On("GenerateRandomBytes",
+							mock.AnythingOfType("*context.valueCtx"),
+							128).
+						Return(nil, errors.New("")).
+						Once()
+					return mockConnection
+				}(),
+			},
+			args: args{
+				ctx:    context.Background(),
+				length: 128,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := traceConnection{
+				ConnectionApi: tt.fields.ConnectionApi,
+			}
+			if got, err := s.GenerateRandomBytes(tt.args.ctx, tt.args.length); (err != nil) != tt.wantErr {
+				t.Errorf("StoreSecrets() error = %v, wantErr %v", err, tt.wantErr)
+			} else if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("StoreSecrets() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

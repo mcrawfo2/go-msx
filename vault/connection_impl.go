@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/hex"
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"io"
@@ -261,6 +262,25 @@ func (c connectionImpl) Health(ctx context.Context) (response *api.HealthRespons
 
 	response = &result
 	return
+}
+
+func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
+	body := map[string]interface{}{
+		"format": "hex",
+		"bytes": length,
+	}
+
+	secret, err := c.write(ctx, "/sys/tools/random", body)
+	if err != nil {
+		return nil, err
+	}
+
+	dataString := secret.Data["random_bytes"]
+	data, err = hex.DecodeString(dataString.(string))
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func newConnectionImpl(cfg *ConnectionConfig, client *api.Client) *connectionImpl {

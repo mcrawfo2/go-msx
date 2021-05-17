@@ -47,6 +47,29 @@ func (_m *MockConnection) CreateTransitKey(ctx context.Context, keyName string, 
 	return r0
 }
 
+// GenerateRandomBytes provides a mock function with given fields: ctx, length
+func (_m *MockConnection) GenerateRandomBytes(ctx context.Context, length int) ([]byte, error) {
+	ret := _m.Called(ctx, length)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(context.Context, int) []byte); ok {
+		r0 = rf(ctx, length)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, length)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Health provides a mock function with given fields: ctx
 func (_m *MockConnection) Health(ctx context.Context) (*api.HealthResponse, error) {
 	ret := _m.Called(ctx)
