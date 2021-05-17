@@ -66,6 +66,14 @@ func (s traceConnection) IssueCertificate(ctx context.Context, role string, requ
 	return
 }
 
+func (s traceConnection) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiGenerateRandomBytes, func(ctx context.Context) error {
+		data, err = s.ConnectionApi.GenerateRandomBytes(ctx, length)
+		return err
+	})
+	return
+}
+
 func (s traceConnection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiHealth, func(ctx context.Context) error {
 		response, err = s.ConnectionApi.Health(ctx)

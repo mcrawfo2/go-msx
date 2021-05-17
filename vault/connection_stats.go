@@ -14,14 +14,15 @@ const (
 	statsHistogramVaultCallTime = "call_time"
 	statsCounterVaultCallErrors = "call_errors"
 
-	statsApiListSecrets      = "listSecrets"
-	statsApiStoreSecrets     = "storeSecrets"
-	statsApiRemoveSecrets    = "removeSecrets"
-	statsApiHealth           = "health"
-	statsApiCreateTransitKey = "createTransitKey"
-	statsApiTransitEncrypt   = "transitEncrypt"
-	statsApiTransitDecrypt   = "transitDecrypt"
-	statsApiIssueCertificate = "issueCertificate"
+	statsApiListSecrets         = "listSecrets"
+	statsApiStoreSecrets        = "storeSecrets"
+	statsApiRemoveSecrets       = "removeSecrets"
+	statsApiHealth              = "health"
+	statsApiCreateTransitKey    = "createTransitKey"
+	statsApiTransitEncrypt      = "transitEncrypt"
+	statsApiTransitDecrypt      = "transitDecrypt"
+	statsApiIssueCertificate    = "issueCertificate"
+	statsApiGenerateRandomBytes = "generateRandomBytes"
 )
 
 var (
@@ -100,6 +101,14 @@ func (s statsConnection) TransitDecrypt(ctx context.Context, keyName string, cip
 func (s statsConnection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
 	err = s.Observe(statsApiIssueCertificate, role, func() error {
 		cert, err = s.ConnectionApi.IssueCertificate(ctx, role, request)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
+	err = s.Observe(statsApiGenerateRandomBytes, "", func() error {
+		data, err = s.ConnectionApi.GenerateRandomBytes(ctx, length)
 		return err
 	})
 	return

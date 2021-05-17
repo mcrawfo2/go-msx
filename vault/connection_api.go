@@ -19,6 +19,7 @@ type ConnectionApi interface {
 	Health(ctx context.Context) (response *api.HealthResponse, err error)
 	LoginWithKubernetes(ctx context.Context, jwt, role string) (token string, err error)
 	LoginWithAppRole(ctx context.Context, roleId, secretId string) (token string, err error)
+	GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error)
 
 	// Deprecated
 	Host() string
