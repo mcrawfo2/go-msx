@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/security/certdetailsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
@@ -180,7 +181,7 @@ func DefaultReturns(code int) RouteBuilderFunc {
 	}
 }
 
-func securityContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+func tokenUserContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
 	token, err := httprequest.ExtractToken(req.Request)
 	if err != nil && err != httprequest.ErrNotFound {
 		WriteError(req, resp, http.StatusUnauthorized, err)
@@ -195,6 +196,34 @@ func securityContextFilter(req *restful.Request, resp *restful.Response, chain *
 		}
 
 		ctx := security.ContextWithUserContext(req.Request.Context(), userContext)
+		req.Request = req.Request.WithContext(ctx)
+	}
+
+	chain.ProcessFilter(req, resp)
+}
+
+func certificateUserContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	cert, err := httprequest.ExtractCertificate(req.Request)
+	if err != nil && err != httprequest.ErrNotFound {
+		WriteError(req, resp, http.StatusUnauthorized, err)
+		return
+	}
+
+	if err == nil {
+		// Found a certificate
+		userContext, err := security.NewUserContextFromCertificate(req.Request.Context(), cert)
+		if err != nil {
+			WriteError(req, resp, http.StatusUnauthorized, err)
+			return
+		}
+
+		// Inject the derived UserContext
+		ctx := security.ContextWithUserContext(req.Request.Context(), userContext)
+
+		// Make sure we answer UserContextDetails queries from the certificate
+		ctx = security.ContextWithTokenDetailsProvider(ctx, new(certdetailsprovider.TokenDetailsProvider))
+
+		// Apply the updated context back to the request
 		req.Request = req.Request.WithContext(ctx)
 	}
 

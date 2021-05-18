@@ -10,6 +10,7 @@ import (
 
 const headerAuthorization = "Authorization"
 const headerValuePrefixBearer = "Bearer "
+const headerSslCert = "X-Ssl-Cert"
 
 var logger = log.NewLogger("msx.security.httprequest")
 var ErrNotFound = errors.New("Authorization not found in request")
@@ -40,4 +41,14 @@ func InjectToken(req *http.Request) {
 
 	authorizationHeaderValue := headerValuePrefixBearer + token
 	req.Header.Set(headerAuthorization, authorizationHeaderValue)
+}
+
+// ExtractCertificate returns the PEM-encoded x509 certificate from the request
+func ExtractCertificate(req *http.Request) (certificate string, err error) {
+	certificates := req.Header[headerSslCert]
+	if len(certificates) == 0 {
+		return "", ErrNotFound
+	}
+	// Reverse the nginx encoding
+	return strings.ReplaceAll(certificates[0], "\t", "\n"), nil
 }
