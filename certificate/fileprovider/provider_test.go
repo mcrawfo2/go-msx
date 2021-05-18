@@ -137,23 +137,26 @@ func TestNewProviderConfig(t *testing.T) {
 				configRoot: "certificate.source.bravo",
 			},
 			want: ProviderConfig{
-				CertFile: "server.crt",
-				KeyFile:  "server.key",
+				CertFile:   "server.crt",
+				KeyFile:    "server.key",
+				CaCertFile: "ca.crt",
 			},
 		},
 		{
 			name: "Custom",
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
-					"certificate.source.bravo.provider":  "file",
-					"certificate.source.bravo.cert-file": "custom.crt",
-					"certificate.source.bravo.key-file":  "custom.key",
+					"certificate.source.bravo.provider":     "file",
+					"certificate.source.bravo.cert-file":    "custom.crt",
+					"certificate.source.bravo.key-file":     "custom.key",
+					"certificate.source.bravo.ca-cert-file": "custom-ca.crt",
 				}),
 				configRoot: "certificate.source.bravo",
 			},
 			want: ProviderConfig{
-				CertFile: "custom.crt",
-				KeyFile:  "custom.key",
+				CertFile:   "custom.crt",
+				KeyFile:    "custom.key",
+				CaCertFile: "custom-ca.crt",
 			},
 		},
 	}
