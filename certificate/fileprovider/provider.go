@@ -3,10 +3,12 @@ package fileprovider
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/pkg/errors"
+	"io/ioutil"
 )
 
 var logger = log.NewLogger("msx.certificate.fileprovider")
@@ -15,6 +17,8 @@ type ProviderConfig struct {
 	// CertFile and KeyFile represent the full path to the TLS certificate and Key in pem format
 	CertFile string `config:"default=server.crt"`
 	KeyFile  string `config:"default=server.key"`
+	// CaCertFile is the full path to the x509 certificate in pem format
+	CaCertFile string `config:"default=ca.crt"`
 }
 
 // Provider implements the cert provider interface to return certs from a file
@@ -29,6 +33,15 @@ func (f Provider) GetCertificate(ctx context.Context) (*tls.Certificate, error) 
 	}
 
 	return &cert, nil
+}
+
+func (f Provider) GetCaCertificate(ctx context.Context) (*x509.Certificate, error) {
+	pemBytes, err := ioutil.ReadFile(f.cfg.CaCertFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return certificate.ParsePemCertificate(pemBytes)
 }
 
 func (f Provider) Renewable() bool {

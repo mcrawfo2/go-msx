@@ -5,6 +5,7 @@ package certificate
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/pkg/errors"
 )
@@ -13,6 +14,7 @@ var ErrNoSuchProvider = errors.New("No such provider registered")
 
 type Provider interface {
 	GetCertificate(ctx context.Context) (*tls.Certificate, error)
+	GetCaCertificate(ctx context.Context) (*x509.Certificate, error)
 	Renewable() bool
 }
 
