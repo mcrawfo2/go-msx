@@ -312,11 +312,14 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 
 	// Nil Pointers
 	fieldType := fieldValue.Type()
-	if fieldValue.IsNil() {
-		if fieldValue.Kind() == reflect.Ptr {
-			fieldValue.Set(reflect.New(fieldType.Elem()))
-		} else {
-			fieldValue.Set(reflect.New(fieldType).Elem())
+	switch fieldValue.Kind() {
+	case reflect.Map, reflect.Ptr, reflect.Slice, reflect.Interface:
+		if fieldValue.IsNil() {
+			if fieldValue.Kind() == reflect.Ptr {
+				fieldValue.Set(reflect.New(fieldType.Elem()))
+			} else {
+				fieldValue.Set(reflect.New(fieldType).Elem())
+			}
 		}
 	}
 
