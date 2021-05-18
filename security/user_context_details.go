@@ -1,6 +1,8 @@
 package security
 
-import "cto-github.cisco.com/NFV-BU/go-msx/types"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
 
 type UserContextDetails struct {
 	Active       bool         `json:"active"`
@@ -35,4 +37,24 @@ func (u UserContextDetails) HasTenantId(tenantId types.UUID) bool {
 		}
 	}
 	return false
+}
+
+func NewUserContextDetailsFromUserContext(userContext *UserContext) *UserContextDetails {
+	return &UserContextDetails{
+		Active:       true,
+		Issuer:       &userContext.Issuer,
+		Subject:      &userContext.Subject,
+		Expires:      &userContext.Exp,
+		IssuedAt:     &userContext.IssuedAt,
+		GivenName:    &userContext.FirstName,
+		FamilyName:   &userContext.LastName,
+		Email:        &userContext.Email,
+		Scopes:       userContext.Scopes,
+		Username:     &userContext.UserName,
+		UserId:       types.EmptyUUID(),
+		TenantId:     types.EmptyUUID(),
+		Tenants:      []types.UUID{},
+		Roles:        userContext.Roles,
+		Permissions:  []string{},
+	}
 }

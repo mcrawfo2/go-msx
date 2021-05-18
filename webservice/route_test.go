@@ -701,7 +701,7 @@ func Test_securityContextFilter(t *testing.T) {
 		{
 			name: "NoToken",
 			test: new(RouteBuilderTest).
-				WithRouteFilter(securityContextFilter).
+				WithRouteFilter(tokenUserContextFilter).
 				WithRouteTargetReturn(http.StatusOK).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK)).
 				WithContextPredicate(contexttest.ContextHasNamedUserContext("anonymous")),
@@ -709,7 +709,7 @@ func Test_securityContextFilter(t *testing.T) {
 		{
 			name: "MalformedHeader",
 			test: new(RouteBuilderTest).
-				WithRouteFilter(securityContextFilter).
+				WithRouteFilter(tokenUserContextFilter).
 				WithRequestHeader("Authorization", "malformed").
 				WithRouteTargetReturn(http.StatusOK).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusUnauthorized)),
@@ -717,7 +717,7 @@ func Test_securityContextFilter(t *testing.T) {
 		{
 			name: "BearerToken",
 			test: new(RouteBuilderTest).
-				WithRouteFilter(securityContextFilter).
+				WithRouteFilter(tokenUserContextFilter).
 				WithRouteBuilderDo(func(_ *restful.RouteBuilder) {
 					mockTokenProvider := new(security.MockTokenProvider)
 					mockTokenProvider.
@@ -737,7 +737,7 @@ func Test_securityContextFilter(t *testing.T) {
 		{
 			name: "BadBearerToken",
 			test: new(RouteBuilderTest).
-				WithRouteFilter(securityContextFilter).
+				WithRouteFilter(tokenUserContextFilter).
 				WithRouteBuilderDo(func(_ *restful.RouteBuilder) {
 					mockTokenProvider := new(security.MockTokenProvider)
 					mockTokenProvider.

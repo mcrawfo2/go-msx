@@ -162,7 +162,8 @@ func (s *WebServer) generateContainer() *restful.Container {
 	if s.cfg.Cors {
 		ActivateCors(s.container)
 	}
-	s.container.Filter(securityContextFilter)
+	s.container.Filter(tokenUserContextFilter)
+	s.container.Filter(certificateUserContextFilter)
 	s.container.Filter(authenticationFilter)
 	s.container.Filter(auditContextFilter)
 	s.container.Filter(filterFilter)

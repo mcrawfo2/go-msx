@@ -3,11 +3,14 @@ package vault
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/pem"
 	"github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"io"
+	"io/ioutil"
 )
 
 type connectionImpl struct {
@@ -92,6 +95,20 @@ func (c connectionImpl) read(ctx context.Context, path string) (*api.Secret, err
 	}
 
 	return api.ParseSecret(resp.Body)
+}
+
+func (c connectionImpl) readRaw(ctx context.Context, path string) ([]byte, error) {
+	r := c.client.NewRequest("GET", "/v1/"+path)
+
+	resp, err := c.client.RawRequestWithContext(ctx, r)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 func (c connectionImpl) StoreSecrets(ctx context.Context, path string, secrets map[string]string) (err error) {
@@ -234,6 +251,7 @@ func (c connectionImpl) IssueCertificate(ctx context.Context, role string, reque
 	return
 }
 
+// Health returns a health check of the Vault server.
 // Copied from vault/api to allow custom context
 func (c connectionImpl) Health(ctx context.Context) (response *api.HealthResponse, err error) {
 	r := c.client.NewRequest("GET", "/v1/sys/health")
@@ -281,6 +299,21 @@ func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (da
 		return nil, err
 	}
 	return data, nil
+}
+
+func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
+	pemBytes, err := c.readRaw(ctx, "/pki/ca/pem")
+	if err !=  nil {
+		return nil, err
+	}
+
+	// Decode the first block (CA cert)
+	pemBlock, _ := pem.Decode(pemBytes)
+	if pemBlock == nil || pemBlock.Type != "CERTIFICATE" {
+		return nil, errors.Errorf("Could not decode certificate: found %q", pemBlock.Type)
+	}
+
+	return x509.ParseCertificate(pemBlock.Bytes)
 }
 
 func newConnectionImpl(cfg *ConnectionConfig, client *api.Client) *connectionImpl {

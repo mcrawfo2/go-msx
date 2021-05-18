@@ -3,6 +3,7 @@ package vault
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 	"github.com/hashicorp/vault/api"
 	"time"
@@ -23,6 +24,7 @@ const (
 	statsApiTransitDecrypt      = "transitDecrypt"
 	statsApiIssueCertificate    = "issueCertificate"
 	statsApiGenerateRandomBytes = "generateRandomBytes"
+	statsApiReadCaCertificate   = "readCaCertificate"
 )
 
 var (
@@ -109,6 +111,14 @@ func (s statsConnection) IssueCertificate(ctx context.Context, role string, requ
 func (s statsConnection) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
 	err = s.Observe(statsApiGenerateRandomBytes, "", func() error {
 		data, err = s.ConnectionApi.GenerateRandomBytes(ctx, length)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
+	err = s.Observe(statsApiReadCaCertificate, "", func() error {
+		cert, err = s.ConnectionApi.ReadCaCertificate(ctx)
 		return err
 	})
 	return

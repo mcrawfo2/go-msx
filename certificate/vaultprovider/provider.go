@@ -3,6 +3,7 @@ package vaultprovider
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
@@ -36,6 +37,10 @@ func (f Provider) GetCertificate(ctx context.Context) (*tls.Certificate, error) 
 	}
 
 	return vault.ConnectionFromContext(ctx).IssueCertificate(ctx, f.cfg.Role, request)
+}
+
+func (f Provider) GetCaCertificate(ctx context.Context) (*x509.Certificate, error) {
+	return vault.ConnectionFromContext(ctx).ReadCaCertificate(ctx)
 }
 
 func (f Provider) Renewable() bool {

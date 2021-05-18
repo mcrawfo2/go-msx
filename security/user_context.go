@@ -1,6 +1,9 @@
 package security
 
-import "cto-github.cisco.com/NFV-BU/go-msx/types"
+import (
+	"crypto/x509"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
 
 const contextDefaultUserName = "anonymous"
 
@@ -20,25 +23,27 @@ var (
 		Jti:         "",
 		Email:       "",
 		Token:       "",
+		Certificate: nil,
 	}
 )
 
 type UserContext struct {
-	UserName    string     `json:"user_name"`
-	Roles       []string   `json:"roles"`
-	TenantId    types.UUID `json:"tenant_id"`
-	Scopes      []string   `json:"scope"`
-	Authorities []string   `json:"authorities"`
-	FirstName   string     `json:"firstName"`
-	LastName    string     `json:"lastName"`
-	Issuer      string     `json:"iss"`
-	Subject     string     `json:"sub"`
-	Exp         int        `json:"exp"`
-	IssuedAt    int        `json:"iat"`
-	Jti         string     `json:"jti"`
-	Email       string     `json:"email"`
-	Token       string     `json:"-"`
-	ClientId    string     `json:"client_id"`
+	UserName    string            `json:"user_name"`
+	Roles       []string          `json:"roles"`
+	TenantId    types.UUID        `json:"tenant_id"`
+	Scopes      []string          `json:"scope"`
+	Authorities []string          `json:"authorities"`
+	FirstName   string            `json:"firstName"`
+	LastName    string            `json:"lastName"`
+	Issuer      string            `json:"iss"`
+	Subject     string            `json:"sub"`
+	Exp         int               `json:"exp"`
+	IssuedAt    int               `json:"iat"`
+	Jti         string            `json:"jti"`
+	Email       string            `json:"email"`
+	Token       string            `json:"-"`
+	Certificate *x509.Certificate `json:"-"`
+	ClientId    string            `json:"client_id"`
 }
 
 func (c *UserContext) Clone() *UserContext {
@@ -57,6 +62,7 @@ func (c *UserContext) Clone() *UserContext {
 		Jti:         c.Jti,
 		Email:       c.Email,
 		Token:       c.Token,
+		Certificate: c.Certificate,
 		ClientId:    c.ClientId,
 	}
 }
