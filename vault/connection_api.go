@@ -5,6 +5,7 @@ package vault
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"github.com/hashicorp/vault/api"
 )
 
@@ -20,6 +21,7 @@ type ConnectionApi interface {
 	LoginWithKubernetes(ctx context.Context, jwt, role string) (token string, err error)
 	LoginWithAppRole(ctx context.Context, roleId, secretId string) (token string, err error)
 	GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error)
+	ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error)
 
 	// Deprecated
 	Host() string

@@ -3,6 +3,7 @@ package vault
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/hashicorp/vault/api"
 )
@@ -77,6 +78,14 @@ func (s traceConnection) GenerateRandomBytes(ctx context.Context, length int) (d
 func (s traceConnection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiHealth, func(ctx context.Context) error {
 		response, err = s.ConnectionApi.Health(ctx)
+		return err
+	})
+	return
+}
+
+func (s traceConnection) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiReadCaCertificate, func(ctx context.Context) error {
+		cert, err = s.ConnectionApi.ReadCaCertificate(ctx)
 		return err
 	})
 	return
