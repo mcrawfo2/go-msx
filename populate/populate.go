@@ -23,6 +23,7 @@ func getRegisteredJobs() types.StringSet {
 	for _, task := range tasks {
 		jobSet.AddAll(task.During()...)
 	}
+	jobSet.Add("all")
 	return jobSet
 }
 
