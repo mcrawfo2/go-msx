@@ -11,8 +11,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/thejerf/abtime"
 	"reflect"
 	"testing"
+	"time"
 )
 
 // Allow the testing.T object to be injected via the context.Context
@@ -27,6 +29,7 @@ type RepositoryTest struct {
 		TokenDetails *securitytest.MockTokenDetailsProvider
 		Injectors    []types.ContextInjector
 	}
+	Clock              *abtime.ManualTime
 	HasErr             bool
 	Got                []interface{}
 	Want               []interface{}
@@ -70,6 +73,11 @@ func (r *RepositoryTest) WithAssertExpectations(assert bool) *RepositoryTest {
 
 func (r *RepositoryTest) WithRecording(rec *logtest.Recording) *RepositoryTest {
 	r.Recording = rec
+	return r
+}
+
+func (r *RepositoryTest) WithNow(t time.Time) *RepositoryTest {
+	r.Clock = abtime.NewManualAtTime(t)
 	return r
 }
 
@@ -139,15 +147,22 @@ func (r *RepositoryTest) checkWant() (results []error) {
 }
 
 func (r *RepositoryTest) checkWantErr() error {
-	if len(r.Got) == 0 {
-		return errors.Errorf("Wanted Error, No values returned")
-	} else if !r.HasErr {
-		return errors.Errorf("Wanted Error, Method not flagged as returning error")
-	} else if err, ok := r.Got[len(r.Got)-1].(error); ok && err == nil && r.WantErr {
-		return errors.Errorf("Wanted Error, No error returned")
-	} else if ok && !r.WantErr && err != nil {
-		return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
+	if r.WantErr {
+		if len(r.Got) == 0 {
+			return errors.Errorf("Wanted Error, No values returned")
+		} else if !r.HasErr {
+			return errors.Errorf("Wanted Error, Method not flagged as returning error")
+		} else if err, ok := r.Got[len(r.Got)-1].(error); ok && err == nil {
+			return errors.Errorf("Wanted Error, No error returned")
+		}
+	} else if r.HasErr {
+		if len(r.Got) == 0 {
+			return errors.Errorf("Method flagged as returning error, No values returned")
+		} else if err, ok := r.Got[len(r.Got)-1].(error); ok && err != nil {
+			return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
+		}
 	}
+
 	return nil
 }
 
@@ -176,6 +191,10 @@ func (r *RepositoryTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Co
 	ctx = context.WithValue(ctx, contextKeyTesting, t)
 	if r.Context.TokenDetails != nil {
 		ctx = r.Context.TokenDetails.Inject(ctx)
+	}
+
+	if r.Clock != nil {
+		ctx = types.ContextWithClock(ctx, r.Clock)
 	}
 
 	for _, injector := range r.Context.Injectors {

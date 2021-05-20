@@ -68,6 +68,13 @@ func NewCidr(cidr string) (Cidr, error) {
 	return c, err
 }
 
+// MustNewCidr ignores errors returned by NewCidr.
+// Should be used only for known-good inputs.
+func MustNewCidr(cidr string) Cidr {
+	result, _ := NewCidr(cidr)
+	return result
+}
+
 type CidrArray []Cidr
 
 func (a CidrArray) Value() (driver.Value, error) {

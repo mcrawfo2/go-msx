@@ -73,3 +73,10 @@ func NewIpPort(ipPort string) (IpPort, error) {
 	err := i.UnmarshalText(ipPort)
 	return i, err
 }
+
+// MustNewIpPort ignores errors returned by NewIpPort.
+// Should be used only for known-good inputs.
+func MustNewIpPort(ipPort string) IpPort {
+	result, _ := NewIpPort(ipPort)
+	return result
+}

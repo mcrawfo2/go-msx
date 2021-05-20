@@ -73,3 +73,10 @@ func NewIp(ip string) (Ip, error) {
 	err := i.UnmarshalText(ip)
 	return *i, err
 }
+
+// MustNewIp ignores errors returned by NewIp.
+// Should be used only for known-good inputs.
+func MustNewIp(ip string) Ip {
+	result, _ := NewIp(ip)
+	return result
+}
