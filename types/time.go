@@ -42,6 +42,9 @@ func (t *Time) UnmarshalText(data string) (err error) {
 }
 
 func (t *Time) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	return time.Time(*t).Format(timeLayout)
 }
 
