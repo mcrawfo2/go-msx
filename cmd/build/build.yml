@@ -20,6 +20,7 @@ generate:
   - path: skel
   - path: sqldb
   - path: stream
+  - path: vault
   - path: config
     vfsgen:
       filename: "embedded.go"

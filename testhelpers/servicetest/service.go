@@ -11,8 +11,10 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/thejerf/abtime"
 	"reflect"
 	"testing"
+	"time"
 )
 
 // Allow the testing.T object to be injected via the context.Context
@@ -27,6 +29,7 @@ type ServiceTest struct {
 		TokenDetails *securitytest.MockTokenDetailsProvider
 		Injectors    []types.ContextInjector
 	}
+	Clock   *abtime.ManualTime
 	HasErr  bool
 	Got     []interface{}
 	Want    []interface{}
@@ -64,6 +67,11 @@ func (s *ServiceTest) WithHasErr(hasErr bool) *ServiceTest {
 
 func (s *ServiceTest) WithRecording(rec *logtest.Recording) *ServiceTest {
 	s.Recording = rec
+	return s
+}
+
+func (s *ServiceTest) WithNow(t time.Time) *ServiceTest {
+	s.Clock = abtime.NewManualAtTime(t)
 	return s
 }
 
@@ -116,15 +124,22 @@ func (s *ServiceTest) checkWant() (results []error) {
 }
 
 func (s *ServiceTest) checkWantErr() error {
-	if len(s.Got) == 0 {
-		return errors.Errorf("Wanted Error, No values returned")
-	} else if !s.HasErr {
-		return errors.Errorf("Wanted Error, Method not flagged as returning error")
-	} else if err, ok := s.Got[len(s.Got)-1].(error); ok && err == nil && s.WantErr {
-		return errors.Errorf("Wanted Error, No error returned")
-	} else if ok && !s.WantErr && err != nil {
-		return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
+	if s.WantErr {
+		if len(s.Got) == 0 {
+			return errors.Errorf("Wanted Error, No values returned")
+		} else if !s.HasErr {
+			return errors.Errorf("Wanted Error, Method not flagged as returning error")
+		} else if err, ok := s.Got[len(s.Got)-1].(error); ok && err == nil {
+			return errors.Errorf("Wanted Error, No error returned")
+		}
+	} else if s.HasErr {
+		if len(s.Got) == 0 {
+			return errors.Errorf("Method flagged as returning error, No values returned")
+		} else if err, ok := s.Got[len(s.Got)-1].(error); ok && err != nil {
+			return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
+		}
 	}
+
 	return nil
 }
 
@@ -153,6 +168,10 @@ func (s *ServiceTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Conte
 	ctx = context.WithValue(ctx, contextKeyTesting, t)
 	if s.Context.TokenDetails != nil {
 		ctx = s.Context.TokenDetails.Inject(ctx)
+	}
+
+	if s.Clock != nil {
+		ctx = types.ContextWithClock(ctx, s.Clock)
 	}
 
 	for _, injector := range s.Context.Injectors {

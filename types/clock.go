@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"github.com/thejerf/abtime"
+	"time"
 )
 
 type contextKeyType int
@@ -35,4 +36,8 @@ func NewRealClock() abtime.RealTime {
 
 func NewMockClock() *abtime.ManualTime {
 	return abtime.NewManual()
+}
+
+func NewMockClockAt(t time.Time) *abtime.ManualTime {
+	return abtime.NewManualAtTime(t)
 }
