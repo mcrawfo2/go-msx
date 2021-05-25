@@ -141,7 +141,7 @@ type DeviceResponse struct {
 	ServiceType        string                 `json:"serviceType"`
 	Managed            bool                   `json:"managed"`
 	OnboardType        string                 `json:"onboardType"`
-	Attributes         map[string]string      `json:"attributes"`
+	Attributes         map[string]interface{} `json:"attributes"`
 	OnboardInformation map[string]interface{} `json:"onboardInformation"`
 	StatusDetails      struct {
 		HealthStatus    DeviceStatusDetail
