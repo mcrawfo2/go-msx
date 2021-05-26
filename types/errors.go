@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"sort"
 )
 
@@ -90,16 +91,19 @@ func FilterMap(source map[string]error) error {
 }
 
 func FilterItem(v error) error {
+
 	if v == (error)(nil) {
 		return nil
-	} else if errorMap, ok := v.(ErrorMap); ok {
-		return FilterMap(errorMap)
-		// TODO: ozzo-validation.Errors
-		//} else if validationErrors, ok := v.(validation.Errors); ok {
-		//	return FilterMap(validationErrors)
-	} else if errorList, ok := v.(ErrorList); ok {
-		return FilterList(errorList)
-	} else {
+	}
+
+	switch val := v.(type) {
+	case ErrorMap:
+		return FilterMap(val)
+	case validation.Errors:
+		return FilterMap(val)
+	case ErrorList:
+		return FilterList(val)
+	default:
 		return v
 	}
 }
