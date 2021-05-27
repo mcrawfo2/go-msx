@@ -59,6 +59,7 @@ type RegistrationProviderConfig struct {
 	Tags                string        `config:"default="`
 	InstanceId          string        `config:"default=local"` // uuid, hostname, or any static string
 	InstanceName        string        `config:"default=${info.app.name}"`
+	HiddenApiListing    bool          `config:"default=false"`
 }
 
 type AppRegistrationDetails struct {
@@ -143,6 +144,9 @@ func (c *RegistrationProvider) tags() []string {
 		tags = append(tags, strings.Split(c.config.Tags, ",")...)
 	}
 
+	if c.config.HiddenApiListing {
+		tags = append(tags, "hiddenApiListing=true")
+	}
 	tags = append(tags, c.details.Tags()...)
 
 	return tags

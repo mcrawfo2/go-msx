@@ -55,6 +55,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 					"spring.cloud.consul.discovery.tags":                  "tag1,tag2=bravo",
 					"spring.cloud.consul.discovery.instance-id":           "uuid",
 					"spring.cloud.consul.discovery.instance-name":         "custom",
+					"spring.cloud.consul.discovery.hidden-api-listing":    "true",
 				}),
 			},
 			want: &RegistrationProviderConfig{
@@ -72,6 +73,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 				Tags:                "tag1,tag2=bravo",
 				InstanceId:          "uuid",
 				InstanceName:        "custom",
+				HiddenApiListing: true,
 			},
 		},
 	}
