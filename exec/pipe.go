@@ -45,6 +45,23 @@ func ExecutePipes(pipes ...pipe.Pipe) error {
 	return nil
 }
 
+func ExecutePipesStderr(pipes ...pipe.Pipe) error {
+	for _, p := range pipes {
+		p = WithOutput(p)
+
+		s := pipe.NewState(os.Stdout, os.Stdout)
+		err := p(s)
+		if err == nil {
+			err = s.RunTasks()
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func WithEnv(env map[string]string, p pipe.Pipe) pipe.Pipe {
 	var pipes []pipe.Pipe
 	for k, v := range env {
