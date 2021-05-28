@@ -4,15 +4,6 @@ executable:
     - bootstrap.yml
     - ${app.name}.production.yml
 
-docker:
-  dockerfile: build/package/Dockerfile
-  base:
-    dynamic:
-      enabled: false
-      version: ${app.version}
-      manifest: msxbase-manifest
-      stream: EI-Stable
-
 msx:
   release: ${app.version}
   deploymentGroup: ${deployment.group}
@@ -33,6 +24,10 @@ resources:
 #if REPOSITORY_CASSANDRA
     - "/**/*.cql"
 #endif REPOSITORY_CASSANDRA
+    - "/internal/populate/**/*"
+
+populate:
+  root: "/internal/populate"
 
 assemblies:
   root: platform-common

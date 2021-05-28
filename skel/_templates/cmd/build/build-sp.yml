@@ -4,17 +4,9 @@ executable:
     - bootstrap.yml
     - ${app.name}.production.yml
 
-docker:
-  dockerfile: build/package/Dockerfile
-  base:
-    dynamic:
-      enabled: false
-      version: ${app.version}
-      manifest: msxbase-manifest
-      stream: EI-Stable
-
 msx:
   release: ${app.version}
+  deploymentGroup: ${deployment.group}
   platform:
     parentArtifacts:
       - com.cisco.vms:vms-service-starter
@@ -23,7 +15,6 @@ msx:
       - com.cisco.nfv:nfv-integration-consul-leader
     version: ${app.version}-EDGE
     includeGroups: "com.cisco.**"
-  deploymentGroup: ${deployment.group}
 
 resources:
   includes:
@@ -34,6 +25,9 @@ resources:
     - "/**/*.cql"
 #endif REPOSITORY_CASSANDRA
     - "/internal/populate/**/*"
+
+populate:
+  root: "/internal/populate"
 
 assemblies:
   root: platform-common
