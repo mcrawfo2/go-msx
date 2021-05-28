@@ -257,6 +257,10 @@ func (s *WebServer) activateActuator(provider ServiceProvider) {
 		actuatorService.Filter(securityFilter)
 	}
 
+	if s.actuatorCfg.EndpointSilenced(provider.EndpointName()) {
+		actuatorService.Filter(logSilenceFilter)
+	}
+
 	if err := provider.Actuate(actuatorService); err != nil {
 		logger.WithError(err).Errorf("Failed to register actuator")
 	} else {

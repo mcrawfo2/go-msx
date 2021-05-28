@@ -17,10 +17,11 @@ const (
 )
 
 type ManagementSecurityConfig struct {
-	EnabledByDefault bool     `config:"default=true"`
-	Permissions      []string `config:"default=IS_API_ADMIN"`
-	Roles            []string `config:"default=ROLE_CLIENT"`
-	Endpoint         map[string]EndpointConfig
+	EnabledByDefault  bool     `config:"default=true"`
+	SilencedByDefault bool     `config:"default=false"`
+	Permissions       []string `config:"default=IS_API_ADMIN"`
+	Roles             []string `config:"default=ROLE_CLIENT"`
+	Endpoint          map[string]EndpointConfig
 }
 
 func (s ManagementSecurityConfig) EndpointSecurityEnabled(endpoint string) bool {
@@ -33,8 +34,19 @@ func (s ManagementSecurityConfig) EndpointSecurityEnabled(endpoint string) bool 
 	}
 }
 
+func (s ManagementSecurityConfig) EndpointSilenced(endpoint string) bool {
+	if endpointOverride, ok := s.Endpoint[endpoint]; !ok {
+		return s.SilencedByDefault
+	} else if strings.ToLower(endpointOverride.Silenced) == "true" {
+		return true
+	} else {
+		return false
+	}
+}
+
 type EndpointConfig struct {
-	Enabled string `config:"default="`
+	Enabled  string `config:"default="`
+	Silenced string `config:"default="`
 }
 
 func NewManagementSecurityConfig(ctx context.Context) (*ManagementSecurityConfig, error) {
