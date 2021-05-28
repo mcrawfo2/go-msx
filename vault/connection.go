@@ -1,3 +1,5 @@
+//go:generate mockery --inpackage --name=ConnectionApi --structname=MockConnection --filename mock_connection.go
+
 package vault
 
 import (
