@@ -22,3 +22,7 @@ resources:
 
 artifactory:
   installer: deployments/kubernetes
+  custom: []
+  images:
+    - ${app.name}
+
