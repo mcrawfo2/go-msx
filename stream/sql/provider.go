@@ -69,11 +69,11 @@ func (p *Provider) newSqlSubscriber(cfg *config.Config, name string, streamBindi
 	}
 
 	sqlSubscriberConfig := sql.SubscriberConfig{
-		ConsumerGroup:    bindingConfiguration.StreamBindingConfig.Group,
-		PollInterval:     bindingConfiguration.Consumer.PollInterval,
-		ResendInterval:   bindingConfiguration.Consumer.ResendInterval,
-		RetryInterval:    bindingConfiguration.Consumer.RetryInterval,
-		BackoffManager:   sql.NewDefaultBackoffManager(
+		ConsumerGroup:  bindingConfiguration.StreamBindingConfig.Group,
+		PollInterval:   bindingConfiguration.Consumer.PollInterval,
+		ResendInterval: bindingConfiguration.Consumer.ResendInterval,
+		RetryInterval:  bindingConfiguration.Consumer.RetryInterval,
+		BackoffManager: sql.NewDefaultBackoffManager(
 			bindingConfiguration.Consumer.PollInterval,
 			bindingConfiguration.Consumer.RetryInterval),
 		SchemaAdapter:    sql.DefaultPostgreSQLSchema{},

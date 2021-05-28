@@ -49,7 +49,7 @@ func (m *MockTokenDetailsProvider) WithTenantId(tenantId types.UUID) *MockTokenD
 	return m
 }
 
-func(m *MockTokenDetailsProvider) WithTenantName(tenantName string) *MockTokenDetailsProvider {
+func (m *MockTokenDetailsProvider) WithTenantName(tenantName string) *MockTokenDetailsProvider {
 	m.TenantName = tenantName
 	return m
 }

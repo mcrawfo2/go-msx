@@ -168,7 +168,7 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	return nil
 }
 
-type SwaggerCustomizer struct {}
+type SwaggerCustomizer struct{}
 
 func (c SwaggerCustomizer) CustomizeInfo(swagger *spec.Swagger, appInfo *AppInfo) {
 	swagger.Info = &spec.Info{
@@ -278,8 +278,8 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 	}
 
 	server.AddDocumentationProvider(&SwaggerProvider{
-		ctx: ctx,
-		cfg: cfg,
+		ctx:     ctx,
+		cfg:     cfg,
 		appInfo: appInfo,
 	})
 	return nil

@@ -8,7 +8,7 @@ import (
 func TestGetTypeName(t *testing.T) {
 	type args struct {
 		instance interface{}
-		root bool
+		root     bool
 	}
 	tests := []struct {
 		name string
@@ -17,17 +17,17 @@ func TestGetTypeName(t *testing.T) {
 	}{
 		{
 			name: "UUID",
-			args: args{ instance: new(UUID), root: true },
+			args: args{instance: new(UUID), root: true},
 			want: "types.UUID",
 		},
 		{
 			name: "[]UUID",
-			args: args{ instance: []UUID{}, root: false },
+			args: args{instance: []UUID{}, root: false},
 			want: "List«types.UUID»",
 		},
 		{
 			name: "Time",
-			args: args{ instance: new(Time), root: true },
+			args: args{instance: new(Time), root: true},
 			want: "types.Time",
 		},
 	}

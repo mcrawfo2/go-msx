@@ -73,7 +73,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 				Tags:                "tag1,tag2=bravo",
 				InstanceId:          "uuid",
 				InstanceName:        "custom",
-				HiddenApiListing: true,
+				HiddenApiListing:    true,
 			},
 		},
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 type CrudRepositoryFactory struct {
-	Repository         *CrudRepositoryApi
+	Repository *CrudRepositoryApi
 }
 
 func (c CrudRepositoryFactory) NewCrudRepository(_ string) sqldb.CrudRepositoryApi {

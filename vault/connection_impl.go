@@ -285,7 +285,7 @@ func (c connectionImpl) Health(ctx context.Context) (response *api.HealthRespons
 func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
 	body := map[string]interface{}{
 		"format": "hex",
-		"bytes": length,
+		"bytes":  length,
 	}
 
 	secret, err := c.write(ctx, "/sys/tools/random", body)
@@ -303,7 +303,7 @@ func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (da
 
 func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
 	pemBytes, err := c.readRaw(ctx, "/pki/ca/pem")
-	if err !=  nil {
+	if err != nil {
 		return nil, err
 	}
 
