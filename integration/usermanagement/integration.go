@@ -31,9 +31,11 @@ const (
 	endpointNameGetProviderExtensionByName = "getProviderExtensionByName"
 
 	endpointNameGetTenantById   = "getTenantById"
+	endpointNameGetTenantByIdV8 = "getTenantByIdV8"
 	endpointNameGetTenantByName = "getTenantByName"
 
 	endpointNameGetUserById = "getUserById"
+	endpointNameGetUserByIdV8 = "getUserByIdV8"
 
 	endpointNameGetSystemSecrets      = "getSystemSecrets"
 	endpointNameEncryptSystemSecrets  = "encryptSystemSecrets"
@@ -86,9 +88,11 @@ var (
 		endpointNameGetProviderExtensionByName: {Method: "GET", Path: "/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
 
 		endpointNameGetTenantById:   {Method: "GET", Path: "/api/v3/tenants/{{.tenantId}}"},
+		endpointNameGetTenantByIdV8: {Method: "GET", Path: "/api/v8/tenants/{{.tenantId}}"},
 		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
 
 		endpointNameGetUserById: {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
+		endpointNameGetUserByIdV8: {Method: "GET", Path: "/api/v8/users/{{.userId}}"},
 
 		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},
 		endpointNameAddSystemSecrets:      {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}"},
@@ -259,6 +263,17 @@ func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, erro
 	})
 }
 
+func (i *Integration) GetUserByIdV8(userId string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetUserByIdV8,
+		EndpointParameters: map[string]string{
+			"userId": userId,
+		},
+		ExpectEnvelope: false,
+		Payload:        new(UserResponseV8),
+	})
+}
+
 // Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxResponse, err error) {
 	return i.Execute(&integration.MsxEndpointRequest{
@@ -268,6 +283,17 @@ func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxRes
 		},
 		ExpectEnvelope: true,
 		Payload:        new(TenantResponse),
+	})
+}
+
+func (i *Integration) GetTenantByIdV8(tenantId string) (result *integration.MsxResponse, err error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetTenantByIdV8,
+		EndpointParameters: map[string]string{
+			"tenantId": tenantId,
+		},
+		ExpectEnvelope: false,
+		Payload:        new(TenantResponseV8),
 	})
 }
 

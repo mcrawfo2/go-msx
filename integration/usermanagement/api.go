@@ -27,8 +27,11 @@ type Api interface {
 	// current retired and due for decommissioning.
 	GetTenantByName(tenantName string) (*integration.MsxResponse, error)
 
+	GetTenantByIdV8(tenantId string) (*integration.MsxResponse, error)
+
 	// Deprecated: Use v8/UsersApiService (or newer).
 	GetUserById(userId string) (*integration.MsxResponse, error)
+	GetUserByIdV8(userId string) (*integration.MsxResponse, error)
 
 	GetSystemSecrets(scope string) (*integration.MsxResponse, error)
 	AddSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error)

@@ -276,6 +276,26 @@ func TestIntegration_GetUserById(t *testing.T) {
 		Test(t)
 }
 
+func TestIntegration_GetUserByIdV8(t *testing.T) {
+	const userId = "user-id"
+
+	NewUserManagementIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.GetUserByIdV8(userId)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponsePayload(new(UserResponse)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointNameGetUserByIdV8),
+			clienttest.EndpointRequestHasEndpointParameter("userId", userId),
+			clienttest.EndpointRequestHasToken(true),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/api/v8/users/{{.userId}}")).
+		Test(t)
+}
+
 func TestIntegration_GetTenantById(t *testing.T) {
 	const tenantId = "tenant-id"
 
@@ -293,6 +313,26 @@ func TestIntegration_GetTenantById(t *testing.T) {
 		WithEndpointPredicates(
 			clienttest.ServiceEndpointHasMethod(http.MethodGet),
 			clienttest.ServiceEndpointHasPath("/api/v3/tenants/{{.tenantId}}")).
+		Test(t)
+}
+
+func TestIntegration_GetTenantByIdV8(t *testing.T) {
+	const tenantId = "tenant-id"
+
+	NewUserManagementIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.GetTenantByIdV8(tenantId)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponsePayload(new(TenantResponse)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointNameGetTenantByIdV8),
+			clienttest.EndpointRequestHasEndpointParameter("tenantId", tenantId),
+			clienttest.EndpointRequestHasToken(true),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/api/v8/tenants/{{.tenantId}}")).
 		Test(t)
 }
 
