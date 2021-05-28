@@ -13,6 +13,7 @@ require (
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dave/jennifer v1.4.1
+	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/emicklei/go-restful v2.14.3+incompatible
@@ -38,6 +39,7 @@ require (
 	github.com/otiai10/copy v1.0.2
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
 	github.com/scylladb/go-reflectx v1.0.1

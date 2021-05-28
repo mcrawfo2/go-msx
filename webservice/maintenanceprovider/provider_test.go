@@ -34,64 +34,61 @@ func mockMaintenanceResponse() MaintenanceResponse {
 	}
 }
 
-
-
 func mockMaintenanceRequestBody() *restful.Request {
 	maintenanceUpdate := MaintenanceUpdate{
-		Mode:   "MAINTENANCE",
+		Mode: "MAINTENANCE",
 	}
 
 	normalBodyBytes, _ := json.Marshal(maintenanceUpdate)
 	normalBodyIOReaderCloser := ioutil.NopCloser(bytes.NewReader(normalBodyBytes))
 
-	return &restful.Request {
+	return &restful.Request{
 		Request: &http.Request{
 			RemoteAddr: "10.10.10.10",
 			Proto:      "http",
-			Method: "PUT",
-			Body: normalBodyIOReaderCloser,
+			Method:     "PUT",
+			Body:       normalBodyIOReaderCloser,
 		},
 	}
 }
 
 func mockNormalRequestBody() *restful.Request {
 	maintenanceUpdate := MaintenanceUpdate{
-		Mode:   "NORMAL",
+		Mode: "NORMAL",
 	}
 
 	normalBodyBytes, _ := json.Marshal(maintenanceUpdate)
 	normalBodyIOReaderCloser := ioutil.NopCloser(bytes.NewReader(normalBodyBytes))
 
-	return &restful.Request {
-			Request: &http.Request{
-				RemoteAddr: "10.10.10.10",
-				Proto:      "http",
-				Method: "PUT",
-				Body: normalBodyIOReaderCloser,
-			},
+	return &restful.Request{
+		Request: &http.Request{
+			RemoteAddr: "10.10.10.10",
+			Proto:      "http",
+			Method:     "PUT",
+			Body:       normalBodyIOReaderCloser,
+		},
 	}
 
 }
 
 func mockInvalidModeRequestBody() *restful.Request {
 	maintenanceUpdate := MaintenanceUpdate{
-		Mode:   "Invalid",
+		Mode: "Invalid",
 	}
 
 	normalBodyBytes, _ := json.Marshal(maintenanceUpdate)
 	normalBodyIOReaderCloser := ioutil.NopCloser(bytes.NewReader(normalBodyBytes))
 
-	return &restful.Request {
+	return &restful.Request{
 		Request: &http.Request{
 			RemoteAddr: "10.10.10.10",
 			Proto:      "http",
-			Method: "PUT",
-			Body: normalBodyIOReaderCloser,
+			Method:     "PUT",
+			Body:       normalBodyIOReaderCloser,
 		},
 	}
 
 }
-
 
 func mockInvalidRequestBody() *restful.Request {
 	maintenanceUpdate := "Invalid Request"
@@ -99,12 +96,12 @@ func mockInvalidRequestBody() *restful.Request {
 	normalBodyBytes, _ := json.Marshal(maintenanceUpdate)
 	normalBodyIOReaderCloser := ioutil.NopCloser(bytes.NewReader(normalBodyBytes))
 
-	return &restful.Request {
+	return &restful.Request{
 		Request: &http.Request{
 			RemoteAddr: "10.10.10.10",
 			Proto:      "http",
-			Method: "PUT",
-			Body: normalBodyIOReaderCloser,
+			Method:     "PUT",
+			Body:       normalBodyIOReaderCloser,
 		},
 	}
 
@@ -145,8 +142,8 @@ func TestMaintenanceProvider_Actuate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "test",
-			args: testArgs,
+			name:    "test",
+			args:    testArgs,
 			wantErr: false,
 		},
 	}
@@ -170,7 +167,7 @@ func TestMaintenanceProvider_EndpointName(t *testing.T) {
 			want: endpointName,
 		},
 	}
-		for _, tt := range tests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := MaintenanceProvider{}
 			if got := h.EndpointName(); got != tt.want {
@@ -185,7 +182,6 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 		req *restful.Request
 	}
 
-
 	tests := []struct {
 		name    string
 		args    args
@@ -197,13 +193,13 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 			args: args{
 				req: mockMaintenanceRequestBody(),
 			},
-			want: mockMaintenanceResponse(),
+			want:    mockMaintenanceResponse(),
 			wantErr: false,
 		},
 		{
-			name: "MODE_NORMAL",
-			args: args {req: mockNormalRequestBody()},
-			want: mockNormalResponse(),
+			name:    "MODE_NORMAL",
+			args:    args{req: mockNormalRequestBody()},
+			want:    mockNormalResponse(),
 			wantErr: false,
 		},
 		{
@@ -211,7 +207,7 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 			args: args{
 				req: mockInvalidModeRequestBody(),
 			},
-			want: nil,
+			want:    nil,
 			wantErr: true,
 		},
 		{
@@ -219,11 +215,11 @@ func TestMaintenanceProvider_updateMaintenance(t *testing.T) {
 			args: args{
 				req: mockInvalidRequestBody(),
 			},
-			want: nil,
+			want:    nil,
 			wantErr: true,
 		},
 	}
-		for _, tt := range tests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := MaintenanceProvider{}
 			got, err := h.updateMaintenance(tt.args.req)
@@ -254,7 +250,7 @@ func TestRegisterProvider(t *testing.T) {
 			wantErr: false,
 		},
 	}
-		for _, tt := range tests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := RegisterProvider(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("RegisterProvider() error = %v, wantErr %v", err, tt.wantErr)

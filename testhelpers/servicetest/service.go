@@ -110,7 +110,7 @@ func (s *ServiceTest) checkWant() (results []error) {
 			// Handled above
 			continue
 		}
-		if s.HasErr && n == len(s.Want) - 1 {
+		if s.HasErr && n == len(s.Want)-1 {
 			// Handled by WantErr
 			continue
 		}

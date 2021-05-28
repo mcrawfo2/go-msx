@@ -24,7 +24,7 @@ func (h MaintenanceProvider) updateMaintenance(req *restful.Request) (interface{
 	if err != nil {
 		return nil, err
 	}
-	err =  validate.Validate(&maintenanceUpdateReq)
+	err = validate.Validate(&maintenanceUpdateReq)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,6 @@ func (h MaintenanceProvider) updateMaintenance(req *restful.Request) (interface{
 
 	return resp, nil
 }
-
 
 func (h MaintenanceProvider) EndpointName() string {
 	return endpointName

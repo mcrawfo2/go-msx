@@ -54,7 +54,7 @@ type ControllerTest struct {
 		TokenDetails *securitytest.MockTokenDetailsProvider
 		Injectors    []types.ContextInjector
 	}
-	Setup []func()
+	Setup  []func()
 	Checks struct {
 		Route    webservicetest.RouteCheck
 		Request  webservicetest.RequestCheck
@@ -77,7 +77,7 @@ type ControllerTest struct {
 }
 
 func (r *ControllerTest) Clone() *ControllerTest {
- 	return deepcopy.Copy(r).(*ControllerTest)
+	return deepcopy.Copy(r).(*ControllerTest)
 }
 
 func (r *ControllerTest) WithContextPath(contextPath string) *ControllerTest {
@@ -221,12 +221,12 @@ func (r *ControllerTest) checkRoute(req *restful.Request, resp *restful.Response
 
 func (r *ControllerTest) newWebServer(ctx context.Context, t *testing.T) *webservice.WebServer {
 	webServerConfig := webservice.WebServerConfig{
-		Enabled:      true,
-		Host:         "0.0.0.0",
-		Port:         9999,
-		Cors:         true,
-		ContextPath:  r.Server.ContextPath,
-		StaticPath:   "/www",
+		Enabled:     true,
+		Host:        "0.0.0.0",
+		Port:        9999,
+		Cors:        true,
+		ContextPath: r.Server.ContextPath,
+		StaticPath:  "/www",
 	}
 	managementConfig := webservice.ManagementSecurityConfig{}
 

@@ -679,7 +679,7 @@ func Test_statsConnection_GenerateRandomBytes(t *testing.T) {
 				ctx:    context.Background(),
 				length: 3,
 			},
-			want: []byte{1,2,3},
+			want:    []byte{1, 2, 3},
 			wantErr: false,
 		},
 		{
