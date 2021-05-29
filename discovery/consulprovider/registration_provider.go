@@ -324,7 +324,12 @@ func getIp(iface string) (string, error) {
 	var ip net.IP
 	for _, i := range ifaces {
 		name := i.Name
-		if iface != name && strings.Contains(name, "utun") {
+		switch {
+		case iface == name:
+			// Keep it
+		case strings.Contains(name, "utun"),
+			strings.Contains(name, "vEthernet"),
+			strings.Contains(name, "Loopback"):
 			continue
 		}
 		addrs, err := i.Addrs()
