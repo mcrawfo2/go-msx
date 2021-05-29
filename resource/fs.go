@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -63,7 +64,7 @@ func newStagingFileSystem() (http.FileSystem, error) {
 		return nil, ErrFilesystemUnavailable
 	}
 	parentFileSystem := newReleaseFileSystem("source", fs.Sources())
-	stagingFileSystem, err := fs.NewPrefixFileSystem(parentFileSystem, filepath.Join("/dist/root", fs.Resources()))
+	stagingFileSystem, err := fs.NewPrefixFileSystem(parentFileSystem, path.Join("/dist/root", fs.Resources()))
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -79,14 +80,16 @@ func Unmarshal(resourceName string, target interface{}) (err error) {
 	return Ref(abs(resourceName)).Unmarshal(target)
 }
 
-func sourcePath(path string) (string, error) {
+func sourcePath(p string) (string, error) {
 	if fs.Config() == nil || fs.Config().Sources == "" {
 		logger.Error("SourcePath called with nil FS configuration")
 		return "/nil", ErrFilesystemUnavailable
 	}
 
-	path = strings.TrimPrefix(path, fs.Config().Sources)
-	return path, nil
+	fp := filepath.Clean(p)
+	sp := fs.Config().Sources
+	p = strings.TrimPrefix(fp, sp)
+	return filepath.ToSlash(p), nil
 }
 
 func open(resourcePath string) (http.File, error) {
@@ -125,8 +128,8 @@ func abs(filename string) string {
 		return filename
 	}
 
-	base := filepath.Dir(file)
-	full := filepath.Join(base, filename)
+	base := path.Dir(file)
+	full := path.Join(base, filename)
 
 	absPath, err := sourcePath(full)
 	if err != nil {

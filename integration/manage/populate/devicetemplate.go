@@ -9,7 +9,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"net/http"
 	"path"
-	"path/filepath"
 )
 
 const (
@@ -105,7 +104,7 @@ func (p DeviceTemplatePopulator) Populate(ctx context.Context) error {
 		for _, artifact := range m.DeviceTemplate {
 			var deviceTemplate deviceTemplateInstance
 			err := resource.
-				Reference(filepath.Join(p.cfg.Root, artifact.FileName)).
+				Reference(path.Join(p.cfg.Root, artifact.FileName)).
 				Unmarshal(&deviceTemplate)
 			if err != nil {
 				return err

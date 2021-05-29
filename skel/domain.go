@@ -173,12 +173,11 @@ func generateDomain(name string, conditions map[string]bool) error {
 func nextMigrationPrefix(folder string) (string, error) {
 	prefix := "V" + strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_")
 	for i := 0; i < 128; i++ {
-		glob := fmt.Sprintf("%s/%s_%d__*.%s",
-			folder,
+		glob := fmt.Sprintf("%s_%d__*.%s",
 			prefix,
 			i,
 			skeletonConfig.RepositoryQueryFileExtension())
-		matches, _ := filepath.Glob(glob)
+		matches, _ := filepath.Glob(filepath.Join(folder, glob))
 		if len(matches) == 0 {
 			return prefix + "_" + strconv.Itoa(i), nil
 		}
