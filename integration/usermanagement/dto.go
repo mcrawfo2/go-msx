@@ -80,7 +80,7 @@ type TenantResponse struct {
 	TenantName        string      `json:"tenantName"`
 	DisplayName       string      `json:"displayName"`
 	Image             string      `json:"image"`
-	Email             *string      `json:"email"`
+	Email             *string     `json:"email"`
 	CreatedOn         int64       `json:"createdOn"`
 	ModifiedOn        int64       `json:"lastUpdated"`
 	Suspended         bool        `json:"suspended"`
@@ -102,8 +102,8 @@ type TenantResponseV8 struct {
 	URL              string      `json:"url"`
 	Suspended        bool        `json:"suspended"`
 	NumberOfChildren int64       `json:"numberOfChildren"`
-	//CreatedOn        types.Time  `json:"createdOn"`
-	//ModifiedOn       types.Time  `json:"lastUpdated"`
+	CreatedOn        types.Time  `json:"createdOn"`
+	ModifiedOn       types.Time  `json:"lastUpdated"`
 }
 
 type LoginResponse struct {
