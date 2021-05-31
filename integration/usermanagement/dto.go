@@ -80,6 +80,7 @@ type TenantResponse struct {
 	TenantName        string      `json:"tenantName"`
 	DisplayName       string      `json:"displayName"`
 	Image             string      `json:"image"`
+	Email             *string     `json:"email"`
 	CreatedOn         int64       `json:"createdOn"`
 	ModifiedOn        int64       `json:"lastUpdated"`
 	Suspended         bool        `json:"suspended"`
@@ -89,6 +90,20 @@ type TenantResponse struct {
 	TenantExtension   struct {
 		Parameters interface{} `json:"parameters"`
 	} `json:"tenantExtension"`
+}
+
+type TenantResponseV8 struct {
+	TenantId         types.UUID  `json:"id"`
+	ParentId         *types.UUID `json:"parentId"`
+	Name             string      `json:"name"`
+	Image            *string     `json:"image"`
+	Email            *string     `json:"email"`
+	Description      string      `json:"description""`
+	URL              string      `json:"url"`
+	Suspended        bool        `json:"suspended"`
+	NumberOfChildren int64       `json:"numberOfChildren"`
+	CreatedOn        types.Time  `json:"createdOn"`
+	ModifiedOn       types.Time  `json:"lastUpdated"`
 }
 
 type LoginResponse struct {
@@ -242,6 +257,20 @@ type UserResponse struct {
 	Deleted       string               `json:"isDeleted,omitempty"`
 	Tenants       []UserTenantResponse `json:"tenants,omitempty"`
 	Roles         []UserRoleResponse   `json:"roles,omitempty"`
+}
+
+type UserResponseV8 struct {
+	Id            string       `json:"id"`
+	Email         string       `json:"email"`
+	Username      string       `json:"username"`
+	FirstName     string       `json:"firstName"`
+	LastName      string       `json:"lastName"`
+	Status        string       `json:"status"`
+	PwdPolicyname string       `json:"passwordPolicyName"`
+	Locale        string       `json:"locale"`
+	Deleted       string       `json:"deleted"`
+	TenantIds     []types.UUID `json:"tenantIds"`
+	RolesIds      []types.UUID `json:"roleIds"`
 }
 
 type UserRoleResponse struct {
