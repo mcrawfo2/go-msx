@@ -33,6 +33,7 @@ const (
 	AttributeParams             = "Params"
 	AttributeStandard           = "Standard"
 	AttributeParamsValidator    = "ParamsValidator"
+	AttributeSilenceLog         = "ManagementSilenceLog"
 )
 
 var (
@@ -179,6 +180,11 @@ func DefaultReturns(code int) RouteBuilderFunc {
 			chain.ProcessFilter(request, response)
 		})
 	}
+}
+
+func logSilenceFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	req.SetAttribute(AttributeSilenceLog, true)
+	chain.ProcessFilter(req, resp)
 }
 
 func tokenUserContextFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {

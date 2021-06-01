@@ -24,9 +24,10 @@ type HealthLoggerConfig struct {
 }
 
 type HealthLogger struct {
-	ctx  context.Context
-	cfg  *HealthLoggerConfig
-	done chan struct{}
+	ctx        context.Context
+	cfg        *HealthLoggerConfig
+	done       chan struct{}
+	lastResult *string
 }
 
 func (l *HealthLogger) LogHealth() {
@@ -40,7 +41,13 @@ func (l *HealthLogger) LogHealth() {
 		span.LogFields(trace.Error(err))
 		logger.Error(err)
 	} else {
-		logger.Info("Health report: ", string(bytes))
+		newResult := string(bytes)
+		if l.lastResult == nil || newResult != *l.lastResult {
+			logger.Info("Health report: ", string(bytes))
+			l.lastResult = &newResult
+		} else {
+			// DE11136: Silence
+		}
 	}
 }
 
