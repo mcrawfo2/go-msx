@@ -194,7 +194,7 @@ func (c *CrudRepository) FindAllPagedByExpression(ctx context.Context, where goq
 			}
 		}
 
-		stmt, args, err := c.dialect(conn).From(c.tableName).Where(where).ToSQL()
+		stmt, args, err := ds.ToSQL()
 		if err != nil {
 			return err
 		}
