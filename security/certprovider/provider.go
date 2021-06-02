@@ -26,7 +26,6 @@ func (p *Provider) UserContextFromCertificate(ctx context.Context, pem string) (
 	if err != nil {
 		return nil, err
 	}
-
 	err = p.validateCertificate(ctx, cert)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (p *Provider) UserContextFromCertificate(ctx context.Context, pem string) (
 func (p *Provider) validateCertificate(ctx context.Context, cert *x509.Certificate) error {
 	authorityCert, err := p.getAuthorityCertificate(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	authorityPool := x509.NewCertPool()
