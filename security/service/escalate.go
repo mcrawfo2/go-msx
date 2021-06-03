@@ -48,8 +48,7 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 		return errors.New("Invalid login response object")
 	}
 
-	token := loginResponse.AccessToken
-	newUserContext, err := security.NewUserContextFromToken(ctx, token)
+	newUserContext, err := security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
 	if err != nil {
 		return err
 	}

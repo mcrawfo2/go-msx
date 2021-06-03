@@ -16,7 +16,6 @@ type HeapMapCache struct {
 	sync.RWMutex
 	ttl             time.Duration     // period before expiry
 	index           map[string]*entry // entries indexed by key
-	heap            entryHeap         // entries ordered by expiry
 	collected       []string          // temp garbage collection space
 	expireFrequency time.Duration     // garbage collection frequency
 	timeSource      clock.Clock       // for test double
@@ -50,7 +49,6 @@ func (c *HeapMapCache) SetWithTtl(key string, value interface{}, ttl time.Durati
 	e, exists := c.index[key]
 	if exists {
 		e.value = value
-		c.heap.update(e, expires)
 	} else {
 		e = &entry{
 			key:     key,
@@ -58,8 +56,6 @@ func (c *HeapMapCache) SetWithTtl(key string, value interface{}, ttl time.Durati
 			expires: expires,
 			index:   -1,
 		}
-
-		c.heap.Push(e)
 	}
 	c.index[key] = e
 }
@@ -68,10 +64,9 @@ func (c *HeapMapCache) Clear() {
 	c.Lock()
 	defer c.Unlock()
 	c.index = make(map[string]*entry)
-	c.heap = make(entryHeap, 0)
 }
 
-func (c *HeapMapCache) collect() {
+func (c *HeapMapCache) tick() {
 	for {
 		c.timeSource.Sleep(c.expireFrequency)
 		c.expire()
@@ -81,23 +76,37 @@ func (c *HeapMapCache) collect() {
 func (c *HeapMapCache) expire() {
 	c.Lock()
 	defer c.Unlock()
-	now := c.timeSource.Now().UnixNano()
-	expiredCount := c.heap.expire(now, c.collected)
+
+	expiredCount := c.collect()
 	for i := 0; i < expiredCount; i++ {
 		delete(c.index, c.collected[i])
 	}
+}
+
+func (c *HeapMapCache) collect() int {
+	now := c.timeSource.Now().UnixNano()
+	j := 0
+	for k, e := range c.index {
+		if e.expires < now {
+			c.collected[j] = k
+			j++
+		}
+		if j == len(c.collected) {
+			break
+		}
+	}
+	return j
 }
 
 func NewCache(ttl time.Duration, expireLimit int, expireFrequency time.Duration, timeSource clock.Clock) *HeapMapCache {
 	c := &HeapMapCache{
 		ttl:             ttl,
 		index:           make(map[string]*entry),
-		heap:            make(entryHeap, 0),
 		collected:       make([]string, expireLimit),
 		expireFrequency: expireFrequency,
 		timeSource:      timeSource,
 	}
-	go c.collect()
+	go c.tick()
 	return c
 }
 

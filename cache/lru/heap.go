@@ -8,8 +8,9 @@ type entryHeap []*entry
 
 func (e entryHeap) Len() int { return len(e) }
 
+// Less is defined so newest values are at the start
 func (e entryHeap) Less(i, j int) bool {
-	return e[i].expires < e[j].expires
+	return e[i].expires > e[j].expires
 }
 
 func (e entryHeap) Swap(i, j int) {
@@ -60,6 +61,7 @@ func (e *entryHeap) expire(expires int64, keys []string) int {
 		item := old[i]
 		old[i] = nil
 		keys[j] = item.key
+		j++
 		item.index = -1
 	}
 
