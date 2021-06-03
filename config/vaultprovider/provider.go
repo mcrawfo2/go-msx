@@ -181,6 +181,7 @@ func NewProviderConfig(cfg *config.Config) (*ProviderConfig, error) {
 func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config) ([]config.Provider, error) {
 	providerConfig, err := NewProviderConfig(cfg)
 	if err != nil {
+		err = errors.Wrap(err, "Failed to load provider config")
 		return nil, err
 	}
 
@@ -191,6 +192,7 @@ func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config
 
 	var appContext string
 	if appContext, err = cfg.String(configKeyAppName); err != nil {
+		err = errors.Wrap(err, "Failed to retrieve app name")
 		return nil, err
 	}
 
@@ -200,6 +202,7 @@ func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config
 		if err == vault.ErrDisabled {
 			return nil, nil
 		} else if err != nil {
+			err = errors.Wrap(err, "Failed to obtain vault connection")
 			return nil, err
 		}
 	}

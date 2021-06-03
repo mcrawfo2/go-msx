@@ -28,7 +28,7 @@ func NewConnection(ctx context.Context) (*Connection, error) {
 
 	connectionConfig, err := newConnectionConfig(cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to create connection config")
 	}
 
 	if connectionConfig.Enabled == false {
@@ -37,30 +37,36 @@ func NewConnection(ctx context.Context) (*Connection, error) {
 
 	clientConfig, err := connectionConfig.ClientConfig()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to create ClientConfig")
 	}
 
 	client, err := api.NewClient(clientConfig)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to create Client")
 	}
 
 	var conn = &Connection{
 		ConnectionApi: newTraceConnection(newStatsConnection(newConnectionImpl(connectionConfig, client))),
 	}
 
+	logger.WithContext(ctx).Infof("Using vault token source %q", connectionConfig.TokenSource.Source)
+
 	tokenSource, err := NewTokenSource(connectionConfig.TokenSource.Source, cfg, conn)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed to create token source %q", connectionConfig.TokenSource.Source)
 	}
 
 	token, err := tokenSource.GetToken(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to obtain token from token source %q", connectionConfig.TokenSource.Source)
+	}
+
 	client.SetToken(token)
 
 	if tokenSource.Renewable() {
 		conn.renewer, err = newRenewer(client)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "Failed to create token renewer")
 		}
 		go conn.renewer.Run(ctx)
 	}

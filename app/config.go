@@ -195,6 +195,7 @@ func registerRemoteConfigProviders(ctx context.Context) error {
 		ctx = config.ContextWithConfig(ctx, cfg)
 		providers, err = vaultprovider.NewProvidersFromConfig(name, ctx, cfg)
 		if err != nil {
+			err = errors.Wrap(err, "Failed to create new providers")
 			return nil, err
 		}
 
@@ -240,8 +241,8 @@ func loadConfig(ctx context.Context) (err error) {
 	}
 
 	var cfg = config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, cfg); err != nil {
-		return err
+	if err = mustLoadConfig(ctx, cfg); err != nil {
+		return errors.Wrap(err, "Failed to load with memory config providers")
 	}
 
 	// Add any config paths from the command line
@@ -262,29 +263,29 @@ func loadConfig(ctx context.Context) (err error) {
 	sources.BootstrapFiles = newBootstrapProviders(cfg)
 
 	if sources.ApplicationFiles, err = newProviders(SourceApplication, cfg); err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to create providers for %q", SourceApplication)
 	}
 
 	if sources.ProfileFiles, err = newProviders(SourceProfile, cfg); err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to create providers for %q", SourceProfile)
 	}
 
 	cfg = config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, cfg); err != nil {
-		return err
+	if err = mustLoadConfig(ctx, cfg); err != nil {
+		return errors.Wrap(err, "Failed to reload with file config providers")
 	}
 
 	if sources.Consul, err = newProviders(SourceConsul, cfg); err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to create providers for %q", SourceConsul)
 	}
 
 	if sources.Vault, err = newProviders(SourceVault, cfg); err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to create providers for %q", SourceVault)
 	}
 
 	cfg = config.NewConfig(sources.Providers()...)
-	if err := mustLoadConfig(ctx, cfg); err != nil {
-		return err
+	if err = mustLoadConfig(ctx, cfg); err != nil {
+		return errors.Wrap(err, "Failed to reload with remote config providers")
 	}
 
 	applicationConfig = cfg
