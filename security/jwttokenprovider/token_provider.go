@@ -84,7 +84,7 @@ func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) 
 		TenantId:    tenantUuid,
 		Scopes:      types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
 		Authorities: types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimAuthorities].([]interface{})),
-		Token:       token,
+		Token:       token[:],
 	}, nil
 }
 

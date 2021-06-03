@@ -15,5 +15,5 @@ func SetTokenProvider(provider TokenProvider) {
 }
 
 func NewUserContextFromToken(ctx context.Context, token string) (userContext *UserContext, err error) {
-	return tokenProvider.UserContextFromToken(ctx, token)
+	return tokenProvider.UserContextFromToken(ctx, token[:])
 }

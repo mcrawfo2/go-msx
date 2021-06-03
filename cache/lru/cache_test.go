@@ -100,7 +100,6 @@ func TestHeapMapCache(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cache.Clear()
 			assert.Empty(t, cache.index)
-			assert.Empty(t, cache.heap)
 
 			for _, preset := range tt.preset {
 				cache.Set(preset.key, preset.value)
@@ -116,7 +115,6 @@ func TestHeapMapCache(t *testing.T) {
 			// Allow everything to expire
 			mockClock.Add(2 * time.Second)
 			assert.Empty(t, cache.index)
-			assert.Empty(t, cache.heap)
 		})
 	}
 }
