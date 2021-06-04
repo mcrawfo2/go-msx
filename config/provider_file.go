@@ -9,6 +9,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-ini/ini"
 	"github.com/magiconair/properties"
+	"github.com/pkg/errors"
 	"github.com/radovskyb/watcher"
 	"io/ioutil"
 	"net/http"
@@ -37,7 +38,11 @@ type ContentReader func() ([]byte, error)
 
 func FileContentReader(fileName string) ContentReader {
 	return func() (bytes []byte, err error) {
-		return ioutil.ReadFile(fileName)
+		bytes, err = ioutil.ReadFile(fileName)
+		if err != nil {
+			err = errors.Wrapf(err, "Failed to read %s", fileName)
+		}
+		return bytes, err
 	}
 }
 
