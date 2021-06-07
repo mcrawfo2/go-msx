@@ -34,7 +34,7 @@ const (
 	endpointNameGetTenantByIdV8 = "getTenantByIdV8"
 	endpointNameGetTenantByName = "getTenantByName"
 
-	endpointNameGetUserById = "getUserById"
+	endpointNameGetUserById   = "getUserById"
 	endpointNameGetUserByIdV8 = "getUserByIdV8"
 
 	endpointNameGetSystemSecrets      = "getSystemSecrets"
@@ -91,7 +91,7 @@ var (
 		endpointNameGetTenantByIdV8: {Method: "GET", Path: "/api/v8/tenants/{{.tenantId}}"},
 		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
 
-		endpointNameGetUserById: {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
+		endpointNameGetUserById:   {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
 		endpointNameGetUserByIdV8: {Method: "GET", Path: "/api/v8/users/{{.userId}}"},
 
 		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},

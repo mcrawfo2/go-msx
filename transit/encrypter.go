@@ -15,6 +15,7 @@ type Encrypter interface {
 	CreateKey() (err error)
 	Encrypt(value map[string]*string) (secureValue string, encrypted bool, err error)
 	Decrypt(secureValue string) (value map[string]*string, err error)
+	Decode(insecureValue string) (value map[string]*string, err error)
 }
 
 type encrypter struct {
@@ -75,6 +76,10 @@ func (e encrypter) Decrypt(value string) (map[string]*string, error) {
 	}
 
 	return payload, nil
+}
+
+func (e encrypter) Decode(value string) (map[string]*string, error) {
+	return deserializePayload(value)
 }
 
 type EncrypterFactory func(ctx context.Context, keyName types.UUID) Encrypter
