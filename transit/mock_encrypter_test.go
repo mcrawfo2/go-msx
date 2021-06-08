@@ -73,3 +73,7 @@ func (_m *MockEncrypter) Encrypt(value map[string]*string) (string, bool, error)
 
 	return r0, r1, r2
 }
+
+func (_m *MockEncrypter) Decode(insecureValue string) (map[string]*string, error) {
+	return deserializePayload(insecureValue)
+}

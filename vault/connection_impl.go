@@ -302,7 +302,7 @@ func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (da
 }
 
 func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
-	pemBytes, err := c.readRaw(ctx, c.cfg.Issuer.Mount + "/ca/pem")
+	pemBytes, err := c.readRaw(ctx, c.cfg.Issuer.Mount+"/ca/pem")
 	if err != nil {
 		return nil, err
 	}
