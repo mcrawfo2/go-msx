@@ -20,7 +20,7 @@ type SecurityAccountsDefaultSettings struct {
 
 func NewSecurityAccountsDefaultSettings(cfg *config.Config) (*SecurityAccountsDefaultSettings, error) {
 	securityAccountsConfig := &SecurityAccountsDefaultSettings{}
-	if err := cfg.Populate(securityAccountsConfig, configRootIntegrationSecurityAccountsDefault); err != nil {
+	if err := cfg.LatestValues().Populate(securityAccountsConfig, configRootIntegrationSecurityAccountsDefault); err != nil {
 		return nil, err
 	}
 
