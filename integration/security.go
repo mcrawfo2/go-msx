@@ -22,7 +22,7 @@ func (c *SecurityClientSettings) Authorization() string {
 
 func NewSecurityClientSettings(ctx context.Context) (cfg *SecurityClientSettings, err error) {
 	cfg = &SecurityClientSettings{}
-	err = config.FromContext(ctx).Populate(cfg, configRootIntegrationSecurityClient)
+	err = config.FromContext(ctx).LatestValues().Populate(cfg, configRootIntegrationSecurityClient)
 	if err != nil {
 		return nil, err
 	}
