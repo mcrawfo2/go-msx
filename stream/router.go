@@ -155,7 +155,7 @@ func AddListener(topic string, action ListenerAction) error {
 }
 
 func listenerHandler(topic string, action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {
-	result := TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, func(msg *message.Message) error {
+	traceAction := TraceActionInterceptor(cfg, StatsActionInterceptor(cfg, func(msg *message.Message) error {
 		entry := logger.
 			WithContext(msg.Context()).
 			WithField("messageId", msg.UUID).
@@ -184,6 +184,8 @@ func listenerHandler(topic string, action ListenerAction, cfg *BindingConfigurat
 
 		return nil
 	}))
+
+	result := PanicRecovererActionInterceptor(cfg, traceAction)
 
 	return message.NoPublishHandlerFunc(result)
 }
