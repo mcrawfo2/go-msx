@@ -26,7 +26,7 @@ var (
 )
 
 type TracingConfig struct {
-	Enabled     bool   `config:"default=false"`
+	Enabled     bool   `config:"default=true"`
 	ServiceName string `config:"default=${info.app.name}"`
 	Reporter    TracingReporterConfig
 }
@@ -40,10 +40,11 @@ func (c TracingConfig) ToJaegerConfig() *jaegerconfig.Configuration {
 }
 
 type TracingReporterConfig struct {
-	Name string `config:"default=jaeger"`
-	Host string `config:"default=localhost"`
-	Port int    `config:"default=6831"`
-	Url  string `config:"default=http://localhost:9411/api/v1/spans"`
+	Enabled bool   `config:"default=false"`
+	Name    string `config:"default=jaeger"`
+	Host    string `config:"default=localhost"`
+	Port    int    `config:"default=6831"`
+	Url     string `config:"default=http://localhost:9411/api/v1/spans"`
 }
 
 func (c TracingReporterConfig) Address() string {
@@ -95,11 +96,16 @@ func ConfigureTracer(ctx context.Context) error {
 	jaegerConfig := tracingConfig.ToJaegerConfig()
 	jaegerSampler := jaeger.NewConstSampler(true)
 	jaegerLogger := &JaegerLoggerAdapter{logger: jaegerLogger}
-	jaegerTransport, err := newTransport(ctx, tracingConfig.Reporter)
-	if err != nil {
-		return err
+	var reporter jaegerconfig.Option
+	if tracingConfig.Reporter.Enabled {
+		jaegerTransport, err := newTransport(ctx, tracingConfig.Reporter)
+		if err != nil {
+			return err
+		}
+		reporter = jaegerconfig.Reporter(jaeger.NewRemoteReporter(jaegerTransport))
+	} else {
+		reporter = jaegerconfig.Reporter(jaeger.NewNullReporter())
 	}
-	jaegerRemoteReporter := jaeger.NewRemoteReporter(jaegerTransport)
 	jaegerMetricsFactory := metrics.NullFactory
 	zipkinPropagator := zipkin.NewZipkinB3HTTPHeaderPropagator()
 	sleuthPropagator := NewSleuthTextMapPropagator(zipkinPropagator)
@@ -107,7 +113,7 @@ func ConfigureTracer(ctx context.Context) error {
 	closer, err := jaegerConfig.InitGlobalTracer(
 		jaegerConfig.ServiceName,
 		jaegerconfig.Sampler(jaegerSampler),
-		jaegerconfig.Reporter(jaegerRemoteReporter),
+		reporter,
 		jaegerconfig.Logger(jaegerLogger),
 		jaegerconfig.Metrics(jaegerMetricsFactory),
 		jaegerconfig.Injector(opentracing.HTTPHeaders, zipkinPropagator),
@@ -125,7 +131,7 @@ func ConfigureTracer(ctx context.Context) error {
 	return nil
 }
 
-func ShutdownTracer(ctx context.Context) error {
+func ShutdownTracer(_ context.Context) error {
 	if jaegerCloser != nil {
 		defer jaegerCloser.Close()
 	}

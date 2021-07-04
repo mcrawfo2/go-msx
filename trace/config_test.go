@@ -25,9 +25,10 @@ func TestNewTracingConfig(t *testing.T) {
 				}),
 			},
 			want: &TracingConfig{
-				Enabled:     false,
+				Enabled:     true,
 				ServiceName: "TestNewTracingConfig",
 				Reporter: TracingReporterConfig{
+					Enabled: false,
 					Name: "jaeger",
 					Host: "localhost",
 					Port: 6831,
