@@ -26,3 +26,17 @@ func (_m *MockPublisherService) Publish(ctx context.Context, topic string, paylo
 
 	return r0
 }
+
+// PublishObject provides a mock function with given fields: ctx, topic, payload, metadata
+func (_m *MockPublisherService) PublishObject(ctx context.Context, topic string, payload interface{}, metadata map[string]string) error {
+	ret := _m.Called(ctx, topic, payload, metadata)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, interface{}, map[string]string) error); ok {
+		r0 = rf(ctx, topic, payload, metadata)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
