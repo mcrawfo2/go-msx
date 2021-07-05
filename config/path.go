@@ -71,13 +71,13 @@ func AddConfigFoldersFromFsConfig(cfg *Config) {
 		}
 
 		AddConfigFolders(
-			fs.Roots.Sources+fs.Local,
-			fs.Roots.Staging+fs.Configs)
+			filepath.Join(fs.Roots.Sources,fs.Local),
+			filepath.Join(fs.Roots.Staging,fs.Configs))
 	}
 
 	if fs.Roots.Release != "" {
 		AddConfigFolders(
-			fs.Roots.Release + fs.Configs)
+			filepath.Join(fs.Roots.Release,fs.Configs))
 	}
 }
 
@@ -116,7 +116,7 @@ func NewFileProvidersFromBaseName(name, baseName string) []Provider {
 	var results []Provider
 	for _, folder := range configFolders {
 		for _, ext := range configFileExtensions {
-			fullPath := path.Join(folder, baseName+ext)
+			fullPath := filepath.Join(folder, baseName+ext)
 			info, err := os.Stat(fullPath)
 			if os.IsNotExist(err) || info.IsDir() {
 				continue

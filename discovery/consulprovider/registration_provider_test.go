@@ -3,6 +3,7 @@ package consulprovider
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"time"
@@ -91,4 +92,10 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_getIp(t *testing.T) {
+	ip, err := getIp("")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, ip)
 }
