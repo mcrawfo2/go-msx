@@ -20,6 +20,7 @@ def TOOLS = ''
 def TRIGGER = ''
 def TRIGGER_URL = ''
 def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-group/com/cisco/vms/manifest'
+def MANIFEST_NAME = '${app.name}-manifest'
 def FULL_VERSION = ''
 
 pipeline {
