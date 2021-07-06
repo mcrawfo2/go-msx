@@ -23,9 +23,11 @@ func PublishApplicationResult(ctx context.Context, sourceEvent serviceconfigeven
 		switch sourceEvent.EventType() {
 		case serviceconfigevent.EventTypeApplicationCreated:
 			status = ApplicationStatusFailed
+			statusDetails = err.Error()
 
 		case serviceconfigevent.EventTypeApplicationDeleted:
 			status = ApplicationStatusDeleteFailed
+			statusDetails = err.Error()
 		}
 	} else {
 		switch sourceEvent.EventType() {
