@@ -34,6 +34,13 @@ func (s OptionalString) Ptr() *string {
 	return s.Value
 }
 
+func (s OptionalString) NilIfEmpty() OptionalString {
+	if s.Value != nil && *s.Value == "" {
+		return OptionalString{}
+	}
+	return s
+}
+
 func (s OptionalString) Equals(other OptionalString) bool {
 	if s.Value == other.Value {
 		return true
