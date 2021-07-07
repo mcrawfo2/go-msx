@@ -6,10 +6,22 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream/topics"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
+	"strings"
 	"time"
 )
 
+var logger = log.NewLogger("msx.stream.topics.auditing")
+
 type Details map[string]interface{}
+
+func (d Details) Strings() map[string]string {
+	results := make(map[string]string)
+	for k, v := range d {
+		results[k] = fmt.Sprintf("%v", v)
+	}
+	return results
+}
 
 type Message struct {
 	Time        topics.Time          `json:"timestamp"`
@@ -42,7 +54,15 @@ type TraceAuditContext struct {
 }
 
 func (m *Message) AddDetail(key, value string) {
+	if value == "" {
+		return
+	}
 	m.Details[key] = value
+}
+
+func (m *Message) AddDetailWithKeyword(key, value string) {
+	m.AddDetail(key, value)
+	m.AddKeyword(value)
 }
 
 func (m *Message) AddDetails(kv map[string]string) {
@@ -51,21 +71,31 @@ func (m *Message) AddDetails(kv map[string]string) {
 	}
 }
 
+func (m *Message) AddKeyword(value string) {
+	if value == "" {
+		return
+	}
+	keywords := types.StringStack(strings.Split(m.Keywords, " "))
+	if !keywords.Contains(value) {
+		m.Keywords += " " + value
+	}
+}
+
 type MessageProducer interface {
 	Message(context.Context) (Message, error)
 }
 
 func NewMessage(ctx context.Context) (Message, error) {
-	userContext, err := security.NewUserContextDetails(ctx)
-	if err != nil {
-		return Message{}, err
-	}
-
 	var tenantId = types.EmptyUUID()
 	var securityAudit SecurityAuditContext
 	var trace TraceAuditContext
 
-	if userContext.TenantId != nil {
+	userContext, err := security.NewUserContextDetails(ctx)
+	if err != nil {
+		logger.WithContext(ctx).Warn("Audit message created without authenticated user context")
+	}
+
+	if userContext != nil && userContext.TenantId != nil {
 		tenantId = userContext.TenantId
 
 		securityAudit.ClientId = types.NewOptionalString(userContext.ClientId).OrEmpty()

@@ -39,21 +39,35 @@ const (
 	SubTypeTenant        = "TENANT"
 	SubTypeSystem        = "SYSTEM"
 	SubTypeScheduledTask = "SCHEDULE_TASK"
+	SubTypeActivity      = "ACTIVITY"
 )
 
 const (
-	DetailsObjectType = "objectType"
-	DetailsObjectId   = "objectId"
-	DetailsUserId     = "userId"
-	DetailsTenantId   = "tenantId"
-	DetailsProviderId = "providerId"
-	DetailsSeverity   = "severity"
+	DetailsObjectType          = "objectType"
+	DetailsObjectId            = "objectId"
+	DetailsUserId              = "userId"
+	DetailsTenantId            = "tenantId"
+	DetailsProviderId          = "providerId"
+	DetailsSeverity            = "severity"
+	DetailsObjectName          = "objectName"
+	DetailsTargetId            = "targetId"
+	DetailsTargetType          = "targetType"
+	DetailsTargetName          = "targetName"
+	DetailsDescriptionResource = "descriptionResource"
+	DetailsServiceType         = "serviceType"
+	DetailsAction              = "action"
 )
 
 const (
 	SeverityInformational = "Informational"
 	SeverityWarning       = "Warning"
 	SeverityCritical      = "Critical"
+
+	DisplaySeverityPoor     = "POOR"
+	DisplaySeverityCritical = "CRITICAL"
+	DisplaySeverityFair     = "FAIR"
+	DisplaySeverityGood     = "GOOD"
+	DisplaySeverityUnknown  = "UNKNOWN"
 )
 
 const (
@@ -61,4 +75,8 @@ const (
 	ActionUpdate      = "UPDATE"
 	ActionDelete      = "DELETE"
 	ActionForceDelete = "FORCEDELETE"
+)
+
+const (
+	ObjectTypeTenant = "TENANT"
 )

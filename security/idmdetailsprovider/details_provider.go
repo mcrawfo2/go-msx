@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -31,7 +32,7 @@ type TokenDetailsProvider struct {
 func (t *TokenDetailsProvider) IsTokenActive(ctx context.Context) (active bool, err error) {
 	token := security.UserContextFromContext(ctx).Token
 	if token == "" {
-		return false, security.ErrTokenNotFound
+		return false, errors.Wrap(security.ErrTokenNotFound, "Empty Token")
 	}
 
 	activeInterface, exists := t.activeCache.Get(token)
@@ -51,7 +52,7 @@ func (t *TokenDetailsProvider) IsTokenActive(ctx context.Context) (active bool, 
 func (t *TokenDetailsProvider) TokenDetails(ctx context.Context) (*security.UserContextDetails, error) {
 	token := security.UserContextFromContext(ctx).Token
 	if token == "" {
-		return nil, security.ErrTokenNotFound
+		return nil, errors.Wrap(security.ErrTokenNotFound, "Empty Token")
 	}
 
 	detailsInterface, exists := t.detailsCache.Get(token)

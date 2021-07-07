@@ -78,7 +78,13 @@ func TestNewMessage(t *testing.T) {
 		{
 			name:    "NoUserContextDetails",
 			ctx:     context.Background(),
-			wantErr: true,
+			want:    Message{
+				Time:  topics.Time(time.Now()),
+				Type:  "GP",
+				Trace: TraceAuditContext{},
+				Security: SecurityAuditContext{},
+				Details: Details{},
+			},
 		},
 		{
 			name: "NoLogContext",
