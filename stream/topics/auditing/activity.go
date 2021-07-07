@@ -44,6 +44,7 @@ type ActivityBuilder struct {
 		Tenant ActivityEntityReference
 		User   ActivityEntityReference
 	}
+	Details map[string]string
 }
 
 func (b *ActivityBuilder) WithDescriptionText(text string) *ActivityBuilder {
@@ -120,6 +121,15 @@ func (b *ActivityBuilder) WithUser(user ActivityEntityReference) *ActivityBuilde
 	return b
 }
 
+// WithDetail adds a detail entry to the message.  Should be used sparingly, in deference to all other accessors.
+func (b *ActivityBuilder) WithDetail(key, value string) *ActivityBuilder {
+	if b.Details == nil {
+		b.Details = make(map[string]string)
+	}
+	b.Details[key] = value
+	return b
+}
+
 func (b *ActivityBuilder) displaySeverity() string {
 	if b.Severity.Display != "" {
 		return b.Severity.Display
@@ -181,7 +191,7 @@ func (b *ActivityBuilder) Build(ctx context.Context) (msg Message, err error) {
 		msg.Security.TenantName = b.Operands.Tenant.Name
 	}
 	msg.Security.TenantId = b.Operands.Tenant.Id
-	msg.AddKeyword(msg.Security.TenantId)
+	msg.AddDetailWithKeyword(DetailsTenantId, msg.Security.TenantId)
 
 	if b.Operands.User.Name != "" {
 		msg.Security.Username = b.Operands.User.Name
@@ -207,6 +217,10 @@ func (b *ActivityBuilder) Build(ctx context.Context) (msg Message, err error) {
 	msg.AddDetail(DetailsTargetName, b.Operands.Target.Name)
 	msg.AddDetail(DetailsTargetId, b.Operands.Target.Id)
 	msg.AddDetail(DetailsTargetType, b.Operands.Target.Type)
+
+	for k, v := range b.Details {
+		msg.AddDetail(k, v)
+	}
 
 	if b.Description.Text == "" {
 		// Load the resource string if we have no template
