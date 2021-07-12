@@ -3,7 +3,7 @@ package prometheusprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

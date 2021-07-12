@@ -5,7 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"encoding/json"
 	"fmt"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"net/http"
 	"strings"
 )

@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"encoding/json"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"io/ioutil"
 )
 

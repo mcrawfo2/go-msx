@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"errors"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"testing"

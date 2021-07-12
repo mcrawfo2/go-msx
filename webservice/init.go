@@ -2,7 +2,7 @@ package webservice
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 )
 
 var restfulLogger = log.NewLogger("restful")

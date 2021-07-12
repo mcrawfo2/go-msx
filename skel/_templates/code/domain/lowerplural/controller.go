@@ -11,7 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	//#endif TENANT_DOMAIN
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 )
 
 const (

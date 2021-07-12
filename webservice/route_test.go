@@ -9,7 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/securitytest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"net/http"

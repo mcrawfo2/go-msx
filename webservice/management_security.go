@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"

@@ -6,7 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/sanitize"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"io/ioutil"

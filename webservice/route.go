@@ -13,27 +13,35 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
-	"github.com/emicklei/go-restful"
-	restfulspec "github.com/emicklei/go-restful-openapi"
+	restfulspec "github.com/emicklei/go-restful-openapi/v2"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/go-openapi/spec"
+	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 const (
-	HeaderNameAuthorization     = "Authorization"
-	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
-	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
-	MetadataTagDefinition       = "TagDefinition"
-	MetadataPermissions         = "Permissions"
-	AttributeDefaultReturnCode  = "DefaultReturnCode"
-	AttributeErrorPayload       = "ErrorPayload"
-	AttributeError              = "Error"
-	AttributeParams             = "Params"
-	AttributeStandard           = "Standard"
-	AttributeParamsValidator    = "ParamsValidator"
-	AttributeSilenceLog         = "ManagementSilenceLog"
+	HeaderNameAuthorization    = "Authorization"
+	MetadataTagDefinition      = "TagDefinition"
+	MetadataPermissions        = "Permissions"
+	MetadataSuccessResponse    = "SuccessResponse"
+	MetadataErrorPayload       = "ErrorPayload"
+	MetadataRequest            = "Request"
+	MetadataDefaultReturnCode  = "DefaultReturnCode"
+	AttributeDefaultReturnCode = "DefaultReturnCode"
+	AttributeSuccessResponse   = "SuccessResponse"
+	AttributeErrorPayload      = "ErrorPayload"
+	AttributeError             = "Error"
+	AttributeParams            = "Params"
+	AttributeStandard          = "Standard"
+	AttributeParamsValidator   = "ParamsValidator"
+	AttributeSilenceLog        = "ManagementSilenceLog"
+
+	StructTagRequest  = "req"
+	StructTagResponse = "resp"
 )
 
 var (
@@ -129,11 +137,77 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 
 func ErrorPayload(payload interface{}) func(*restful.RouteBuilder) {
 	return func(builder *restful.RouteBuilder) {
+		builder.Metadata(MetadataErrorPayload, payload)
 		builder.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 			request.SetAttribute(AttributeErrorPayload, payload)
 			chain.ProcessFilter(request, response)
 		})
 	}
+}
+
+func SuccessResponse(template interface{}) RouteBuilderFunc {
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	// Create an instance for the metadata (swagger)
+	template = reflect.Zero(templateType).Interface()
+
+	// Extract the payload
+	var payload = samplePayload(template, StructTagResponse)
+
+	return func(builder *restful.RouteBuilder) {
+		builder.Metadata(MetadataSuccessResponse, template)
+		builder.DefaultReturns("Success", payload)
+		if payload != nil {
+			builder.Writes(payload)
+		}
+
+		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			// Instantiate a new object of the same type as template for the request
+			target := reflect.New(templateType).Interface()
+
+			// Store it in the request attributes
+			req.SetAttribute(AttributeSuccessResponse, target)
+
+			// Continue processing
+			chain.ProcessFilter(req, response)
+		})
+	}
+}
+
+func samplePayload(template interface{}, structTagName string) interface{} {
+	hasReq := false
+	templateType := reflect.TypeOf(template)
+
+	if templateType.Kind() == reflect.Struct {
+		// search for `req:"body"` in struct tags
+		for i := 0; i < templateType.NumField(); i++ {
+			templateField := templateType.Field(i)
+			req := templateField.Tag.Get(structTagName)
+			if req != "" {
+				hasReq = true
+			}
+			if req != "body" {
+				continue
+			}
+
+			payloadType := templateField.Type
+			for payloadType.Kind() == reflect.Ptr {
+				payloadType = payloadType.Elem()
+			}
+
+			return types.Instantiate(payloadType)
+		}
+	}
+
+	if !hasReq {
+		// Assume the template is the payload
+		return types.Instantiate(templateType)
+	}
+
+	return nil
 }
 
 func StandardReturns(b *restful.RouteBuilder) {
@@ -174,7 +248,7 @@ func ConsumesTextPlain(b *restful.RouteBuilder) {
 
 func DefaultReturns(code int) RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
-		b.Metadata(AttributeDefaultReturnCode, code)
+		b.Metadata(MetadataDefaultReturnCode, code)
 		b.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 			request.SetAttribute(AttributeDefaultReturnCode, code)
 			chain.ProcessFilter(request, response)
@@ -456,6 +530,101 @@ func PopulateParams(template interface{}) RouteBuilderFunc {
 			chain.ProcessFilter(req, response)
 		})
 	}
+}
+
+func Request(template interface{}) RouteBuilderFunc {
+	populateParamsFunc := PopulateParams(template)
+
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	// Create an instance for the metadata (swagger)
+	template = reflect.Zero(templateType).Interface()
+
+	// Extract the parameters
+	var params = extractRequestParameters(template)
+
+	// Extract the payload
+	var payload = samplePayload(template, StructTagRequest)
+
+	return func(builder *restful.RouteBuilder) {
+		builder.Metadata(MetadataRequest, template)
+		if payload != nil {
+			builder.Reads(payload)
+		}
+
+		for _, param := range params {
+			builder.Param(param)
+		}
+
+		populateParamsFunc(builder)
+	}
+}
+
+func extractRequestParameters(template interface{}) []*restful.Parameter {
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	var results []*restful.Parameter
+
+	if templateType.Kind() == reflect.Struct {
+		for i := 0; i < templateType.NumField(); i++ {
+			if p := extractRequestParameter(templateType.Field(i)); p != nil {
+				results = append(results, p)
+			}
+		}
+	}
+
+	return results
+}
+
+type ParameterTag struct {
+	TagName string
+	Source  string
+	Name    string
+}
+
+func NewParameterTag(field reflect.StructField, tagName string) ParameterTag {
+	source := field.Tag.Get(tagName)
+	name := ""
+
+	if strings.Contains(source, "=") {
+		reqParts := strings.SplitN(source, "=", 2)
+		source, name = reqParts[0], reqParts[1]
+	}
+
+	if name == "" {
+		name = strcase.ToLowerCamel(field.Name)
+	}
+
+	return ParameterTag{
+		TagName: tagName,
+		Source:  source,
+		Name:    name,
+	}
+}
+
+func extractRequestParameter(templateField reflect.StructField) *restful.Parameter {
+	parameter := NewParameterTag(templateField, StructTagRequest)
+	desc := templateField.Tag.Get("description")
+	required := templateField.Tag.Get("required") == "true"
+
+	switch parameter.Source {
+	case "path":
+		return restful.PathParameter(parameter.Name, desc).Required(true)
+	case "query":
+		return restful.QueryParameter(parameter.Name, desc).Required(required)
+	case "header":
+		return restful.HeaderParameter(parameter.Name, desc).Required(required)
+	case "form":
+		return restful.FormParameter(parameter.Name, desc).Required(required)
+	}
+
+	return nil
 }
 
 func ValidateParams(fn ValidatorFunction) RouteBuilderFunc {

@@ -5,11 +5,13 @@ go 1.14
 require (
 	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
 	github.com/AlecAivazis/survey/v2 v2.0.5
+	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
+	github.com/axw/gocov v1.0.0 // indirect
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/dave/jennifer v1.4.1
@@ -17,8 +19,9 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
-	github.com/emicklei/go-restful v2.14.3+incompatible
-	github.com/emicklei/go-restful-openapi v1.2.0
+	github.com/emicklei/go-restful-openapi/v2 v2.3.0
+	github.com/emicklei/go-restful/v3 v3.5.1
+	github.com/fatih/structtag v1.2.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
@@ -34,7 +37,9 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kennygrant/sanitize v1.2.4
+	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/lib/pq v1.3.0
+	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/opentracing/opentracing-go v1.1.0
@@ -55,6 +60,8 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	github.com/swaggest/jsonschema-go v0.3.19
+	github.com/swaggest/openapi-go v0.2.10
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.6.4
 	github.com/uber/jaeger-client-go v2.19.0+incompatible

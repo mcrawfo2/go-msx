@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"io/ioutil"
 	"net/http"
 	"reflect"

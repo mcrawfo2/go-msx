@@ -1,7 +1,10 @@
 package swaggerprovider
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"strings"
 )
 
@@ -34,6 +37,7 @@ type DocumentationConfig struct {
 	Enabled     bool   `config:"default=false"`
 	ApiPath     string `config:"default=/apidocs.json"`
 	SwaggerPath string `config:"default=/swagger-resources"`
+	Version     string `config:"default=2.0"`
 	Security    DocumentationSecurityConfig
 	Ui          DocumentationUiConfig
 }
@@ -74,4 +78,50 @@ func AppInfoFromConfig(cfg *config.Config) (*AppInfo, error) {
 		return nil, err
 	}
 	return &appInfo, nil
+}
+
+func RegisterSwaggerProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server == nil {
+		return nil
+	}
+
+	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	if !cfg.Enabled {
+		return ErrDisabled
+	}
+
+	appInfo, err := AppInfoFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	oapiVersion, err := types.NewVersion(cfg.Version)
+	if err != nil {
+		return err
+	}
+
+	var provider webservice.DocumentationProvider
+	switch oapiVersion[0] {
+	case 2:
+		provider = &SwaggerProvider{
+			ctx:     ctx,
+			cfg:     cfg,
+			appInfo: appInfo,
+		}
+
+	case 3:
+		provider = &OpenApiProvider{
+			ctx: ctx,
+			cfg: cfg,
+			appInfo: appInfo,
+		}
+	}
+
+	server.AddDocumentationProvider(provider)
+	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/sp/api"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"errors"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 )
 
 const (

@@ -1,6 +1,6 @@
 package webservice
 
-import "github.com/emicklei/go-restful"
+import "github.com/emicklei/go-restful/v3"
 
 var QueryParamPageNumber = restful.QueryParameter("page", "Page number (0-based)").
 	Required(true).

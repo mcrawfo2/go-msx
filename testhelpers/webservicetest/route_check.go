@@ -3,7 +3,7 @@ package webservicetest
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/go-openapi/spec"
 )
 

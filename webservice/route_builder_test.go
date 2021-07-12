@@ -8,7 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

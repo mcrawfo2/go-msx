@@ -3,7 +3,7 @@
 package webservice
 
 import (
-	restful "github.com/emicklei/go-restful"
+	restful "github.com/emicklei/go-restful/v3"
 	mock "github.com/stretchr/testify/mock"
 )
 

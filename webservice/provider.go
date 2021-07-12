@@ -6,7 +6,7 @@
 package webservice
 
 import (
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"net/http"
 	"strings"
 )

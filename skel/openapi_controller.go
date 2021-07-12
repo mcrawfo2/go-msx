@@ -16,7 +16,7 @@ func generateController(c Controller) (err error) {
 
 	f := NewFile(c.Package())
 	f.ImportNames(map[string]string{
-		"github.com/emicklei/go-restful":                "restful",
+		"github.com/emicklei/go-restful/v3":                "restful",
 		"cto-github.cisco.com/NFV-BU/go-msx/webservice": "",
 		"cto-github.cisco.com/NFV-BU/go-msx/log":        "",
 	})
@@ -38,7 +38,7 @@ func generateController(c Controller) (err error) {
 }
 
 const pkgWebservice = "cto-github.cisco.com/NFV-BU/go-msx/webservice"
-const pkgRestful = "github.com/emicklei/go-restful"
+const pkgRestful = "github.com/emicklei/go-restful/v3"
 const pkgLog = "cto-github.cisco.com/NFV-BU/go-msx/log"
 const pkgValidation = "github.com/go-ozzo/ozzo-validation"
 const pkgValidate = "cto-github.cisco.com/NFV-BU/go-msx/validate"

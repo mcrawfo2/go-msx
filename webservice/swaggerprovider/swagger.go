@@ -2,14 +2,13 @@ package swaggerprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"encoding/json"
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful-openapi"
-	"github.com/go-openapi/spec"
+	"github.com/emicklei/go-restful-openapi/v2"
+	"github.com/emicklei/go-restful/v3"
+	spec2 "github.com/go-openapi/spec"
 	"github.com/pkg/errors"
 	"sort"
 	"strings"
@@ -27,7 +26,7 @@ type SwaggerSchemaSource interface {
 type SwaggerProvider struct {
 	ctx        context.Context
 	cfg        *DocumentationConfig
-	spec       *spec.Swagger
+	spec       *spec2.Swagger
 	appInfo    *AppInfo
 	customizer SwaggerCustomizer
 }
@@ -47,7 +46,7 @@ func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interfa
 			Name:           "platform",
 			Location:       p.cfg.SwaggerPath + p.cfg.ApiPath,
 			Url:            p.cfg.SwaggerPath + p.cfg.ApiPath,
-			SwaggerVersion: "2.0",
+			SwaggerVersion: p.cfg.Version,
 		},
 	}, nil
 }
@@ -109,8 +108,8 @@ func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err er
 	return p.spec, nil
 }
 
-func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
-	return func(swagger *spec.Swagger) {
+func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec2.Swagger) {
+	return func(swagger *spec2.Swagger) {
 		c := SwaggerCustomizer{}
 		c.CustomizeInfo(swagger, p.appInfo)
 		c.CustomizeTags(swagger, container)
@@ -170,9 +169,9 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 
 type SwaggerCustomizer struct{}
 
-func (c SwaggerCustomizer) CustomizeInfo(swagger *spec.Swagger, appInfo *AppInfo) {
-	swagger.Info = &spec.Info{
-		InfoProps: spec.InfoProps{
+func (c SwaggerCustomizer) CustomizeInfo(swagger *spec2.Swagger, appInfo *AppInfo) {
+	swagger.Info = &spec2.Info{
+		InfoProps: spec2.InfoProps{
 			Title: "MSX API Documentation for " + appInfo.Name,
 			Description: "<h3>This is the REST API documentation for " + appInfo.Name + "</h3>\n \n" +
 				appInfo.Description + "\n" +
@@ -180,15 +179,15 @@ func (c SwaggerCustomizer) CustomizeInfo(swagger *spec.Swagger, appInfo *AppInfo
 				"    + Authorization header is <b>required</b>. \n" +
 				"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
 			TermsOfService: "http://www.cisco.com",
-			Contact: &spec.ContactInfo{
-				ContactInfoProps: spec.ContactInfoProps{
+			Contact: &spec2.ContactInfo{
+				ContactInfoProps: spec2.ContactInfoProps{
 					Name:  "Cisco Systems Inc.",
 					URL:   "http://www.cisco.com",
 					Email: "somecontact@cisco.com",
 				},
 			},
-			License: &spec.License{
-				LicenseProps: spec.LicenseProps{
+			License: &spec2.License{
+				LicenseProps: spec2.LicenseProps{
 					Name: "Apache License Version 2.0",
 					URL:  "http://www.apache.org/licenses/LICENSE-2.0.html",
 				},
@@ -198,26 +197,26 @@ func (c SwaggerCustomizer) CustomizeInfo(swagger *spec.Swagger, appInfo *AppInfo
 	}
 }
 
-func (c SwaggerCustomizer) CustomizeTags(swagger *spec.Swagger, container *restful.Container) {
+func (c SwaggerCustomizer) CustomizeTags(swagger *spec2.Swagger, container *restful.Container) {
 	// Register tags definitions from all of the routes
 	var existingTags = types.StringStack{}
 	for _, svc := range container.RegisteredWebServices() {
 		for _, route := range svc.Routes() {
 			if routeTagDefinitionInterface, ok := route.Metadata[webservice.MetadataTagDefinition]; ok {
-				routeTagDefinition := routeTagDefinitionInterface.(spec.TagProps)
+				routeTagDefinition := routeTagDefinitionInterface.(spec2.TagProps)
 				if !existingTags.Contains(routeTagDefinition.Name) {
 					existingTags = append(existingTags, routeTagDefinition.Name)
-					swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
+					swagger.Tags = append(swagger.Tags, spec2.Tag{TagProps: routeTagDefinition})
 				}
 			}
 		}
 	}
 }
 
-func (c SwaggerCustomizer) CustomizeBasePath(swagger *spec.Swagger, contextPath string) {
+func (c SwaggerCustomizer) CustomizeBasePath(swagger *spec2.Swagger, contextPath string) {
 	// Factor out contextPath into basePath
 	if contextPath != "/" {
-		newPaths := make(map[string]spec.PathItem)
+		newPaths := make(map[string]spec2.PathItem)
 		for path, pathItem := range swagger.Paths.Paths {
 			if strings.HasPrefix(path, contextPath) {
 				path = strings.TrimPrefix(path, contextPath)
@@ -229,7 +228,7 @@ func (c SwaggerCustomizer) CustomizeBasePath(swagger *spec.Swagger, contextPath 
 	}
 }
 
-func (c SwaggerCustomizer) SortTags(swagger *spec.Swagger) {
+func (c SwaggerCustomizer) SortTags(swagger *spec2.Swagger) {
 	sort.Slice(swagger.Tags, func(i, j int) bool {
 		iTagName := swagger.Tags[i].Name
 		jTagName := swagger.Tags[j].Name
@@ -237,7 +236,7 @@ func (c SwaggerCustomizer) SortTags(swagger *spec.Swagger) {
 	})
 }
 
-func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
+func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec2.Swagger) {
 	var schemaSources = []SwaggerSchemaSource{
 		new(types.Time),
 		new(types.UUID),
@@ -247,7 +246,7 @@ func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
 		typeName := types.GetInstanceTypeName(schemaSource)
 		schemaJson := schemaSource.SwaggerSchemaJson()
 
-		var schemaDef *spec.Schema
+		var schemaDef *spec2.Schema
 		if err := json.Unmarshal([]byte(schemaJson), &schemaDef); err != nil {
 			logger.WithError(err).Errorf("Failed to parse Swagger Schema for %q", typeName)
 			continue
@@ -255,32 +254,4 @@ func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
 
 		swagger.Definitions[typeName] = *schemaDef
 	}
-}
-
-func RegisterSwaggerProvider(ctx context.Context) error {
-	server := webservice.WebServerFromContext(ctx)
-	if server == nil {
-		return nil
-	}
-
-	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	if !cfg.Enabled {
-		return ErrDisabled
-	}
-
-	appInfo, err := AppInfoFromConfig(config.MustFromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	server.AddDocumentationProvider(&SwaggerProvider{
-		ctx:     ctx,
-		cfg:     cfg,
-		appInfo: appInfo,
-	})
-	return nil
 }

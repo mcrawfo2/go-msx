@@ -15,7 +15,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"encoding/json"
-	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/v3"
 	"github.com/mohae/deepcopy"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
