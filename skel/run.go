@@ -63,7 +63,8 @@ func loadProjectConfig() (bool, error) {
 	}
 
 	configFile := ""
-	for here != "/" {
+	prev := ""
+	for here != prev {
 		hereFile := filepath.Join(here, projectConfigFileName)
 		stat, err := os.Stat(hereFile)
 		if err != nil && !os.IsNotExist(err) {
@@ -74,6 +75,7 @@ func loadProjectConfig() (bool, error) {
 		} else {
 			err = nil
 		}
+		prev = here
 		here = filepath.Dir(here)
 	}
 
