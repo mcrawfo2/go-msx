@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+const OPENAPI_PROPERTY_TYPE_NAME = "x-type-name"
+
 type OpenApiProvider struct {
 	ctx        context.Context
 	cfg        *DocumentationConfig
@@ -23,6 +25,7 @@ type OpenApiProvider struct {
 	customizer OpenApiCustomizer
 	requests   map[reflect.Type]interface{}
 	responses  map[reflect.Type]interface{}
+	bodies     map[reflect.Type]reflect.Type
 }
 
 func (p *OpenApiProvider) initReflector(reflector *openapi3.Reflector) {
@@ -37,6 +40,20 @@ func (p *OpenApiProvider) initReflector(reflector *openapi3.Reflector) {
 	customMappingTypesTime.AddType(jsonschema.String)
 	customMappingTypesTime.WithFormat("date-time")
 	reflector.AddTypeMapping(types.Time{}, customMappingTypesUuid)
+
+	reflector.Reflector.DefaultOptions = append(reflector.Reflector.DefaultOptions, jsonschema.InterceptType(func(value reflect.Value, schema *jsonschema.Schema) (bool, error) {
+		bodyType := value.Type()
+		if p.bodies != nil {
+			if newBodyType, ok := p.bodies[bodyType]; ok {
+				bodyType = newBodyType
+			}
+		}
+		bodyName, bodyPkgPath := bodyType.Name(), bodyType.PkgPath()
+		if bodyName != "" && bodyPkgPath != "" {
+			schema.WithExtraPropertiesItem(OPENAPI_PROPERTY_TYPE_NAME, bodyPkgPath + "#" + bodyName)
+		}
+		return false, nil
+	}))
 }
 
 func (p *OpenApiProvider) getReflectorRequest(reflector *openapi3.Reflector, request interface{}) (interface{}, error) {
@@ -95,10 +112,14 @@ func (p *OpenApiProvider) getReflectorResponse(reflector *openapi3.Reflector, re
 }
 
 func (p *OpenApiProvider) createReflectorStruct(reflector *openapi3.Reflector, source interface{}, tagName string) (reflect.Type, error) {
+	if p.bodies == nil {
+		p.bodies = make(map[reflect.Type]reflect.Type)
+	}
 	sourceType := reflect.TypeOf(source)
 
 	// Create a new struct for the supplied request
 	var reflectorFields []reflect.StructField
+	var bodyInstance interface{}
 	for i := 0; i < sourceType.NumField(); i++ {
 		requestField := sourceType.Field(i)
 		parameterTag := webservice.NewParameterTag(requestField, tagName)
@@ -113,8 +134,8 @@ func (p *OpenApiProvider) createReflectorStruct(reflector *openapi3.Reflector, s
 			tags.Delete(tagName)
 
 			err = tags.Set(&structtag.Tag{
-				Key:     parameterTag.Source,
-				Name:    parameterTag.Name,
+				Key:  parameterTag.Source,
+				Name: parameterTag.Name,
 			})
 			if err != nil {
 				return nil, errors.Wrap(err, "Failed to apply struct tag")
@@ -139,10 +160,9 @@ func (p *OpenApiProvider) createReflectorStruct(reflector *openapi3.Reflector, s
 			}
 
 			if requestFieldType.Kind() == reflect.Struct {
-				instance := types.Instantiate(requestField.Type)
+				bodyInstance = types.Instantiate(requestField.Type)
 				nullOp := openapi3.Operation{}
-				_ = reflector.SetJSONResponse(&nullOp, instance, -1)
-
+				_ = reflector.SetJSONResponse(&nullOp, bodyInstance, -1)
 			}
 
 			requestField.Anonymous = true
@@ -151,7 +171,104 @@ func (p *OpenApiProvider) createReflectorStruct(reflector *openapi3.Reflector, s
 		}
 	}
 
-	return reflect.StructOf(reflectorFields), nil
+	structType := reflect.StructOf(reflectorFields)
+
+	if bodyInstance != nil {
+		p.bodies[structType] = reflect.TypeOf(bodyInstance)
+	}
+
+	return structType, nil
+}
+
+func getTypeName(schema *openapi3.Schema) (string, bool) {
+	v, ok := schema.MapOfAnything[OPENAPI_PROPERTY_TYPE_NAME]
+	if !ok {
+		return "", false
+	}
+
+	vs, ok :=  v.(string)
+	return vs, ok
+}
+
+func findComponent(schemas *openapi3.ComponentsSchemas, typeName string) (string, bool) {
+	for name, schema := range schemas.MapOfSchemaOrRefValues {
+		if schema.Schema == nil {
+			continue
+		}
+
+		schemaTypeName, ok := getTypeName(schema.Schema)
+		if ok && schemaTypeName == typeName {
+			return name, true
+		}
+	}
+
+	return "", false
+}
+
+func (p *OpenApiProvider) fixupSchema(schemas *openapi3.ComponentsSchemas, schemaOrRef *openapi3.SchemaOrRef) {
+	if schemaOrRef.Schema == nil {
+		return
+	}
+
+	schemaTypeName, ok := getTypeName(schemaOrRef.Schema)
+	if !ok {
+		return
+	}
+
+	componentName, ok := findComponent(schemas, schemaTypeName)
+	if !ok {
+		return
+	}
+
+	schemaOrRef.Schema = nil
+	schemaOrRef.SchemaReference = &openapi3.SchemaReference{
+		Ref: "#/components/schemas/" + componentName,
+	}
+}
+
+func (p *OpenApiProvider) fixupRequestBody(reflector *openapi3.Reflector, op *openapi3.Operation) {
+	if op.RequestBody == nil || op.RequestBody.RequestBody == nil {
+		return
+	}
+
+	for mimeType, mediaType := range op.RequestBody.RequestBody.Content {
+		if mimeType != webservice.MIME_JSON {
+			continue
+		}
+
+		p.fixupSchema(reflector.Spec.ComponentsEns().SchemasEns(), mediaType.Schema)
+	}
+}
+
+func (p *OpenApiProvider) fixupResponse(reflector *openapi3.Reflector, response openapi3.ResponseOrRef) {
+	if response.Response == nil {
+		return
+	}
+
+	for mimeType, mediaType := range response.Response.Content {
+
+		if mimeType != webservice.MIME_JSON {
+			continue
+		}
+
+		p.fixupSchema(reflector.Spec.ComponentsEns().SchemasEns(), mediaType.Schema)
+	}
+}
+
+func (p *OpenApiProvider) fixupResponseBody(reflector *openapi3.Reflector, op *openapi3.Operation) {
+	if op.Responses.MapOfResponseOrRefValues == nil {
+		return
+	}
+
+	for _, response := range op.Responses.MapOfResponseOrRefValues {
+		p.fixupResponse(reflector, response)
+	}
+}
+
+func (p *OpenApiProvider) fixupDefaultResponseBody(reflector *openapi3.Reflector, op *openapi3.Operation) {
+	if op.Responses.Default != nil {
+		p.fixupResponse(reflector, *op.Responses.Default)
+	}
 }
 
 func (p *OpenApiProvider) BuildOperationForServiceRoute(reflector *openapi3.Reflector, webService *restful.WebService, contextPath string, route restful.Route) error {
@@ -175,8 +292,9 @@ func (p *OpenApiProvider) BuildOperationForServiceRoute(reflector *openapi3.Refl
 		if err != nil {
 			return err
 		}
-	}
 
+		p.fixupRequestBody(reflector, &op)
+	}
 
 	if response, ok := route.Metadata[webservice.MetadataSuccessResponse]; ok {
 		reflectorResponse, err := p.getReflectorResponse(reflector, response)
@@ -193,6 +311,8 @@ func (p *OpenApiProvider) BuildOperationForServiceRoute(reflector *openapi3.Refl
 		if err != nil {
 			return err
 		}
+
+		p.fixupResponseBody(reflector, &op)
 	}
 
 	if errorPayload, ok := route.Metadata[webservice.MetadataErrorPayload]; ok {
@@ -206,6 +326,8 @@ func (p *OpenApiProvider) BuildOperationForServiceRoute(reflector *openapi3.Refl
 		delete(op.Responses.MapOfResponseOrRefValues, "-1")
 		op.Responses.Default = &responseDefinition
 		op.Responses.Default.Response.Description = "Error"
+
+		p.fixupDefaultResponseBody(reflector, &op)
 	} else {
 		// TODO: Auto-calculate error response payload
 	}
@@ -241,6 +363,7 @@ func (p *OpenApiProvider) BuildSpec(container *restful.Container, contextPath st
 	p.spec = reflector.Spec
 	return nil
 }
+
 func (p *OpenApiProvider) PostBuildSpec(container *restful.Container, contextPath string) error {
 	return types.ErrorList{
 		p.customizer.PostBuildInfo(p.spec, p.appInfo),
