@@ -14,6 +14,7 @@ const (
 
 func init() {
 	AddTarget("generate-domain-beats", "Generate beats domain implementation", GenerateBeatsDomain)
+	AddTarget("generate-kubernetes-beats", "Create production kubernetes manifest templates", GenerateKubernetesForBeats)
 }
 
 func GenerateBeatsDomain(args []string) error {
