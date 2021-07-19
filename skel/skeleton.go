@@ -27,9 +27,8 @@ func init() {
 }
 
 // Root command
-func GenerateSkeleton(args []string) error {
+func GenerateSkeleton(_ []string) error {
 	var generators []string
-	logger.Infof("%v", args)
 	// Common pre-generators
 	generators = append(generators,
 		"generate-skel-json",
