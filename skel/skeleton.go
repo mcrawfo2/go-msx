@@ -29,7 +29,6 @@ func init() {
 // Root command
 func GenerateSkeleton(_ []string) error {
 	var generators []string
-
 	// Common pre-generators
 	generators = append(generators,
 		"generate-skel-json",
@@ -47,7 +46,6 @@ func GenerateSkeleton(_ []string) error {
 		"generate-dockerfile",
 		"generate-goland",
 		"generate-vscode",
-		"generate-kubernetes",
 		"generate-jenkins",
 		"generate-git")
 
@@ -417,6 +415,32 @@ func GenerateKubernetes(_ []string) error {
 		{
 			Name:       "Creating pdb template",
 			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
+}
+
+func GenerateKubernetesForBeats(_ []string) error {
+	logger.Info("Generating kubernetes manifest templates for beats")
+	templates := TemplateSet{
+		{
+			Name:       "Creating deployment template",
+			SourceFile: "deployments/beats/kubernetes-ps.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-ps.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+		{
+			Name:       "Creating config map template",
+			SourceFile: "deployments/beats/kubernetes-cm.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-cm.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+		{
+			Name:       "Creating pdb template",
+			SourceFile: "deployments/beats/kubernetes-pdb.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
 			Format:     FileFormatYaml,
 		},

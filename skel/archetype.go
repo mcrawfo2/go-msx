@@ -41,6 +41,7 @@ var archetypes = Archetypes{
 		DisplayName: "Generic Microservice",
 		Generators: []string{
 			"generate-migrate",
+			"generate-kubernetes",
 		},
 	},
 	{
@@ -48,6 +49,7 @@ var archetypes = Archetypes{
 		DisplayName: "Beat",
 		Generators: []string{
 			"generate-domain-beats",
+			"generate-kubernetes-beats",
 		},
 	},
 	{
@@ -56,6 +58,7 @@ var archetypes = Archetypes{
 		Generators: []string{
 			"generate-migrate",
 			"generate-service-pack",
+			"generate-kubernetes",
 		},
 	},
 }
