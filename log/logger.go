@@ -4,6 +4,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -339,6 +340,21 @@ func SetLoggerLevel(name string, level logrus.Level) {
 
 func GetLoggerLevels() map[string]logrus.Level {
 	return levels
+}
+
+func ErrorMessage(logger *Logger, ctx context.Context, err error) {
+	if IsDocker() {
+		return
+	}
+
+	message := err.Error()
+	if !strings.Contains(message, "\n") {
+		return
+	}
+
+	for _, line := range strings.Split(message, "\n") {
+		logger.WithContext(ctx).Error(line)
+	}
 }
 
 func Stack(logger *Logger, ctx context.Context, bt types.BackTrace) {
