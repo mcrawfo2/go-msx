@@ -545,6 +545,38 @@ func (_m *MockUserManagement) GetTenantByName(tenantName string) (*integration.M
 	return r0, r1
 }
 
+// GetTenantHierarchyAncestors provides a mock function with given fields: tenantId
+func (_m *MockUserManagement) GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
+	ret := _m.Called(tenantId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(types.UUID) *integration.MsxResponse); ok {
+		r0 = rf(tenantId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 []types.UUID
+	if rf, ok := ret.Get(1).(func(types.UUID) []types.UUID); ok {
+		r1 = rf(tenantId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]types.UUID)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(types.UUID) error); ok {
+		r2 = rf(tenantId)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GetTenantHierarchyParent provides a mock function with given fields: tenantId
 func (_m *MockUserManagement) GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error) {
 	ret := _m.Called(tenantId)

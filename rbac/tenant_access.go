@@ -12,6 +12,8 @@ type TenantAccess struct {
 	Unfiltered bool
 	// Explicit Tenant Association
 	TenantIds []types.UUID
+	// Ancestor Tenants of TenantIds
+	AncestorIds []types.UUID
 }
 
 func (t TenantAccess) ValidateTenantAccess(tenantId types.UUID) error {
@@ -29,6 +31,58 @@ func (t TenantAccess) ValidateTenantAccess(tenantId types.UUID) error {
 
 	// No access to this task
 	return repository.ErrNotFound
+}
+
+func (t TenantAccess) WithAncestors(ctx context.Context) (TenantAccess, error) {
+	if t.Unfiltered {
+		return t, nil
+	}
+
+	ancestorIds := make(map[string]types.UUID)
+
+	hierarchy, err := GetTenantHierarchyApi(ctx)
+	if err != nil {
+		return TenantAccess{}, err
+	}
+
+	for _, tenantId := range t.TenantIds {
+		tenantAncestors, err := hierarchy.Ancestors(ctx, tenantId)
+		if err != nil {
+			return TenantAccess{}, err
+		}
+
+		for _, tenantAncestorId := range tenantAncestors {
+			ancestorIds[tenantAncestorId.String()] = tenantAncestorId
+		}
+	}
+
+	for _, ancestorId := range ancestorIds {
+		t.AncestorIds = append(t.AncestorIds, ancestorId)
+	}
+
+	return t, nil
+}
+
+func (t TenantAccess) ValidateAncestorAccess(tenantId types.UUID) error {
+	if t.Unfiltered {
+		// User has access to all tenants
+		return nil
+	}
+
+	// User has access to a set of tenants
+	for _, hasAncestorUuid := range t.AncestorIds {
+		if hasAncestorUuid.Equals(tenantId) {
+			return nil
+		}
+	}
+
+	// No access to this task
+	return repository.ErrNotFound
+}
+
+type TenantAccessWithAncestors struct {
+	TenantAccess
+	Ancestors []types.UUID
 }
 
 func NewTenantAccess(ctx context.Context) (result TenantAccess, err error) {
