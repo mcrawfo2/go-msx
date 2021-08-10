@@ -66,14 +66,14 @@ const (
 	HEADER_XRequestedWith = "x-requested-with"
 )
 
-func ActivateCors(container *restful.Container) {
-	cors := newCors(container)
+func ActivateCors(container *restful.Container, cfg CorsConfig) {
+	cors := newCors(container, cfg)
 	filter := corsFilter(container, cors)
 	container.Filter(filter)
 }
 
-func newCors(container *restful.Container) restful.CrossOriginResourceSharing {
-	return restful.CrossOriginResourceSharing{
+func newCors(container *restful.Container, cfg CorsConfig) restful.CrossOriginResourceSharing {
+	result := restful.CrossOriginResourceSharing{
 		AllowedHeaders: []string{
 			headerNameAuthorization,
 			headerNameAccessToken,
@@ -97,6 +97,10 @@ func newCors(container *restful.Container) restful.CrossOriginResourceSharing {
 		AllowedDomains: []string{"^.*$"},
 		Container:      container,
 	}
+
+	result.AllowedHeaders = append(result.AllowedHeaders, cfg.CustomAllowedHeaders...)
+
+	return result
 }
 
 func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSharing) restful.FilterFunction {

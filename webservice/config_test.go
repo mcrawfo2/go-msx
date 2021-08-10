@@ -3,6 +3,7 @@ package webservice
 import (
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
@@ -162,7 +163,10 @@ func TestNewWebServerConfig(t *testing.T) {
 						"TLS_RSA_WITH_AES_256_CBC_SHA",
 					},
 				},
-				Cors:         true,
+				Cors: CorsConfig{
+					Enabled: true,
+					CustomAllowedHeaders: []string{},
+				},
 				ContextPath:  "/app",
 				StaticPath:   "/www",
 				TraceEnabled: false,
@@ -206,7 +210,10 @@ func TestNewWebServerConfig(t *testing.T) {
 						"TLS_RSA_WITH_AES_256_CBC_SHA",
 					},
 				},
-				Cors:         true,
+				Cors: CorsConfig{
+					Enabled: true,
+					CustomAllowedHeaders: []string{},
+				},
 				ContextPath:  "/dna",
 				StaticPath:   "/www",
 				TraceEnabled: false,
@@ -222,7 +229,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewWebServerConfig() got = %v, want %v", got, tt.want)
+				t.Errorf(testhelpers.Diff(tt.want, got))
 			}
 		})
 	}

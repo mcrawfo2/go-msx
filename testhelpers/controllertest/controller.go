@@ -221,10 +221,12 @@ func (r *ControllerTest) checkRoute(req *restful.Request, resp *restful.Response
 
 func (r *ControllerTest) newWebServer(ctx context.Context, t *testing.T) *webservice.WebServer {
 	webServerConfig := webservice.WebServerConfig{
-		Enabled:     true,
-		Host:        "0.0.0.0",
-		Port:        9999,
-		Cors:        true,
+		Enabled: true,
+		Host:    "0.0.0.0",
+		Port:    9999,
+		Cors: webservice.CorsConfig{
+			Enabled: true,
+		},
 		ContextPath: r.Server.ContextPath,
 		StaticPath:  "/www",
 	}
