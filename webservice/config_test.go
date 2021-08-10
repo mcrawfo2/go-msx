@@ -162,7 +162,9 @@ func TestNewWebServerConfig(t *testing.T) {
 						"TLS_RSA_WITH_AES_256_CBC_SHA",
 					},
 				},
-				Cors:         true,
+				Cors: CorsConfig{
+					Enabled: true,
+				},
 				ContextPath:  "/app",
 				StaticPath:   "/www",
 				TraceEnabled: false,
@@ -206,7 +208,9 @@ func TestNewWebServerConfig(t *testing.T) {
 						"TLS_RSA_WITH_AES_256_CBC_SHA",
 					},
 				},
-				Cors:         true,
+				Cors: CorsConfig{
+					Enabled: true,
+				},
 				ContextPath:  "/dna",
 				StaticPath:   "/www",
 				TraceEnabled: false,
