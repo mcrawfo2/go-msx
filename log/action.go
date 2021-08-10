@@ -19,8 +19,8 @@ func RecoverLogDecorator(logger *Logger) types.ActionFuncDecorator {
 						e = errors.Errorf("Exception: %v", r)
 					}
 
-					logger.WithContext(ctx).WithError(e).Error("Recovered from panic")
 					bt := types.BackTraceFromDebugStackTrace(debug.Stack())
+					logger.WithContext(ctx).WithError(e).WithField(FieldStack, bt.Stanza()).Error("Recovered from panic")
 					Stack(logger, ctx, bt)
 				}
 			}()
