@@ -11,35 +11,25 @@ type JobChan chan *Job
 
 // Job implements a unit of work
 type Job struct {
-	Result           chan error
-	Action           ActionFunc
-	Context          context.Context
-	ActionDecorators []ActionFuncDecorator
-}
-
-func (j *Job) action() ActionFunc {
-	action := j.Action
-	for i := len(j.ActionDecorators) - 1; i >= 0; i-- {
-		action = j.ActionDecorators[i](action)
-	}
-	return action
+	Result    chan error
+	Context   context.Context
+	Operation Operation
 }
 
 func (j *Job) Execute(ctx context.Context) {
 	defer close(j.Result)
-	action := j.action()
 
 	if j.Context != nil {
 		ctx = j.Context
 	}
 
-	j.Result <- action(ctx)
+	j.Result <- j.Operation.Run(ctx)
 }
 
 func NewJob(action ActionFunc, options ...JobOption) *Job {
 	result := &Job{
-		Result: make(chan error, 1),
-		Action: action,
+		Result:    make(chan error, 1),
+		Operation: NewOperation(action),
 	}
 	for _, option := range options {
 		option(result)
@@ -51,7 +41,13 @@ type JobOption func(j *Job)
 
 func JobDecorator(deco ActionFuncDecorator) JobOption {
 	return func(j *Job) {
-		j.ActionDecorators = append(j.ActionDecorators, deco)
+		j.Operation = j.Operation.WithDecorator(deco)
+	}
+}
+
+func JobFilter(filter ActionFilter) JobOption {
+	return func(j *Job) {
+		j.Operation = j.Operation.WithFilter(filter)
 	}
 }
 
