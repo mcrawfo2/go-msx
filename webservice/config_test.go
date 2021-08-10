@@ -3,6 +3,7 @@ package webservice
 import (
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
@@ -164,6 +165,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				},
 				Cors: CorsConfig{
 					Enabled: true,
+					CustomAllowedHeaders: []string{},
 				},
 				ContextPath:  "/app",
 				StaticPath:   "/www",
@@ -210,6 +212,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				},
 				Cors: CorsConfig{
 					Enabled: true,
+					CustomAllowedHeaders: []string{},
 				},
 				ContextPath:  "/dna",
 				StaticPath:   "/www",
@@ -226,7 +229,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewWebServerConfig() got = %v, want %v", got, tt.want)
+				t.Errorf(testhelpers.Diff(tt.want, got))
 			}
 		})
 	}

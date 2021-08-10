@@ -11,7 +11,8 @@ import (
 
 func TestActivateCors(t *testing.T) {
 	container := testCorsContainer()
-	ActivateCors(container)
+	corsConfig := CorsConfig{Enabled: true}
+	ActivateCors(container, corsConfig)
 
 	new(RouteBuilderTest).
 		WithRequestMethod("OPTIONS").
@@ -30,6 +31,7 @@ func TestActivateCors(t *testing.T) {
 
 func Test_corsFilter(t *testing.T) {
 	container := testCorsContainer()
+	corsConfig := CorsConfig{Enabled: true}
 
 	tests := []struct {
 		name string
@@ -42,7 +44,7 @@ func Test_corsFilter(t *testing.T) {
 				WithRequestPath("/api/v1/service").
 				WithRequestHeader("Origin", "localhost").
 				WithRequestHeader("Access-Control-Request-Method", "GET").
-				WithRouteFilter(corsFilter(container, newCors(container))).
+				WithRouteFilter(corsFilter(container, newCors(container, corsConfig))).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Origin")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Method")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Headers")).
@@ -57,7 +59,7 @@ func Test_corsFilter(t *testing.T) {
 				WithRequestPath("/api/v1/service/my-service-id").
 				WithRequestHeader("Origin", "localhost").
 				WithRequestHeader("Access-Control-Request-Method", "GET").
-				WithRouteFilter(corsFilter(container, newCors(container))).
+				WithRouteFilter(corsFilter(container, newCors(container, corsConfig))).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Origin")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Method")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Headers")).
@@ -72,7 +74,7 @@ func Test_corsFilter(t *testing.T) {
 				WithRequestPath("/api/v1/services").
 				WithRequestHeader("Origin", "localhost").
 				WithRequestHeader("Access-Control-Request-Method", "GET").
-				WithRouteFilter(corsFilter(container, newCors(container))).
+				WithRouteFilter(corsFilter(container, newCors(container, corsConfig))).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(200)),
 		},
 		{
@@ -82,7 +84,7 @@ func Test_corsFilter(t *testing.T) {
 				WithRequestPath("/api/v1/services").
 				WithRequestHeader("Origin", "localhost").
 				WithRouteTargetReturn(201).
-				WithRouteFilter(corsFilter(container, newCors(container))).
+				WithRouteFilter(corsFilter(container, newCors(container, corsConfig))).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(201)),
 		},
 		{
@@ -218,7 +220,8 @@ func Test_matchesPath(t *testing.T) {
 
 func Test_newCors(t *testing.T) {
 	container := restful.NewContainer()
-	cors := newCors(container)
+	corsConfig := CorsConfig{Enabled: true}
+	cors := newCors(container, corsConfig)
 	assert.NotEmpty(t, cors.AllowedDomains)
 	assert.NotEmpty(t, cors.AllowedHeaders)
 	assert.Equal(t, container, cors.Container)
