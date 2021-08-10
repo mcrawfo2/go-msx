@@ -28,31 +28,45 @@ func NewSecurityAccountsDefaultSettings(cfg *config.Config) (*SecurityAccountsDe
 }
 
 func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (err error) {
-	api, err := usermanagement.NewIntegration(ctx)
-	if err != nil {
-		return err
-	}
-
-	cfg, err := NewSecurityAccountsDefaultSettings(config.FromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	msxResponse, err := api.Login(cfg.Username, cfg.Password)
-	if err != nil {
-		return err
-	}
-
-	loginResponse, ok := msxResponse.Payload.(*usermanagement.LoginResponse)
-	if !ok {
-		return errors.New("Invalid login response object")
-	}
-
-	newUserContext, err := security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
+	newUserContext, err := LoginDefaultServiceAccount(ctx)
 	if err != nil {
 		return err
 	}
 
 	newCtx := security.ContextWithUserContext(ctx, newUserContext)
 	return action(newCtx)
+}
+
+func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := NewSecurityAccountsDefaultSettings(config.FromContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+
+	msxResponse, err := api.Login(cfg.Username, cfg.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	loginResponse, ok := msxResponse.Payload.(*usermanagement.LoginResponse)
+	if !ok {
+		return nil, errors.New("Invalid login response object")
+	}
+
+	return security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
+}
+
+var defaultSecurityAccountUserContextCache security.UserContextCacheApi
+
+func DefaultSecurityAccountUserContextCache(ctx context.Context) security.UserContextCacheApi {
+	if defaultSecurityAccountUserContextCache == nil {
+		defaultSecurityAccountUserContextCache = security.NewUserContextCache(ctx, LoginDefaultServiceAccount)
+	}
+
+	return defaultSecurityAccountUserContextCache
 }

@@ -65,8 +65,9 @@ const (
 	endpointNameSetSecretPolicy   = "setSecretPolicy"
 	endpointNameUnsetSecretPolicy = "unsetSecretPolicy"
 
-	endpointTenantHierarchyRoot   = "getTenantHierarchyRoot"
-	endpointTenantHierarchyParent = "getTenantHierarchyParent"
+	endpointTenantHierarchyRoot      = "getTenantHierarchyRoot"
+	endpointTenantHierarchyParent    = "getTenantHierarchyParent"
+	endpointTenantHierarchyAncestors = "getTenantHierarchyAncestors"
 
 	serviceName = integration.ServiceNameUserManagement
 )
@@ -122,8 +123,9 @@ var (
 		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
 		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
 
-		endpointTenantHierarchyRoot:   {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
-		endpointTenantHierarchyParent: {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
+		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
+		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
+		endpointTenantHierarchyAncestors: {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
 	}
 )
 
@@ -710,7 +712,6 @@ func (i *Integration) GetTenantHierarchyRoot() (*integration.MsxResponse, error)
 }
 
 func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error) {
-
 	msxEndpointRequest, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyParent)
 	if err != nil {
 		return nil, err
@@ -721,6 +722,29 @@ func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integratio
 	msxEndpointRequest.QueryParameters = qp
 
 	return i.Execute(msxEndpointRequest)
+}
+
+func (i *Integration) GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
+	request, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyAncestors)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	request.QueryParameters = url.Values{
+		"tenantId": []string{tenantId.String()},
+	}
+
+	response, err := i.Execute(request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var result []types.UUID
+	if err = json.Unmarshal(response.Body, &result); err != nil {
+		return nil, nil, err
+	}
+
+	return response, result, err
 }
 
 func (i *Integration) buildTenantHierarchyMsxEndpointRequest(endpointName string) (*integration.MsxEndpointRequest, error) {

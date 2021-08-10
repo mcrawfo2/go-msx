@@ -63,4 +63,5 @@ type Api interface {
 
 	GetTenantHierarchyRoot() (*integration.MsxResponse, error)
 	GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error)
+	GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error)
 }

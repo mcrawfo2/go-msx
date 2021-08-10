@@ -37,8 +37,6 @@ func HasTenant(ctx context.Context, tenantId types.UUID) error {
 	}
 
 	if !userContextDetails.HasTenantId(tenantId) {
-		// TODO: Check remotely
-
 		logger.WithContext(ctx).
 			WithError(ErrUserDoesNotHaveTenantAccess).
 			Errorf("Tenant access check failed for tenantId %q", tenantId.String())
