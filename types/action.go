@@ -44,21 +44,21 @@ func (a ActionFilters) NextCustomOrder() int {
 	return next
 }
 
-type DecoratorFilter struct {
+type OrderedDecorator struct {
 	order     int
 	decorator ActionFuncDecorator
 }
 
-func (d DecoratorFilter) Order() int {
+func (d OrderedDecorator) Order() int {
 	return d.order
 }
 
-func (d DecoratorFilter) Decorator() ActionFuncDecorator {
+func (d OrderedDecorator) Decorator() ActionFuncDecorator {
 	return d.decorator
 }
 
-func NewDecoratorFilter(order int, deco ActionFuncDecorator) DecoratorFilter {
-	return DecoratorFilter{
+func NewOrderedDecorator(order int, deco ActionFuncDecorator) OrderedDecorator {
+	return OrderedDecorator{
 		order:     order,
 		decorator: deco,
 	}
@@ -81,7 +81,7 @@ func (o Operation) decoratedAction() ActionFunc {
 }
 
 func (o Operation) WithDecorator(deco ActionFuncDecorator) Operation {
-	return o.WithFilter(NewDecoratorFilter(o.filters.NextCustomOrder(), deco))
+	return o.WithFilter(NewOrderedDecorator(o.filters.NextCustomOrder(), deco))
 }
 
 func (o Operation) WithFilter(filter ActionFilter) Operation {
@@ -101,26 +101,24 @@ func NewOperation(fn ActionFunc) Operation {
 	}
 }
 
-func RecoverErrorDecorator() ActionFuncDecorator {
-	return func(action ActionFunc) ActionFunc {
-		return func(ctx context.Context) (err error) {
-			defer func() {
-				if r := recover(); r != nil {
-					var e error
-					if err, ok := r.(error); ok {
-						e = err
-					} else {
-						e = errors.Errorf("Exception: %v", r)
-					}
-
-					// TODO: decorate error with backtrace
-					//bt := BackTraceFromDebugStackTrace(debug.Stack())
-					err = e
+func RecoverErrorDecorator(action ActionFunc) ActionFunc {
+	return func(ctx context.Context) (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				var e error
+				if err, ok := r.(error); ok {
+					e = err
+				} else {
+					e = errors.Errorf("Exception: %v", r)
 				}
-			}()
 
-			err = action(ctx)
-			return err
-		}
+				// TODO: decorate error with backtrace
+				//bt := BackTraceFromDebugStackTrace(debug.Stack())
+				err = e
+			}
+		}()
+
+		err = action(ctx)
+		return err
 	}
 }

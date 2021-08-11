@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
 	"github.com/thejerf/abtime"
 	"sync/atomic"
 )
@@ -17,6 +18,8 @@ var errTaskExists = errors.New("Task already exists")
 var errTaskNotConfigured = errors.New("Task not configured")
 
 var taskCounter uint64 = 0
+
+var cronParserOpts = cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow
 
 type SchedulerServiceApi interface {
 	Schedule(taskName string, action types.ActionFunc) error
@@ -65,38 +68,90 @@ func (s *schedulerService) startTask(key string) {
 	task := s.tasks[key]
 
 	task.worker = types.NewWorker(s.ctx)
-	task.worker.Schedule(s.timer(key, task))
+	task.worker.Schedule(s.looper(key, task))
 
 	s.tasks[key] = task
 
 	return
 }
 
-func (s *schedulerService) timer(taskKey string, t scheduledTask) types.ActionFunc {
+func (s *schedulerService) timer(t scheduledTask, first bool) (abtime.Timer, error) {
+	switch {
+	case t.cfg.InitialDelay != nil && first:
+		return s.clock.NewTimer(*t.cfg.InitialDelay, int(t.index)), nil
+
+	case t.cfg.FixedInterval != nil:
+		return s.clock.NewTimer(*t.cfg.FixedInterval, int(t.index)), nil
+
+	case t.cfg.FixedDelay != nil:
+		return s.clock.NewTimer(*t.cfg.FixedDelay, int(t.index)), nil
+
+	case t.cfg.CronExpression != nil:
+		parser := cron.NewParser(cronParserOpts)
+		schedule, err := parser.Parse(*t.cfg.CronExpression)
+		if err != nil {
+			return nil, err
+		}
+
+		nextTime := schedule.Next(s.clock.Now())
+		delay := nextTime.Sub(s.clock.Now())
+		if delay < 1 {
+			delay = 1
+		}
+		return s.clock.NewTimer(delay, int(t.index)), nil
+
+	default:
+		return nil, errSingleSchedule
+	}
+}
+
+func (s *schedulerService) looper(taskKey string, t scheduledTask) types.ActionFunc {
 	operationName := config.PrefixWithName("scheduled.tasks", taskKey)
 
 	return func(ctx context.Context) error {
-		ticker := s.clock.NewTicker(*t.cfg.FixedInterval, int(t.index))
-		defer func() { ticker.Stop() }()
+		timer, err := s.timer(t, true)
+		if err != nil {
+			return err
+		}
+		defer func() { timer.Stop() }()
 
 		for {
 			select {
-			case <-ticker.Channel():
-				trace.BackgroundOperation(ctx, operationName, func(ctx context.Context) error {
-					logger.WithContext(ctx).Debugf("Scheduled task %q tick", t.name)
-					err := t.action(ctx)
-					if err != nil {
-						logger.WithContext(ctx).WithError(err).Errorf("Scheduled Task %q failed.", t.name)
-					} else {
-						logger.WithContext(ctx).Debugf("Scheduled Task %q completed.", t.name)
-					}
-					return nil
-				})
+			case <-timer.Channel():
+				action := types.NewOperation(t.action).
+					WithDecorator(s.taskDecorator(t)).
+					Run
+
+				if t.cfg.FixedDelay != nil {
+					trace.ForegroundOperation(ctx, operationName, action)
+				} else {
+					trace.BackgroundOperation(ctx, operationName, action)
+				}
+
+				timer, err = s.timer(t, false)
+				if err != nil {
+					return err
+				}
 
 			case <-ctx.Done():
 				logger.WithContext(ctx).WithError(ctx.Err()).Errorf("Scheduled Task %q Timer stopped.", t.name)
 				return nil
 			}
+		}
+	}
+}
+
+func (s *schedulerService) taskDecorator(t scheduledTask) types.ActionFuncDecorator {
+	return func(action types.ActionFunc) types.ActionFunc {
+		return func(ctx context.Context) error {
+			logger.WithContext(ctx).Debugf("Scheduled task %q tick", t.name)
+			err := t.action(ctx)
+			if err != nil {
+				logger.WithContext(ctx).WithError(err).Errorf("Scheduled Task %q failed.", t.name)
+			} else {
+				logger.WithContext(ctx).Debugf("Scheduled Task %q completed.", t.name)
+			}
+			return nil
 		}
 	}
 }
