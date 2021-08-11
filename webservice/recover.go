@@ -18,9 +18,9 @@ func recoveryFilter(req *restful.Request, resp *restful.Response, chain *restful
 				e = errors.Errorf("Exception: %v", r)
 			}
 
-			logger.WithContext(req.Request.Context()).WithError(e).Error("Recovered from panic")
-			log.ErrorMessage(logger, req.Request.Context(), e)
 			bt := types.BackTraceFromDebugStackTrace(debug.Stack())
+			logger.WithContext(req.Request.Context()).WithError(e).WithField(log.FieldStack, bt.Stanza).Error("Recovered from panic")
+			log.ErrorMessage(logger, req.Request.Context(), e)
 			log.Stack(logger, req.Request.Context(), bt)
 
 			WriteError(req, resp, 500, e)

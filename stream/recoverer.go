@@ -23,8 +23,13 @@ func (a *PanicRecovererSubscriberAction) Call(msg *message.Message) (err error) 
 			} else {
 				e = errors.Errorf("Exception: %v", r)
 			}
-			logger.WithContext(msg.Context()).WithError(e).Error("Recovered from panic")
+
 			bt := types.BackTraceFromDebugStackTrace(debug.Stack())
+			logger.
+				WithContext(msg.Context()).
+				WithError(e).
+				WithField(log.FieldStack, bt.Stanza()).
+				Error("Recovered from panic")
 			log.Stack(logger, msg.Context(), bt)
 
 			msg.Ack()
