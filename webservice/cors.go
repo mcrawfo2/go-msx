@@ -20,6 +20,7 @@ const (
 	headerNameAccessControlAllowOrigin      = "Access-Control-Allow-Origin"
 	headerNameAccessControlAllowHeaders     = "Access-Control-Allow-Headers"
 	headerNameAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+	headerNameAccessControlExposedHeaders   = "Access-Control-Exposed-Headers"
 	headerNameAuthorization                 = "Authorization"
 	headerNameAccessToken                   = "access_token"
 	headerNameCacheControl                  = "Cache-Control"
@@ -98,9 +99,20 @@ func newCors(container *restful.Container, cfg CorsConfig) restful.CrossOriginRe
 		Container:      container,
 	}
 
-	result.AllowedHeaders = append(result.AllowedHeaders, cfg.CustomAllowedHeaders...)
+	result.AllowedHeaders = combineHeaderSlices(result.AllowedHeaders, cfg.CustomAllowedHeaders)
+	result.ExposeHeaders = combineHeaderSlices(result.ExposeHeaders, cfg.CustomExposedHeaders)
 
 	return result
+}
+
+func combineHeaderSlices(a, b []string) []string {
+	results := make(types.StringSet)
+	results.AddAll(a...)
+	results.AddAll(b...)
+	if _, ok := results[""]; ok {
+		delete(results, "")
+	}
+	return results.Values()
 }
 
 func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSharing) restful.FilterFunction {
@@ -145,6 +157,7 @@ func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSh
 		resp.Header().Set("Allow", allowHeaderValue)
 
 		allowedHeader := strings.Join(cors.AllowedHeaders, ",")
+		exposedHeader := strings.Join(cors.ExposeHeaders, ",")
 
 		// Override some headers
 		resp.Header().Set("Vary", "Origin")
@@ -152,7 +165,7 @@ func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSh
 		resp.Header().Add("Vary", "Access-Control-Request-Headers")
 		resp.Header().Set(headerNameAccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")
 		resp.Header().Set(headerNameAccessControlAllowHeaders, allowedHeader)
-		resp.Header().Set(headerNameContentEncoding, "application/json")
+		resp.Header().Set(headerNameAccessControlExposedHeaders, exposedHeader)
 
 		resp.WriteHeader(http.StatusOK)
 	}
