@@ -81,6 +81,44 @@ func Iff(truth bool, rules ...validation.Rule) RuleFunc {
 	}
 }
 
+func countConditions(conditions ...bool) int {
+	var count int
+	for _, condition := range conditions {
+		if condition {
+			count++
+		}
+	}
+	return count
+}
+
+func Exactly(n int, fail error, conditions ...bool) RuleFunc {
+	return func(value interface{}) error {
+		count := countConditions(conditions...)
+		if count != n {
+			return fail
+		}
+		return nil
+	}
+}
+
+func OneOf(fail error, conditions ...bool) RuleFunc {
+	return Exactly(1, fail, conditions...)
+}
+
+func AllOf(fail error, conditions ...bool) RuleFunc {
+	return Exactly(len(conditions), fail, conditions...)
+}
+
+func AnyOf(fail error, conditions ...bool) RuleFunc {
+	return func(value interface{}) error {
+		count := countConditions(conditions...)
+		if count == 0 {
+			return fail
+		}
+		return nil
+	}
+}
+
 func CheckDuration(value interface{}) error {
 	valueString, ok := value.(string)
 	if !ok {

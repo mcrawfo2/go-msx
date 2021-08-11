@@ -12,11 +12,13 @@ type ActionFunc func(ctx context.Context) error
 
 type ActionFuncDecorator func(action ActionFunc) ActionFunc
 
+// ActionFilter is an ordered Decorator
 type ActionFilter interface {
 	Order() int
 	Decorator() ActionFuncDecorator
 }
 
+// ActionFilters is an ordered sequence of ActionFilter
 type ActionFilters []ActionFilter
 
 func (a ActionFilters) Len() int {

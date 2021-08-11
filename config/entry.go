@@ -180,7 +180,7 @@ func PrefixWithName(prefix string, key string) string {
 		return key
 	}
 	if strings.HasSuffix(prefix, ".") {
-		prefix = prefix[:len(prefix)-1]
+		prefix = strings.TrimSuffix(prefix, ".")
 	}
 	return prefix + "." + key
 }
