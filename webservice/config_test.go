@@ -166,6 +166,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				Cors: CorsConfig{
 					Enabled: true,
 					CustomAllowedHeaders: []string{},
+					CustomExposedHeaders: []string{},
 				},
 				ContextPath:  "/app",
 				StaticPath:   "/www",
@@ -213,6 +214,7 @@ func TestNewWebServerConfig(t *testing.T) {
 				Cors: CorsConfig{
 					Enabled: true,
 					CustomAllowedHeaders: []string{},
+					CustomExposedHeaders: []string{},
 				},
 				ContextPath:  "/dna",
 				StaticPath:   "/www",

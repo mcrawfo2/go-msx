@@ -21,7 +21,8 @@ type WebServerConfig struct {
 
 type CorsConfig struct {
 	Enabled              bool     `config:"default=true"`
-	CustomAllowedHeaders []string `config:"default="`
+	CustomAllowedHeaders []string `config:"default=${security.cors.allowedHeaders}"`
+	CustomExposedHeaders []string `config:"default=${security.cors.exposedHeaders}"`
 }
 
 //TLSConfig represents the configuration to be applied to a secure listener.
