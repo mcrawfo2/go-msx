@@ -37,6 +37,12 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 	return action(newCtx)
 }
 
+func DefaultServiceAccountDecorator(action types.ActionFunc) types.ActionFunc {
+	return func(ctx context.Context) error {
+		return WithDefaultServiceAccount(ctx, action)
+	}
+}
+
 func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, error) {
 	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
