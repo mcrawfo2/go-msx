@@ -37,40 +37,47 @@ func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }
 
-func BackgroundOperation(ctx context.Context, operationName string, operation func(context.Context) error) {
-	newCtx := UntracedContextFromContext(ctx)
-	go func() {
-		defer func() {
-			c := recover()
-			if c != nil {
-				logger.WithContext(newCtx).Errorf("Operation %q panicked: %+v", operationName, c)
-			}
-		}()
+func SpanDecorator(operationName string, options ...opentracing.StartSpanOption) types.ActionFuncDecorator {
+	return func(action types.ActionFunc) types.ActionFunc {
+		return func(ctx context.Context) error {
+			ctx, span := NewSpan(ctx, operationName, options...)
+			defer span.Finish()
 
-		err := Operation(newCtx, operationName, operation)
-		if err != nil {
-			bt := types.BackTraceFromError(err)
-			logger.
-				WithContext(newCtx).
-				WithError(err).
-				WithField(log.FieldStack, bt.Stanza()).
-				Errorf("Operation %q failed", operationName)
-			log.Stack(logger, newCtx, bt)
+			err := action(ctx)
+
+			if err != nil {
+				span.LogFields(Error(err))
+			}
+
+			return err
 		}
+	}
+}
+
+// BackgroundOperation executes the action inside a new detached span in a separate goroutine
+func BackgroundOperation(ctx context.Context, operationName string, action types.ActionFunc) {
+	go func() {
+		ForegroundOperation(ctx, operationName, action)
 	}()
 }
 
-func Operation(ctx context.Context, operationName string, operation func(context.Context) error) (err error) {
-	ctx, span := NewSpan(ctx, operationName)
-	defer span.Finish()
+// ForegroundOperation executes the action inside a new detached span
+func ForegroundOperation(ctx context.Context, operationName string, action types.ActionFunc) {
+	_ = NewOperation(operationName, action).
+		WithDecorator(log.ErrorLogDecorator(logger, operationName)).
+		WithFilter(types.NewOrderedDecorator(1000, UntracedContextDecorator)).
+		Run(ctx)
+}
 
-	err = operation(ctx)
+// Operation executes the action inside a new child span
+func Operation(ctx context.Context, operationName string, action types.ActionFunc) (err error) {
+	return NewOperation(operationName, action).Run(ctx)
+}
 
-	if err != nil {
-		span.LogFields(Error(err))
-	}
-
-	return err
+func NewOperation(operationName string, action types.ActionFunc) types.Operation {
+	return types.NewOperation(action).
+		WithDecorator(SpanDecorator(operationName)).
+		WithDecorator(log.RecoverLogDecorator(logger))
 }
 
 var Error = tracelog.Error
@@ -102,4 +109,11 @@ func UntracedContextFromContext(ctx context.Context) context.Context {
 		return nil
 	}
 	return ContextWithUntracedContext(untracedContext)
+}
+
+func UntracedContextDecorator(action types.ActionFunc) types.ActionFunc {
+	return func(ctx context.Context) error {
+		ctx = UntracedContextFromContext(ctx)
+		return action(ctx)
+	}
 }

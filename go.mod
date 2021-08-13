@@ -42,6 +42,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749

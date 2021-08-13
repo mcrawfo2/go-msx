@@ -120,6 +120,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 * [Pagination](#)
 * [Resources](resource/README.md)
 * [Retry](#)
+* [Scheduled Tasks](scheduled/README.md)
 * [Transit Encryption](transit/README.md)
 * [Validation](#)
 

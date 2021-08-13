@@ -5,6 +5,7 @@ package leader
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 )
 
@@ -47,6 +48,23 @@ func IsMasterLeader(ctx context.Context) (bool, error) {
 
 	masterKey := leadershipProvider.MasterKey(ctx)
 	return leadershipProvider.IsLeader(ctx, masterKey), nil
+}
+
+func MasterLeaderDecorator(fn types.ActionFunc) types.ActionFunc {
+	return func(ctx context.Context) error {
+		// Check for leadership
+		isLeader, err := IsMasterLeader(ctx)
+		if err != nil {
+			logger.WithContext(ctx).WithError(err).Error("Failed to determine leadership")
+			return err
+		}
+
+		if !isLeader {
+			return nil
+		}
+
+		return fn(ctx)
+	}
 }
 
 func ReleaseLeadership(ctx context.Context, key string) error {
