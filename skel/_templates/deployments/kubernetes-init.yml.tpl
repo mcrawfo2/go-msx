@@ -7,6 +7,8 @@ metadata:
   labels:
     app: ${app.name}
     group: ${kubernetes.group}
+  annotations:
+    tagprefix: logfmt
 spec:
   restartPolicy: Never
   containers:
