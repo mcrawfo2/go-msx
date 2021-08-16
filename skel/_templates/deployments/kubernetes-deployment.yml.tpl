@@ -19,7 +19,7 @@ spec:
         group: ${kubernetes.group}
         consul-gossip: allow
       annotations:
-        fluentbit.io/parser: gomsx
+        tagprefix: logfmt
     spec:
       affinity:
         podAntiAffinity:
