@@ -9,6 +9,7 @@ import (
 var DefaultUserId = types.MustParseUUID("67f9b089-532e-4b54-9a06-8e4eade2114e")
 var DefaultTenantId = types.MustParseUUID("960272b3-e800-43e6-86ce-7d51672bd80d")
 var DefaultProviderId = types.MustParseUUID("30b62544-860e-42fb-93ba-bc7e771dff61")
+var DefaultRootTenantId = types.MustParseUUID("9f7972d0-ea58-4562-aa62-3dc480ae759b")
 
 type MockTokenDetailsProvider struct {
 	UserName     string
