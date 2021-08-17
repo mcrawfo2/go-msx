@@ -12,9 +12,9 @@ type key int
 const (
 	logContextKey key = 0
 
-	FieldSpanId   = "spanid"
-	FieldTraceId  = "traceid"
-	FieldParentId = "parentid"
+	FieldSpanId   = "spanId"
+	FieldTraceId  = "traceId"
+	FieldParentId = "parentId"
 )
 
 func NewContextWithLogContext(ctx context.Context, logCtx LogContext) context.Context {
