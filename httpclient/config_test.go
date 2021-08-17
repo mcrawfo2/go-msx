@@ -3,6 +3,7 @@ package httpclient
 import (
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"github.com/sirupsen/logrus"
@@ -127,6 +128,15 @@ func TestNewTlsConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewTlsConfig(&tt.clientConfig)
 
+			// DeepEqual now breaking on root CAs copy.  Compare their subjects to consider them equal.
+			if got != nil && tt.want != nil {
+				if !reflect.DeepEqual(got.RootCAs.Subjects(), tt.want.RootCAs.Subjects()) {
+					t.Errorf("NewTlsConfig() diff\n%s", testhelpers.Diff(got.RootCAs, tt.want.RootCAs))
+					return
+				}
+				tt.want.RootCAs = got.RootCAs
+			}
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTlsConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -139,7 +149,7 @@ func TestNewTlsConfig(t *testing.T) {
 
 			if tt.want != nil {
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("NewTlsConfig() got = %v, want %v", got, tt.want)
+					t.Errorf("NewTlsConfig() diff\n%s", testhelpers.Diff(got, tt.want))
 				}
 			}
 		})
