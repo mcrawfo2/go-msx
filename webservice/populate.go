@@ -87,6 +87,7 @@ func (r RouteParam) Populate(req *restful.Request, paramsValue reflect.Value) er
 
 	if paramsFieldValidatable, ok := fieldInterface.(validate.Validatable); ok {
 		if err := validate.Validate(paramsFieldValidatable); err != nil {
+			err = errors.Wrap(err, r.Field.Name)
 			return NewBadRequestError(err)
 		}
 	}
@@ -467,6 +468,7 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 	if fieldUnmarshaler, ok := fieldInterface.(types.TextUnmarshaler); ok {
 		err := fieldUnmarshaler.UnmarshalText(value)
 		if err != nil {
+			err = errors.Wrap(err, r.Name)
 			return NewBadRequestError(err)
 		} else {
 			return nil
@@ -476,6 +478,7 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 		if fieldUnmarshaler, ok := fieldPointerInterface.(types.TextUnmarshaler); ok {
 			err := fieldUnmarshaler.UnmarshalText(value)
 			if err != nil {
+				err = errors.Wrap(err, r.Name)
 				return NewBadRequestError(err)
 			} else {
 				return nil
