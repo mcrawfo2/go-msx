@@ -38,18 +38,23 @@ func SetFormat(format string) {
 	}
 }
 
-var dockerOnce sync.Once
-var docker bool
+var containerOnce sync.Once
+var container bool
 
-func IsDocker() bool {
-	dockerOnce.Do(func() {
+func IsContainerized() bool {
+	containerOnce.Do(func() {
 		_, err := os.Stat("/.dockerenv")
 		if err == nil {
-			docker = true
-		} else {
-			docker = !os.IsNotExist(err)
+			container = true
+		}
+
+		if !container {
+			_, err = os.Stat("/run/secrets/kubernetes.io/serviceaccount")
+			if err == nil {
+				container = true
+			}
 		}
 	})
 
-	return docker
+	return container
 }

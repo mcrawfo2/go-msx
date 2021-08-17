@@ -343,7 +343,7 @@ func GetLoggerLevels() map[string]logrus.Level {
 }
 
 func ErrorMessage(logger *Logger, ctx context.Context, err error) {
-	if IsDocker() {
+	if IsContainerized() {
 		return
 	}
 
@@ -358,7 +358,7 @@ func ErrorMessage(logger *Logger, ctx context.Context, err error) {
 }
 
 func Stack(logger *Logger, ctx context.Context, bt types.BackTrace) {
-	if IsDocker() {
+	if IsContainerized() {
 		return
 	}
 
