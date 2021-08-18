@@ -8,15 +8,16 @@ import (
 )
 
 type WebServerConfig struct {
-	Enabled      bool   `config:"default=false"`
-	Host         string `config:"default=0.0.0.0"`
-	Port         int    `config:"default=8080"`
-	Tls          TLSConfig
-	Cors         CorsConfig
-	ContextPath  string `config:"default=/app"`
-	StaticPath   string `config:"default=/www"`
-	TraceEnabled bool   `config:"default=false"`
-	DebugEnabled bool   `config:"default=false"`
+	Enabled       bool   `config:"default=false"`
+	Host          string `config:"default=0.0.0.0"`
+	Port          int    `config:"default=8080"`
+	Tls           TLSConfig
+	Cors          CorsConfig
+	ContextPath   string `config:"default=/app"`
+	StaticPath    string `config:"default=/www"`
+	StaticEnabled bool   `config:"default=true"`
+	TraceEnabled  bool   `config:"default=false"`
+	DebugEnabled  bool   `config:"default=false"`
 }
 
 type CorsConfig struct {

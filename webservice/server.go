@@ -195,6 +195,10 @@ func (s *WebServer) generateContainer() *restful.Container {
 }
 
 func (s *WebServer) activateStatic(aliases []StaticAlias) {
+	if !s.cfg.StaticEnabled {
+		return
+	}
+
 	staticService := new(restful.WebService)
 	staticService.Path(s.cfg.ContextPath)
 
