@@ -255,6 +255,14 @@ func (r RouteParam) populateField(fieldValue reflect.Value, values []string) (er
 		default:
 			return errors.Errorf("Cannot unmarshal multiple values into field %s", r.Name)
 		}
+	} else if r.Options["csv"] == "true" {
+		switch elemKind {
+			case reflect.Slice:
+				csvValues := strings.Split(values[0], ",")
+				return r.populateSlice(fieldValue, csvValues)
+			default:
+				return errors.Errorf("Cannot unmarshal multiple values into field %s", r.Name)
+		}
 	} else {
 		return r.populateScalar(fieldValue, values[0])
 	}
