@@ -58,7 +58,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppName:           "someservice",
 	AppDisplayName:    "Some Microservice",
 	AppDescription:    "Does Something",
-	AppVersion:        "3.11.0",
+	AppVersion:        "4.1.0",
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
