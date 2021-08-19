@@ -21,6 +21,7 @@ generate:
 
 precommit: generate
 	$(BUILDER) go-fmt
+	$(BUILDER) license
 
 skel:
 	$(SKEL_BUILDER) build-tool

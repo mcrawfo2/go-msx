@@ -33,6 +33,7 @@ const (
 	configRootGenerate    = "generate"
 	configRootResources   = "resources"
 	configRootArtifactory = "artifactory"
+	configRootLicense     = "license"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -241,6 +242,10 @@ func (b Binaries) Authorization() string {
 	return "Basic " + base64.StdEncoding.EncodeToString([]byte(b.Username+":"+b.Password))
 }
 
+type License struct {
+	Excludes []string
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Library    Library
@@ -257,6 +262,7 @@ type Config struct {
 	Generate   []Generate
 	Resources  Resources
 	Binaries   Binaries
+	License    License
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -405,6 +411,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Build, configRootBuild); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.License, configRootLicense); err != nil {
 		return
 	}
 
