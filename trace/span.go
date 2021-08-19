@@ -63,10 +63,14 @@ func BackgroundOperation(ctx context.Context, operationName string, action types
 
 // ForegroundOperation executes the action inside a new detached span
 func ForegroundOperation(ctx context.Context, operationName string, action types.ActionFunc) {
-	_ = NewOperation(operationName, action).
+	_ = NewIsolatedOperation(operationName, action).Run(ctx)
+}
+
+// NewIsolatedOperation creates a new operation completely separated from the current trace
+func NewIsolatedOperation(operationName string, action types.ActionFunc) types.Operation {
+	return NewOperation(operationName, action).
 		WithDecorator(log.ErrorLogDecorator(logger, operationName)).
-		WithFilter(types.NewOrderedDecorator(1000, UntracedContextDecorator)).
-		Run(ctx)
+		WithFilter(types.NewOrderedDecorator(1000, UntracedContextDecorator))
 }
 
 // Operation executes the action inside a new child span
