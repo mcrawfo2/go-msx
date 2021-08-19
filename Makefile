@@ -22,8 +22,11 @@ generate:
 	$(BUILDER) download-generate-deps
 	$(BUILDER) generate
 
-precommit: generate
+precommit: generate license
 	$(BUILDER) go-fmt
+
+license:
+	$(BUILDER) license
 
 skel:
 	$(SKEL_BUILDER) build-tool
