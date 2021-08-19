@@ -1,5 +1,5 @@
 def REPO_NAME = '${app.name}'
-def MANIFEST_NAME = '${app.deploymentgroup}-manifest'
+def MANIFEST_NAME = '${deployment.group}-manifest'
 def GIT_CREDENTIALS = 'msx-jenkins-gen-ssh-key'
 def GITHUB_CREDENTIALS = 'msx-jenkins-gen-token-secret-text'
 def GITHUB_APP_ID_SONARQUBE = '7'
@@ -20,8 +20,8 @@ def TOOLS = ''
 def TRIGGER = ''
 def TRIGGER_URL = ''
 def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-group/com/cisco/vms/manifest'
-def MANIFEST_NAME = '${app.name}-manifest'
 def FULL_VERSION = ''
+def SONARQUBE_ENABLED = false
 
 pipeline {
 
@@ -160,32 +160,34 @@ pipeline {
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                         withSonarQubeEnv(credentialsId: SONARQUBE_CREDENTIALS, installationName: SONARQUBE_INSTALLATION) {
                             script {
-                                def sonarProperties = [
-                                    'userHome': env.WORKSPACE,
-                                    'links.ci': env.JOB_URL,
-                                    'github.oauth': env.GITHUB_ACCESS_TOKEN,
-                                    'sonar.alm.github.app.id': GITHUB_APP_ID_SONARQUBE,
-                                    'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
-                                ]
+                                if (SONARQUBE_ENABLED) {
+                                    def sonarProperties = [
+                                        'userHome': env.WORKSPACE,
+                                        'links.ci': env.JOB_URL,
+                                        'github.oauth': env.GITHUB_ACCESS_TOKEN,
+                                        'sonar.alm.github.app.id': GITHUB_APP_ID_SONARQUBE,
+                                        'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
+                                    ]
 
-                                if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
-                                    if (env.ghprbTargetBranch) {
-                                        sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
-                                        sonarProperties['pullrequest.provider'] = "github"
-                                        sonarProperties['pullrequest.key'] = env.ghprbPullId
-                                        sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
-                                        sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
-                                    } else {
-                                        sonarProperties['branch.name'] = env.BRANCH_NAME
-                                        sonarProperties['branch.target'] = TRUNK
+                                    if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
+                                        if (env.ghprbTargetBranch) {
+                                            sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
+                                            sonarProperties['pullrequest.provider'] = "github"
+                                            sonarProperties['pullrequest.key'] = env.ghprbPullId
+                                            sonarProperties['pullrequest.branch'] = env.ghprbSourceBranch
+                                            sonarProperties['pullrequest.base'] = env.ghprbTargetBranch
+                                        } else {
+                                            sonarProperties['branch.name'] = env.BRANCH_NAME
+                                            sonarProperties['branch.target'] = TRUNK
+                                        }
                                     }
-                                }
 
-                                def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                                def sonarCommand = "$sonarHome/bin/sonar-scanner"
-                                sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
-                                sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
-                                sh sonarCommand
+                                    def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                                    def sonarCommand = "$sonarHome/bin/sonar-scanner"
+                                    sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
+                                    sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
+                                    sh sonarCommand
+                                }
                             }
 
                             // TODO: need to create webhooks manually for each of the sonar project for sonar to send status
