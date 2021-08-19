@@ -1,10 +1,8 @@
-<?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<flow-definition plugin="workflow-job@2.37">
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.39">
     <actions>
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction
-                plugin="pipeline-model-definition@1.6.0"/>
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction
-                plugin="pipeline-model-definition@1.6.0">
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.6.0"/>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.6.0">
             <jobProperties>
                 <string>jenkins.model.BuildDiscarderProperty</string>
             </jobProperties>
@@ -13,16 +11,23 @@
             <options/>
         </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
     </actions>
-    <description/>
+    <description></description>
     <keepDependencies>false</keepDependencies>
     <properties>
-        <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.14"/>
+        <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.15"/>
         <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
             <useBuildBlocker>false</useBuildBlocker>
             <blockLevel>GLOBAL</blockLevel>
             <scanQueueFor>DISABLED</scanQueueFor>
-            <blockingJobs/>
+            <blockingJobs></blockingJobs>
         </hudson.plugins.buildblocker.BuildBlockerProperty>
+        <org.datadog.jenkins.plugins.datadog.DatadogJobProperty plugin="datadog@2.9.0">
+            <enableFile>false</enableFile>
+            <tagFile></tagFile>
+            <enableProperty>false</enableProperty>
+            <tagProperties></tagProperties>
+            <emitSCMEvents>true</emitSCMEvents>
+        </org.datadog.jenkins.plugins.datadog.DatadogJobProperty>
         <jenkins.model.BuildDiscarderProperty>
             <strategy class="hudson.tasks.LogRotator">
                 <daysToKeep>-1</daysToKeep>
@@ -31,8 +36,8 @@
                 <artifactNumToKeep>10</artifactNumToKeep>
             </strategy>
         </jenkins.model.BuildDiscarderProperty>
-        <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.25.1">
-            <doNotScan>true</doNotScan>
+        <com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty plugin="build-failure-analyzer@1.27.1">
+            <doNotScan>false</doNotScan>
         </com.sonyericsson.jenkins.plugins.bfa.model.ScannerJobProperty>
         <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.5">
             <projectUrl>https://cto-github.cisco.com/NFV-BU/${app.name}/</projectUrl>
@@ -48,25 +53,30 @@
             <parameterDefinitions>
                 <hudson.model.StringParameterDefinition>
                     <name>BRANCH_NAME</name>
-                    <description>Git branch to build</description>
-                    <defaultValue/>
+                    <description>Branch Name:
+                        &apos;develop&apos; - default branch</description>
+                    <defaultValue></defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
                 <hudson.model.StringParameterDefinition>
                     <name>MANIFEST_FOLDER</name>
-                    <description>Manifest stream to publish to</description>
-                    <defaultValue/>
+                    <description>Manifest to Publish:
+                        &apos;Dev-Test&apos; - publish to DEV
+                        &apos;Build-Stable&apos; - publish to EDGE
+                        &apos;EI-Stable&apos; - publish to STABLE</description>
+                    <defaultValue></defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
                 <hudson.model.StringParameterDefinition>
                     <name>BUILD_FLAGS</name>
-                    <description>Extra build flags</description>
-                    <defaultValue/>
+                    <description>Extra build flags to pass to go-msx-build</description>
+                    <defaultValue></defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
                 <hudson.model.StringParameterDefinition>
                     <name>SLAVE_LABEL</name>
-                    <description>Jenkins slave label to locate a build node</description>
+                    <description>Build Slave Label
+                        &apos;dev-vm&apos; - default build slaves</description>
                     <defaultValue>dev-vm</defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
@@ -79,55 +89,55 @@
             <throttleEnabled>false</throttleEnabled>
             <throttleOption>project</throttleOption>
             <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
-            <paramsToUseForLimit/>
+            <paramsToUseForLimit></paramsToUseForLimit>
         </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
-
         <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
             <triggers>
-                <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.42.0">
+                <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.42.1">
                     <spec>H/5 * * * *</spec>
                     <configVersion>3</configVersion>
-                    <adminlist>nfv-admin-gen</adminlist>
+                    <adminlist>nfv-admin-gen
+                    </adminlist>
                     <allowMembersOfWhitelistedOrgsAsAdmin>false</allowMembersOfWhitelistedOrgsAsAdmin>
-                    <orgslist/>
+                    <orgslist></orgslist>
                     <cron>H/5 * * * *</cron>
-                    <buildDescTemplate/>
+                    <buildDescTemplate></buildDescTemplate>
                     <onlyTriggerPhrase>false</onlyTriggerPhrase>
-                    <useGitHubHooks>true</useGitHubHooks>
+                    <useGitHubHooks>false</useGitHubHooks>
                     <permitAll>true</permitAll>
-                    <whitelist/>
+                    <whitelist></whitelist>
                     <autoCloseFailedPullRequests>false</autoCloseFailedPullRequests>
                     <displayBuildErrorsOnDownstreamBuilds>false</displayBuildErrorsOnDownstreamBuilds>
                     <whiteListTargetBranches>
                         <org.jenkinsci.plugins.ghprb.GhprbBranch>
-                            <branch>develop</branch>
+                            <branch></branch>
                         </org.jenkinsci.plugins.ghprb.GhprbBranch>
                     </whiteListTargetBranches>
                     <blackListTargetBranches>
                         <org.jenkinsci.plugins.ghprb.GhprbBranch>
-                            <branch/>
+                            <branch></branch>
                         </org.jenkinsci.plugins.ghprb.GhprbBranch>
                     </blackListTargetBranches>
                     <gitHubAuthId>5eb29d4c-e6a0-4971-8a60-3cc5ea9fcf3b</gitHubAuthId>
-                    <triggerPhrase/>
+                    <triggerPhrase></triggerPhrase>
                     <skipBuildPhrase>.*\[skip\W+ci\].*</skipBuildPhrase>
-                    <blackListCommitAuthor/>
-                    <blackListLabels/>
-                    <whiteListLabels/>
-                    <includedRegions/>
-                    <excludedRegions/>
+                    <blackListCommitAuthor></blackListCommitAuthor>
+                    <blackListLabels></blackListLabels>
+                    <whiteListLabels></whiteListLabels>
+                    <includedRegions></includedRegions>
+                    <excludedRegions></excludedRegions>
                     <extensions>
                         <org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
-                            <commitStatusContext/>
-                            <triggeredStatus/>
-                            <startedStatus/>
-                            <statusUrl/>
+                            <commitStatusContext></commitStatusContext>
+                            <triggeredStatus></triggeredStatus>
+                            <startedStatus></startedStatus>
+                            <statusUrl></statusUrl>
                             <addTestResults>false</addTestResults>
                         </org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
                     </extensions>
                 </org.jenkinsci.plugins.ghprb.GhprbTrigger>
                 <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.5">
-                    <spec/>
+                    <spec></spec>
                 </com.cloudbees.jenkins.GitHubPushTrigger>
             </triggers>
         </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
@@ -151,7 +161,7 @@
             <extensions/>
         </scm>
         <scriptPath>build/ci/Jenkinsfile</scriptPath>
-        <lightweight>true</lightweight>
+        <lightweight>false</lightweight>
     </definition>
     <triggers/>
     <disabled>false</disabled>
