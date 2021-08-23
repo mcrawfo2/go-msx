@@ -79,6 +79,15 @@ func ToModelCidr(cidr string) Cidr {
 	return c
 }
 
+func ToApiIpMask(c IpMask) string {
+	return c.String()
+}
+
+func ToModelIpMask(ipMask string) IpMask {
+	c, _ := NewIpMask(ipMask)
+	return c
+}
+
 func ToApiIpPort(i IpPort) string {
 	return i.String()
 }
