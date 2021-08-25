@@ -42,17 +42,21 @@ func (m *Migrator) ValidateMigration(n int, migration Migration, appliedMigratio
 		return nil
 	}
 
-	if appliedMigration.Description != migration.Description {
-		return errors.Errorf("Mismatched description: %+v", appliedMigration)
-	}
+	// skip description and checksum validation if checksum is equal to 0
+	// used when we patch a released migration step and need to skip the checksum validation
+	if migration.Checksum == nil || *migration.Checksum != 0 {
+		if appliedMigration.Description != migration.Description {
+			return errors.Errorf("Mismatched description: %+v", appliedMigration)
+		}
 
-	if appliedMigration.Checksum == nil && migration.Checksum != nil ||
-		appliedMigration.Checksum != nil && migration.Checksum == nil {
-		return errors.Errorf("Mismatched checksum: %+v vs %+v", appliedMigration.Checksum, migration.Checksum)
-	} else if appliedMigration.Checksum != nil &&
-		migration.Checksum != nil &&
-		*appliedMigration.Checksum != *migration.Checksum {
-		return errors.Errorf("Mismatched checksum: %d vs %d", *appliedMigration.Checksum, *migration.Checksum)
+		if appliedMigration.Checksum == nil && migration.Checksum != nil ||
+			appliedMigration.Checksum != nil && migration.Checksum == nil {
+			return errors.Errorf("Mismatched checksum: %+v vs %+v", appliedMigration.Checksum, migration.Checksum)
+		} else if appliedMigration.Checksum != nil &&
+			migration.Checksum != nil &&
+			*appliedMigration.Checksum != *migration.Checksum {
+			return errors.Errorf("Mismatched checksum: %d vs %d", *appliedMigration.Checksum, *migration.Checksum)
+		}
 	}
 
 	return nil

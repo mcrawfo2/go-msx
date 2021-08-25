@@ -158,6 +158,25 @@ func (m *Manifest) AddGoMigration(version, description string, fn MigrationFunc)
 	})
 }
 
+func (m *Manifest) AddGoMigrationWithChecksum(version, description string, fn MigrationFunc, checksum *int) error {
+	parsedVersion, err := types.NewVersion(version)
+	if err != nil {
+		return err
+	}
+	if len(parsedVersion) < 1 {
+		return errors.Errorf("Invalid version: %s", version)
+	}
+
+	return m.addMigration(&Migration{
+		Version:     parsedVersion,
+		Description: description,
+		Script:      types.FullFunctionName(fn),
+		Checksum:    checksum,
+		Type:        MigrationTypeGoDriver,
+		Func:        fn,
+	})
+}
+
 func (m *Manifest) addMigration(migration *Migration) error {
 	for _, existingMigration := range m.migrations {
 		if existingMigration.Version.Equals(migration.Version) {
