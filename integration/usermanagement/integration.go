@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -69,19 +70,17 @@ const (
 	endpointTenantHierarchyParent    = "getTenantHierarchyParent"
 	endpointTenantHierarchyAncestors = "getTenantHierarchyAncestors"
 
-	serviceName = integration.ServiceNameUserManagement
+	idmServiceName = integration.ServiceNameUserManagement
+	authServiceName = integration.ServiceNameAuth
+	secretsServiceName = integration.ServiceNameSecrets
 )
 
 var (
-	logger    = log.NewLogger("msx.integration.usermanagement")
-	endpoints = map[string]integration.MsxServiceEndpoint{
+	logger       = log.NewLogger("msx.integration.usermanagement")
+	idmEndpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
-		endpointNameLogin:  {Method: "POST", Path: "/v2/token"},
-		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
-
 		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
-		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
@@ -94,6 +93,33 @@ var (
 
 		endpointNameGetUserById:   {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
 		endpointNameGetUserByIdV8: {Method: "GET", Path: "/api/v8/users/{{.userId}}"},
+
+		endpointNameGetRoles:   {Method: "GET", Path: "/api/v1/roles"},
+		endpointNameCreateRole: {Method: "POST", Path: "/api/v1/roles"},
+		endpointNameUpdateRole: {Method: "PUT", Path: "/api/v1/roles/{roleName}"},
+		endpointNameDeleteRole: {Method: "DELETE", Path: "/api/v1/roles/{roleName}"},
+
+		endpointNameGetCapabilities:         {Method: "GET", Path: "/api/v1/roles/capabilities"},
+		endpointNameBatchCreateCapabilities: {Method: "POST", Path: "/api/v1/roles/capabilities"},
+		endpointNameBatchUpdateCapabilities: {Method: "PUT", Path: "/api/v1/roles/capabilities"},
+		endpointNameDeleteCapability:        {Method: "DELETE", Path: "/api/v1/roles/capabilities/{capabilityName}"},
+	}
+
+	authEndpoints = map[string]integration.MsxServiceEndpoint{
+		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
+
+		endpointNameLogin:  {Method: "POST", Path: "/v2/token"},
+		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
+
+		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
+
+		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
+		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
+		endpointTenantHierarchyAncestors: {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+	}
+
+	secretsEndpoints = map[string]integration.MsxServiceEndpoint{
+		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
 		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},
 		endpointNameAddSystemSecrets:      {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}"},
@@ -109,6 +135,28 @@ var (
 		endpointNameEncryptTenantSecrets:  {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/encrypt"},
 		endpointNameGenerateTenantSecrets: {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/generate"},
 
+		endpointNameGetSecretPolicy:   {Method: "GET", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
+	}
+
+	combinedEndpoints = map[string]integration.MsxServiceEndpoint{
+		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
+
+		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
+
+		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
+		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
+
+		endpointNameGetProviderExtensionByName: {Method: "GET", Path: "/api/v1/providers/providerextension/parameters/{{.providerExtensionName}}"},
+
+		endpointNameGetTenantById:   {Method: "GET", Path: "/api/v3/tenants/{{.tenantId}}"},
+		endpointNameGetTenantByIdV8: {Method: "GET", Path: "/api/v8/tenants/{{.tenantId}}"},
+		endpointNameGetTenantByName: {Method: "GET", Path: "/api/v1/tenants/{{.tenantName}}"},
+
+		endpointNameGetUserById:   {Method: "GET", Path: "/api/v2/users/{{.userId}}"},
+		endpointNameGetUserByIdV8: {Method: "GET", Path: "/api/v8/users/{{.userId}}"},
+
 		endpointNameGetRoles:   {Method: "GET", Path: "/api/v1/roles"},
 		endpointNameCreateRole: {Method: "POST", Path: "/api/v1/roles"},
 		endpointNameUpdateRole: {Method: "PUT", Path: "/api/v1/roles/{roleName}"},
@@ -119,13 +167,32 @@ var (
 		endpointNameBatchUpdateCapabilities: {Method: "PUT", Path: "/api/v1/roles/capabilities"},
 		endpointNameDeleteCapability:        {Method: "DELETE", Path: "/api/v1/roles/capabilities/{capabilityName}"},
 
-		endpointNameGetSecretPolicy:   {Method: "GET", Path: "/api/v2/secrets/policy/{policyName}"},
-		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
-		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameLogin:  {Method: "POST", Path: "/v2/token"},
+		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
+
+		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 
 		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
 		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
 		endpointTenantHierarchyAncestors: {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+
+		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},
+		endpointNameAddSystemSecrets:      {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}"},
+		endpointNameReplaceSystemSecrets:  {Method: "PUT", Path: "/api/v2/secrets/scope/{{.scope}}"},
+		endpointNameRemoveSystemSecrets:   {Method: "DELETE", Path: "/api/v2/secrets/scope/{{.scope}}"},
+		endpointNameEncryptSystemSecrets:  {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}/encrypt"},
+		endpointNameGenerateSystemSecrets: {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}/generate"},
+
+		endpointNameGetTenantSecrets:      {Method: "GET", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}"},
+		endpointNameAddTenantSecrets:      {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}"},
+		endpointNameReplaceTenantSecrets:  {Method: "PUT", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}"},
+		endpointNameRemoveTenantSecrets:   {Method: "DELETE", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}"},
+		endpointNameEncryptTenantSecrets:  {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/encrypt"},
+		endpointNameGenerateTenantSecrets: {Method: "POST", Path: "/api/v2/secrets/tenant/{{.tenantId}}/scope/{{.scope}}/generate"},
+
+		endpointNameGetSecretPolicy:   {Method: "GET", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameSetSecretPolicy:   {Method: "PUT", Path: "/api/v2/secrets/policy/{policyName}"},
+		endpointNameUnsetSecretPolicy: {Method: "DELETE", Path: "/api/v2/secrets/policy/{policyName}"},
 	}
 )
 
@@ -133,7 +200,21 @@ func NewIntegration(ctx context.Context) (Api, error) {
 	integrationInstance := IntegrationFromContext(ctx)
 	if integrationInstance == nil {
 		integrationInstance = &Integration{
-			MsxContextServiceExecutor: integration.NewMsxService(ctx, serviceName, endpoints),
+			serviceExecutors: []*EndpointAwareExecutor{
+				{
+					executor: integration.NewMsxService(ctx, idmServiceName, idmEndpoints),
+					availableEndpoints: idmEndpoints,
+				},
+				{
+					executor: integration.NewMsxService(ctx, authServiceName, authEndpoints),
+					availableEndpoints: authEndpoints,
+				},
+				{
+					executor: integration.NewMsxService(ctx, secretsServiceName, secretsEndpoints),
+					availableEndpoints: secretsEndpoints,
+				},
+			},
+			ctx: ctx,
 		}
 	}
 	return integrationInstance, nil
@@ -141,29 +222,84 @@ func NewIntegration(ctx context.Context) (Api, error) {
 
 func NewIntegrationWithExecutor(executor integration.MsxContextServiceExecutor) *Integration {
 	return &Integration{
-		MsxContextServiceExecutor: executor,
+		serviceExecutors: []*EndpointAwareExecutor{
+			{
+				executor: executor,
+				availableEndpoints: combinedEndpoints,
+			},
+		},
+		ctx: executor.Context(),
 	}
 }
 
 type Integration struct {
-	integration.MsxContextServiceExecutor
+	serviceExecutors []*EndpointAwareExecutor
+	ctx context.Context
+}
+
+type EndpointAwareExecutor struct {
+	executor integration.MsxContextServiceExecutor
+	availableEndpoints map[string]integration.MsxServiceEndpoint
+}
+
+func (i *Integration) execute(request *integration.MsxEndpointRequest) (response *integration.MsxResponse, err error) {
+	executors, err := i.getServiceExecutorForEndpoint(request.EndpointName)
+	if err != nil {
+		return nil, err
+	} else if len(executors) > 1 {
+		logger.Warnf("more than 1 service executor supports endpoint %s, first one will be used", request.EndpointName)
+	}
+	return executors[0].Execute(request)
+}
+
+
+func (i *Integration) getServiceExecutorForEndpoint(name string) ([]integration.MsxContextServiceExecutor, error) {
+	var executors []integration.MsxContextServiceExecutor
+	for _, s := range i.serviceExecutors {
+		if _, ok := s.availableEndpoints[name]; ok {
+			executors = append(executors, s.executor)
+		}
+	}
+	if len(executors) == 0 {
+		return nil, errors.Errorf("Endpoint %s not found", name)
+	}
+	return executors, nil
 }
 
 func (i *Integration) GetAdminHealth() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameGetAdminHealth,
-		Payload:      &integration.HealthDTO{},
-		NoToken:      true,
-	})
-}
-
-func (i *Integration) Login(user, password string) (result *integration.MsxResponse, err error) {
-	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	executors, err := i.getServiceExecutorForEndpoint(endpointNameGetAdminHealth)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	//since the response is returning only up or down,
+	//if any health endpoint returns down, we treat the result of this call as down.
+	//if all health endpoint returns up, we treat the result of this call as up.
+	for _, executor := range executors {
+		payload := &integration.HealthDTO{}
+		result, err = executor.Execute(&integration.MsxEndpointRequest{
+			EndpointName: endpointNameGetAdminHealth,
+			Payload:      payload,
+			NoToken:      true,
+		})
+		if err != nil {
+			return result, err
+		} else if result.StatusCode != http.StatusOK {
+			return result, err
+		} else if strings.ToUpper(payload.Status) != "UP" {
+			return result, err
+		}
+	}
+	return result, nil
+}
+
+func (i *Integration) Login(user, password string) (result *integration.MsxResponse, err error) {
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameLogin,
 		Headers: http.Header(map[string][]string{
 			"Authorization": {securityClientSettings.Authorization()},
@@ -181,20 +317,20 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 }
 
 func (i *Integration) Logout() (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameLogout,
 	})
 }
 
 func (i *Integration) IsTokenActive() (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameIsTokenValid,
 		ErrorPayload: new(integration.OAuthErrorDTO),
 	})
 }
 
 func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse, error) {
-	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -205,14 +341,14 @@ func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse,
 	headers.Set("Accept", httpclient.MimeTypeApplicationJson)
 
 	var body = make(url.Values)
-	userContext := security.UserContextFromContext(i.Context())
+	userContext := security.UserContextFromContext(i.ctx)
 	body.Set("token", userContext.Token)
 	if noDetails {
 		body.Set("no_details", "true")
 	}
 	var bodyBytes = []byte(body.Encode())
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:   endpointNameGetTokenDetails,
 		Headers:        headers,
 		Body:           bodyBytes,
@@ -224,7 +360,7 @@ func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse,
 }
 
 func (i *Integration) GetMyProvider() (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetMyProvider,
 		Payload:      &ProviderResponse{},
 		ErrorPayload: new(integration.ErrorDTO),
@@ -232,7 +368,7 @@ func (i *Integration) GetMyProvider() (*integration.MsxResponse, error) {
 }
 
 func (i *Integration) GetProviderByName(name string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetProviderByName,
 		EndpointParameters: map[string]string{
 			"providerName": name,
@@ -243,7 +379,7 @@ func (i *Integration) GetProviderByName(name string) (*integration.MsxResponse, 
 }
 
 func (i *Integration) GetProviderExtensionByName(name string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetProviderExtensionByName,
 		EndpointParameters: map[string]string{
 			"providerExtensionName": name,
@@ -255,7 +391,7 @@ func (i *Integration) GetProviderExtensionByName(name string) (*integration.MsxR
 
 // Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetUserById,
 		EndpointParameters: map[string]string{
 			"userId": userId,
@@ -266,7 +402,7 @@ func (i *Integration) GetUserById(userId string) (*integration.MsxResponse, erro
 }
 
 func (i *Integration) GetUserByIdV8(userId string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetUserByIdV8,
 		EndpointParameters: map[string]string{
 			"userId": userId,
@@ -278,7 +414,7 @@ func (i *Integration) GetUserByIdV8(userId string) (*integration.MsxResponse, er
 
 // Deprecated: The underlying REST API was deprecated in 3.10.0.  v8 (or newer) API should be used instead.
 func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantById,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -289,7 +425,7 @@ func (i *Integration) GetTenantById(tenantId string) (result *integration.MsxRes
 }
 
 func (i *Integration) GetTenantByIdV8(tenantId string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantByIdV8,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -302,7 +438,7 @@ func (i *Integration) GetTenantByIdV8(tenantId string) (result *integration.MsxR
 // Deprecated: Tenants should generally be access by ID, not tenantName.  The REST API is retired
 // and due for decomissioning.
 func (i *Integration) GetTenantByName(tenantName string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantByName,
 		EndpointParameters: map[string]string{
 			"tenantName": tenantName,
@@ -312,7 +448,7 @@ func (i *Integration) GetTenantByName(tenantName string) (result *integration.Ms
 }
 
 func (i *Integration) GetSystemSecrets(scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -327,7 +463,7 @@ func (i *Integration) AddSystemSecrets(scope string, secrets map[string]string) 
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameAddSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -342,7 +478,7 @@ func (i *Integration) ReplaceSystemSecrets(scope string, secrets map[string]stri
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameReplaceSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -363,7 +499,7 @@ func (i *Integration) EncryptSystemSecrets(scope string, names []string, encrypt
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameEncryptSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -375,7 +511,7 @@ func (i *Integration) EncryptSystemSecrets(scope string, names []string, encrypt
 }
 
 func (i *Integration) RemoveSystemSecrets(scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameRemoveSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -396,7 +532,7 @@ func (i *Integration) GenerateSystemSecrets(scope string, names []string, save b
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGenerateSystemSecrets,
 		EndpointParameters: map[string]string{
 			"scope": scope,
@@ -408,7 +544,7 @@ func (i *Integration) GenerateSystemSecrets(scope string, names []string, save b
 }
 
 func (i *Integration) GetTenantSecrets(tenantId, scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -424,7 +560,7 @@ func (i *Integration) AddTenantSecrets(tenantId, scope string, secrets map[strin
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameAddTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -440,7 +576,7 @@ func (i *Integration) ReplaceTenantSecrets(tenantId, scope string, secrets map[s
 	if bodyBytes, err = json.Marshal(secrets); err != nil {
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameReplaceTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -462,7 +598,7 @@ func (i *Integration) EncryptTenantSecrets(tenantId, scope string, names []strin
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameEncryptTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -475,7 +611,7 @@ func (i *Integration) EncryptTenantSecrets(tenantId, scope string, names []strin
 }
 
 func (i *Integration) RemoveTenantSecrets(tenantId, scope string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameRemoveTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -497,7 +633,7 @@ func (i *Integration) GenerateTenantSecrets(tenantId, scope string, names []stri
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGenerateTenantSecrets,
 		EndpointParameters: map[string]string{
 			"tenantId": tenantId,
@@ -513,7 +649,7 @@ func (i *Integration) GetRoles(resolvePermissionNames bool, p paging.Request) (r
 	qp := p.QueryParameters()
 	qp.Set("resolvepermissionname", strconv.FormatBool(resolvePermissionNames))
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetRoles,
 		QueryParameters: qp,
 		Payload:         new(RoleListResponse),
@@ -535,7 +671,7 @@ func (i *Integration) CreateRole(populator bool, body RoleCreateRequest) (result
 		qp.Set("dbinstaller", strconv.FormatBool(populator))
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameCreateRole,
 		QueryParameters: qp,
 		Body:            bodyBytes,
@@ -558,7 +694,7 @@ func (i *Integration) UpdateRole(populator bool, body RoleUpdateRequest) (result
 		qp.Set("dbinstaller", strconv.FormatBool(populator))
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUpdateRole,
 		EndpointParameters: map[string]string{
 			"roleName": body.RoleName,
@@ -571,7 +707,7 @@ func (i *Integration) UpdateRole(populator bool, body RoleUpdateRequest) (result
 }
 
 func (i *Integration) DeleteRole(roleName string) (result *integration.MsxResponse, err error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteRole,
 		EndpointParameters: map[string]string{
 			"roleName": roleName,
@@ -582,7 +718,7 @@ func (i *Integration) DeleteRole(roleName string) (result *integration.MsxRespon
 }
 
 func (i *Integration) GetCapabilities(p paging.Request) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameGetCapabilities,
 		QueryParameters: p.QueryParameters(),
 		Payload:         new(CapabilityListResponse),
@@ -604,7 +740,7 @@ func (i *Integration) BatchCreateCapabilities(populator bool, owner string, capa
 		qp.Set("dbinstaller", strconv.FormatBool(populator))
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameBatchCreateCapabilities,
 		QueryParameters: qp,
 		Body:            bodyBytes,
@@ -627,7 +763,7 @@ func (i *Integration) BatchUpdateCapabilities(populator bool, owner string, capa
 		qp.Set("dbinstaller", strconv.FormatBool(populator))
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName:    endpointNameBatchUpdateCapabilities,
 		QueryParameters: qp,
 		Body:            bodyBytes,
@@ -645,7 +781,7 @@ func (i *Integration) DeleteCapability(populator bool, owner string, name string
 		qp.Set("dbinstaller", strconv.FormatBool(populator))
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameDeleteCapability,
 		EndpointParameters: map[string]string{
 			"capabilityName": name,
@@ -657,7 +793,7 @@ func (i *Integration) DeleteCapability(populator bool, owner string, name string
 }
 
 func (i *Integration) GetSecretPolicy(name string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetSecretPolicy,
 		EndpointParameters: map[string]string{
 			"policyName": name,
@@ -681,7 +817,7 @@ func (i *Integration) StoreSecretPolicy(name string, policy SecretPolicySetReque
 		return nil, errors.Wrap(err, "Failed to serialize body")
 	}
 
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameSetSecretPolicy,
 		EndpointParameters: map[string]string{
 			"policyName": name,
@@ -693,7 +829,7 @@ func (i *Integration) StoreSecretPolicy(name string, policy SecretPolicySetReque
 }
 
 func (i *Integration) DeleteSecretPolicy(name string) (*integration.MsxResponse, error) {
-	return i.Execute(&integration.MsxEndpointRequest{
+	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameUnsetSecretPolicy,
 		EndpointParameters: map[string]string{
 			"policyName": name,
@@ -708,7 +844,7 @@ func (i *Integration) GetTenantHierarchyRoot() (*integration.MsxResponse, error)
 		return nil, err
 	}
 
-	return i.Execute(msxEndpointRequest)
+	return i.execute(msxEndpointRequest)
 }
 
 func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integration.MsxResponse, error) {
@@ -721,7 +857,7 @@ func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integratio
 	qp.Set("tenantId", tenantId.String())
 	msxEndpointRequest.QueryParameters = qp
 
-	return i.Execute(msxEndpointRequest)
+	return i.execute(msxEndpointRequest)
 }
 
 func (i *Integration) GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
@@ -734,7 +870,7 @@ func (i *Integration) GetTenantHierarchyAncestors(tenantId types.UUID) (*integra
 		"tenantId": []string{tenantId.String()},
 	}
 
-	response, err := i.Execute(request)
+	response, err := i.execute(request)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -749,7 +885,7 @@ func (i *Integration) GetTenantHierarchyAncestors(tenantId types.UUID) (*integra
 
 func (i *Integration) buildTenantHierarchyMsxEndpointRequest(endpointName string) (*integration.MsxEndpointRequest, error) {
 
-	securityClientSettings, err := integration.NewSecurityClientSettings(i.Context())
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.ctx)
 	if err != nil {
 		return nil, err
 	}

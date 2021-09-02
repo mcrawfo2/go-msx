@@ -25,6 +25,9 @@ const (
 	jwtClaimRoles       = "roles"
 	jwtClaimAuthorities = "authorities"
 
+	defaultJwtClaimAuthorities = "ROLE_CLIENT"
+
+
 	configRootJwtTokenProvider = "security.keys.jwt"
 
 	keySourcePem      = "pem"
@@ -78,14 +81,23 @@ func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) 
 		}
 	}
 
-	return &security.UserContext{
+	uc := &security.UserContext{
 		UserName:    jwtClaims[jwtClaimUserName].(string),
 		Roles:       types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
 		TenantId:    tenantUuid,
 		Scopes:      types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
-		Authorities: types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimAuthorities].([]interface{})),
 		Token:       token[:],
-	}, nil
+	}
+
+	//jwtClaimAuthorities is deprecated and is not present in the token issued by auth service
+	//so if it's not found in the token claim, use a default value.
+	if claimAuthorities, ok := jwtClaims[jwtClaimAuthorities].([]interface{}); ok {
+		uc.Authorities = types.InterfaceSliceToStringSlice(claimAuthorities);
+	} else {
+		uc.Authorities = []string{defaultJwtClaimAuthorities}
+	}
+
+	return uc, nil
 }
 
 func (j *TokenProvider) signingKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {

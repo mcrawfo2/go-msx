@@ -29,7 +29,9 @@ func TestNewIntegration(t *testing.T) {
 	ctxWithConfigDifferentName := configtest.ContextWithNewInMemoryConfig(
 		context.Background(),
 		map[string]string{
-			"remoteservice.usermanagementservice.service": "testservice",
+			"remoteservice.usermanagementservice.service": "testservice1",
+			"remoteservice.authservice.service": "testservice2",
+			"remoteservice.secretsservice.service": "testservice3",
 		})
 
 	tests := []struct {
@@ -43,7 +45,21 @@ func TestNewIntegration(t *testing.T) {
 				ctx: ctxWithConfig,
 			},
 			want: &Integration{
-				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfig, serviceName, endpoints),
+				serviceExecutors: []*EndpointAwareExecutor{
+					{
+						executor: integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
+						availableEndpoints: idmEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
+						availableEndpoints: authEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
+						availableEndpoints: secretsEndpoints,
+					},
+				},
+				ctx: ctxWithConfig,
 			},
 		},
 		{
@@ -59,7 +75,21 @@ func TestNewIntegration(t *testing.T) {
 				ctx: ctxWithConfig,
 			},
 			want: &Integration{
-				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfig, serviceName, endpoints),
+				serviceExecutors: []*EndpointAwareExecutor{
+					{
+						executor: integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
+						availableEndpoints: idmEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
+						availableEndpoints: authEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
+						availableEndpoints: secretsEndpoints,
+					},
+				},
+				ctx: ctxWithConfig,
 			},
 		},
 		{
@@ -68,7 +98,21 @@ func TestNewIntegration(t *testing.T) {
 				ctx: ctxWithConfigDifferentName,
 			},
 			want: &Integration{
-				MsxContextServiceExecutor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice", endpoints),
+				serviceExecutors: []*EndpointAwareExecutor{
+					{
+						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice1", idmEndpoints),
+						availableEndpoints: idmEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice2", authEndpoints),
+						availableEndpoints: authEndpoints,
+					},
+					{
+						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice3", secretsEndpoints),
+						availableEndpoints: secretsEndpoints,
+					},
+				},
+				ctx: ctxWithConfigDifferentName,
 			},
 		},
 	}
@@ -88,7 +132,7 @@ type UserManagementIntegrationTest struct {
 
 func NewUserManagementIntegrationTest() *UserManagementIntegrationTest {
 	return &UserManagementIntegrationTest{
-		EndpointTest: new(EndpointTest).WithEndpoints(endpoints),
+		EndpointTest: new(EndpointTest).WithEndpoints(combinedEndpoints),
 	}
 }
 

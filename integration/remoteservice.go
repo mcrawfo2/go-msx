@@ -38,7 +38,10 @@ const (
 	ServiceNameRouter           = "routerservice"
 	ServiceNameServiceConfig    = "templateservice"
 	ServiceNameServiceExtension = "serviceextensionservice"
-	ServiceNameUserManagement   = "usermanagementservice"
+	ServiceNameUserManagement   = "usermanagementservice" //once auth and idm is separated, this will map to usermanagementservice-go
+	ServiceNameAuth				= "authservice" //once auth and idm is separated, this will map to authservice
+	ServiceNameSecrets          = "secretsservice" //once auth and idm is separated, this will map to usermanagementservice (the java usermanagementservice)
+
 	ServiceNameWorkflow         = "workflowservice"
 	ServiceNameIpam             = "ipamservice"
 
