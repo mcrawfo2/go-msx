@@ -4,6 +4,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
+	"github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -11,6 +12,7 @@ var (
 )
 
 func init() {
+	metrics.UseNilMetrics = true
 	sarama.Logger = saramaLogger
 	saramaLogger.SetLevel(log.WarnLevel)
 }

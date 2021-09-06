@@ -42,6 +42,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.2.1
 	github.com/radovskyb/watcher v1.0.7
+	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
@@ -65,4 +66,5 @@ require (
 replace (
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0 => cto-github.cisco.com/NFV-BU/watermill-kafka/v2 v2.2.1
 	github.com/dave/jennifer => github.com/mcrawfo2/jennifer v1.4.2
+	github.com/rcrowley/go-metrics => github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 )
