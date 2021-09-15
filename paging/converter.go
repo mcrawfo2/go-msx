@@ -67,10 +67,13 @@ func (c Converter) ResponseToPaginatedResponseV8(response Response, objects []in
 	if objects == nil {
 		objects = make([]interface{}, 0)
 	}
+	
+	totalItems := response.TotalItems
+	
 	presp := PaginatedResponseV8{
 		Page:        int32(response.Number),
 		PageSize:    int32(response.Size),
-		TotalItems:  int64(response.Elements()),
+		TotalItems:  int64(*totalItems),
 		HasNext:     response.HasNext(),
 		HasPrevious: response.Offset() > 0,
 		Contents:    objects,
