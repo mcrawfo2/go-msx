@@ -10,6 +10,7 @@ type Response struct {
 	Content interface{}
 	Size    uint
 	Number  uint
+	TotalItems   *uint
 	Sort    []SortOrder
 	State   interface{}
 }
