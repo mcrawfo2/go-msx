@@ -11,19 +11,20 @@ import (
 )
 
 const (
-	columnUpperCamelSingularName = "name"
+	columnUpperCamelSingularId  = "lower_snake_singular_id"
+	tableNameUpperCamelSingular = "lower_snake_singular"
 )
 
 var tableUpperCamelSingular = ddl.Table{
-	Name: "lower_snake_singular",
+	Name: tableNameUpperCamelSingular,
 	Columns: []ddl.Column{
-		{columnUpperCamelSingularName, ddl.DataTypeText},
+		{columnUpperCamelSingularId, ddl.DataTypeUuid},
 		//#if TENANT_DOMAIN
 		{"tenant_id", ddl.DataTypeUuid},
 		//#endif TENANT_DOMAIN
 		{"data", ddl.DataTypeText},
 	},
-	PartitionKeys: []string{columnUpperCamelSingularName},
+	PartitionKeys: []string{columnUpperCamelSingularId},
 }
 
 type lowerCamelSingularRepositoryApi interface {
@@ -31,9 +32,9 @@ type lowerCamelSingularRepositoryApi interface {
 	//#if TENANT_DOMAIN
 	FindAllByIndexTenantId(ctx context.Context, id gocql.UUID) ([]lowerCamelSingular, error)
 	//#endif TENANT_DOMAIN
-	FindByKey(context.Context, string) (*lowerCamelSingular, error)
+	FindByKey(context.Context, gocql.UUID) (*lowerCamelSingular, error)
 	Save(context.Context, lowerCamelSingular) error
-	Delete(context.Context, string) error
+	Delete(context.Context, gocql.UUID) error
 }
 
 type lowerCamelSingularCassandraRepository struct {
@@ -48,7 +49,7 @@ func (r *lowerCamelSingularCassandraRepository) FindAll(ctx context.Context) (re
 
 //#if TENANT_DOMAIN
 func (r *lowerCamelSingularCassandraRepository) FindAllByIndexTenantId(ctx context.Context, tenantId gocql.UUID) (results []lowerCamelSingular, err error) {
-	logger.WithContext(ctx).Info("Retrieving all Title Singular records with tenantId %q", tenantId.String())
+	logger.WithContext(ctx).Debugf("Retrieving all Title Singular records with tenantId %q", tenantId.String())
 	err = r.CrudRepositoryApi.FindAllBy(ctx, map[string]interface{}{
 		"tenant_id": tenantId,
 	}, &results)
@@ -57,11 +58,11 @@ func (r *lowerCamelSingularCassandraRepository) FindAllByIndexTenantId(ctx conte
 
 //#endif TENANT_DOMAIN
 
-func (r *lowerCamelSingularCassandraRepository) FindByKey(ctx context.Context, name string) (result *lowerCamelSingular, err error) {
-	logger.WithContext(ctx).Infof("Retrieving Title Singular by key %q", name)
+func (r *lowerCamelSingularCassandraRepository) FindByKey(ctx context.Context, lowerCamelSingularId gocql.UUID) (result *lowerCamelSingular, err error) {
+	logger.WithContext(ctx).Debugf("Retrieving Title Singular by key %q", lowerCamelSingularId.String())
 	var res lowerCamelSingular
 	err = r.CrudRepositoryApi.FindOneBy(ctx, map[string]interface{}{
-		columnUpperCamelSingularName: name,
+		columnUpperCamelSingularId: lowerCamelSingularId,
 	}, &res)
 	if err == cassandra.ErrNotFound {
 		err = repository.ErrNotFound
@@ -72,20 +73,20 @@ func (r *lowerCamelSingularCassandraRepository) FindByKey(ctx context.Context, n
 }
 
 func (r *lowerCamelSingularCassandraRepository) Save(ctx context.Context, lowerCamelSingular lowerCamelSingular) (err error) {
-	logger.WithContext(ctx).Infof("Storing Title Singular with key %q", lowerCamelSingular.Name)
+	logger.WithContext(ctx).Debugf("Storing Title Singular with key %q", lowerCamelSingular.UpperCamelSingularId.String())
 	err = r.CrudRepositoryApi.Save(ctx, lowerCamelSingular)
 	return err
 }
 
-func (r *lowerCamelSingularCassandraRepository) Delete(ctx context.Context, name string) (err error) {
-	logger.WithContext(ctx).Infof("Deleting Title Singular by key %q", name)
+func (r *lowerCamelSingularCassandraRepository) Delete(ctx context.Context, lowerCamelSingularId gocql.UUID) (err error) {
+	logger.WithContext(ctx).Debugf("Deleting Title Singular by key %q", lowerCamelSingularId.String())
 	err = r.CrudRepositoryApi.DeleteBy(ctx, map[string]interface{}{
-		columnUpperCamelSingularName: name,
+		columnUpperCamelSingularId: lowerCamelSingularId,
 	})
 	return
 }
 
-func newUpperCamelSingularRepository(ctx context.Context) lowerCamelSingularRepositoryApi {
+func newUpperCamelSingularRepository(ctx context.Context) (lowerCamelSingularRepositoryApi, error) {
 	repo := lowerCamelSingularRepositoryFromContext(ctx)
 	if repo == nil {
 		repo = &lowerCamelSingularCassandraRepository{
@@ -94,5 +95,5 @@ func newUpperCamelSingularRepository(ctx context.Context) lowerCamelSingularRepo
 				NewCrudRepository(tableUpperCamelSingular),
 		}
 	}
-	return repo
+	return repo, nil
 }

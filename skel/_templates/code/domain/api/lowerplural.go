@@ -6,7 +6,6 @@ import (
 )
 
 type UpperCamelSingularCreateRequest struct {
-	Name string `json:"name"`
 	//#if TENANT_DOMAIN
 	TenantId types.UUID `json:"tenantId"`
 	//#endif TENANT_DOMAIN
@@ -15,7 +14,6 @@ type UpperCamelSingularCreateRequest struct {
 
 func (r *UpperCamelSingularCreateRequest) Validate() error {
 	return types.ErrorMap{
-		"name": validation.Validate(&r.Name, validation.Required),
 		//#if TENANT_DOMAIN
 		"tenantId": validation.Validate(&r.TenantId, validation.Required),
 		//#endif TENANT_DOMAIN
@@ -34,7 +32,7 @@ func (r *UpperCamelSingularUpdateRequest) Validate() error {
 }
 
 type UpperCamelSingularResponse struct {
-	Name string `json:"name"`
+	UpperCamelSingularId types.UUID `json:"lowerCamelSingularId"`
 	//#if TENANT_DOMAIN
 	TenantId types.UUID `json:"tenantId"`
 	//#endif TENANT_DOMAIN

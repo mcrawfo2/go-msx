@@ -11,7 +11,7 @@ import "github.com/gocql/gocql"
 //#endif TENANT_DOMAIN
 
 type lowerCamelSingular struct {
-	Name string `db:"name"`
+	UpperCamelSingularId uuid.UUID `db:"lower_snake_singular_id"`
 	//#if TENANT_DOMAIN
 	//#if REPOSITORY_COCKROACH
 	TenantId uuid.UUID `db:"tenant_id"`
