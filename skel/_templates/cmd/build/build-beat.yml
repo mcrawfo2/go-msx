@@ -26,3 +26,4 @@ artifactory:
   images:
     - ${app.name}
 
+jenkins.job: "eng-generic/Beats/${app.name}"

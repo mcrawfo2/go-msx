@@ -63,6 +63,12 @@ update-go-msx-build:
 	go get cto-github.cisco.com/NFV-BU/go-msx-build
 	go mod tidy
 
+deploy-jenkins-job:
+	$(BUILDER) deploy-jenkins-job
+
+deploy-github-repo:
+	$(BUILDER) deploy-github-repo
+
 #if GENERATOR_SP
 .PHONY: update-administrationservice update-catalogservice
 
