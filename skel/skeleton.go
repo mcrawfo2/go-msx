@@ -19,6 +19,7 @@ func init() {
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-vscode", "Create a VSCode project for the application", GenerateVsCode)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
+	AddTarget("generate-deployment-variables", "Create deployment variables manifest", GenerateDeploymentVariables)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
 	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
@@ -40,6 +41,7 @@ func GenerateSkeleton(_ []string) error {
 
 	// Common post-generators
 	generators = append(generators,
+		"generate-deployment-variables",
 		"add-go-msx-dependency",
 		"generate-local",
 		"generate-manifest",
@@ -442,6 +444,20 @@ func GenerateKubernetesForBeats(_ []string) error {
 			Name:       "Creating pdb template",
 			SourceFile: "deployments/beats/kubernetes-pdb.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
+}
+
+func GenerateDeploymentVariables(_ []string) error {
+	logger.Info("Generating deployment variables")
+	templates := TemplateSet{
+		{
+			Name:       "Creating deployment variables",
+			SourceFile: "deployments/deployment_variables.yml",
+			DestFile:   "deployments/kubernetes/${deployment.group}_deployment_variables.yml",
 			Format:     FileFormatYaml,
 		},
 	}
