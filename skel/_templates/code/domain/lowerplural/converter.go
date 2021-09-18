@@ -2,11 +2,11 @@ package lowerplural
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
-	//#if COCKROACH_REPOSITORY
+	//#if REPOSITORY_COCKROACH
 	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
-	//#else COCKROACH_REPOSITORY
+	//#else REPOSITORY_COCKROACH
 	db "cto-github.cisco.com/NFV-BU/go-msx/cassandra"
-	//#endif COCKROACH_REPOSITORY
+	//#endif REPOSITORY_COCKROACH
 	"github.com/google/uuid"
 )
 

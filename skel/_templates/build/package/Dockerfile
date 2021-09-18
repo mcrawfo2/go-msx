@@ -4,7 +4,7 @@ ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/msx-base-buster:3.9.0
 ### Build container
 ###
 
-FROM dockerhub.cisco.com/vms-platform-dev-docker/golang:1.14-buster AS builder
+FROM dockerhub.cisco.com/vms-platform-dev-docker/golang:1.16-bullseye AS builder
 ARG BUILD_FLAGS
 ENV BUILDER_FLAGS -mod=vendor
 ADD . /app/
