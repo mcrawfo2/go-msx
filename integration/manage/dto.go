@@ -3,6 +3,7 @@ package manage
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"encoding/json"
 	"time"
 )
 
@@ -157,6 +158,46 @@ type DeviceResponse struct {
 	ModifiedOn string `json:"modifiedOn"`
 }
 
+func (r DeviceResponse) DeviceInterfaces() (DeviceInterfaces, error) {
+	interfaces := r.Attributes["deviceInterfaces"].([]interface{})
+	var deviceInterfaces DeviceInterfaces
+	for _, iface := range interfaces {
+		di := iface.(map[string]interface{})
+		deviceInterface := DeviceInterface{}
+		deviceInterface.Name = di["name"].(string)
+		deviceInterface.Snmp = di["snmp"].(string)
+		deviceInterface.NedId = di["nedId"].(string)
+		diRoles := di["roles"].([]interface{})
+		var roles []string
+		for _, role := range diRoles {
+			roles = append(roles, role.(string))
+		}
+		deviceInterface.Roles = roles
+		deviceInterfaces = append(deviceInterfaces, deviceInterface)
+	}
+
+	return deviceInterfaces, nil
+}
+
+func (r DeviceResponse) DeviceOnboardingInformation() (DeviceOnboardingInformation, error) {
+	var result DeviceOnboardingInformation
+
+	if r.OnboardInformation == nil {
+		return DeviceOnboardingInformation{
+			Variables:          make(map[string]string),
+			EncryptedVariables: make(map[string]string),
+		}, nil
+	}
+
+	data, err := json.Marshal(r.OnboardInformation)
+	if err != nil {
+		return result, err
+	}
+
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
 type DeviceStatusDetail struct {
 	Type               string `json:"type"`
 	Name               string `json:"name"`
@@ -164,6 +205,55 @@ type DeviceStatusDetail struct {
 	Severity           string `json:"severity"`
 	LastUpdated        string `json:"lastUpdated"`
 	LastUpdatedMessage string `json:"lastUpdatedMessage"`
+}
+
+type DeviceInterface struct {
+	Name  string   `json:"name"`
+	Roles []string `json:"roles"`
+	Snmp  string   `json:"snmp"`
+	NedId string   `json:"nedId"`
+}
+
+type DeviceInterfaces []DeviceInterface
+
+func (d DeviceInterfaces) ByRole(role string) *DeviceInterface {
+	for _, deviceInterface := range d {
+		if types.StringStack(deviceInterface.Roles).Contains(role) {
+			return &deviceInterface
+		}
+	}
+	return nil
+}
+
+func (d DeviceInterfaces) Slice() []interface{} {
+	var result []interface{}
+	data, _ := json.Marshal(d)
+	_ = json.Unmarshal(data, &result)
+	return result
+}
+
+type DeviceOnboardingInformation struct {
+	ServiceType            string            `json:"serviceType"`
+	Variables              map[string]string `json:"variables"`
+	Address                string            `json:"address"`
+	AlwaysAllocateIp       string            `json:"always-allocate-ip"`
+	NedId                  string            `json:"ned-id"`
+	EncryptedVariables     map[string]string `json:"encryptedVariables"`
+	PlatformDeviceSubtype  string            `json:"platform-device-subtype"`
+	Password               string            `json:"password"`
+	Port                   string            `json:"port"`
+	PlatformDeviceCategory string            `json:"platform-device-category"`
+	SecondaryPassword      string            `json:"secondary-password"`
+	PlatformDeviceType     string            `json:"platform-device-type"`
+	DeviceType             string            `json:"device-type"`
+	Username               string            `json:"username"`
+}
+
+func (i DeviceOnboardingInformation) Map() map[string]interface{} {
+	var result map[string]interface{}
+	data, _ := json.Marshal(i)
+	_ = json.Unmarshal(data, &result)
+	return result
 }
 
 type DeviceStatusUpdateRequest struct {
