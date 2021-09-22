@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -15,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -27,19 +29,26 @@ const (
 
 	defaultJwtClaimAuthorities = "ROLE_CLIENT"
 
-
 	configRootJwtTokenProvider = "security.keys.jwt"
 
 	keySourcePem      = "pem"
 	keySourceKeystore = "keystore"
 	keySourceVault    = "vault"
+	keySourceIdm      = "idm"
 
 	pemBeginPublicKey = `-----BEGIN PUBLIC KEY-----`
 	pemEndPublicKey   = `-----END PUBLIC KEY-----`
+
+	jwtHeaderAlg   = "alg"
+	jwtHeaderKeyId = "kid"
 )
 
 var (
 	logger = log.NewLogger("msx.security.jwttokenprovider")
+
+	ErrInvalidTokenKid = errors.New("Missing or invalid 'kid' field in token header")
+	ErrKeyNotExists = errors.New("Key not found")
+	ErrUnsupportedKeyType = errors.New("Unsupported key type")
 )
 
 func init() {
@@ -57,6 +66,7 @@ type TokenProviderConfig struct {
 
 type TokenProvider struct {
 	cfg *TokenProviderConfig
+	keyCache sync.Map
 }
 
 func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) (userContext *security.UserContext, err error) {
@@ -82,17 +92,17 @@ func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) 
 	}
 
 	uc := &security.UserContext{
-		UserName:    jwtClaims[jwtClaimUserName].(string),
-		Roles:       types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
-		TenantId:    tenantUuid,
-		Scopes:      types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
-		Token:       token[:],
+		UserName: jwtClaims[jwtClaimUserName].(string),
+		Roles:    types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
+		TenantId: tenantUuid,
+		Scopes:   types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
+		Token:    token[:],
 	}
 
 	//jwtClaimAuthorities is deprecated and is not present in the token issued by auth service
 	//so if it's not found in the token claim, use a default value.
 	if claimAuthorities, ok := jwtClaims[jwtClaimAuthorities].([]interface{}); ok {
-		uc.Authorities = types.InterfaceSliceToStringSlice(claimAuthorities);
+		uc.Authorities = types.InterfaceSliceToStringSlice(claimAuthorities)
 	} else {
 		uc.Authorities = []string{defaultJwtClaimAuthorities}
 	}
@@ -108,6 +118,8 @@ func (j *TokenProvider) signingKeyFunc(ctx context.Context) (jwt.Keyfunc, error)
 		return j.keystoreSigningKey, nil
 	case keySourceVault:
 		return j.vaultSigningKeyFunc(ctx), nil
+	case keySourceIdm:
+		return j.idmSigningKeyFunc(ctx), nil
 	default:
 		return nil, errors.Errorf("Unknown JWT Key Source: %s", j.cfg.KeySource)
 	}
@@ -206,6 +218,63 @@ func (j *TokenProvider) vaultSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 	}
 }
 
+func (j *TokenProvider) cachedSigningKey(kid string) (interface{}, error) {
+	cachedValue, ok := j.keyCache.Load(kid)
+	if !ok {
+		return nil, ErrKeyNotExists
+	}
+
+	return cachedValue, nil
+}
+
+func (j *TokenProvider) idmSigningKey(ctx context.Context, kid string) (interface{}, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	jwks, _, err := api.GetTokenKeys()
+	if err != nil {
+		return nil, err
+	}
+
+	jwk, err := jwks.KeyById(kid)
+	if err != nil {
+		return nil, errors.Wrap(ErrKeyNotExists, err.Error())
+	}
+
+	switch jwk.KeyType {
+	case "RSA":
+		return jwk.RsaPublicKey()
+	default:
+		return nil, errors.Wrap(ErrUnsupportedKeyType, jwk.KeyType)
+	}
+}
+
+func (j *TokenProvider) idmSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		kid, ok := token.Header[jwtHeaderKeyId].(string)
+		if !ok {
+			return nil, ErrInvalidTokenKid
+		}
+
+		key, err := j.cachedSigningKey(kid)
+
+		if err != nil && errors.Is(err, ErrKeyNotExists) {
+			key, err = j.idmSigningKey(ctx, kid)
+			if err == nil {
+				j.keyCache.Store(kid, key)
+			}
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		return key, nil
+	}
+}
+
 func NewTokenProviderConfig(cfg *config.Config) (*TokenProviderConfig, error) {
 	jwtTokenProviderConfig := new(TokenProviderConfig)
 	if err := cfg.Populate(jwtTokenProviderConfig, configRootJwtTokenProvider); err != nil {
@@ -224,6 +293,7 @@ func RegisterTokenProvider(ctx context.Context) error {
 
 	security.SetTokenProvider(&TokenProvider{
 		cfg: jwtTokenProviderConfig,
+		keyCache: sync.Map{},
 	})
 
 	return nil

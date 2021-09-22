@@ -669,6 +669,36 @@ func (_m *MockUserManagement) GetTokenDetails(noDetails bool) (*integration.MsxR
 	return r0, r1
 }
 
+// GetTokenKeys provides a mock function with given fields:
+func (_m *MockUserManagement) GetTokenKeys() (JsonWebKeys, *integration.MsxResponse, error) {
+	ret := _m.Called()
+
+	var r0 JsonWebKeys
+	if rf, ok := ret.Get(0).(func() JsonWebKeys); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(JsonWebKeys)
+	}
+
+	var r1 *integration.MsxResponse
+	if rf, ok := ret.Get(1).(func() *integration.MsxResponse); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*integration.MsxResponse)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func() error); ok {
+		r2 = rf()
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GetUserById provides a mock function with given fields: userId
 func (_m *MockUserManagement) GetUserById(userId string) (*integration.MsxResponse, error) {
 	ret := _m.Called(userId)
