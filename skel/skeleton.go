@@ -492,6 +492,10 @@ func GenerateGit(_ []string) error {
 		return err
 	}
 
+	gitRepositoryUrl := fmt.Sprintf(
+		"git@cto-github.cisco.com:NFV-BU/%s.git",
+		skeletonConfig.AppName)
+
 	return exec.ExecutePipes(
 		exec.WithDir(targetDirectory,
 			pipe.Line(
@@ -505,5 +509,10 @@ func GenerateGit(_ []string) error {
 			pipe.Line(
 				exec.Info("- Committing changes"),
 				pipe.Exec("git", "commit", "-m", "Initial Commit")),
+		),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Setting origin"),
+				pipe.Exec("git", "remote", "add", "origin", gitRepositoryUrl)),
 		))
 }
