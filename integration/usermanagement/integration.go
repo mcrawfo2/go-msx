@@ -24,6 +24,7 @@ const (
 
 	endpointNameIsTokenValid    = "isTokenValid"
 	endpointNameGetTokenDetails = "getTokenDetails"
+	endpointNameGetTokenKeys    = "getTokenKeys"
 
 	endpointNameGetMyProvider = "getMyProvider"
 
@@ -70,8 +71,8 @@ const (
 	endpointTenantHierarchyParent    = "getTenantHierarchyParent"
 	endpointTenantHierarchyAncestors = "getTenantHierarchyAncestors"
 
-	idmServiceName = integration.ServiceNameUserManagement
-	authServiceName = integration.ServiceNameAuth
+	idmServiceName     = integration.ServiceNameUserManagement
+	authServiceName    = integration.ServiceNameAuth
 	secretsServiceName = integration.ServiceNameSecrets
 )
 
@@ -80,7 +81,7 @@ var (
 	idmEndpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
-		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
+		endpointNameIsTokenValid: {Method: "GET", Path: "/api/v1/isTokenValid"},
 
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
@@ -112,6 +113,7 @@ var (
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
+		endpointNameGetTokenKeys: {Method: "GET", Path: "/v2/jwks"},
 
 		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
 		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
@@ -143,7 +145,7 @@ var (
 	combinedEndpoints = map[string]integration.MsxServiceEndpoint{
 		endpointNameGetAdminHealth: {Method: "GET", Path: "/admin/health"},
 
-		endpointNameIsTokenValid:    {Method: "GET", Path: "/api/v1/isTokenValid"},
+		endpointNameIsTokenValid: {Method: "GET", Path: "/api/v1/isTokenValid"},
 
 		endpointNameGetMyProvider:     {Method: "GET", Path: "/api/v1/providers"},
 		endpointNameGetProviderByName: {Method: "GET", Path: "/api/v1/providers/{{.providerName}}"},
@@ -171,6 +173,7 @@ var (
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
+		endpointNameGetTokenKeys: {Method: "GET", Path: "/v2/jwks"},
 
 		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
 		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
@@ -202,15 +205,15 @@ func NewIntegration(ctx context.Context) (Api, error) {
 		integrationInstance = &Integration{
 			serviceExecutors: []*EndpointAwareExecutor{
 				{
-					executor: integration.NewMsxService(ctx, idmServiceName, idmEndpoints),
+					executor:           integration.NewMsxService(ctx, idmServiceName, idmEndpoints),
 					availableEndpoints: idmEndpoints,
 				},
 				{
-					executor: integration.NewMsxService(ctx, authServiceName, authEndpoints),
+					executor:           integration.NewMsxService(ctx, authServiceName, authEndpoints),
 					availableEndpoints: authEndpoints,
 				},
 				{
-					executor: integration.NewMsxService(ctx, secretsServiceName, secretsEndpoints),
+					executor:           integration.NewMsxService(ctx, secretsServiceName, secretsEndpoints),
 					availableEndpoints: secretsEndpoints,
 				},
 			},
@@ -224,7 +227,7 @@ func NewIntegrationWithExecutor(executor integration.MsxContextServiceExecutor) 
 	return &Integration{
 		serviceExecutors: []*EndpointAwareExecutor{
 			{
-				executor: executor,
+				executor:           executor,
 				availableEndpoints: combinedEndpoints,
 			},
 		},
@@ -234,11 +237,11 @@ func NewIntegrationWithExecutor(executor integration.MsxContextServiceExecutor) 
 
 type Integration struct {
 	serviceExecutors []*EndpointAwareExecutor
-	ctx context.Context
+	ctx              context.Context
 }
 
 type EndpointAwareExecutor struct {
-	executor integration.MsxContextServiceExecutor
+	executor           integration.MsxContextServiceExecutor
 	availableEndpoints map[string]integration.MsxServiceEndpoint
 }
 
@@ -251,7 +254,6 @@ func (i *Integration) execute(request *integration.MsxEndpointRequest) (response
 	}
 	return executors[0].Execute(request)
 }
-
 
 func (i *Integration) getServiceExecutorForEndpoint(name string) ([]integration.MsxContextServiceExecutor, error) {
 	var executors []integration.MsxContextServiceExecutor
@@ -327,6 +329,21 @@ func (i *Integration) IsTokenActive() (*integration.MsxResponse, error) {
 		EndpointName: endpointNameIsTokenValid,
 		ErrorPayload: new(integration.OAuthErrorDTO),
 	})
+}
+
+func (i *Integration) GetTokenKeys() (keys JsonWebKeys, response *integration.MsxResponse, err error) {
+	response, err = i.execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetTokenKeys,
+		Payload:      &keys,
+		NoToken:      true,
+		Headers: http.Header{
+			"Accept": []string{
+				"application/jwk+json",
+				"application/json",
+			},
+		},
+	})
+	return
 }
 
 func (i *Integration) GetTokenDetails(noDetails bool) (*integration.MsxResponse, error) {

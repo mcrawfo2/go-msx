@@ -1,8 +1,12 @@
 package usermanagement
 
 import (
+	"crypto/rsa"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"encoding/base64"
+	"github.com/pkg/errors"
+	"math/big"
 )
 
 type Pojo integration.Pojo
@@ -285,4 +289,47 @@ type UserTenantResponse struct {
 
 func (s SecretsResponse) Value(key string) string {
 	return s[key]
+}
+
+type JsonWebKey struct {
+	KeyId   string `json:"kid"`
+	KeyType string `json:"kty"`
+	RsaModulus         string `json:"n"`
+	RsaPublicExponent  string `json:"e"`
+	RsaPrivateExponent string `json:"d"`
+}
+
+func (j JsonWebKey) RsaPublicKey() (*rsa.PublicKey, error) {
+	modulusBytes, err := base64.RawURLEncoding.DecodeString(j.RsaModulus)
+	if err != nil {
+		return nil, err
+	}
+	exponentBytes, err := base64.RawURLEncoding.DecodeString(j.RsaPublicExponent)
+	if err != nil {
+		return nil, err
+	}
+
+	var modulus = new(big.Int)
+	modulus.SetBytes(modulusBytes)
+
+	var exponent = new(big.Int)
+	exponent.SetBytes(exponentBytes)
+
+	return &rsa.PublicKey{
+		N: modulus,
+		E: int(exponent.Int64()),
+	}, nil
+}
+
+type JsonWebKeys struct {
+	Keys []JsonWebKey `json:"keys"`
+}
+
+func (k JsonWebKeys) KeyById(kid string) (JsonWebKey, error) {
+	for _, v := range k.Keys {
+		if v.KeyId == kid {
+			return v, nil
+		}
+	}
+	return JsonWebKey{}, errors.Errorf("Json Web key not found: %q", kid)
 }

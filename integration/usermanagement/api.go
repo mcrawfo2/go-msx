@@ -13,8 +13,10 @@ type Api interface {
 
 	Login(user, password string) (*integration.MsxResponse, error)
 	Logout() (*integration.MsxResponse, error)
+
 	IsTokenActive() (*integration.MsxResponse, error)
 	GetTokenDetails(noDetails bool) (*integration.MsxResponse, error)
+	GetTokenKeys() (keys JsonWebKeys, response *integration.MsxResponse, err error)
 
 	GetMyProvider() (*integration.MsxResponse, error)
 	GetProviderByName(providerName string) (*integration.MsxResponse, error)
