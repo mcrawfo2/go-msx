@@ -17,7 +17,7 @@ type PaginatedResponse struct {
 type PaginatedResponseV8 struct {
 	Page        int32         `json:"page"`
 	PageSize    int32         `json:"pageSize"`
-	TotalItems  int64         `json:"totalItems"`
+	TotalItems  *int64         `json:"totalItems"`
 	HasNext     bool          `json:"hasNext"`
 	HasPrevious bool          `json:"hasPrevious"`
 	SortBy      string        `json:"sortBy,omitempty"`
