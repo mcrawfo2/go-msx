@@ -404,19 +404,25 @@ func GenerateKubernetes(_ []string) error {
 	templates := TemplateSet{
 		{
 			Name:       "Creating deployment template",
-			SourceFile: "deployments/kubernetes-deployment.yml.tpl",
+			SourceFile: "deployments/kubernetes-rc.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
 			Format:     FileFormatYaml,
 		},
 		{
-			Name:       "Creating init template",
-			SourceFile: "deployments/kubernetes-init.yml.tpl",
+			Name:       "Creating migrate template",
+			SourceFile: "deployments/kubernetes-pod.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
 			Format:     FileFormatYaml,
 		},
 		{
+			Name:       "Creating populate template",
+			SourceFile: "deployments/kubernetes-meta.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-meta.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+		{
 			Name:       "Creating pdb template",
-			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
+			SourceFile: "deployments/kubernetes-pdb.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
 			Format:     FileFormatYaml,
 		},

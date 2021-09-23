@@ -5,7 +5,11 @@ metadata:
   namespace: vms
   name: ${app.name}
 spec:
+#if GENERATOR_SP
+  replicas: "{{ deployment_mode_env[deployment_mode|lower]['replica_count']['servicepack_count'] }}"
+#else GENERATOR_SP
   replicas: {{ deployment_mode_env[deployment_mode|lower]['replica_count']['${app.name}'] }}
+#endif GENERATOR_SP
   selector:
     matchLabels:
       app: ${app.name}
@@ -114,17 +118,27 @@ spec:
           ports:
             - containerPort: ${server.port}
           volumeMounts:
+            - mountPath: /etc/ssl/certs/ca-certificates.crt
+              name: rootcert
+            - mountPath: /certs/${app.name}-key.pem
+              name: cockroach-client-sslkey
+            - mountPath: /certs/${app.name}.pem
+              name: cockroach-client-sslcert
             - mountPath: /keystore
               name: keystore
-            - mountPath: /etc/ssl/certs/ca-certificates.crt
-              name: certs
       volumes:
-        - name: phi
-          configMap:
-            name: phi
-        - name: keystore
-          hostPath:
-            path: /data/vms/keystore/
-        - name: certs
-          hostPath:
+        - hostPath:
             path: /etc/ssl/certs/ca-bundle.crt
+          name: rootcert
+        - hostPath:
+            path: /etc/ssl/vms-certs/${app.name}-key.pem
+          name: cockroach-client-sslkey
+        - hostPath:
+            path: /etc/ssl/vms-certs/${app.name}.pem
+          name: cockroach-client-sslcert
+        - hostPath:
+            path: /data/vms/keystore/
+          name: keystore
+        - configMap:
+            name: phi
+          name: phi
