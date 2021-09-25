@@ -62,6 +62,12 @@ update-go-msx:
 update-go-msx-build:
 	go get cto-github.cisco.com/NFV-BU/go-msx-build
 	go mod tidy
+#if GENERATOR_BEAT
+
+update-go-msx-beats:
+	go get cto-github.cisco.com/NFV-BU/go-msx-beats
+	go mod tidy
+#endif GENERATOR_BEAT
 
 deploy-jenkins-job:
 	$(BUILDER) deploy-jenkins-job
