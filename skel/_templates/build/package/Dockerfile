@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/msx-base-buster:3.9.0-70
+ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/msx-base-bullseye:latest
 
 ###
 ### Build container
