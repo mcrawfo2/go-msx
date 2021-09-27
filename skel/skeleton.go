@@ -19,6 +19,7 @@ func init() {
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-vscode", "Create a VSCode project for the application", GenerateVsCode)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
+	AddTarget("generate-deployment-variables", "Create deployment variables manifest", GenerateDeploymentVariables)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
 	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
@@ -40,6 +41,7 @@ func GenerateSkeleton(_ []string) error {
 
 	// Common post-generators
 	generators = append(generators,
+		"generate-deployment-variables",
 		"add-go-msx-dependency",
 		"generate-local",
 		"generate-manifest",
@@ -402,19 +404,25 @@ func GenerateKubernetes(_ []string) error {
 	templates := TemplateSet{
 		{
 			Name:       "Creating deployment template",
-			SourceFile: "deployments/kubernetes-deployment.yml.tpl",
+			SourceFile: "deployments/kubernetes-rc.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
 			Format:     FileFormatYaml,
 		},
 		{
-			Name:       "Creating init template",
-			SourceFile: "deployments/kubernetes-init.yml.tpl",
+			Name:       "Creating migrate template",
+			SourceFile: "deployments/kubernetes-pod.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
 			Format:     FileFormatYaml,
 		},
 		{
+			Name:       "Creating populate template",
+			SourceFile: "deployments/kubernetes-meta.yml.tpl",
+			DestFile:   "deployments/kubernetes/${app.name}-meta.yml.tpl",
+			Format:     FileFormatYaml,
+		},
+		{
 			Name:       "Creating pdb template",
-			SourceFile: "deployments/kubernetes-poddisruptionbudget.yml.tpl",
+			SourceFile: "deployments/kubernetes-pdb.yml.tpl",
 			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
 			Format:     FileFormatYaml,
 		},
@@ -449,6 +457,20 @@ func GenerateKubernetesForBeats(_ []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
+func GenerateDeploymentVariables(_ []string) error {
+	logger.Info("Generating deployment variables")
+	templates := TemplateSet{
+		{
+			Name:       "Creating deployment variables",
+			SourceFile: "deployments/deployment_variables.yml",
+			DestFile:   "deployments/kubernetes/${deployment.group}_deployment_variables.yml",
+			Format:     FileFormatYaml,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
+}
+
 func GenerateGit(_ []string) error {
 	logger.Info("Generating git repository")
 	template := Template{
@@ -470,6 +492,10 @@ func GenerateGit(_ []string) error {
 		return err
 	}
 
+	gitRepositoryUrl := fmt.Sprintf(
+		"git@cto-github.cisco.com:NFV-BU/%s.git",
+		skeletonConfig.AppName)
+
 	return exec.ExecutePipes(
 		exec.WithDir(targetDirectory,
 			pipe.Line(
@@ -483,5 +509,10 @@ func GenerateGit(_ []string) error {
 			pipe.Line(
 				exec.Info("- Committing changes"),
 				pipe.Exec("git", "commit", "-m", "Initial Commit")),
+		),
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Setting origin"),
+				pipe.Exec("git", "remote", "add", "origin", gitRepositoryUrl)),
 		))
 }

@@ -1,0 +1,28 @@
+${deployment.group}:
+  name: "${deployment.group}"
+  discovery_tags: "{{ deployer_version }}"
+  service_version: "{{ ${deployment.group}_build_version }}"
+  dependencies:
+  microservices:
+    "${deployment.group}": "{{ ${deployment.group}_build_version }}"
+  db_migration_required: yes
+  nginx_routes_required: yes
+  router_routes_required:
+    "${app.name}": "${server.contextPath}"
+  mode: "NewInstall"
+#if UI
+  ui:
+    version: "{{ ${deployment.group}_build_version }}"
+#endif UI
+  dp_templates:
+    version: "{{ ${deployment.group}_build_version }}"
+    templates:
+    # - devicemanager
+    # - monitor
+    # - reporting
+  platform_templates:
+    # - manage
+    # - notification
+    # - template
+  cockroachdb:
+    db_name: "${app.name}"

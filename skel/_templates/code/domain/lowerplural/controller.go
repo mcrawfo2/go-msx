@@ -15,23 +15,23 @@ import (
 )
 
 const (
-	pathRoot                            = "/api/v1/lowerplural"
-	pathSuffixUpperCamelSingularName    = "/{lowerCamelSingularName}"
-	pathParamNameUpperCamelSingularName = "lowerCamelSingularName"
+	pathRoot                          = "/api"
+	pathPrefixUpperCamelPlural        = "/v1/lowerplural"
+	pathSuffixUpperCamelSingularId    = "/{lowerCamelSingularId}"
+	pathParamNameUpperCamelSingularId = "lowerCamelSingularId"
 	//#if TENANT_DOMAIN
 	queryParamNameTenantId = "tenantId"
 	//#endif TENANT_DOMAIN
 )
 
 var (
-	viewPermission              = webservice.Permissions("VIEW_SCREAMING_SNAKE_PLURAL")
-	managePermission            = webservice.Permissions("MANAGE_SCREAMING_SNAKE_PLURAL")
-	paramUpperCamelSingularName = restful.PathParameter(pathParamNameUpperCamelSingularName, "Title Singular Name")
+	viewPermission            = webservice.Permissions("VIEW_SCREAMING_SNAKE_PLURAL")
+	managePermission          = webservice.Permissions("MANAGE_SCREAMING_SNAKE_PLURAL")
+	paramUpperCamelSingularId = restful.PathParameter(pathParamNameUpperCamelSingularId, "Title Singular Id")
 )
 
 type lowerCamelSingularController struct {
-	lowerCamelSingularService   lowerCamelSingularServiceApi
-	lowerCamelSingularConverter lowerCamelSingularConverter
+	lowerCamelSingularService lowerCamelSingularServiceApi
 }
 
 func (c *lowerCamelSingularController) Routes(svc *restful.WebService) {
@@ -47,14 +47,14 @@ func (c *lowerCamelSingularController) Routes(svc *restful.WebService) {
 
 func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebService) *restful.RouteBuilder {
 	//#if TENANT_DOMAIN
-	var paramTenantId = restful.QueryParameter(queryParamNameTenantId, "Tenant Id")
+	var paramTenantId = restful.QueryParameter(queryParamNameTenantId, "Tenant Id").Required(true)
 
 	type params struct {
 		TenantId types.UUID `req:"query"`
 	}
 	//#endif TENANT_DOMAIN
 
-	return svc.GET("").
+	return svc.GET(pathPrefixUpperCamelPlural).
 		Operation("listUpperCamelPlural").
 		Doc("List all the Title Plural").
 		Do(webservice.StandardList).
@@ -67,14 +67,14 @@ func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebServ
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
 				//#if TENANT_DOMAIN
-				var params = webservice.Params(req).(*params)
+				var args = webservice.Params(req).(*params)
 				//#endif TENANT_DOMAIN
 
-				lowerCamelPlural, err := c.lowerCamelSingularService.ListUpperCamelPlural(
+				body, err = c.lowerCamelSingularService.ListUpperCamelPlural(
 					req.Request.Context(),
 					//#if TENANT_DOMAIN
-					params.TenantId,
-				//#endif TENANT_DOMAIN
+					args.TenantId,
+					//#endif TENANT_DOMAIN
 				)
 
 				//#if TENANT_DOMAIN
@@ -89,30 +89,30 @@ func (c *lowerCamelSingularController) listUpperCamelPlural(svc *restful.WebServ
 				}
 				//#endif TENANT_DOMAIN
 
-				return c.lowerCamelSingularConverter.ToUpperCamelSingularListResponse(lowerCamelPlural), nil
+				return
 			}))
 }
 
 func (c *lowerCamelSingularController) getUpperCamelSingular(svc *restful.WebService) *restful.RouteBuilder {
 	type params struct {
-		UpperCamelSingularName string `req:"path"`
+		UpperCamelSingularId types.UUID `req:"path"`
 	}
 
-	return svc.GET(pathSuffixUpperCamelSingularName).
+	return svc.GET(pathPrefixUpperCamelPlural + pathSuffixUpperCamelSingularId).
 		Operation("getUpperCamelSingular").
 		Doc("Retrieve the specified Title Singular").
 		Do(webservice.StandardRetrieve).
 		Do(webservice.ResponseRawPayload(api.UpperCamelSingularResponse{})).
-		Param(paramUpperCamelSingularName).
+		Param(paramUpperCamelSingularId).
 		Do(webservice.PopulateParams(params{})).
 		Do(viewPermission).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
-				var params = webservice.Params(req).(*params)
+				var args = webservice.Params(req).(*params)
 
-				lowerCamelSingular, err := c.lowerCamelSingularService.GetUpperCamelSingular(
+				body, err = c.lowerCamelSingularService.GetUpperCamelSingular(
 					req.Request.Context(),
-					params.UpperCamelSingularName)
+					args.UpperCamelSingularId)
 				if err == lowerCamelSingularErrNotFound {
 					return nil, webservice.NewNotFoundError(err)
 					//#if TENANT_DOMAIN
@@ -123,7 +123,7 @@ func (c *lowerCamelSingularController) getUpperCamelSingular(svc *restful.WebSer
 					return nil, err
 				}
 
-				return c.lowerCamelSingularConverter.ToUpperCamelSingularResponse(lowerCamelSingular), nil
+				return
 			}))
 }
 
@@ -132,7 +132,7 @@ func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.Web
 		Request api.UpperCamelSingularCreateRequest `req:"body"`
 	}
 
-	return svc.POST("").
+	return svc.POST(pathPrefixUpperCamelPlural).
 		Operation("createUpperCamelSingular").
 		Doc("Create a new Title Singular").
 		Do(webservice.StandardCreate).
@@ -142,11 +142,11 @@ func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.Web
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
-				params := webservice.Params(req).(*params)
+				args := webservice.Params(req).(*params)
 
-				lowerCamelSingular, err := c.lowerCamelSingularService.CreateUpperCamelSingular(
+				body, err = c.lowerCamelSingularService.CreateUpperCamelSingular(
 					req.Request.Context(),
-					params.Request)
+					args.Request)
 
 				if err == lowerCamelSingularErrAlreadyExists {
 					return nil, webservice.NewConflictError(err)
@@ -158,33 +158,33 @@ func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.Web
 					return nil, err
 				}
 
-				return c.lowerCamelSingularConverter.ToUpperCamelSingularResponse(lowerCamelSingular), nil
+				return
 			}))
 }
 
 func (c *lowerCamelSingularController) updateUpperCamelSingular(svc *restful.WebService) *restful.RouteBuilder {
 	type params struct {
-		UpperCamelSingularName string                              `req:"path"`
-		Request                api.UpperCamelSingularUpdateRequest `req:"body"`
+		UpperCamelSingularId types.UUID                          `req:"path"`
+		Request              api.UpperCamelSingularUpdateRequest `req:"body"`
 	}
 
-	return svc.PUT(pathSuffixUpperCamelSingularName).
+	return svc.PUT(pathPrefixUpperCamelPlural + pathSuffixUpperCamelSingularId).
 		Operation("updateUpperCamelSingular").
 		Doc("Update the specified Title Singular").
 		Do(webservice.StandardUpdate).
 		Do(webservice.ResponseRawPayload(api.UpperCamelSingularResponse{})).
-		Param(paramUpperCamelSingularName).
+		Param(paramUpperCamelSingularId).
 		Reads(api.UpperCamelSingularUpdateRequest{}).
 		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
-				params := webservice.Params(req).(*params)
+				args := webservice.Params(req).(*params)
 
-				lowerCamelSingular, err := c.lowerCamelSingularService.UpdateUpperCamelSingular(
+				body, err = c.lowerCamelSingularService.UpdateUpperCamelSingular(
 					req.Request.Context(),
-					params.UpperCamelSingularName,
-					params.Request)
+					args.UpperCamelSingularId,
+					args.Request)
 
 				if err == lowerCamelSingularErrNotFound {
 					return nil, webservice.NewNotFoundError(err)
@@ -196,30 +196,30 @@ func (c *lowerCamelSingularController) updateUpperCamelSingular(svc *restful.Web
 					return nil, err
 				}
 
-				return c.lowerCamelSingularConverter.ToUpperCamelSingularResponse(lowerCamelSingular), nil
+				return
 			}))
 }
 
 func (c *lowerCamelSingularController) deleteUpperCamelSingular(svc *restful.WebService) *restful.RouteBuilder {
 	type params struct {
-		UpperCamelSingularName string `req:"path"`
+		UpperCamelSingularId types.UUID `req:"path"`
 	}
 
-	return svc.DELETE(pathSuffixUpperCamelSingularName).
+	return svc.DELETE(pathPrefixUpperCamelPlural + pathSuffixUpperCamelSingularId).
 		Operation("deleteUpperCamelSingular").
 		Doc("Delete the specified Title Singular").
 		Do(webservice.StandardDelete).
 		Do(webservice.ResponseRawPayload(struct{}{})).
-		Param(paramUpperCamelSingularName).
+		Param(paramUpperCamelSingularId).
 		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
 		To(webservice.RawController(
 			func(req *restful.Request) (body interface{}, err error) {
-				params := webservice.Params(req).(*params)
+				args := webservice.Params(req).(*params)
 
 				err = c.lowerCamelSingularService.DeleteUpperCamelSingular(
 					req.Request.Context(),
-					params.UpperCamelSingularName)
+					args.UpperCamelSingularId)
 				//#if TENANT_DOMAIN
 				if err == rbac.ErrUserDoesNotHaveTenantAccess {
 					return nil, webservice.NewForbiddenError(err)
@@ -229,22 +229,34 @@ func (c *lowerCamelSingularController) deleteUpperCamelSingular(svc *restful.Web
 					return nil, err
 				}
 
-				return nil, nil
+				return
 			}))
 }
 
-func init() {
-	app.OnEvent(app.EventCommand, app.CommandRoot, func(ctx context.Context) error {
-		app.OnEvent(app.EventStart, app.PhaseBefore, func(ctx context.Context) error {
-			controller := &lowerCamelSingularController{
-				lowerCamelSingularService:   newUpperCamelSingularService(ctx),
-				lowerCamelSingularConverter: lowerCamelSingularConverter{},
-			}
+func newUpperCamelSingularController(ctx context.Context) (webservice.RestController, error) {
+	controller := lowerCamelSingularControllerFromContext(ctx)
+	if controller == nil {
+		lowerCamelSingularService, err := newUpperCamelSingularService(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-			return webservice.
-				WebServerFromContext(ctx).
-				RegisterRestController(pathRoot, controller)
-		})
-		return nil
+		controller = &lowerCamelSingularController{
+			lowerCamelSingularService: lowerCamelSingularService,
+		}
+	}
+	return controller, nil
+}
+
+func init() {
+	app.OnRootEvent(app.EventStart, app.PhaseBefore, func(ctx context.Context) error {
+		controller, err := newUpperCamelSingularController(ctx)
+		if err != nil {
+			return err
+		}
+
+		return webservice.
+			WebServerFromContext(ctx).
+			RegisterRestController(pathRoot, controller)
 	})
 }

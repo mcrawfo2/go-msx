@@ -14,5 +14,12 @@
         <exclude>test/**</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/</directory>
+      <outputDirectory>/src</outputDirectory>
+      <excludes>
+        <exclude>target/**</exclude>
+      </excludes>
+    </fileSet>
   </fileSets>
 </assembly>

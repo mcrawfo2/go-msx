@@ -1,14 +1,22 @@
 package lowerplural
 
-import "cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/domain/api"
+	//#if REPOSITORY_COCKROACH
+	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
+	//#else REPOSITORY_COCKROACH
+	db "cto-github.cisco.com/NFV-BU/go-msx/cassandra"
+	//#endif REPOSITORY_COCKROACH
+	"github.com/google/uuid"
+)
 
 type lowerCamelSingularConverter struct{}
 
 func (c *lowerCamelSingularConverter) FromCreateRequest(request api.UpperCamelSingularCreateRequest) lowerCamelSingular {
 	return lowerCamelSingular{
-		Name: request.Name,
+		UpperCamelSingularId: uuid.New(),
 		//#if TENANT_DOMAIN
-		TenantId: request.TenantId.ToByteArray(),
+		TenantId: db.ToModelUuid(request.TenantId),
 		//#endif TENANT_DOMAIN
 		Data: request.Data,
 	}
@@ -29,9 +37,9 @@ func (c *lowerCamelSingularConverter) ToUpperCamelSingularListResponse(sources [
 
 func (c *lowerCamelSingularConverter) ToUpperCamelSingularResponse(source lowerCamelSingular) api.UpperCamelSingularResponse {
 	return api.UpperCamelSingularResponse{
-		Name: source.Name,
+		UpperCamelSingularId: db.ToApiUuid(source.UpperCamelSingularId),
 		//#if TENANT_DOMAIN
-		TenantId: source.TenantId[:],
+		TenantId: db.ToApiUuid(source.TenantId),
 		//#endif TENANT_DOMAIN
 		Data: source.Data,
 	}
