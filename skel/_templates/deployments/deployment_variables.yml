@@ -5,15 +5,21 @@ ${deployment.group}:
   dependencies:
   microservices:
     "${deployment.group}": "{{ ${deployment.group}_build_version }}"
+#if GENERATOR_BEAT
+  metric_type: ${beat.protocol}
+#else GENERATOR_BEAT
   db_migration_required: yes
   nginx_routes_required: yes
   router_routes_required:
     "${app.name}": "${server.contextPath}"
   mode: "NewInstall"
+#endif GENERATOR_BEAT
 #if UI
   ui:
     version: "{{ ${deployment.group}_build_version }}"
 #endif UI
+#if GENERATOR_BEAT
+#else GENERATOR_BEAT
   dp_templates:
     version: "{{ ${deployment.group}_build_version }}"
     templates:
@@ -26,3 +32,4 @@ ${deployment.group}:
     # - template
   cockroachdb:
     db_name: "${app.name}"
+#endif
