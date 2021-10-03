@@ -266,14 +266,19 @@ func (i *Integration) DeleteServiceConfigurationAssignments(serviceConfigId type
 	})
 }
 
-func (i *Integration) GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID) (*integration.MsxResponse, error) {
+func (i *Integration) GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID, page, pageSize int) (*integration.MsxResponse, error) {
+	payload := []ServiceConfigurationAssignmentResponse{}
 	return i.Execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameGetServiceConfigurationAssignmentsByServiceConfigurationId,
 		EndpointParameters: map[string]string{
 			"serviceConfigId": serviceConfigurationId.String(),
 		},
+		QueryParameters: map[string][]string{
+			"page": {strconv.Itoa(page)},
+			"pageSize": {strconv.Itoa(pageSize)},
+		},
 		Payload: &paging.PaginatedResponse{
-			Content: []ServiceConfigurationAssignmentResponse{},
+			Content: &payload,
 		},
 		ExpectEnvelope: true,
 	})

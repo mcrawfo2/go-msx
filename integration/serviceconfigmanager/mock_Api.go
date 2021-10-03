@@ -290,13 +290,13 @@ func (_m *MockServiceConfigManagerApi) GetServiceConfigurationAssignmentByAssign
 	return r0, r1
 }
 
-// GetServiceConfigurationAssignmentsByServiceConfigurationId provides a mock function with given fields: serviceConfigurationId
-func (_m *MockServiceConfigManagerApi) GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID) (*integration.MsxResponse, error) {
-	ret := _m.Called(serviceConfigurationId)
+// GetServiceConfigurationAssignmentsByServiceConfigurationId provides a mock function with given fields: serviceConfigurationId, page, pageSize
+func (_m *MockServiceConfigManagerApi) GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID, page int, pageSize int) (*integration.MsxResponse, error) {
+	ret := _m.Called(serviceConfigurationId, page, pageSize)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(types.UUID) *integration.MsxResponse); ok {
-		r0 = rf(serviceConfigurationId)
+	if rf, ok := ret.Get(0).(func(types.UUID, int, int) *integration.MsxResponse); ok {
+		r0 = rf(serviceConfigurationId, page, pageSize)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -304,8 +304,8 @@ func (_m *MockServiceConfigManagerApi) GetServiceConfigurationAssignmentsByServi
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.UUID) error); ok {
-		r1 = rf(serviceConfigurationId)
+	if rf, ok := ret.Get(1).(func(types.UUID, int, int) error); ok {
+		r1 = rf(serviceConfigurationId, page, pageSize)
 	} else {
 		r1 = ret.Error(1)
 	}

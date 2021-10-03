@@ -24,7 +24,7 @@ type Api interface {
 	GetServiceConfigurationAssignmentByAssignmentId(assignmentId types.UUID) (*integration.MsxResponse, error)
 	CreateServiceConfigurationAssignment(serviceConfigId types.UUID, tenantIdList []types.UUID) (*integration.MsxResponse, error)
 	DeleteServiceConfigurationAssignments(serviceConfigId types.UUID, tenantIdList []types.UUID) (*integration.MsxResponse, error)
-	GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID) (*integration.MsxResponse, error)
+	GetServiceConfigurationAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID, page, pageSize int) (*integration.MsxResponse, error)
 	UpdateServiceConfigurationAssignmentStatusByServiceConfigurationIdAndTenantId(serviceConfigId types.UUID, tenantId types.UUID, status StatusUpdateRequest) (*integration.MsxResponse, error)
 	GetTenantAssignmentsByServiceConfigurationId(serviceConfigurationId types.UUID) (*integration.MsxResponse, error)
 
