@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/app/version"
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
@@ -17,12 +18,19 @@ const (
 	configKeyRedisEnable           = "spring.redis.enable"
 	configKeyKafkaEnable           = "spring.cloud.stream.kafka.binder.enabled"
 	configKeyConsulDiscoveryEnable = "spring.cloud.consul.discovery.enabled"
+	configKeyConsulEnable          = "spring.cloud.consul.enabled"
+	configKeyVaultEnable           = "spring.cloud.vault.enabled"
 	configKeyServerEnable          = "server.enabled"
 	configKeyLeaderEnable          = "consul.leader.election.enabled"
+	configKeyCassandraEnable       = "spring.data.cassandra.enable"
+	configKeySqlDbEnable           = "spring.datasource.enabled"
 
 	CommandRoot     = ""
 	CommandMigrate  = "migrate"
 	CommandPopulate = "populate"
+	CommandVersion  = "version"
+	
+	configValueFalse = "false"
 )
 
 func init() {
@@ -62,6 +70,10 @@ func init() {
 	} else {
 		populate.CustomizeCommand(populateCommand)
 	}
+
+	if _, err := AddCommand(CommandVersion, "Show version", version.Version, commandVersionInit); err != nil {
+		cli.Fatal(err)
+	}
 }
 
 func AddCommand(path, brief string, command CommandObserver, init Observer) (cmd *cobra.Command, err error) {
@@ -95,11 +107,11 @@ func Noop(context.Context) error {
 
 func commandMigrateInit(context.Context) error {
 	OverrideConfig(map[string]string{
-		configKeyRedisEnable:           "false",
-		configKeyKafkaEnable:           "false",
-		configKeyConsulDiscoveryEnable: "false",
-		configKeyServerEnable:          "false",
-		configKeyLeaderEnable:          "false",
+		configKeyRedisEnable:           configValueFalse,
+		configKeyKafkaEnable:           configValueFalse,
+		configKeyConsulDiscoveryEnable: configValueFalse,
+		configKeyServerEnable:          configValueFalse,
+		configKeyLeaderEnable:          configValueFalse,
 	})
 
 	return nil
@@ -107,9 +119,25 @@ func commandMigrateInit(context.Context) error {
 
 func commandPopulateInit(context.Context) error {
 	OverrideConfig(map[string]string{
-		configKeyConsulDiscoveryEnable: "false",
-		configKeyServerEnable:          "false",
-		configKeyLeaderEnable:          "false",
+		configKeyConsulDiscoveryEnable: configValueFalse,
+		configKeyServerEnable:          configValueFalse,
+		configKeyLeaderEnable:          configValueFalse,
+	})
+
+	return nil
+}
+
+func commandVersionInit(context.Context) error {
+	OverrideConfig(map[string]string{
+		configKeyRedisEnable:           configValueFalse,
+		configKeyKafkaEnable:           configValueFalse,
+		configKeyConsulDiscoveryEnable: configValueFalse,
+		configKeyServerEnable:          configValueFalse,
+		configKeyLeaderEnable:          configValueFalse,
+		configKeyCassandraEnable:       configValueFalse,
+		configKeySqlDbEnable:           configValueFalse,
+		configKeyConsulEnable:          configValueFalse,
+		configKeyVaultEnable:           configValueFalse,
 	})
 
 	return nil

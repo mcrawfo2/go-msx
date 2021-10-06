@@ -5,7 +5,9 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/consulprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/vaultprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"github.com/pkg/errors"
 	"strings"
 	"time"
@@ -276,11 +278,19 @@ func loadConfig(ctx context.Context) (err error) {
 	}
 
 	if sources.Consul, err = newProviders(SourceConsul, cfg); err != nil {
-		return errors.Wrapf(err, "Failed to create providers for %q", SourceConsul)
+		if !errors.Is(err, consul.ErrDisabled) {
+			return errors.Wrapf(err, "Failed to create providers for %q", SourceConsul)
+		} else {
+			logger.WithContext(ctx).Warn("Consul disabled.  Not loading configuration.")
+		}
 	}
 
 	if sources.Vault, err = newProviders(SourceVault, cfg); err != nil {
-		return errors.Wrapf(err, "Failed to create providers for %q", SourceVault)
+		if !errors.Is(err, vault.ErrDisabled) {
+			return errors.Wrapf(err, "Failed to create providers for %q", SourceVault)
+		} else {
+			logger.WithContext(ctx).Warn("Vault disabled.  Not loading configuration.")
+		}
 	}
 
 	cfg = config.NewConfig(sources.Providers()...)
