@@ -27,9 +27,9 @@ func (s SleuthTextMapPropagator) Inject(spanContext jaeger.SpanContext, abstract
 
 	byteBuffer := bytes.NewBuffer(nil)
 	if spanContext.TraceID().High != 0 {
-		byteBuffer.WriteString(fmt.Sprintf("%08x", spanContext.TraceID().High))
+		byteBuffer.WriteString(fmt.Sprintf("%016x", spanContext.TraceID().High))
 	}
-	byteBuffer.WriteString(fmt.Sprintf("%08x", spanContext.TraceID().Low))
+	byteBuffer.WriteString(fmt.Sprintf("%016x", spanContext.TraceID().Low))
 	byteBuffer.WriteRune('-')
 	byteBuffer.WriteString(fmt.Sprintf("%016x", uint64(spanContext.SpanID())))
 	byteBuffer.WriteRune('-')

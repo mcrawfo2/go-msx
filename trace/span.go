@@ -1,13 +1,28 @@
 package trace
 
 import (
+	"bytes"
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"github.com/opentracing/opentracing-go"
 	tracelog "github.com/opentracing/opentracing-go/log"
 	"github.com/uber/jaeger-client-go"
 )
+
+func traceIdAsString(id jaeger.TraceID) string {
+	var byteBuffer bytes.Buffer
+	if id.High != 0 {
+		byteBuffer.WriteString(fmt.Sprintf("%016x", id.High))
+	}
+	byteBuffer.WriteString(fmt.Sprintf("%016x", id.Low))
+	return byteBuffer.String()
+}
+
+func spanIdAsString(id jaeger.SpanID) string {
+	return fmt.Sprintf("%016x", uint64(id))
+}
 
 func NewSpan(ctx context.Context, operationName string, options ...opentracing.StartSpanOption) (context.Context, opentracing.Span) {
 	var span opentracing.Span
@@ -24,9 +39,9 @@ func NewSpan(ctx context.Context, operationName string, options ...opentracing.S
 	if spanContext, ok := span.Context().(jaeger.SpanContext); ok {
 		// Inject log fields
 		ctx = log.ExtendContext(ctx, log.LogContext{
-			log.FieldSpanId:   spanContext.SpanID().String(),
-			log.FieldTraceId:  spanContext.TraceID().String(),
-			log.FieldParentId: spanContext.ParentID().String(),
+			log.FieldSpanId:   spanIdAsString(spanContext.SpanID()),
+			log.FieldTraceId:  traceIdAsString(spanContext.TraceID()),
+			log.FieldParentId: spanIdAsString(spanContext.ParentID()),
 		})
 	}
 
