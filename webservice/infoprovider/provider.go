@@ -3,10 +3,10 @@ package infoprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"github.com/emicklei/go-restful"
-	"time"
 )
 
 const (
@@ -36,6 +36,8 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 			Name          string       `json:"name"`
 			Time          epochSeconds `json:"time" config:"default=0"`
 			Group         string       `json:"group"`
+			CommitHash    string       `json:"commitHash" config:"default="`
+			DiffHash      string       `json:"diffHash" config:"default="`
 		} `json:"build"`
 	}
 
@@ -45,9 +47,9 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	}
 
 	i.App.Version = i.Build.Version
-	buildTime, err := time.Parse("2006-01-02T15:04:05.999999999Z", i.Build.BuildDateTime)
+	buildTime, err := types.ParseTime(i.Build.BuildDateTime)
 	if err == nil {
-		i.Build.Time = newEpochSeconds(buildTime)
+		i.Build.Time = newEpochSeconds(buildTime.ToTimeTime())
 	}
 
 	return i, nil

@@ -60,6 +60,7 @@ require (
 	go.uber.org/atomic v1.6.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
+	moul.io/banner v1.0.1
 	vitess.io/vitess v0.0.0-20191026003914-d26b6c7975b1
 )
 

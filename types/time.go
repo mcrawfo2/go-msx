@@ -7,6 +7,7 @@ import (
 )
 
 const timeLayout = "2006-01-02T15:04:05.999999999Z"
+const timeLayout2 = time.RFC3339Nano
 
 type Time time.Time
 
@@ -35,7 +36,11 @@ func (t *Time) UnmarshalText(data string) (err error) {
 	var v time.Time
 	v, err = time.Parse(timeLayout, data)
 	if err != nil {
-		return err
+		// Be slightly more liberal in accepting TZ as offset
+		v, err = time.Parse(timeLayout2, data)
+		if err != nil {
+			return err
+		}
 	}
 	*t = Time(v)
 	return nil
@@ -77,6 +82,11 @@ func (t Time) SwaggerSchemaJson() string {
 
 func (t Time) DeepCopy() interface{} {
 	return t
+}
+
+func ParseTime(v string) (t Time, err error) {
+	err = t.UnmarshalText(v)
+	return
 }
 
 func NewTime(t time.Time) Time {
