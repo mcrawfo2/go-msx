@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config/cobraprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
 	"cto-github.cisco.com/NFV-BU/go-msx/repository/migrate"
+	_ "cto-github.cisco.com/NFV-BU/go-msx/stats/logstats"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/spf13/cobra"
 	"os"
@@ -29,7 +30,7 @@ const (
 	CommandMigrate  = "migrate"
 	CommandPopulate = "populate"
 	CommandVersion  = "version"
-	
+
 	configValueFalse = "false"
 )
 
