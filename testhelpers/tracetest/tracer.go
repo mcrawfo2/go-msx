@@ -1,14 +1,12 @@
 package tracetest
 
 import (
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/mocktracer"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	mocktracer "cto-github.cisco.com/NFV-BU/go-msx/trace/mock"
 )
 
 func RecordTracing() *mocktracer.MockTracer {
-	var result = mocktracer.New()
-
-	opentracing.SetGlobalTracer(result)
-
-	return result
+	t := mocktracer.NewMockTracer()
+	trace.SetTracer(t)
+	return t
 }

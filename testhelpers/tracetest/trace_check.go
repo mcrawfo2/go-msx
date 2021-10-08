@@ -1,12 +1,12 @@
 package tracetest
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
 )
 
 type CheckError struct {
-	Span      opentracing.Span
+	Span      trace.Span
 	Validator SpanPredicate
 }
 
@@ -16,7 +16,7 @@ func (c CheckError) Error() string {
 
 type Check []SpanPredicate
 
-func (c Check) Check(span opentracing.Span) []error {
+func (c Check) Check(span trace.Span) []error {
 	var results []error
 
 	for _, predicate := range c {

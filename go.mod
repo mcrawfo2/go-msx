@@ -5,6 +5,7 @@ go 1.14
 require (
 	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
 	github.com/AlecAivazis/survey/v2 v2.0.5
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.0
@@ -40,6 +41,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/otiai10/copy v1.0.2
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
+	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.2.1
@@ -50,7 +52,7 @@ require (
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
@@ -60,6 +62,7 @@ require (
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.6.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
 	moul.io/banner v1.0.1

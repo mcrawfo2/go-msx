@@ -4,8 +4,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 )
 
 type TraceSubscriberAction struct {
@@ -14,22 +12,28 @@ type TraceSubscriberAction struct {
 }
 
 func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
-	textMap := opentracing.TextMapCarrier(msg.Metadata)
-	incomingContext, err := opentracing.GlobalTracer().Extract(opentracing.TextMap, textMap)
+	incomingSpanContext, err := trace.TextMapCarrier(msg.Metadata).Extract()
 	if err != nil {
-		logger.WithError(err).Error("Invalid trace context.")
+		logger.WithError(err).Error("Missing or invalid trace context.")
 	}
 
 	operationName := fmt.Sprintf("%s.receive.%s", a.cfg.Binder, a.cfg.Destination)
 
-	ctx, span := trace.NewSpan(msg.Context(), operationName,
-		opentracing.FollowsFrom(incomingContext),
-		ext.SpanKindConsumer)
+	options := []trace.StartSpanOption{
+		trace.StartWithTag(trace.FieldSpanKind, trace.SpanKindConsumer),
+		trace.StartWithTag(trace.FieldDirection, "receive"),
+		trace.StartWithTag(trace.FieldTopic, a.cfg.Destination),
+		trace.StartWithTag(trace.FieldSpanType, "stream"),
+	}
+
+	if incomingSpanContext != nil {
+		options = append(options,
+			trace.StartWithRelated(trace.RefFollowsFrom, incomingSpanContext))
+	}
+
+	ctx, span := trace.NewSpan(msg.Context(), operationName, options...)
 	defer span.Finish()
 	msg.SetContext(ctx)
-
-	span.SetTag(trace.FieldDirection, "receive")
-	span.SetTag(trace.FieldTopic, a.cfg.Destination)
 
 	err = a.action(msg)
 	if err != nil {
@@ -58,25 +62,25 @@ func (t *TracePublisher) Publish(msg *message.Message) error {
 	}
 
 	operationName := fmt.Sprintf("%s.send.%s", t.cfg.Binder, t.cfg.Destination)
-	ctx, span := trace.NewSpan(msg.Context(), operationName, ext.SpanKindProducer)
-	span.SetTag(trace.FieldDirection, "send")
-	span.SetTag(trace.FieldTopic, t.cfg.Destination)
-	span.SetTag(trace.FieldTransport, t.cfg.Binder)
+	ctx, span := trace.NewSpan(msg.Context(), operationName,
+		trace.StartWithTag(trace.FieldSpanKind, trace.SpanKindProducer),
+		trace.StartWithTag(trace.FieldDirection, "send"),
+		trace.StartWithTag(trace.FieldTopic, t.cfg.Destination),
+		trace.StartWithTag(trace.FieldTransport, t.cfg.Binder),
+		trace.StartWithTag(trace.FieldSpanType, "stream"),
+	)
 
 	defer span.Finish()
 	msg.SetContext(ctx)
 
-	// Decorate all of the messages with the trace metadata
+	// Decorate all the messages with the trace metadata
 	if msg.Metadata == nil {
 		msg.Metadata = make(message.Metadata)
 	}
 
-	err := opentracing.GlobalTracer().Inject(
-		span.Context(),
-		opentracing.TextMap,
-		opentracing.TextMapCarrier(msg.Metadata))
+	err := trace.TextMapCarrier(msg.Metadata).Inject(span.Context())
 	if err != nil {
-		logger.WithError(err).WithContext(ctx).Warn("Failed to apply trace context to outgoing message")
+		return err
 	}
 
 	return t.publisher.Publish(msg)

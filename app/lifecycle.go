@@ -84,7 +84,8 @@ func (a *MsxApplication) triggerObserver(event, phase string, observer Observer)
 	})
 
 	// Start a new trace span
-	ctx, span := trace.NewSpan(ctx, event+phase+"."+observerName)
+	ctx, span := trace.NewSpan(ctx, event+phase+"."+observerName,
+		trace.StartWithTag(trace.FieldSpanType, "lifecycle"))
 	defer span.Finish()
 	span.SetTag(trace.FieldOperation, observerName)
 

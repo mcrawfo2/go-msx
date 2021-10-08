@@ -31,7 +31,8 @@ type HealthLogger struct {
 }
 
 func (l *HealthLogger) LogHealth() {
-	ctx, span := trace.NewSpan(l.ctx, "healthLogger.LogHealth")
+	ctx, span := trace.NewSpan(l.ctx, "healthLogger.LogHealth",
+		trace.StartWithTag(trace.FieldSpanType, "health"))
 	defer span.Finish()
 
 	healthReport := health.GenerateReport(ctx)

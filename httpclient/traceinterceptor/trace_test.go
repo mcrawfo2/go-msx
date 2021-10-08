@@ -6,7 +6,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/tracetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
-	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"net/http"
 	"testing"
@@ -52,7 +51,7 @@ func TestNewInterceptor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var span opentracing.Span
+			var span trace.Span
 			tracetest.RecordTracing()
 
 			ctx := context.Background()

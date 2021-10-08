@@ -1,16 +1,15 @@
 package sqldbobserver
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"database/sql/driver"
-
-	"github.com/opentracing/opentracing-go"
 )
 
 // conn defines a tracing wrapper for driver.Tx.
 type tx struct {
 	tx     driver.Tx
 	tracer *tracer
-	span   opentracing.Span
+	span   trace.Span
 }
 
 // Commit implements driver.Tx Commit.

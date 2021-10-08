@@ -37,7 +37,8 @@ func (c *conn) Begin() (driver.Tx, error) {
 
 // BeginTx implements driver.Conn BeginTx.
 func (c *conn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
-	ctx, s := trace.NewSpan(ctx, "sql.DB.BeginTx")
+	ctx, s := trace.NewSpan(ctx, "sql.DB.BeginTx",
+		trace.StartWithTag(trace.FieldSpanType, "db"))
 	if connBeginTx, ok := c.conn.(driver.ConnBeginTx); ok {
 		t, err := connBeginTx.BeginTx(ctx, opts)
 		if err != nil {
@@ -74,7 +75,8 @@ func (c *conn) Exec(query string, args []driver.Value) (result driver.Result, er
 
 // Exec implements driver.StmtExecContext ExecContext.
 func (c *conn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (result driver.Result, err error) {
-	ctx, s := trace.NewSpan(ctx, "sql.DB.ExecContext")
+	ctx, s := trace.NewSpan(ctx, "sql.DB.ExecContext",
+		trace.StartWithTag(trace.FieldSpanType, "db"))
 	s.SetTag(TagQuery, strings.Fields(query)[0])
 	defer s.Finish()
 
@@ -96,7 +98,8 @@ func (c *conn) ExecContext(ctx context.Context, query string, args []driver.Name
 // Ping implements driver.Pinger Ping.
 func (c *conn) Ping(ctx context.Context) error {
 	if pinger, ok := c.conn.(driver.Pinger); ok {
-		ctx, s := trace.NewSpan(ctx, "sql.DB.Ping")
+		ctx, s := trace.NewSpan(ctx, "sql.DB.Ping",
+			trace.StartWithTag(trace.FieldSpanType, "db"))
 		defer s.Finish()
 		return observeStats("PING", func() error {
 			return pinger.Ping(ctx)
@@ -119,7 +122,8 @@ func (c *conn) Query(query string, args []driver.Value) (rows driver.Rows, err e
 
 // QueryContext implements driver.QueryerContext QueryContext.
 func (c *conn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (rows driver.Rows, err error) {
-	ctx, s := trace.NewSpan(ctx, "sql.DB.QueryContext")
+	ctx, s := trace.NewSpan(ctx, "sql.DB.QueryContext",
+		trace.StartWithTag(trace.FieldSpanType, "db"))
 	s.SetTag(TagQuery, strings.Fields(query)[0])
 	defer s.Finish()
 
