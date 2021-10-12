@@ -24,7 +24,7 @@ var (
 	listeners             = make(map[string][]ListenerAction)
 	router                *message.Router
 	routerLogger          = log.NewLogger("watermill.router")
-	routerWatermillLogger = NewWatermillLoggerAdapter(log.NewLogger("watermill.router"))
+	routerWatermillLogger = NewWatermillLoggerAdapter(routerLogger)
 	handlerCounter        atomic.Int32
 
 	ErrRouterRunning      = errors.New("Router already running")

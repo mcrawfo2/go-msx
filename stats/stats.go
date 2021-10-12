@@ -82,35 +82,31 @@ func (p *Pusher) Stop() error {
 	return nil
 }
 
-func NewPusher(ctx context.Context, cfg *PushConfig) (*Pusher, error) {
-	if !cfg.Enabled {
-		return nil, ErrDisabled
+func newPusher(ctx context.Context) (*Pusher, error) {
+	var cfg *config.Config
+
+	if cfg = config.FromContext(ctx); cfg == nil {
+		return nil, errors.New("Failed to retrieve cfg from context")
 	}
 
-	return &Pusher{
-		ctx:  ctx,
-		cfg:  cfg,
-		done: make(chan struct{}),
-	}, nil
-}
-
-func NewPusherFromConfig(ctx context.Context, cfg *config.Config) (*Pusher, error) {
 	pushConfig, err := NewPushConfigFromConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewPusher(ctx, pushConfig)
+	if !pushConfig.Enabled {
+		return nil, ErrDisabled
+	}
+
+	return &Pusher{
+		ctx:  ctx,
+		cfg:  pushConfig,
+		done: make(chan struct{}),
+	}, nil
 }
 
 func Configure(ctx context.Context) (err error) {
-	var cfg *config.Config
-
-	if cfg = config.FromContext(ctx); cfg == nil {
-		return errors.New("Failed to retrieve cfg from context")
-	}
-
-	globalPusher, err = NewPusherFromConfig(ctx, cfg)
+	globalPusher, err = newPusher(ctx)
 	return err
 }
 

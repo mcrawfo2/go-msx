@@ -21,10 +21,10 @@ const (
 	FieldStack  = "stack"
 )
 
-func (logger *Logger) Fields() LogContext {
+func (l *Logger) Fields() LogContext {
 	// Return all fields except `name`
 	result := make(logrus.Fields)
-	for k, v := range logger.fields {
+	for k, v := range l.fields {
 		if k != FieldLogger {
 			result[k] = v
 		}
@@ -33,257 +33,256 @@ func (logger *Logger) Fields() LogContext {
 	return LogContext(result)
 }
 
-func (logger *Logger) newEntry() *logrus.Entry {
-	return logger.ParentLogger.WithFields(logger.fields)
+func (l *Logger) newEntry() *logrus.Entry {
+	return l.ParentLogger.WithFields(l.fields)
 }
 
-func (logger *Logger) WithField(key string, value interface{}) *logrus.Entry {
-	return logger.newEntry().WithField(key, value)
+func (l *Logger) WithField(key string, value interface{}) *logrus.Entry {
+	return l.newEntry().WithField(key, value)
 }
 
-func (logger *Logger) WithFields(fields logrus.Fields) *logrus.Entry {
-	return logger.newEntry().WithFields(fields)
+func (l *Logger) WithFields(fields logrus.Fields) *logrus.Entry {
+	return l.newEntry().WithFields(fields)
 }
 
-func (logger *Logger) WithLogContext(logCtx LogContext) *logrus.Entry {
-	return logger.newEntry().WithFields(logrus.Fields(logCtx))
+func (l *Logger) WithLogContext(logCtx LogContext) *logrus.Entry {
+	return l.newEntry().WithFields(logrus.Fields(logCtx))
 }
 
-// Add an error as single field to the log entry.  All it does is call
-// `WithError` for the given `error`.
-func (logger *Logger) WithError(err error) *logrus.Entry {
-	return logger.newEntry().WithError(err)
+// WithError adds an error as single field to a new log entry.
+func (l *Logger) WithError(err error) *logrus.Entry {
+	return l.newEntry().WithError(err)
 }
 
-// Add a context to the log entry.
-func (logger *Logger) WithContext(ctx context.Context) *logrus.Entry {
+// WithContext adds a Context to the log entry.
+func (l *Logger) WithContext(ctx context.Context) *logrus.Entry {
 	if ctx == nil {
-		return logger.newEntry()
+		return l.newEntry()
 	}
 
-	entry := logger.newEntry().WithContext(ctx)
+	entry := l.newEntry().WithContext(ctx)
 	if logContext, ok := LogContextFromContext(ctx); ok {
 		entry = entry.WithFields(logrus.Fields(logContext))
 	}
 	return entry
 }
 
-// Overrides the time of the log entry.
-func (logger *Logger) WithTime(t time.Time) *logrus.Entry {
-	return logger.newEntry().WithTime(t)
+// WithTime overrides the time of the log entry.
+func (l *Logger) WithTime(t time.Time) *logrus.Entry {
+	return l.newEntry().WithTime(t)
 }
 
-func (logger *Logger) WithExtendedField(key string, value interface{}) *Logger {
-	return newLogger(logger, LogContext{key: value})
+func (l *Logger) WithExtendedField(key string, value interface{}) *Logger {
+	return newLogger(l, LogContext{key: value})
 }
 
-func (logger *Logger) WithExtendedLogContext(fields ...LogContext) *Logger {
+func (l *Logger) WithExtendedLogContext(fields ...LogContext) *Logger {
 	if len(fields) == 0 {
-		return logger
+		return l
 	}
 
-	return newLogger(logger, fields...)
+	return newLogger(l, fields...)
 }
 
-func (logger *Logger) Logf(level logrus.Level, format string, args ...interface{}) {
-	if logger.IsLevelEnabled(level) {
-		logger.newEntry().Logf(level, format, args...)
-	}
-}
-
-func (logger *Logger) Tracef(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.TraceLevel) {
-		logger.newEntry().Tracef(format, args...)
+func (l *Logger) Logf(level logrus.Level, format string, args ...interface{}) {
+	if l.IsLevelEnabled(level) {
+		l.newEntry().Logf(level, format, args...)
 	}
 }
 
-func (logger *Logger) Debugf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.DebugLevel) {
-		logger.newEntry().Debugf(format, args...)
+func (l *Logger) Tracef(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.TraceLevel) {
+		l.newEntry().Tracef(format, args...)
 	}
 }
 
-func (logger *Logger) Infof(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Infof(format, args...)
+func (l *Logger) Debugf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.DebugLevel) {
+		l.newEntry().Debugf(format, args...)
 	}
 }
 
-func (logger *Logger) Printf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Printf(format, args...)
+func (l *Logger) Infof(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Infof(format, args...)
 	}
 }
 
-func (logger *Logger) Warnf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warnf(format, args...)
+func (l *Logger) Printf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Printf(format, args...)
 	}
 }
 
-func (logger *Logger) Warningf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warningf(format, args...)
+func (l *Logger) Warnf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warnf(format, args...)
 	}
 }
 
-func (logger *Logger) Errorf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.ErrorLevel) {
-		logger.newEntry().Errorf(format, args...)
+func (l *Logger) Warningf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warningf(format, args...)
 	}
 }
 
-func (logger *Logger) Fatalf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.FatalLevel) {
-		logger.newEntry().Fatalf(format, args...)
+func (l *Logger) Errorf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.ErrorLevel) {
+		l.newEntry().Errorf(format, args...)
 	}
 }
 
-func (logger *Logger) Panicf(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.PanicLevel) {
-		logger.newEntry().Panicf(format, args...)
+func (l *Logger) Fatalf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.FatalLevel) {
+		l.newEntry().Fatalf(format, args...)
 	}
 }
 
-func (logger *Logger) Log(level logrus.Level, args ...interface{}) {
-	if logger.IsLevelEnabled(level) {
-		logger.newEntry().Log(level, args...)
+func (l *Logger) Panicf(format string, args ...interface{}) {
+	if l.IsLevelEnabled(logrus.PanicLevel) {
+		l.newEntry().Panicf(format, args...)
 	}
 }
 
-func (logger *Logger) Trace(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.TraceLevel) {
-		logger.newEntry().Trace(args...)
+func (l *Logger) Log(level logrus.Level, args ...interface{}) {
+	if l.IsLevelEnabled(level) {
+		l.newEntry().Log(level, args...)
 	}
 }
 
-func (logger *Logger) Debug(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.DebugLevel) {
-		logger.newEntry().Debug(args...)
+func (l *Logger) Trace(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.TraceLevel) {
+		l.newEntry().Trace(args...)
 	}
 }
 
-func (logger *Logger) Info(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Info(args...)
+func (l *Logger) Debug(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.DebugLevel) {
+		l.newEntry().Debug(args...)
 	}
 }
 
-func (logger *Logger) Print(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Print(args...)
+func (l *Logger) Info(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Info(args...)
 	}
 }
 
-func (logger *Logger) Warn(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warn(args...)
+func (l *Logger) Print(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Print(args...)
 	}
 }
 
-func (logger *Logger) Warning(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warning(args...)
+func (l *Logger) Warn(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warn(args...)
 	}
 }
 
-func (logger *Logger) Error(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.ErrorLevel) {
-		logger.newEntry().Error(args...)
+func (l *Logger) Warning(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warning(args...)
 	}
 }
 
-func (logger *Logger) Fatal(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.FatalLevel) {
-		logger.newEntry().Fatal(args...)
+func (l *Logger) Error(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.ErrorLevel) {
+		l.newEntry().Error(args...)
 	}
 }
 
-func (logger *Logger) Panic(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.PanicLevel) {
-		logger.newEntry().Panic(args...)
+func (l *Logger) Fatal(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.FatalLevel) {
+		l.newEntry().Fatal(args...)
 	}
 }
 
-func (logger *Logger) Logln(level logrus.Level, args ...interface{}) {
-	if logger.IsLevelEnabled(level) {
-		logger.newEntry().Logln(level, args...)
+func (l *Logger) Panic(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.PanicLevel) {
+		l.newEntry().Panic(args...)
 	}
 }
 
-func (logger *Logger) Traceln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.TraceLevel) {
-		logger.newEntry().Traceln(args...)
+func (l *Logger) Logln(level logrus.Level, args ...interface{}) {
+	if l.IsLevelEnabled(level) {
+		l.newEntry().Logln(level, args...)
 	}
 }
 
-func (logger *Logger) Debugln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.DebugLevel) {
-		logger.newEntry().Debugln(args...)
+func (l *Logger) Traceln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.TraceLevel) {
+		l.newEntry().Traceln(args...)
 	}
 }
 
-func (logger *Logger) Infoln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Infoln(args...)
+func (l *Logger) Debugln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.DebugLevel) {
+		l.newEntry().Debugln(args...)
 	}
 }
 
-func (logger *Logger) Println(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.InfoLevel) {
-		logger.newEntry().Println(args...)
+func (l *Logger) Infoln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Infoln(args...)
 	}
 }
 
-func (logger *Logger) Warnln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warnln(args...)
+func (l *Logger) Println(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.InfoLevel) {
+		l.newEntry().Println(args...)
 	}
 }
 
-func (logger *Logger) Warningln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.WarnLevel) {
-		logger.newEntry().Warningln(args...)
+func (l *Logger) Warnln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warnln(args...)
 	}
 }
 
-func (logger *Logger) Errorln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.ErrorLevel) {
-		logger.newEntry().Errorln(args...)
+func (l *Logger) Warningln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.WarnLevel) {
+		l.newEntry().Warningln(args...)
 	}
 }
 
-func (logger *Logger) Fatalln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.FatalLevel) {
-		logger.newEntry().Fatalln(args...)
+func (l *Logger) Errorln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.ErrorLevel) {
+		l.newEntry().Errorln(args...)
 	}
 }
 
-func (logger *Logger) Panicln(args ...interface{}) {
-	if logger.IsLevelEnabled(logrus.PanicLevel) {
-		logger.newEntry().Panicln(args...)
+func (l *Logger) Fatalln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.FatalLevel) {
+		l.newEntry().Fatalln(args...)
 	}
 }
 
-func (logger *Logger) Level(level logrus.Level) StdLogger {
-	return NewLevelLogger(logger, level)
+func (l *Logger) Panicln(args ...interface{}) {
+	if l.IsLevelEnabled(logrus.PanicLevel) {
+		l.newEntry().Panicln(args...)
+	}
 }
 
-func (logger *Logger) SetLevel(level logrus.Level) {
-	logger.ParentLogger.SetLevel(level)
-	name := logger.fields[FieldLogger].(string)
+func (l *Logger) Level(level logrus.Level) StdLogger {
+	return NewLevelLogger(l, level)
+}
+
+func (l *Logger) SetLevel(level logrus.Level) {
+	l.ParentLogger.SetLevel(level)
+	name := l.fields[FieldLogger].(string)
 	levels[name] = level
-	if logger.levelListener != nil {
-		logger.levelListener()
+	if l.levelListener != nil {
+		l.levelListener()
 	}
 }
 
-func (logger *Logger) IsLevelEnabled(level logrus.Level) bool {
-	return logger.ParentLogger.GetLevel() >= level
+func (l *Logger) IsLevelEnabled(level logrus.Level) bool {
+	return l.ParentLogger.GetLevel() >= level
 }
 
-func (logger *Logger) OnLevelChange(fn func()) {
-	logger.levelListener = fn
+func (l *Logger) OnLevelChange(fn func()) {
+	l.levelListener = fn
 }
 
 func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
@@ -316,11 +315,13 @@ func NewLogger(name string, fields ...LogContext) *Logger {
 		level = InfoLevel
 	}
 
+	stdLogger := logrus.StandardLogger()
 	fields = append([]LogContext{{FieldLogger: name}}, fields...)
 	logger := newLogger(&logrus.Logger{
-		Out:       logrus.StandardLogger().Out,
+		Out:       stdLogger.Out,
 		Formatter: GlobalFormatter{},
 		Level:     level,
+		Hooks:     stdLogger.Hooks,
 	}, fields...)
 
 	logger.SetLevel(level)
