@@ -100,6 +100,14 @@ func (s statsConnection) TransitDecrypt(ctx context.Context, keyName string, cip
 	return
 }
 
+func (s statsConnection) TransitBulkDecrypt(ctx context.Context, keyName string, ciphertexts ...string) (plaintext []string, err error) {
+	err = s.Observe(statsApiTransitDecrypt, keyName, func() error {
+		plaintext, err = s.ConnectionApi.TransitBulkDecrypt(ctx, keyName, ciphertexts...)
+		return err
+	})
+	return
+}
+
 func (s statsConnection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
 	err = s.Observe(statsApiIssueCertificate, role, func() error {
 		cert, err = s.ConnectionApi.IssueCertificate(ctx, role, request)

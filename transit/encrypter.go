@@ -1,5 +1,7 @@
 package transit
 
+//go:generate mockery --inpackage --name=Encrypter --structname=MockEncrypter --filename mock_encrypter_test.go
+
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
@@ -15,11 +17,11 @@ type Encrypter interface {
 	CreateKey() (err error)
 	Encrypt(value map[string]*string) (secureValue string, encrypted bool, err error)
 	Decrypt(secureValue string) (value map[string]*string, err error)
-	Decode(insecureValue string) (value map[string]*string, err error)
 }
 
 type encrypter struct {
 	ctx   context.Context
+	cfg   *Config
 	keyId types.UUID
 }
 
@@ -28,7 +30,7 @@ func (e encrypter) keyName() string {
 }
 
 func (e encrypter) CreateKey() (err error) {
-	logger.WithContext(e.ctx).Infof("Creating transit encryption key %q", e.keyId)
+	logger.WithContext(e.ctx).Debugf("Creating transit encryption key %q", e.keyId)
 	p, err := provider()
 	if err != nil {
 		return err
@@ -37,7 +39,7 @@ func (e encrypter) CreateKey() (err error) {
 }
 
 func (e encrypter) Encrypt(value map[string]*string) (securePayload string, encrypted bool, err error) {
-	logger.WithContext(e.ctx).Infof("Encrypting using transit encryption key %q", e.keyId)
+	logger.WithContext(e.ctx).Debugf("Encrypting using transit encryption key %q", e.keyId)
 
 	p, err := provider()
 	if err != nil {
@@ -58,7 +60,7 @@ func (e encrypter) Encrypt(value map[string]*string) (securePayload string, encr
 }
 
 func (e encrypter) Decrypt(value string) (map[string]*string, error) {
-	logger.WithContext(e.ctx).Infof("Decrypting using transit encryption key %q", e.keyId)
+	logger.WithContext(e.ctx).Debugf("Decrypting using transit encryption key %q", e.keyId)
 
 	p, err := provider()
 	if err != nil {
@@ -78,8 +80,11 @@ func (e encrypter) Decrypt(value string) (map[string]*string, error) {
 	return payload, nil
 }
 
-func (e encrypter) Decode(value string) (map[string]*string, error) {
-	return deserializePayload(value)
+func NewProductionEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
+	return &encrypter{
+		ctx:   ctx,
+		keyId: keyName,
+	}
 }
 
 type EncrypterFactory func(ctx context.Context, keyName types.UUID) Encrypter
@@ -88,18 +93,11 @@ func (f EncrypterFactory) Create(ctx context.Context, keyName types.UUID) Encryp
 	return f(ctx, keyName)
 }
 
-var encrypterFactory EncrypterFactory = newEncrypter
+var encrypterFactory EncrypterFactory = NewDummyEncrypter
 
 func SetEncrypterFactory(factory EncrypterFactory) {
 	if factory != nil {
 		encrypterFactory = factory
-	}
-}
-
-func newEncrypter(ctx context.Context, keyName types.UUID) Encrypter {
-	return &encrypter{
-		ctx:   ctx,
-		keyId: keyName,
 	}
 }
 

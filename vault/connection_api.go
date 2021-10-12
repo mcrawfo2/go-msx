@@ -16,6 +16,7 @@ type ConnectionApi interface {
 	CreateTransitKey(ctx context.Context, keyName string, request CreateTransitKeyRequest) (err error)
 	TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error)
 	TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error)
+	TransitBulkDecrypt(ctx context.Context, keyName string, ciphertext ...string) (plaintext []string, err error)
 	IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error)
 	Health(ctx context.Context) (response *api.HealthResponse, err error)
 	LoginWithKubernetes(ctx context.Context, jwt, role string) (token string, err error)
