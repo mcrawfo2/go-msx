@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
@@ -206,6 +207,51 @@ func (c connectionImpl) TransitEncrypt(ctx context.Context, keyName string, plai
 	}
 
 	ciphertext = result.Data["ciphertext"].(string)
+	return
+}
+
+func (c connectionImpl) TransitBulkDecrypt(ctx context.Context, keyName string, ciphertexts ...string) (plaintext []string, err error) {
+	path := "/transit/decrypt/" + keyName
+
+	var entries []types.Pojo
+	for _, ciphertext := range ciphertexts {
+		entries = append(entries, types.Pojo{
+			"ciphertext": ciphertext,
+		})
+	}
+
+	data := types.Pojo{
+		"batch_input": entries,
+	}
+
+	result, err := c.write(ctx, path, data)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to decrypt data")
+	}
+
+	batchResultsData, err := types.Pojo(result.Data).ArrayValue("batch_results")
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to parse decrypt response")
+	}
+
+	var batchResults []types.Pojo
+	for i := range batchResultsData {
+		br, err := batchResultsData.ObjectValue(i)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to parse decrypt response")
+		}
+		batchResults = append(batchResults, br)
+	}
+
+	for _, batchResult := range batchResults {
+		plaintextBytes, err := base64.StdEncoding.DecodeString(batchResult["plaintext"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		plaintext = append(plaintext, string(plaintextBytes))
+	}
+
 	return
 }
 

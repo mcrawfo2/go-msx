@@ -57,6 +57,38 @@ func testEncryptionProvider() Provider {
 			payload:   "ABCD",
 		}, nil)
 
+	mockEncryptionProvider.
+		On("Encrypt", context.Background(), Value{
+			version:   "1",
+			keyId:     types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			encrypted: false,
+			payload:   `["java.util.HashMap",{"key2":"value2"}]`,
+		}).
+		Return(Value{}, errors.New("Error decrypting value"))
+
+	mockEncryptionProvider.
+		On("DecryptBulk", context.Background(), []Value{{
+			version:   "1",
+			keyId:     types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			encrypted: true,
+			payload:   "ABCD",
+		}}).
+		Return([]Value{{
+			version:   "1",
+			keyId:     types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			encrypted: false,
+			payload:   `["java.util.HashMap",{"key1":"value1"}]`,
+		}}, nil)
+
+	mockEncryptionProvider.
+		On("DecryptBulk", context.Background(), []Value{{
+			version:   "1",
+			keyId:     types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			encrypted: true,
+			payload:   "MNOP",
+		}}).
+		Return(nil, errors.New("Error decrypting value"))
+
 	return mockEncryptionProvider
 }
 
@@ -82,7 +114,7 @@ func TestSetEncrypterFactory(t *testing.T) {
 			name:             "Set",
 			encrypterFactory: nil,
 			args: args{
-				factory: newEncrypter,
+				factory: NewProductionEncrypter,
 			},
 			wantNil: false,
 		},
@@ -212,6 +244,12 @@ func Test_encrypter_Encrypt(t *testing.T) {
 			wantEncrypted:     true,
 			wantErr:           false,
 		},
+		{
+			name:              "ProviderFailure",
+			keyId:             types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			value:             map[string]*string{"key2": types.NewStringPtr("value2")},
+			wantErr:           true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -234,7 +272,7 @@ func Test_encrypter_Encrypt(t *testing.T) {
 	}
 }
 
-func Test_newEncrypter(t *testing.T) {
-	e := newEncrypter(context.Background(), types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`))
+func Test_NewProductionEncrypter(t *testing.T) {
+	e := NewProductionEncrypter(context.Background(), types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`))
 	assert.NotNil(t, e)
 }

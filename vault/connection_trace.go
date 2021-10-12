@@ -59,6 +59,14 @@ func (s traceConnection) TransitDecrypt(ctx context.Context, keyName string, cip
 	return
 }
 
+func (s traceConnection) TransitBulkDecrypt(ctx context.Context, keyName string, ciphertexts ...string) (plaintext []string, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitDecrypt, func(ctx context.Context) error {
+		plaintext, err = s.ConnectionApi.TransitBulkDecrypt(ctx, keyName, ciphertexts...)
+		return err
+	})
+	return
+}
+
 func (s traceConnection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiIssueCertificate, func(ctx context.Context) error {
 		cert, err = s.ConnectionApi.IssueCertificate(ctx, role, request)
