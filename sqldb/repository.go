@@ -18,6 +18,7 @@ var ErrNotImplemented = errors.New("Feature not implemented")
 type CrudRepositoryApi interface {
 	CountAll(ctx context.Context, dest *int64) error
 	CountAllBy(ctx context.Context, where map[string]interface{}, dest *int64) error
+	CountAllByExpression(ctx context.Context, where goqu.Expression, dest *int64) error
 	FindAll(ctx context.Context, dest interface{}) (err error)
 	FindAllPagedBy(ctx context.Context, where map[string]interface{}, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
@@ -63,6 +64,24 @@ func (c *CrudRepository) CountAllBy(ctx context.Context, where map[string]interf
 
 	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
 		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Where(goqu.Ex(where)).ToSQL()
+		if err != nil {
+			return err
+		}
+		return conn.GetContext(ctx, dest, stmt, args...)
+	})
+}
+
+func (c *CrudRepository) CountAllByExpression(ctx context.Context, where goqu.Expression, dest *int64) error {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Where(where).ToSQL()
 		if err != nil {
 			return err
 		}

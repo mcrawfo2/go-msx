@@ -51,6 +51,25 @@ func (c *CrudPreparedRepository) CountAllBy(ctx context.Context, where map[strin
 	})
 }
 
+func (c *CrudPreparedRepository) CountAllByExpression(ctx context.Context, where goqu.Expression, dest *int64) error {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+		stmt, args, err := c.dialect(conn).From(c.tableName).Select(goqu.COUNT("*")).Where(where).Prepared(true).ToSQL()
+		if err != nil {
+			return err
+		}
+		stmt = c.Rebind(conn, stmt)
+		return conn.GetContext(ctx, dest, stmt, args...)
+	})
+}
+
 func (c *CrudPreparedRepository) dialect(conn *sqlx.DB) goqu.DialectWrapper {
 	return goqu.Dialect(conn.DriverName())
 }
