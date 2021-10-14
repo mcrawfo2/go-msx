@@ -158,6 +158,7 @@ func (s *WebServer) generateContainer() *restful.Container {
 		s.security,
 		s.injectors.Slice()))
 	s.container.Filter(tracingFilter)
+	s.container.Filter(statsFilter)
 	s.container.Filter(recoveryFilter)
 	if s.cfg.Cors.Enabled {
 		ActivateCors(s.container, s.cfg.Cors)
