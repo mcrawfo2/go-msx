@@ -110,17 +110,12 @@ func NewSpan(ctx context.Context, operationName string, options ...StartSpanOpti
 
 	span = tracer.StartSpan(operationName, options...)
 	ctx = ContextWithSpan(ctx, span)
-	ctx = contextWithTraceLogFields(ctx, span, parentSpan)
+	ctx = contextWithTraceLogContext(ctx, tracer, span, parentSpan)
 
 	return ctx, span
 }
 
-func contextWithTraceLogFields(ctx context.Context, span, parentSpan Span) context.Context {
-	if span.Context().SpanId() == SpanId(0) {
-		// NoopTracer is in effect
-		return ctx
-	}
-
+func baseLogContext(span, parentSpan Span) log.LogContext {
 	// Calculate log fields
 	spanId := span.Context().SpanId().String()
 	traceId := span.Context().TraceId().String()
@@ -130,12 +125,29 @@ func contextWithTraceLogFields(ctx context.Context, span, parentSpan Span) conte
 	}
 	parentId := parentSpanId.String()
 
-	// Inject log fields
-	return log.ExtendContext(ctx, log.LogContext{
+	return log.LogContext{
 		log.FieldSpanId:   spanId,
 		log.FieldTraceId:  traceId,
 		log.FieldParentId: parentId,
-	})
+	}
+}
+
+func contextWithTraceLogContext(ctx context.Context, tracer Tracer, span, parentSpan Span) context.Context {
+	if span.Context().SpanId() == SpanId(0) {
+		// NoopTracer is in effect
+		return ctx
+	}
+
+	// Generate generic log context
+	logContext := baseLogContext(span, parentSpan)
+
+	// Add tracer-specific log context
+	for k, v := range tracer.LogContext(span) {
+		logContext[k] = v
+	}
+
+	// Inject log fields
+	return log.ExtendContext(ctx, logContext)
 }
 
 func SpanDecorator(operationName string, options ...StartSpanOption) types.ActionFuncDecorator {

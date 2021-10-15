@@ -10,6 +10,7 @@ type Tracer interface {
 	Configure(ctx context.Context, tracingConfig *TracingConfig) error
 	StartSpan(operationName string, options ...StartSpanOption) Span
 	Extract(carrier TextMapCarrier) (SpanContext, error)
+	LogContext(span Span) map[string]interface{}
 	Inject(spanContext SpanContext, carrier TextMapCarrier) error
 	Shutdown(ctx context.Context) error
 }

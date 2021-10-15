@@ -14,6 +14,10 @@ func (n *noopTracer) Configure(ctx context.Context, tracingConfig *TracingConfig
 	return nil
 }
 
+func (n *noopTracer) LogContext(span Span) map[string]interface{} {
+	return nil
+}
+
 func (n *noopTracer) StartSpan(operationName string, options ...StartSpanOption) Span {
 	otSpan := n.NoopTracer.StartSpan(operationName)
 	return &noopSpan{

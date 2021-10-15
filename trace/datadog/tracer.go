@@ -9,6 +9,7 @@ import (
 	datadog "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 var (
@@ -16,7 +17,34 @@ var (
 	datadogLogger = log.NewLogger("datadog.tracer")
 )
 
-type tracer struct {}
+type tracer struct {
+	cfg *trace.TracingConfig
+}
+
+func convertId(id string) string {
+	if len(id) < 16 {
+		return ""
+	}
+	if len(id) > 16 {
+		id = id[16:]
+	}
+	intValue, err := strconv.ParseUint(id, 16, 64)
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatUint(intValue, 10)
+}
+
+func (t *tracer) LogContext(span trace.Span) map[string]interface{} {
+	results := log.LogContext{
+		"dd.trace_id": convertId(span.Context().SpanId().String()),
+		"dd.span_id": convertId(span.Context().TraceId().String()),
+		"dd.service": t.cfg.ServiceName,
+		"dd.version": t.cfg.ServiceVersion,
+	}
+
+	return results
+}
 
 func (t *tracer) Extract(carrier trace.TextMapCarrier) (trace.SpanContext, error) {
 	dataDogSpanContext, err := datadog.Extract(carrier)
@@ -58,6 +86,8 @@ func (t *tracer) Configure(ctx context.Context, tracingConfig *trace.TracingConf
 	}
 
 	datadog.Start(options...)
+
+	t.cfg = tracingConfig
 
 	return nil
 }

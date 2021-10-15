@@ -18,6 +18,10 @@ func (n *MockTracer) Configure(ctx context.Context, tracingConfig *trace.Tracing
 	return nil
 }
 
+func (n *MockTracer) LogContext(span trace.Span) map[string]interface{} {
+	return nil
+}
+
 func (n *MockTracer) StartSpan(operationName string, options ...trace.StartSpanOption) trace.Span {
 	var startSpanConfig trace.StartSpanConfig
 	for _, option := range options {

@@ -24,6 +24,10 @@ type tracer struct {
 	closer io.Closer
 }
 
+func (t *tracer) LogContext(span trace.Span) map[string]interface{} {
+	return nil
+}
+
 func (t *tracer) Configure(ctx context.Context, tracingConfig *trace.TracingConfig) error {
 	jaegerConfig := tracingConfig.ToJaegerConfig()
 	jaegerSampler := jaeger.NewConstSampler(true)
