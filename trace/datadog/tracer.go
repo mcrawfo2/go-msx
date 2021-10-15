@@ -107,6 +107,7 @@ func (t *tracer) StartSpan(operationName string, options ...trace.StartSpanOptio
 			dataDogOptions = append(dataDogOptions, datadog.Tag(k, v))
 		}
 	}
+
 	for _, related := range startSpanConfig.Related {
 		spanContext := related.Ref.(SpanContext)
 		switch related.Type {
@@ -120,11 +121,15 @@ func (t *tracer) StartSpan(operationName string, options ...trace.StartSpanOptio
 
 	dataDogSpan := datadog.StartSpan(operationName, dataDogOptions...)
 
-	return &Span{
+	span := &Span{
 		DataDogSpan: dataDogSpan,
 		Tracer:      t,
 		Error:       nil,
 	}
+
+	dataDogSpan.SetTag("traceId", span.Context().TraceId().String())
+
+	return span
 }
 
 func (t *tracer) Shutdown(_ context.Context) error {
