@@ -3,14 +3,24 @@ package loggersprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/stream/topics/auditing"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 const (
-	endpointName = "loggers"
+	endpointName     = "loggers"
+	loggerObjectType = "Logger"
+	audit            = "AUDIT"
+	logLevelModified = "Modified log level from %s to %s"
+)
+
+var (
+	logger = log.NewLogger("msx.webservice.loggersprovider")
 )
 
 type Logger struct {
@@ -51,14 +61,16 @@ func (h Provider) Configure(req *restful.Request) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	loggerName := req.PathParameter("loggerName")
+	currentLevel := log.GetLoggerLevels()[loggerName]
 	if loggerName == "" {
 		return nil, errors.New("Logger name must not be empty")
 	}
-
-	log.SetLoggerLevel(loggerName, log.LevelFromName(logger.ConfiguredLevel))
-
+	log.SetLoggerLevel(loggerName, log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)))
+	if log.LevelFromName(strings.ToUpper(currentLevel.String())) != log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)) {
+		description := fmt.Sprintf(logLevelModified, currentLevel.String(), log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)))
+		h.sendAuditLog(req.Request.Context(), loggerName, loggerObjectType, description)
+	}
 	return nil, nil
 }
 
@@ -80,6 +92,20 @@ func (h Provider) Actuate(webService *restful.WebService) error {
 		Do(webservice.Returns204))
 
 	return nil
+}
+
+func (h Provider) sendAuditLog(ctx context.Context, objectId string, objectType string, description string) {
+	message, _ := auditing.NewMessage(ctx)
+	message.Description = description
+	message.Severity = auditing.SeverityGood
+	message.Action = auditing.ActionUpdate
+	message.Subtype = audit
+	message.AddDetail("objectId", objectId)
+	message.AddDetail("objectType", objectType)
+	err := auditing.Publish(ctx, message)
+	if err != nil {
+		logger.WithContext(ctx).WithError(err).Warn("Failed to send audit log")
+	}
 }
 
 func RegisterProvider(ctx context.Context) error {
