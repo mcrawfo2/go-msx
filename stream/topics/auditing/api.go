@@ -62,6 +62,7 @@ const (
 	SeverityInformational = "Informational"
 	SeverityWarning       = "Warning"
 	SeverityCritical      = "Critical"
+	SeverityGood          = "GOOD"
 
 	DisplaySeverityPoor     = "POOR"
 	DisplaySeverityCritical = "CRITICAL"
