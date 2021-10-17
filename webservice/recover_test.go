@@ -1,6 +1,7 @@
 package webservice
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
@@ -45,6 +46,7 @@ func Test_recoveryFilter(t *testing.T) {
 						logtest.HasLevel(logrus.ErrorLevel),
 						logtest.HasMessage("Recovered from panic"),
 						logtest.FieldValue("error"),
+						logtest.FieldValue(log.FieldStack),
 					},
 				}),
 		},
@@ -66,6 +68,7 @@ func Test_recoveryFilter(t *testing.T) {
 						logtest.HasLevel(logrus.ErrorLevel),
 						logtest.HasMessage("Recovered from panic"),
 						logtest.FieldValue("error"),
+						logtest.FieldValue(log.FieldStack),
 					},
 				}),
 		},
