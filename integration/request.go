@@ -7,6 +7,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/rpinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/statsinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"encoding/json"
@@ -105,6 +106,7 @@ func (v *MsxRequest) newHttpRequest(ctx context.Context) (*http.Request, error) 
 }
 
 func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, error) {
+	// TODO: intercept transport instead
 	httpClient, err := httpclient.New(ctx, v.Configurer)
 	if err != nil {
 		return nil, err
@@ -124,6 +126,7 @@ func (v *MsxRequest) newHttpClientDo(ctx context.Context) (httpclient.DoFunc, er
 	default:
 		return nil, errors.Errorf("Unknown service type %q", v.Target.ServiceType)
 	}
+	httpClientDo = statsinterceptor.NewInterceptor(httpClientDo)
 	httpClientDo = traceinterceptor.NewInterceptor(httpClientDo)
 
 	return httpClientDo, nil
