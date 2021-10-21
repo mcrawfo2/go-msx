@@ -67,7 +67,7 @@ func FindSourceDirFromStack() (string, error) {
 var entryPointSuffixes = map[string]int{
 	"go-msx/app.Run":  1,
 	"testing.tRunner": -1,
-	"main.main": 0,
+	"main.main":       0,
 }
 
 // Hack when fs.sources is missing

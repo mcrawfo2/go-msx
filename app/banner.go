@@ -22,7 +22,7 @@ func init() {
 		appVersion, _ := config.FromContext(ctx).StringOr("info.build.version", "")
 		if appName != "" {
 			bannerText := banner.Inline(appName)
-			logger.Infof("\n" + bannerText + "\nVersion: %s\n", appVersion)
+			logger.Infof("\n"+bannerText+"\nVersion: %s\n", appVersion)
 		}
 		return nil
 	})

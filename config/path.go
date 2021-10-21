@@ -71,13 +71,13 @@ func AddConfigFoldersFromFsConfig(cfg *Config) {
 		}
 
 		AddConfigFolders(
-			filepath.Join(fs.Roots.Sources,fs.Local),
-			filepath.Join(fs.Roots.Staging,fs.Configs))
+			filepath.Join(fs.Roots.Sources, fs.Local),
+			filepath.Join(fs.Roots.Staging, fs.Configs))
 	}
 
 	if fs.Roots.Release != "" {
 		AddConfigFolders(
-			filepath.Join(fs.Roots.Release,fs.Configs))
+			filepath.Join(fs.Roots.Release, fs.Configs))
 	}
 }
 

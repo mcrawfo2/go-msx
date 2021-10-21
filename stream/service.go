@@ -18,7 +18,9 @@ func (p publisherFunc) Publish(ctx context.Context, topic string, payload []byte
 
 func (p publisherFunc) PublishObject(ctx context.Context, topic string, payload interface{}, metadata map[string]string) (err error) {
 	payloadBytes, err := json.Marshal(payload)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	return p(ctx, topic, payloadBytes, metadata)
 }
 

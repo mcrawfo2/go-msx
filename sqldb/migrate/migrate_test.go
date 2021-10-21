@@ -28,8 +28,8 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 		{
 			name: "default_pass",
 			fields: fields{
-				ctx:       context.Background(),
-				manifest:  &Manifest{
+				ctx: context.Background(),
+				manifest: &Manifest{
 					migrations: []*Migration{},
 					cfg:        nil,
 				},
@@ -37,8 +37,8 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 				versioner: Versioner{},
 			},
 			args: args{
-				n:                0,
-				migration:        Migration{
+				n: 0,
+				migration: Migration{
 					Version:     nil,
 					Description: "test1",
 					Script:      "",
@@ -64,8 +64,8 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 		{
 			name: "checksum_fail",
 			fields: fields{
-				ctx:       context.Background(),
-				manifest:  &Manifest{
+				ctx: context.Background(),
+				manifest: &Manifest{
 					migrations: []*Migration{},
 					cfg:        nil,
 				},
@@ -73,12 +73,12 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 				versioner: Versioner{},
 			},
 			args: args{
-				n:                0,
-				migration:        Migration{
+				n: 0,
+				migration: Migration{
 					Version:     nil,
 					Description: "test1",
 					Script:      "",
-					Checksum:    func()*int{i:=-999;return &i}(),
+					Checksum:    func() *int { i := -999; return &i }(),
 					Type:        "",
 					Func:        nil,
 				},
@@ -100,8 +100,8 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 		{
 			name: "description_fail",
 			fields: fields{
-				ctx:       context.Background(),
-				manifest:  &Manifest{
+				ctx: context.Background(),
+				manifest: &Manifest{
 					migrations: []*Migration{},
 					cfg:        nil,
 				},
@@ -109,12 +109,12 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 				versioner: Versioner{},
 			},
 			args: args{
-				n:                0,
-				migration:        Migration{
+				n: 0,
+				migration: Migration{
 					Version:     nil,
 					Description: "test1",
 					Script:      "",
-					Checksum:    func()*int{i:=-999;return &i}(),
+					Checksum:    func() *int { i := -999; return &i }(),
 					Type:        "",
 					Func:        nil,
 				},
@@ -123,7 +123,7 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 					Description:   "test2",
 					Script:        "",
 					Type:          "",
-					Checksum:      func()*int{i:=-999;return &i}(),
+					Checksum:      func() *int { i := -999; return &i }(),
 					ExecutionTime: 0,
 					InstalledBy:   "",
 					InstalledOn:   time.Time{},
@@ -136,8 +136,8 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 		{
 			name: "skip_checksum_and_description_check",
 			fields: fields{
-				ctx:       context.Background(),
-				manifest:  &Manifest{
+				ctx: context.Background(),
+				manifest: &Manifest{
 					migrations: []*Migration{},
 					cfg:        nil,
 				},
@@ -145,12 +145,12 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 				versioner: Versioner{},
 			},
 			args: args{
-				n:                0,
-				migration:        Migration{
+				n: 0,
+				migration: Migration{
 					Version:     nil,
 					Description: "test1",
 					Script:      "",
-					Checksum:    func()*int{i:=0;return &i}(),
+					Checksum:    func() *int { i := 0; return &i }(),
 					Type:        "",
 					Func:        nil,
 				},
@@ -159,7 +159,7 @@ func TestMigrator_ValidateMigration(t *testing.T) {
 					Description:   "test2",
 					Script:        "",
 					Type:          "",
-					Checksum:      func()*int{i:=-999;return &i}(),
+					Checksum:      func() *int { i := -999; return &i }(),
 					ExecutionTime: 0,
 					InstalledBy:   "",
 					InstalledOn:   time.Time{},

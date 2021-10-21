@@ -292,8 +292,8 @@ func (s SecretsResponse) Value(key string) string {
 }
 
 type JsonWebKey struct {
-	KeyId   string `json:"kid"`
-	KeyType string `json:"kty"`
+	KeyId              string `json:"kid"`
+	KeyType            string `json:"kty"`
 	RsaModulus         string `json:"n"`
 	RsaPublicExponent  string `json:"e"`
 	RsaPrivateExponent string `json:"d"`

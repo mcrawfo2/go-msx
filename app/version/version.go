@@ -10,7 +10,7 @@ var logger = log.NewLogger("msx.app.version")
 
 type info struct {
 	App struct {
-		Name        string
+		Name string
 	}
 	Build struct {
 		Version       string

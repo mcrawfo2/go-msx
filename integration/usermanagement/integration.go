@@ -113,7 +113,7 @@ var (
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
-		endpointNameGetTokenKeys: {Method: "GET", Path: "/v2/jwks"},
+		endpointNameGetTokenKeys:    {Method: "GET", Path: "/v2/jwks"},
 
 		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
 		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
@@ -173,7 +173,7 @@ var (
 		endpointNameLogout: {Method: "GET", Path: "/v2/logout"},
 
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
-		endpointNameGetTokenKeys: {Method: "GET", Path: "/v2/jwks"},
+		endpointNameGetTokenKeys:    {Method: "GET", Path: "/v2/jwks"},
 
 		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
 		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},

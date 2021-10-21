@@ -11,7 +11,7 @@ const (
 )
 
 var (
-	loggingStatsCounterOutputVec     = stats.NewCounterVec(statsSubsystemLogging, "count", "logger", "level")
+	loggingStatsCounterOutputVec = stats.NewCounterVec(statsSubsystemLogging, "count", "logger", "level")
 )
 
 type LoggingStatsCollector struct {

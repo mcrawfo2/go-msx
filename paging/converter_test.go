@@ -7,13 +7,13 @@ import (
 )
 
 type Payload struct {
-	Id               string
-	CreatedBy        string
-	CreatedOn        time.Time
-	ModifiedBy       string
-	ModifiedOn       time.Time
-	ClosedBy         string 
-	ClosedOn         time.Time
+	Id         string
+	CreatedBy  string
+	CreatedOn  time.Time
+	ModifiedBy string
+	ModifiedOn time.Time
+	ClosedBy   string
+	ClosedOn   time.Time
 }
 
 func TestConverter_ResponseToPaginatedResponseV8(t *testing.T) {
@@ -21,7 +21,7 @@ func TestConverter_ResponseToPaginatedResponseV8(t *testing.T) {
 	uintOneHundred := uint(100)
 	int64Zero := int64(0)
 	int64OneHundred := int64(100)
-	
+
 	payload := Payload{
 		Id:         "",
 		CreatedBy:  "",
@@ -31,15 +31,15 @@ func TestConverter_ResponseToPaginatedResponseV8(t *testing.T) {
 		ClosedBy:   "",
 		ClosedOn:   time.Time{},
 	}
-	
+
 	var contents []interface{}
 	contents = append(contents, payload)
-	
+
 	type args struct {
 		response Response
 		objects  []interface{}
 	}
-	
+
 	tests := []struct {
 		name string
 		args args
@@ -69,8 +69,8 @@ func TestConverter_ResponseToPaginatedResponseV8(t *testing.T) {
 			name: "TotalItems_0",
 			args: args{
 				response: Response{
-					Size:   1,
-					Number: 10,
+					Size:       1,
+					Number:     10,
 					TotalItems: &uintOneZero,
 				},
 				objects: contents,
@@ -90,8 +90,8 @@ func TestConverter_ResponseToPaginatedResponseV8(t *testing.T) {
 			name: "TotalItems_100",
 			args: args{
 				response: Response{
-					Size:   1,
-					Number: 10,
+					Size:       1,
+					Number:     10,
 					TotalItems: &uintOneHundred,
 				},
 				objects: contents,

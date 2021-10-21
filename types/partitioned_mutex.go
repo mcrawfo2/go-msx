@@ -6,7 +6,7 @@ import (
 )
 
 type PartitionedMutex struct {
-	mtx sync.Mutex
+	mtx        sync.Mutex
 	partitions map[interface{}]*sync.Mutex
 }
 

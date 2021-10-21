@@ -30,8 +30,8 @@ func TestNewIntegration(t *testing.T) {
 		context.Background(),
 		map[string]string{
 			"remoteservice.usermanagementservice.service": "testservice1",
-			"remoteservice.authservice.service": "testservice2",
-			"remoteservice.secretsservice.service": "testservice3",
+			"remoteservice.authservice.service":           "testservice2",
+			"remoteservice.secretsservice.service":        "testservice3",
 		})
 
 	tests := []struct {
@@ -47,15 +47,15 @@ func TestNewIntegration(t *testing.T) {
 			want: &Integration{
 				serviceExecutors: []*EndpointAwareExecutor{
 					{
-						executor: integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
 						availableEndpoints: idmEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
 						availableEndpoints: authEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
 						availableEndpoints: secretsEndpoints,
 					},
 				},
@@ -77,15 +77,15 @@ func TestNewIntegration(t *testing.T) {
 			want: &Integration{
 				serviceExecutors: []*EndpointAwareExecutor{
 					{
-						executor: integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, idmServiceName, idmEndpoints),
 						availableEndpoints: idmEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, authServiceName, authEndpoints),
 						availableEndpoints: authEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfig, secretsServiceName, secretsEndpoints),
 						availableEndpoints: secretsEndpoints,
 					},
 				},
@@ -100,15 +100,15 @@ func TestNewIntegration(t *testing.T) {
 			want: &Integration{
 				serviceExecutors: []*EndpointAwareExecutor{
 					{
-						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice1", idmEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfigDifferentName, "testservice1", idmEndpoints),
 						availableEndpoints: idmEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice2", authEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfigDifferentName, "testservice2", authEndpoints),
 						availableEndpoints: authEndpoints,
 					},
 					{
-						executor: integration.NewMsxService(ctxWithConfigDifferentName, "testservice3", secretsEndpoints),
+						executor:           integration.NewMsxService(ctxWithConfigDifferentName, "testservice3", secretsEndpoints),
 						availableEndpoints: secretsEndpoints,
 					},
 				},
