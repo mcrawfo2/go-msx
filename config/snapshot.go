@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -206,7 +207,7 @@ func (s SnapshotValues) String(key string) (string, error) {
 
 func (s SnapshotValues) StringOr(key, alt string) (string, error) {
 	value, err := s.String(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return "", nil
@@ -230,7 +231,7 @@ func (s SnapshotValues) Int(key string) (int, error) {
 
 func (s SnapshotValues) IntOr(key string, alt int) (int, error) {
 	value, err := s.Int(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return 0, nil
@@ -254,7 +255,7 @@ func (s SnapshotValues) Uint(key string) (uint, error) {
 
 func (s SnapshotValues) UintOr(key string, alt uint) (uint, error) {
 	value, err := s.Uint(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return 0, nil
@@ -273,7 +274,7 @@ func (s SnapshotValues) Float(key string) (float64, error) {
 
 func (s SnapshotValues) FloatOr(key string, alt float64) (float64, error) {
 	value, err := s.Float(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return 0, nil
@@ -292,7 +293,7 @@ func (s SnapshotValues) Bool(key string) (bool, error) {
 
 func (s SnapshotValues) BoolOr(key string, alt bool) (bool, error) {
 	value, err := s.Bool(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return false, nil
@@ -316,7 +317,7 @@ func (s SnapshotValues) Duration(key string) (time.Duration, error) {
 
 func (s SnapshotValues) DurationOr(key string, alt time.Duration) (time.Duration, error) {
 	value, err := s.Duration(key)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		return alt, nil
 	} else if err != nil {
 		return 0, nil
@@ -387,7 +388,7 @@ func (s SnapshotValues) ResolveByName(name string) (ResolvedEntry, error) {
 	key := NormalizeKey(name)
 	idx, ok := s.index[key]
 	if !ok {
-		return ResolvedEntry{}, ErrNotFound
+		return ResolvedEntry{}, errors.Wrap(ErrNotFound, name)
 	}
 
 	return s.entries[idx], nil
