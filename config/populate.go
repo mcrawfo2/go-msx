@@ -17,6 +17,10 @@ const (
 	tagOptionKey      = "key"
 )
 
+type EnumUnpacker interface {
+	Unpack(s string) error
+}
+
 type PopulatorSource interface {
 	Value(key string) (Value, error)
 	ValuesWithPrefix(prefix string) SnapshotValues
@@ -232,6 +236,12 @@ type scalarPopulator struct {
 }
 
 func setInt(value Value, target reflect.Value) error {
+	if unpacker, ok := target.Interface().(EnumUnpacker); ok {
+		return unpacker.Unpack(string(value))
+	} else if unpacker, ok = target.Addr().Interface().(EnumUnpacker); ok {
+		return unpacker.Unpack(string(value))
+	}
+
 	typedValue, err := value.Int()
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse int")
@@ -265,6 +275,12 @@ func setString(value Value, target reflect.Value) error {
 }
 
 func setUint(value Value, target reflect.Value) error {
+	if unpacker, ok := target.Interface().(EnumUnpacker); ok {
+		return unpacker.Unpack(string(value))
+	} else if unpacker, ok = target.Addr().Interface().(EnumUnpacker); ok {
+		return unpacker.Unpack(string(value))
+	}
+
 	typedValue, err := value.Uint()
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse unsigned int")
@@ -379,7 +395,7 @@ func (u slicePopulator) Populate(v reflect.Value, source PopulatorSource, prefix
 		if resolvedEntry, err := source.ResolveByName(prefix); err == nil {
 			entries := resolvedEntry.ResolvedValue.StringSlice(",")
 			return u.populateFromEntries(v, entries)
-		} else if err != ErrNotFound {
+		} else if !errors.Is(err, ErrNotFound) {
 			return err
 		}
 

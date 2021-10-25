@@ -46,8 +46,8 @@ const (
 var (
 	logger = log.NewLogger("msx.security.jwttokenprovider")
 
-	ErrInvalidTokenKid = errors.New("Missing or invalid 'kid' field in token header")
-	ErrKeyNotExists = errors.New("Key not found")
+	ErrInvalidTokenKid    = errors.New("Missing or invalid 'kid' field in token header")
+	ErrKeyNotExists       = errors.New("Key not found")
 	ErrUnsupportedKeyType = errors.New("Unsupported key type")
 )
 
@@ -65,7 +65,7 @@ type TokenProviderConfig struct {
 }
 
 type TokenProvider struct {
-	cfg *TokenProviderConfig
+	cfg      *TokenProviderConfig
 	keyCache sync.Map
 }
 
@@ -292,7 +292,7 @@ func RegisterTokenProvider(ctx context.Context) error {
 	}
 
 	security.SetTokenProvider(&TokenProvider{
-		cfg: jwtTokenProviderConfig,
+		cfg:      jwtTokenProviderConfig,
 		keyCache: sync.Map{},
 	})
 

@@ -8,7 +8,7 @@ import (
 )
 
 type DollarRenderOptions struct {
-	Variables  map[string]string
+	Variables map[string]string
 }
 
 func NewDollarRenderOptions() DollarRenderOptions {

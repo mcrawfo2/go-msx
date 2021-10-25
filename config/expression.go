@@ -46,7 +46,7 @@ type variableExpression struct {
 
 func (v variableExpression) Resolve(r ExpressionResolver) (string, error) {
 	entry, err := r.ResolveByName(v.Name)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		if v.Default != nil {
 			return v.Default.Resolve(r)
 		} else if v.RequiredKey {

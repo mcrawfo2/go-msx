@@ -25,6 +25,7 @@ const (
 	SourceOverride         = "Override"
 	SourceSources          = "Sources"
 	SourceFileSystem       = "FileSystem"
+	SourceSecComp          = "SecComp"
 	SourceEmbeddedDefaults = "EmbeddedDefaults"
 	SourceDefaults         = "SpringDefaults"
 	SourceDefault          = "Default"
@@ -47,6 +48,7 @@ type Sources struct {
 	BootstrapFiles    []config.Provider
 	ApplicationFiles  []config.Provider
 	BuildFiles        []config.Provider
+	SecCompFiles      []config.Provider
 	Sources           config.Provider
 	Consul            []config.Provider
 	Vault             []config.Provider
@@ -74,6 +76,7 @@ func (c Sources) Providers() []config.Provider {
 	sourcesList.Append(c.FileSystemFiles...)
 	sourcesList.Append(c.BootstrapFiles...)
 	sourcesList.Append(c.ApplicationFiles...)
+	sourcesList.Append(c.SecCompFiles...)
 	sourcesList.Append(c.BuildFiles...)
 	sourcesList.Append(c.Sources)
 	sourcesList.Append(c.Consul...)
@@ -142,6 +145,10 @@ func newApplicationProviders(name string, cfg *config.Config) ([]config.Provider
 
 func newBuildProvider(_ *config.Config) []config.Provider {
 	return config.NewFileProvidersFromBaseName(SourceBuild, "buildinfo")
+}
+
+func newSecCompProvider(_ *config.Config) []config.Provider {
+	return config.NewFileProvidersFromBaseName(SourceSecComp, "seccomp")
 }
 
 func newProfileProvider(name string, cfg *config.Config) ([]config.Provider, error) {
@@ -261,6 +268,7 @@ func loadConfig(ctx context.Context) (err error) {
 	logger.WithContext(ctx).Infof("Config Search Path: %v", config.Folders())
 
 	sources.BuildFiles = newBuildProvider(cfg)
+	sources.SecCompFiles = newSecCompProvider(cfg)
 	sources.DefaultsFiles = newDefaultsFilesProviders(cfg)
 	sources.BootstrapFiles = newBootstrapProviders(cfg)
 

@@ -274,7 +274,7 @@ func (i *Integration) GetServiceConfigurationAssignmentsByServiceConfigurationId
 			"serviceConfigId": serviceConfigurationId.String(),
 		},
 		QueryParameters: map[string][]string{
-			"page": {strconv.Itoa(page)},
+			"page":     {strconv.Itoa(page)},
 			"pageSize": {strconv.Itoa(pageSize)},
 		},
 		Payload: &paging.PaginatedResponse{
