@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Test_populateBody(t *testing.T) {
+func TestRouteParam_populateBody(t *testing.T) {
 	type body struct {
 		A int    `json:"a"`
 		B string `json:"b"`
@@ -58,7 +58,7 @@ func Test_populateBody(t *testing.T) {
 	}
 }
 
-func Test_populateHeader(t *testing.T) {
+func TestRouteParam_populateHeader(t *testing.T) {
 	type params struct {
 		XCustomParameter *int   `req:"header"`
 		ContentType      string `req:"header"`
@@ -115,7 +115,7 @@ func Test_populateHeader(t *testing.T) {
 	}
 }
 
-func Test_populatePath(t *testing.T) {
+func TestRouteParam_populatePath(t *testing.T) {
 	type params struct {
 		PathId string `req:"path"`
 	}
@@ -161,7 +161,7 @@ func Test_populatePath(t *testing.T) {
 	}
 }
 
-func Test_populateQuery(t *testing.T) {
+func TestRouteParam_populateQuery(t *testing.T) {
 	type params struct {
 		Required  string       `req:"query"`
 		Optional  *int         `req:"query"`
@@ -234,7 +234,7 @@ func Test_populateQuery(t *testing.T) {
 	}
 }
 
-func Test_populateScalar(t *testing.T) {
+func TestRouteParam_populateScalar(t *testing.T) {
 	type scalars struct {
 		String  string  `req:"query"`
 		Int     int     `req:"query"`
@@ -370,6 +370,61 @@ func Test_populateScalar(t *testing.T) {
 					expectedTime := time.Unix(1608320654, 0)
 
 					assert.True(t, expectedTime.Equal(parsedTime))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+func TestRouteParam_populateScaler_sanitize(t *testing.T) {
+	type XssBody struct {
+		Name        string  `json:"name" san:"xss"`
+		Description *string `json:"description"`
+		Ignored     string  `json:"ignored" san:"-"`
+	}
+
+	type Scalars struct {
+		String string `req:"query,san" san:"xss"`
+	}
+
+	type Bodies struct {
+		Body XssBody `req:"body,san" san:"xss"`
+	}
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Scalar",
+			test: new(RouteBuilderTest).
+				WithRequestMethod("POST").
+				WithRequestQueryParameter("string", "x<a>yz</a>").
+				WithRouteTargetReturn(200).
+				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
+					p := &Scalars{}
+					err := Populate(req, p)
+					assert.NoError(t, err)
+					assert.Equal(t, "xyz", p.String)
+				}),
+		},
+		{
+			name: "Body",
+			test: new(RouteBuilderTest).
+				WithRequestMethod("POST").
+				WithRequestHeader("Content-Type", MIME_JSON).
+				WithRequestBodyString(`{"name": "a<b>c</b>d", "description": "d<c>b</c>a", "ignored": "<a>bcd</a>"}`).
+				WithRouteTargetReturn(200).
+				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
+					p := &Bodies{}
+					err := Populate(req, p)
+					assert.NoError(t, err)
+					assert.Equal(t, "acd", p.Body.Name)
+					assert.Equal(t, types.NewStringPtr("dba"), p.Body.Description)
+					assert.Equal(t, "<a>bcd</a>", p.Body.Ignored)
 				}),
 		},
 	}
