@@ -5,6 +5,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/statsinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"encoding/json"
@@ -217,6 +218,7 @@ func NewExternalService(ctx context.Context, scheme, authority string) *External
 		interceptors: []httpclient.RequestInterceptor{
 			loginterceptor.NewInterceptor,
 			traceinterceptor.NewInterceptor,
+			statsinterceptor.NewInterceptor,
 		},
 	}
 }
@@ -228,6 +230,7 @@ func NewExternalServiceFromUrl(ctx context.Context, baseUrl string) *ExternalSer
 		interceptors: []httpclient.RequestInterceptor{
 			loginterceptor.NewInterceptor,
 			traceinterceptor.NewInterceptor,
+			statsinterceptor.NewInterceptor,
 		},
 	}
 }

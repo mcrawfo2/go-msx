@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/statsinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
@@ -26,6 +27,7 @@ func newPlatformClientConfigFromContext(ctx context.Context, serviceName string)
 
 	transport := httpClient.Transport.RoundTrip
 	transport = tokenInterceptor(transport)
+	transport = statsinterceptor.NewInterceptor(transport)
 	transport = traceinterceptor.NewInterceptor(transport)
 	transport = discoveryinterceptor.NewInterceptor(transport)
 	transport = loginterceptor.NewInterceptor(transport)
@@ -44,6 +46,7 @@ func newSecurityClientConfigFromContext(ctx context.Context, serviceName string)
 	remoteServiceConfig := integration.NewRemoteServiceConfig(ctx, serviceName)
 	var remoteServiceName = remoteServiceConfig.ServiceName
 	transport := httpClient.Transport.RoundTrip
+	transport = statsinterceptor.NewInterceptor(transport)
 	transport = traceinterceptor.NewInterceptor(transport)
 	transport = discoveryinterceptor.NewInterceptor(transport)
 	transport = loginterceptor.NewInterceptor(transport)

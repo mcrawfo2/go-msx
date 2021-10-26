@@ -170,7 +170,7 @@ func corsFilter(container *restful.Container, cors restful.CrossOriginResourceSh
 		resp.Header().Set("Vary", "Origin")
 		resp.Header().Add("Vary", "Access-Control-Request-Method")
 		resp.Header().Add("Vary", "Access-Control-Request-Headers")
-		resp.Header().Set(headerNameAccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")
+		resp.Header().Set(headerNameAccessControlAllowMethods, "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS")
 		resp.Header().Set(headerNameAccessControlAllowHeaders, allowedHeader)
 
 		resp.WriteHeader(http.StatusOK)
