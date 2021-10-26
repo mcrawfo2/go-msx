@@ -23,7 +23,7 @@ func TestActivateCors(t *testing.T) {
 		WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Origin")).
 		WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Method")).
 		WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Headers")).
-		WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")).
+		WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS")).
 		WithResponsePredicate(webservicetest.ResponseHasHeader("Allow", "GET,OPTIONS,POST")).
 		WithResponsePredicate(webservicetest.ResponseHasStatus(200)).
 		Test(t)
@@ -48,7 +48,7 @@ func Test_corsFilter(t *testing.T) {
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Origin")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Method")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Headers")).
-				WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")).
+				WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Allow", "GET,OPTIONS,POST")).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(200)),
 		},
@@ -63,7 +63,7 @@ func Test_corsFilter(t *testing.T) {
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Origin")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Method")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Vary", "Access-Control-Request-Headers")).
-				WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS,TRACE")).
+				WithResponsePredicate(webservicetest.ResponseHasHeader("Access-Control-Allow-Methods", "PATCH,POST,GET,PUT,DELETE,HEAD,OPTIONS")).
 				WithResponsePredicate(webservicetest.ResponseHasHeader("Allow", "DELETE,GET,OPTIONS,PUT")).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(200)),
 		},
