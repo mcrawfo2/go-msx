@@ -3,6 +3,7 @@ package webservice
 import (
 	"bytes"
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/sanitize"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"github.com/emicklei/go-restful"
@@ -19,6 +20,7 @@ import (
 
 const (
 	requestTag = "req"
+	sanitizeTag = "san"
 
 	requestTagSourceBody   = "body"
 	requestTagSourceQuery  = "query"
@@ -38,11 +40,12 @@ func Populate(req *restful.Request, params interface{}) (err error) {
 }
 
 type RouteParam struct {
-	Field     reflect.StructField
-	Source    string
-	Name      string
-	Options   map[string]string
-	Parameter restful.ParameterData
+	Field           reflect.StructField
+	Source          string
+	Name            string
+	Options         map[string]string
+	SanitizeOptions sanitize.Options
+	Parameter       restful.ParameterData
 }
 
 func (r RouteParam) Populate(req *restful.Request, paramsValue reflect.Value) error {
@@ -100,6 +103,13 @@ func (r RouteParam) populateBody(req *restful.Request, fieldValue reflect.Value)
 	if err := req.ReadEntity(val); err != nil {
 		return NewBadRequestError(err)
 	}
+
+	if r.Options["san"] == "true" {
+		if err := sanitize.Input(val, r.SanitizeOptions); err != nil {
+			return err
+		}
+	}
+
 	fieldValue.Set(reflect.ValueOf(val).Elem())
 	return nil
 }
@@ -284,6 +294,11 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 	switch fieldValue.Kind() {
 	case reflect.String:
 		fieldValue.Set(reflect.ValueOf(value).Convert(fieldValue.Type()))
+		if r.Options["san"] == "true" {
+			if err = sanitize.Input(fieldValue.Addr().Interface(), r.SanitizeOptions); err != nil {
+				return err
+			}
+		}
 		return nil
 
 	case reflect.Bool:
@@ -336,6 +351,11 @@ func (r RouteParam) populateScalar(fieldValue reflect.Value, value string) (err 
 	if fieldValue.Kind() == reflect.Ptr {
 		switch fieldValue.Elem().Kind() {
 		case reflect.String:
+			if r.Options["san"] == "true" {
+				if err = sanitize.Input(fieldValue.Interface(), r.SanitizeOptions); err != nil {
+					return err
+				}
+			}
 			ptrValue := &value
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
 			return nil
@@ -603,6 +623,9 @@ func NewRouteParam(ctx context.Context, route *restful.Route, field reflect.Stru
 				Warnf("Defining dynamic parameter %q", r.Parameter.Name)
 		}
 	}
+
+	tag = field.Tag.Get(sanitizeTag)
+	r.SanitizeOptions = sanitize.NewOptions(tag)
 
 	return r
 }
