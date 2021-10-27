@@ -124,12 +124,14 @@ func (c SecretConfig) Replacers() ([]Replacer, error) {
 		}
 	}
 
-	for _, pattern := range c.Custom.Patterns {
-		replacer, err := pattern.Replacer("")
-		if err != nil {
-			return nil, err
+	if c.Custom.Enabled {
+		for _, pattern := range c.Custom.Patterns {
+			replacer, err := pattern.Replacer("")
+			if err != nil {
+				return nil, err
+			}
+			replacers = append(replacers, replacer)
 		}
-		replacers = append(replacers, replacer)
 	}
 
 	// Always add our default custom replacers
