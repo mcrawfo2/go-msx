@@ -13,6 +13,7 @@ type Options struct {
 	Xss      bool
 	Name     bool
 	Path     bool
+	Secret   bool
 
 	Inherit  bool
 }
@@ -63,6 +64,9 @@ func String(originalValue string, options Options) string {
 	}
 	if options.Path {
 		resultValue = sanitize.Path(resultValue)
+	}
+	if options.Secret {
+		resultValue = secretSanitizer.Secrets(resultValue)
 	}
 
 	return resultValue
