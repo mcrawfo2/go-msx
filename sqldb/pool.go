@@ -37,6 +37,8 @@ func (p *ConnectionPool) WithSqlxConnection(ctx context.Context, action SqlxActi
 	if err != nil {
 		return err
 	}
+	db = db.Unsafe()
+	
 	defer func() {
 		err := db.Close()
 		if err != nil {
