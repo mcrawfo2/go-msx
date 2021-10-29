@@ -192,30 +192,69 @@ func newTenantHierarchyCache(ctx context.Context) (*TenantHierarchyCache, error)
 	}, nil
 }
 
-type TenantHierarchyLoader struct {
-	pool *types.WorkerPool // Loads tenant hierarchies in parallel
+type TenantHierarchyLoader struct{}
+
+func (t TenantHierarchyLoader) Parent(ctx context.Context, tenantId types.UUID) (types.UUID, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := api.GetTenantHierarchyParent(tenantId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(response.BodyString) == 0 {
+		return nil, nil
+	}
+
+	return types.ParseUUID(response.BodyString)
 }
 
-func (l *TenantHierarchyLoader) Root(ctx context.Context) (result types.UUID, err error) {
+func (t TenantHierarchyLoader) Ancestors(ctx context.Context, tenantId types.UUID) ([]types.UUID, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ancestors, err := api.GetTenantHierarchyAncestors(tenantId)
+	if err != nil {
+		return nil, err
+	}
+
+	return ancestors, nil
+}
+
+func (t TenantHierarchyLoader) Root(ctx context.Context) (types.UUID, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := api.GetTenantHierarchyRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	tenantId, err := types.ParseUUID(response.BodyString)
+	if err != nil {
+		return nil, err
+	}
+
+	return tenantId, nil
+}
+
+type TenantHierarchyPoolLoader struct {
+	pool   *types.WorkerPool 		// Loads tenant hierarchies in parallel
+	loader TenantHierarchyLoader	// Does the actual work
+}
+
+func (l *TenantHierarchyPoolLoader) Root(ctx context.Context) (result types.UUID, err error) {
 	err = l.pool.Run(
 		func(ctx context.Context) error {
-			api, err := usermanagement.NewIntegration(ctx)
-			if err != nil {
-				return err
-			}
-
-			response, err := api.GetTenantHierarchyRoot()
-			if err != nil {
-				return err
-			}
-
-			tenantId, err := types.ParseUUID(response.BodyString)
-			if err != nil {
-				return err
-			}
-
-			result = tenantId
-			return nil
+			result, err = l.loader.Root(ctx)
+			return err
 		},
 		types.JobDecorator(log.RecoverLogDecorator(logger)),
 		types.JobContext(ctx),
@@ -224,26 +263,11 @@ func (l *TenantHierarchyLoader) Root(ctx context.Context) (result types.UUID, er
 	return
 }
 
-func (l *TenantHierarchyLoader) Parent(ctx context.Context, tenantId types.UUID) (result types.UUID, err error) {
+func (l *TenantHierarchyPoolLoader) Parent(ctx context.Context, tenantId types.UUID) (result types.UUID, err error) {
 	err = l.pool.Run(
 		func(ctx context.Context) error {
-			api, err := usermanagement.NewIntegration(ctx)
-			if err != nil {
-				return err
-			}
-
-			response, err := api.GetTenantHierarchyParent(tenantId)
-			if err != nil {
-				return err
-			}
-
-			tenantId, err := types.ParseUUID(response.BodyString)
-			if err != nil {
-				return err
-			}
-
-			result = tenantId
-			return nil
+			result, err = l.loader.Parent(ctx, tenantId)
+			return err
 		},
 		types.JobDecorator(log.RecoverLogDecorator(logger)),
 		types.JobContext(ctx),
@@ -252,21 +276,11 @@ func (l *TenantHierarchyLoader) Parent(ctx context.Context, tenantId types.UUID)
 	return
 }
 
-func (l *TenantHierarchyLoader) Ancestors(ctx context.Context, tenantId types.UUID) (results []types.UUID, err error) {
+func (l *TenantHierarchyPoolLoader) Ancestors(ctx context.Context, tenantId types.UUID) (results []types.UUID, err error) {
 	err = l.pool.Run(
 		func(ctx context.Context) error {
-			api, err := usermanagement.NewIntegration(ctx)
-			if err != nil {
-				return err
-			}
-
-			_, ancestors, err := api.GetTenantHierarchyAncestors(tenantId)
-			if err != nil {
-				return err
-			}
-
-			results = ancestors
-			return nil
+			results, err = l.loader.Ancestors(ctx, tenantId)
+			return err
 		},
 		types.JobDecorator(log.RecoverLogDecorator(logger)),
 		types.JobContext(ctx),
@@ -276,14 +290,19 @@ func (l *TenantHierarchyLoader) Ancestors(ctx context.Context, tenantId types.UU
 }
 
 func NewTenantHierarchyLoader(ctx context.Context) (TenantHierarchyApi, error) {
-	workerPool, err := types.NewWorkerPool(ctx, 4)
-	if err != nil {
-		return nil, err
+	api := TenantHierarchyLoaderFromContext(ctx)
+	if api == nil {
+		workerPool, err := types.NewWorkerPool(ctx, 4)
+		if err != nil {
+			return nil, err
+		}
+
+		api = &TenantHierarchyPoolLoader{
+			pool: workerPool,
+		}
 	}
 
-	return &TenantHierarchyLoader{
-		pool: workerPool,
-	}, nil
+	return api, nil
 }
 
 var tenantHierarchy *TenantHierarchyCache
