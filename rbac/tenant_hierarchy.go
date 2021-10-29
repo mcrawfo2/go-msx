@@ -146,6 +146,10 @@ func (t *TenantHierarchyCache) cachedAncestors(tenantUuid types.UUID) (results [
 }
 
 func (t *TenantHierarchyCache) cachedParent(tenantId types.UUID) (result types.UUID, err error) {
+	if t.rootId != nil && tenantId.Equals(t.rootId) {
+		return nil, nil
+	}
+
 	tenantIdString := tenantId.String()
 	parentId, ok := t.tenants.Load(tenantIdString)
 	if ok {
@@ -170,6 +174,8 @@ func (t *TenantHierarchyCache) storeAncestors(id types.UUID, ancestors []types.U
 
 	if len(ancestors) > 0 {
 		t.storeRoot(ancestors[len(ancestors)-1])
+	} else if len(ancestors) == 0 && t.rootId == nil {
+		t.storeRoot(id)
 	}
 }
 
