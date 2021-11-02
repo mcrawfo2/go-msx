@@ -57,7 +57,8 @@ func (c *Connection) Host() string {
 }
 
 func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (results map[string]string, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiListKeyValuePairs)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiListKeyValuePairs,
+		trace.StartWithTag(trace.FieldSpanType, "db"))
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiListKeyValuePairs, path, func() error {
@@ -88,7 +89,8 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 }
 
 func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIndex *uint64, waitTime *time.Duration) (resultIndex uint64, results map[string]string, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiWatchKeyValuePairs)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiWatchKeyValuePairs,
+		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiWatchKeyValuePairs, path, func() error {
@@ -129,7 +131,8 @@ func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIn
 }
 
 func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetKeyValue)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetKeyValue,
+		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiGetKeyValue, path, func() error {
@@ -156,7 +159,8 @@ func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte
 }
 
 func (c *Connection) SetKeyValue(ctx context.Context, path string, value []byte) (err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiSetKeyValue)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiSetKeyValue,
+		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
 
 	return c.stats.Observe(statsApiSetKeyValue, path, func() error {
@@ -177,7 +181,8 @@ func (c *Connection) SetKeyValue(ctx context.Context, path string, value []byte)
 }
 
 func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetServiceInstances)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetServiceInstances,
+		trace.StartWithTag(trace.FieldSpanType, "discovery"))
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiGetServiceInstances, service, func() error {
@@ -206,7 +211,8 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 }
 
 func (c *Connection) GetAllServiceInstances(ctx context.Context, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
-	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetAllServiceInstances)
+	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetAllServiceInstances,
+		trace.StartWithTag(trace.FieldSpanType, "discovery"))
 	defer span.Finish()
 
 	err = c.stats.Observe(statsApiGetAllServiceInstances, "", func() error {

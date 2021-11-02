@@ -6,53 +6,151 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
 	tracelog "github.com/opentracing/opentracing-go/log"
-	"github.com/uber/jaeger-client-go"
+	"time"
 )
 
-func traceIdAsString(id jaeger.TraceID) string {
+type TraceId struct {
+	High, Low uint64
+}
+
+func (t TraceId) String() string {
 	var byteBuffer bytes.Buffer
-	if id.High != 0 {
-		byteBuffer.WriteString(fmt.Sprintf("%016x", id.High))
+	if t.High != 0 {
+		byteBuffer.WriteString(fmt.Sprintf("%016x", t.High))
 	}
-	byteBuffer.WriteString(fmt.Sprintf("%016x", id.Low))
+	byteBuffer.WriteString(fmt.Sprintf("%016x", t.Low))
 	return byteBuffer.String()
 }
 
-func spanIdAsString(id jaeger.SpanID) string {
-	return fmt.Sprintf("%016x", uint64(id))
+type SpanId uint64
+
+func (s SpanId) String() string {
+	return fmt.Sprintf("%016x", uint64(s))
 }
 
-func NewSpan(ctx context.Context, operationName string, options ...opentracing.StartSpanOption) (context.Context, opentracing.Span) {
-	var span opentracing.Span
-	if span = opentracing.SpanFromContext(ctx); span != nil {
-		// Create a child span inside the existing parent
-		options = append(options, opentracing.ChildOf(span.Context()))
-		span = opentracing.StartSpan(operationName, options...)
-	} else {
-		// Create a new root span
-		span = opentracing.StartSpan(operationName, options...)
-	}
-	ctx = opentracing.ContextWithSpan(ctx, span)
+type Span interface {
+	Finish(...FinishSpanOption)
+	SetTag(key string, value interface{})
+	Context() SpanContext
+	SetError(err error)
+	LogFields(...tracelog.Field)
+	LogKV(...interface{})
+}
 
-	if spanContext, ok := span.Context().(jaeger.SpanContext); ok {
-		// Inject log fields
-		ctx = log.ExtendContext(ctx, log.LogContext{
-			log.FieldSpanId:   spanIdAsString(spanContext.SpanID()),
-			log.FieldTraceId:  traceIdAsString(spanContext.TraceID()),
-			log.FieldParentId: spanIdAsString(spanContext.ParentID()),
+type SpanContext interface {
+	SpanId() SpanId
+	TraceId() TraceId
+	ForeachBaggageItem(fn func(k, v string) bool)
+}
+
+type SpanReference struct {
+	Type string
+	Ref  SpanContext
+}
+
+type StartSpanConfig struct {
+	Related   []SpanReference
+	StartTime time.Time
+	Tags      map[string]interface{}
+}
+
+type StartSpanOption func(*StartSpanConfig)
+
+func StartWithRelated(refType string, refSpanContext SpanContext) StartSpanOption {
+	return func(options *StartSpanConfig) {
+		options.Related = append(options.Related, SpanReference{
+			Type: refType,
+			Ref:  refSpanContext,
 		})
 	}
+}
+
+func StartWithStartTime(t time.Time) StartSpanOption {
+	return func(options *StartSpanConfig) {
+		options.StartTime = t
+	}
+}
+
+func StartWithTag(field string, value interface{}) StartSpanOption {
+	return func(options *StartSpanConfig) {
+		if options.Tags == nil {
+			options.Tags = make(map[string]interface{})
+		}
+		options.Tags[field] = value
+	}
+}
+
+type FinishSpanConfig struct {
+	FinishTime time.Time
+	Error      error
+}
+
+type FinishSpanOption func(*FinishSpanConfig)
+
+func FinishWithFinishTime(t time.Time) FinishSpanOption {
+	return func(options *FinishSpanConfig) {
+		options.FinishTime = t
+	}
+}
+
+func FinishWithError(err error) FinishSpanOption {
+	return func(options *FinishSpanConfig) {
+		options.Error = err
+	}
+}
+
+func NewSpan(ctx context.Context, operationName string, options ...StartSpanOption) (context.Context, Span) {
+	var span Span
+	var parentSpan Span
+	if parentSpan = SpanFromContext(ctx); parentSpan != nil {
+		// Create a child span inside the existing parent
+		options = append(options, StartWithRelated(RefChildOf, parentSpan.Context()))
+	}
+
+	span = tracer.StartSpan(operationName, options...)
+	ctx = ContextWithSpan(ctx, span)
+	ctx = contextWithTraceLogContext(ctx, tracer, span, parentSpan)
 
 	return ctx, span
 }
 
-func SpanFromContext(ctx context.Context) opentracing.Span {
-	return opentracing.SpanFromContext(ctx)
+func baseLogContext(span, parentSpan Span) log.LogContext {
+	// Calculate log fields
+	spanId := span.Context().SpanId().String()
+	traceId := span.Context().TraceId().String()
+	parentSpanId := SpanId(0)
+	if parentSpan != nil {
+		parentSpanId = parentSpan.Context().SpanId()
+	}
+	parentId := parentSpanId.String()
+
+	return log.LogContext{
+		log.FieldSpanId:   spanId,
+		log.FieldTraceId:  traceId,
+		log.FieldParentId: parentId,
+	}
 }
 
-func SpanDecorator(operationName string, options ...opentracing.StartSpanOption) types.ActionFuncDecorator {
+func contextWithTraceLogContext(ctx context.Context, tracer Tracer, span, parentSpan Span) context.Context {
+	if span.Context().SpanId() == SpanId(0) {
+		// NoopTracer is in effect
+		return ctx
+	}
+
+	// Generate generic log context
+	logContext := baseLogContext(span, parentSpan)
+
+	// Add tracer-specific log context
+	for k, v := range tracer.LogContext(span) {
+		logContext[k] = v
+	}
+
+	// Inject log fields
+	return log.ExtendContext(ctx, logContext)
+}
+
+func SpanDecorator(operationName string, options ...StartSpanOption) types.ActionFuncDecorator {
 	return func(action types.ActionFunc) types.ActionFunc {
 		return func(ctx context.Context) error {
 			ctx, span := NewSpan(ctx, operationName, options...)

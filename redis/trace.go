@@ -10,7 +10,8 @@ import (
 type traceHook struct{}
 
 func (s *traceHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	ctx, _ = trace.NewSpan(ctx, "redis.cmd."+strings.ToLower(cmd.Name()))
+	ctx, _ = trace.NewSpan(ctx, "redis.cmd."+strings.ToLower(cmd.Name()),
+		trace.StartWithTag(trace.FieldSpanType, "cache"))
 	return ctx, nil
 }
 
@@ -24,7 +25,8 @@ func (s *traceHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 }
 
 func (s *traceHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
-	ctx, _ = trace.NewSpan(ctx, "redis.pipeline")
+	ctx, _ = trace.NewSpan(ctx, "redis.pipeline",
+		trace.StartWithTag(trace.FieldSpanType, "cache"))
 	return ctx, nil
 }
 

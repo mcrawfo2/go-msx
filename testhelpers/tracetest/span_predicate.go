@@ -1,20 +1,20 @@
 package tracetest
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/trace"
+	"cto-github.cisco.com/NFV-BU/go-msx/trace/mock"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/mocktracer"
 )
 
 type SpanPredicate struct {
 	Description string
-	Matches     func(opentracing.Span) bool
+	Matches     func(trace.Span) bool
 }
 
 func HasBaggage(name string, val string) SpanPredicate {
 	return SpanPredicate{
 		Description: fmt.Sprintf("span.Baggage[%q] == %q", name, val),
-		Matches: func(span opentracing.Span) bool {
+		Matches: func(span trace.Span) bool {
 			spanContext := span.Context()
 			matches := false
 			spanContext.ForeachBaggageItem(func(k, v string) bool {
@@ -32,8 +32,8 @@ func HasBaggage(name string, val string) SpanPredicate {
 func HasTag(name string, val interface{}) SpanPredicate {
 	return SpanPredicate{
 		Description: fmt.Sprintf("span.Tags[%q] == %q", name, val),
-		Matches: func(span opentracing.Span) bool {
-			var tags = span.(*mocktracer.MockSpan).Tags()
+		Matches: func(span trace.Span) bool {
+			var tags = span.(*mock.MockSpan).Tags()
 			return tags[name] == val
 		},
 	}
@@ -42,8 +42,8 @@ func HasTag(name string, val interface{}) SpanPredicate {
 func HasLogWithField(key string, value string) SpanPredicate {
 	return SpanPredicate{
 		Description: fmt.Sprintf("span.Logs.*.Fields[%q] == %s", key, value),
-		Matches: func(span opentracing.Span) bool {
-			var logs = span.(*mocktracer.MockSpan).Logs()
+		Matches: func(span trace.Span) bool {
+			var logs = span.(*mock.MockSpan).Logs()
 			for _, log := range logs {
 				for _, logField := range log.Fields {
 					if logField.Key == key && logField.ValueString == value {
