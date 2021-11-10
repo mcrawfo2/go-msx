@@ -29,9 +29,14 @@ func InstallTestDependencies(args []string) error {
 		goGet("github.com/pmezard/go-difflib/difflib"),
 		goGet("github.com/jstemmer/go-junit-report"),
 		goGet("gotest.tools/gotestsum"),
-		pipe.Write(os.Stdout),
 	)
-	return pipe.Run(script)
+
+	s := pipe.NewState(os.Stdout, os.Stdout)
+	err := script(s)
+	if err == nil {
+		err = s.RunTasks()
+	}
+	return err
 }
 
 func ExecuteUnitTests(args []string) error {
@@ -69,12 +74,6 @@ func ExecuteUnitTests(args []string) error {
 				testableDirectories),
 			pipe.Tee(os.Stdout),
 			pipe.Write(testResults),
-		),
-		pipe.Line(
-			exec.Info("Generating JUnit XML report"),
-			pipe.Read(testResults),
-			pipe.Exec("go-junit-report"),
-			pipe.WriteFile(junitReportXmlPath, permsFile),
 		),
 		pipe.Line(
 			exec.Info("Generating HTML coverage report"),
