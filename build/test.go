@@ -28,6 +28,7 @@ func InstallTestDependencies(args []string) error {
 		goGet("github.com/stretchr/testify/http"),
 		goGet("github.com/pmezard/go-difflib/difflib"),
 		goGet("github.com/jstemmer/go-junit-report"),
+		goGet("gotest.tools/gotestsum"),
 		pipe.Write(os.Stdout),
 	)
 	return pipe.Run(script)
@@ -59,7 +60,13 @@ func ExecuteUnitTests(args []string) error {
 		),
 		pipe.Line(
 			exec.Info("Executing unit tests"),
-			exec.Exec("go", []string{"test", "-coverprofile=" + goCoverOutPath, "-v"}, testableDirectories),
+			exec.Exec("gotestsum",
+				[]string{
+					"--format", "testname",
+					"--junitfile", junitReportXmlPath,
+					"--", "-coverprofile=" + goCoverOutPath,
+				},
+				testableDirectories),
 			pipe.Tee(os.Stdout),
 			pipe.Write(testResults),
 		),

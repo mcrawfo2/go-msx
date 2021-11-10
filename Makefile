@@ -4,13 +4,16 @@ EXAMPLE_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/
 BUILD_NUMBER ?= 0
 
 .PHONY: test dist docker debug publish generate clean precommit
-.PHONY: skel publish-skel
+.PHONY: skel publish-skel vet
 
 # Library
 
 test:
 	$(BUILDER) download-test-deps
 	$(BUILDER) execute-unit-tests
+
+vet:
+	$(BUILDER) go-vet
 
 vendor:
 	go mod vendor

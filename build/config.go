@@ -7,8 +7,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/base64"
 	"fmt"
+	"golang.org/x/mod/modfile"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -42,6 +45,7 @@ const (
 	configOutputRootPath = "dist/root"
 	configOutputToolPath = "dist/tools"
 
+	configDistPath = "dist"
 	configTestPath = "test"
 )
 
@@ -154,6 +158,9 @@ type Go struct {
 		Linux  map[string]string
 		Darwin map[string]string
 	}
+	Vet struct {
+		Options []string
+	}
 }
 
 func (g Go) Environment() map[string]string {
@@ -241,6 +248,12 @@ func (b Binaries) Authorization() string {
 	return "Basic " + base64.StdEncoding.EncodeToString([]byte(b.Username+":"+b.Password))
 }
 
+type Module struct {
+	GoModPath    string
+	ModulePath   string
+	MinGoVersion string
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Library    Library
@@ -257,6 +270,7 @@ type Config struct {
 	Generate   []Generate
 	Resources  Resources
 	Binaries   Binaries
+	Module     Module
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -271,6 +285,10 @@ func (p Config) OutputRoot() string {
 
 func (p Config) TestPath() string {
 	return configTestPath
+}
+
+func (p Config) DistPath() string {
+	return configDistPath
 }
 
 func (p Config) InputCommandRoot() string {
@@ -302,6 +320,29 @@ func (p Config) OutputToolPath() string {
 }
 
 var BuildConfig = new(Config)
+
+func LoadGoModule(m *Module) error {
+	sourceDir, err := types.FindSourceDirFromStack()
+	if err != nil {
+		return err
+	}
+
+	goModPath := path.Join(sourceDir, "go.mod")
+	goModBytes, err := ioutil.ReadFile(goModPath)
+	if err != nil {
+		return err
+	}
+
+	goModFile, err := modfile.Parse(goModPath, goModBytes, nil)
+	if err != nil {
+		return err
+	}
+
+	m.GoModPath = goModPath
+	m.MinGoVersion = goModFile.Go.Version
+	m.ModulePath = goModFile.Module.Mod.Path
+	return nil
+}
 
 func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []config.Provider) (finalConfig *config.Config, err error) {
 	if err = cfg.Populate(&BuildConfig.Msx, configRootMsx); err != nil {
@@ -417,6 +458,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if BuildConfig.Fs, err = fs.NewFileSystemConfig(cfg); err != nil {
+		return err
+	}
+
+	if err = LoadGoModule(&BuildConfig.Module); err != nil {
 		return err
 	}
 
