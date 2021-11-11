@@ -27,11 +27,9 @@ precommit: generate
 
 skel:
 	$(SKEL_BUILDER) build-tool
-	cp cmd/skel/README.md dist/tools/go-msx-skel/linux
-	cp cmd/skel/README.md dist/tools/go-msx-skel/darwin
 
 publish-skel:
-	BUILD_NUMBER=$(BUILD_NUMBER) $(SKEL_BUILDER) publish-tool
+	$(SKEL_BUILDER) publish-tool
 
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel

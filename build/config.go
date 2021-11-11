@@ -110,6 +110,7 @@ type Library struct {
 type Tool struct {
 	Cmd  string
 	Name string
+	Resources Resources
 }
 
 func (t Tool) PublishUrl(goos string) string {
@@ -226,7 +227,6 @@ type GenerateVfs struct {
 	Excludes     []string `config:"default="`
 }
 
-// TODO: 1.0 : Move to format similar to Generate
 type Resources struct {
 	Includes []string
 	Excludes []string

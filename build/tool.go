@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"fmt"
+	copypkg "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -26,12 +27,34 @@ func BuildTool(args []string) error {
 		return errors.New("Tool command name not specified.  Please provide tool.cmd in build.yml")
 	}
 
-	if err := buildToolForOs("linux"); err != nil {
-		return errors.Wrapf(err, "Failed to build linux binary")
+	for _, goos := range []string{"linux", "darwin"} {
+		if err := buildToolForOs(goos); err != nil {
+			return errors.Wrapf(err, "Failed to build %s binary", goos)
+		}
+
+		if err := installToolResources(goos); err != nil {
+			return errors.Wrapf(err, "Failed to build %s binary", goos)
+		}
 	}
 
-	if err := buildToolForOs("darwin"); err != nil {
-		return errors.Wrapf(err, "Failed to build darwin binary")
+	return nil
+}
+
+func installToolResources(goos string) error {
+	logger.Infof("Install tool %s resources for %s", BuildConfig.Tool.Name, goos)
+
+	files, err := collectIncludedResources(BuildConfig.Tool.Resources)
+	if err != nil {
+		return err
+	}
+
+	for _, inputFilePath := range files {
+		mappedInputFilePath := getResourcePathMapping(BuildConfig.Tool.Resources, inputFilePath)
+		outputFilePath := filepath.Join(BuildConfig.Tool.PackageFolder(goos), mappedInputFilePath)
+		logger.Infof("Copying %s to %s", inputFilePath, outputFilePath)
+		if err = copypkg.Copy(inputFilePath, outputFilePath); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -117,8 +140,8 @@ func publishToolForOs(goos string) error {
 	}
 
 	sourceFile := BuildConfig.Tool.PublishArtifactPath(goos)
-	uploadUrl := BuildConfig.Tool.PublishUrl(goos)
 
+	uploadUrl := BuildConfig.Tool.PublishUrl(goos)
 	err := uploadArtifactory(sourceFile, uploadUrl)
 	if err != nil {
 		return err
@@ -188,7 +211,7 @@ func packageToolForOs(goos string) error {
 			return errors.Wrapf(err, "Failed to read file data from %q", p)
 		}
 
-		if _, err := tw.Write(data); err != nil {
+		if _, err = tw.Write(data); err != nil {
 			return errors.Wrapf(err, "Failed to write file body for %q", p)
 		}
 

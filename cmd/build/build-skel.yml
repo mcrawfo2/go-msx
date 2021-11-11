@@ -5,8 +5,8 @@ tool:
     includes:
       - cmd/skel/README.md
     mappings:
-      - from: cmd/skel/README.md
-        to: README.md
+      - from: /cmd/skel
+        to: /
 
 generate:
   - path: skel
