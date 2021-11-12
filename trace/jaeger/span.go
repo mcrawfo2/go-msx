@@ -18,10 +18,14 @@ func (s *Span) SetError(err error) {
 }
 
 // LogFields is not supported by datadog
-func (s *Span) LogFields(_ ...tracelog.Field) {}
+func (s *Span) LogFields(fields ...tracelog.Field) {
+	s.OpenTracingSpan.LogFields(fields...)
+}
 
 // LogKV is not supported by datadog
-func (s *Span) LogKV(_ ...interface{}) {}
+func (s *Span) LogKV(kvs ...interface{}) {
+	s.OpenTracingSpan.LogKV(kvs...)
+}
 
 func (s *Span) Finish(options ...trace.FinishSpanOption) {
 	// Collect finish options

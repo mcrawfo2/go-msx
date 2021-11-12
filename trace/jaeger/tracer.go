@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/uber/jaeger-client-go"
 	jaegerconfig "github.com/uber/jaeger-client-go/config"
+	jaegertransport "github.com/uber/jaeger-client-go/transport"
 	jaegerzipkin "github.com/uber/jaeger-client-go/transport/zipkin"
 	"github.com/uber/jaeger-lib/metrics/prometheus"
 	"io"
@@ -68,6 +69,9 @@ func (t *tracer) newTransport(ctx context.Context, reporterConfig trace.TracingR
 	case "jaeger":
 		logger.WithContext(ctx).Infof("Sending traces to jaeger: %q", reporterConfig.Address())
 		return jaeger.NewUDPTransport(reporterConfig.Address(), 0)
+	case "jaeger-http":
+		logger.WithContext(ctx).Infof("Sending traces to jaeger: %q", reporterConfig.Address())
+		return jaegertransport.NewHTTPTransport(reporterConfig.Url, jaegertransport.HTTPBatchSize(1)), nil
 	}
 
 	return nil, errors.New("Unknown transport: " + reporterConfig.Name)
