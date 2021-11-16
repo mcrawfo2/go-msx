@@ -3,8 +3,8 @@ SKEL_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/bui
 EXAMPLE_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build-example.yml
 BUILD_NUMBER ?= 0
 
-.PHONY: test dist docker debug publish generate clean precommit
-.PHONY: skel publish-skel vet
+.PHONY: test vet dist docker debug publish generate clean precommit
+.PHONY: skel publish-skel
 
 # Library
 
