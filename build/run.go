@@ -6,6 +6,8 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"runtime"
+	"strings"
 )
 
 func init() {
@@ -19,14 +21,30 @@ func loadConfig(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return LoadBuildConfig(context.Background(), configFiles)
+
+	if err = LoadBuildConfig(context.Background(), configFiles); err != nil {
+		return err
+	}
+
+	currentGoVersion := getGoVersion()
+
+	logger.Infof("Module: %s", BuildConfig.Module.ModulePath)
+	logger.Infof("Required Go version: %s", BuildConfig.Module.MinGoVersion)
+	logger.Infof("Current Go version: %s", currentGoVersion)
+
+	if !strings.HasSuffix(BuildConfig.Module.ModulePath, "go-msx") {
+		logger.Error("NOTE: cto-github.cisco.com/NFV-BU/go-msx/build package is deprecated.")
+		logger.Fatal("NOTE: please switch to cto-github.cisco.com/NFV-BU/go-msx-build/pkg")
+	}
+
+	return nil
+}
+
+func getGoVersion() string {
+	return strings.TrimPrefix(runtime.Version(), "go")
 }
 
 func Run() {
-	// TODO: 1.0.0 : Error, Exit
-	logger.Warn("NOTE: cto-github.cisco.com/NFV-BU/go-msx/build package is deprecated.")
-	logger.Warn("NOTE: please switch to cto-github.cisco.com/NFV-BU/go-msx-build/pkg")
-
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
 	cli.Run("build")

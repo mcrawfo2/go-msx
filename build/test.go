@@ -28,9 +28,15 @@ func InstallTestDependencies(args []string) error {
 		goGet("github.com/stretchr/testify/http"),
 		goGet("github.com/pmezard/go-difflib/difflib"),
 		goGet("github.com/jstemmer/go-junit-report"),
-		pipe.Write(os.Stdout),
+		goGet("gotest.tools/gotestsum"),
 	)
-	return pipe.Run(script)
+
+	s := pipe.NewState(os.Stdout, os.Stdout)
+	err := script(s)
+	if err == nil {
+		err = s.RunTasks()
+	}
+	return err
 }
 
 func ExecuteUnitTests(args []string) error {
@@ -59,15 +65,15 @@ func ExecuteUnitTests(args []string) error {
 		),
 		pipe.Line(
 			exec.Info("Executing unit tests"),
-			exec.Exec("go", []string{"test", "-coverprofile=" + goCoverOutPath, "-v"}, testableDirectories),
+			exec.Exec("gotestsum",
+				[]string{
+					"--format", "testname",
+					"--junitfile", junitReportXmlPath,
+					"--", "-coverprofile=" + goCoverOutPath,
+				},
+				testableDirectories),
 			pipe.Tee(os.Stdout),
 			pipe.Write(testResults),
-		),
-		pipe.Line(
-			exec.Info("Generating JUnit XML report"),
-			pipe.Read(testResults),
-			pipe.Exec("go-junit-report"),
-			pipe.WriteFile(junitReportXmlPath, permsFile),
 		),
 		pipe.Line(
 			exec.Info("Generating HTML coverage report"),

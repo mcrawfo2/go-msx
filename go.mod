@@ -20,6 +20,7 @@ require (
 	github.com/elastic/go-seccomp-bpf v1.2.0
 	github.com/emicklei/go-restful v2.14.3+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
@@ -28,6 +29,7 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v7 v7.4.1
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
+	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-uuid v1.0.2
@@ -37,6 +39,7 @@ require (
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
+	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/otiai10/copy v1.0.2
@@ -62,6 +65,9 @@ require (
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.6.0
+	golang.org/x/mod v0.5.1
+	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
+	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0

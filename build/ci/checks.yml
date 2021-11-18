@@ -1,0 +1,27 @@
+checks:
+
+  - name: Modules
+    commands:
+      - go: mod download
+        fail: delay
+        retries: 3
+    analyzers:
+      - builtin: go-msx-version
+
+  - name: Vet
+    commands:
+      - make: vet
+        fail: ignore
+    analyzers:
+      - builtin: generate-vet-report
+
+  - name: Test
+    commands:
+      - make: test
+        fail: delay
+    analyzers:
+      - builtin: generate-test-report 'Framework Tests'
+
+slack:
+  channel: go-msx-build
+

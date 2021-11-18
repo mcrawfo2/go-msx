@@ -12,16 +12,16 @@ func init() {
 }
 
 func InstallResources(args []string) error {
-	files, err := collectIncludedResources()
+	files, err := collectIncludedResources(BuildConfig.Resources)
 	if err != nil {
 		return err
 	}
 
 	for _, inputFilePath := range files {
-		mappedInputFilePath := getResourcePathMapping(inputFilePath)
+		mappedInputFilePath := getResourcePathMapping(BuildConfig.Resources, inputFilePath)
 		outputFilePath := filepath.Join(BuildConfig.OutputResourcesPath(), mappedInputFilePath)
 		logger.Infof("Copying %s to %s", inputFilePath, outputFilePath)
-		if err := copypkg.Copy(inputFilePath, outputFilePath); err != nil {
+		if err = copypkg.Copy(inputFilePath, outputFilePath); err != nil {
 			return err
 		}
 	}
@@ -29,9 +29,9 @@ func InstallResources(args []string) error {
 	return nil
 }
 
-func collectIncludedResources() ([]string, error) {
+func collectIncludedResources(resources Resources) ([]string, error) {
 	var results []string
-	for _, inc := range BuildConfig.Resources.Includes {
+	for _, inc := range resources.Includes {
 		if strings.HasPrefix(inc, "/") {
 			inc = inc[1:]
 		}
@@ -42,7 +42,7 @@ func collectIncludedResources() ([]string, error) {
 		}
 
 		for _, incFile := range incFiles {
-			excluded, err := excludeFilteredResource(incFile)
+			excluded, err := excludeFilteredResource(resources, incFile)
 			if err != nil {
 				return nil, err
 			}
@@ -56,8 +56,8 @@ func collectIncludedResources() ([]string, error) {
 	return results, nil
 }
 
-func excludeFilteredResource(included string) (bool, error) {
-	excludes := BuildConfig.Resources.Excludes
+func excludeFilteredResource(resources Resources, included string) (bool, error) {
+	excludes := resources.Excludes
 	excludes = append(excludes, "/dist/**", "/test/**", "/local/**", "/vendor/**")
 	for _, exc := range excludes {
 		if strings.HasPrefix(exc, "/") {
@@ -74,11 +74,11 @@ func excludeFilteredResource(included string) (bool, error) {
 	return false, nil
 }
 
-func getResourcePathMapping(resourcePath string) string {
+func getResourcePathMapping(resources Resources, resourcePath string) string {
 	if !strings.HasPrefix(resourcePath, "/") {
 		resourcePath = "/" + resourcePath
 	}
-	for _, pathMapping := range BuildConfig.Resources.Mappings {
+	for _, pathMapping := range resources.Mappings {
 		pathFrom, pathTo := pathMapping.From, pathMapping.To
 		if !strings.HasSuffix(pathFrom, "/") {
 			pathFrom += "/"
