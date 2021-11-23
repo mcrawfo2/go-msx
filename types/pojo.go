@@ -84,6 +84,18 @@ func (p Pojo) ArrayValue(key string) (Poja, error) {
 	return vs, nil
 }
 
+func (p Pojo) AddAll(o map[string]interface{}) {
+	for k, v := range o {
+		p[k] = v
+	}
+}
+
+func (p Pojo) Clone() Pojo {
+	var result = make(Pojo)
+	result.AddAll(p)
+	return result
+}
+
 // Deprecated
 type PojoArray []map[string]interface{}
 
