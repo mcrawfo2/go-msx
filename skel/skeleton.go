@@ -14,6 +14,7 @@ func init() {
 	AddTarget("generate-build", "Create the build command and configuration", GenerateBuild)
 	AddTarget("generate-app", "Create the application command and configuration", GenerateApp)
 	AddTarget("generate-migrate", "Create the migrate package", GenerateMigrate)
+	AddTarget("generate-test", "Create a sample test", GenerateTest)
 	AddTarget("generate-local", "Create the local profiles", GenerateLocal)
 	AddTarget("generate-dockerfile", "Create a dockerfile for the application", GenerateDockerfile)
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
@@ -34,7 +35,8 @@ func GenerateSkeleton(_ []string) error {
 	generators = append(generators,
 		"generate-skel-json",
 		"generate-build",
-		"generate-app")
+		"generate-app",
+		"generate-test")
 
 	// Archetype-specific generators
 	generators = append(generators, archetypes.Generators(skeletonConfig.Archetype)...)
@@ -227,6 +229,20 @@ func GenerateMigrate(_ []string) error {
 		path.Join(skeletonConfig.TargetDirectory(), "internal/migrate/migrate.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal/migrate/"+skeletonConfig.AppMigrateVersion()))
 	return err
+}
+
+func GenerateTest(_ []string) error {
+	logger.Info("Generating test")
+
+	templates := TemplateSet{
+		{
+			Name:       "Creating test sources",
+			SourceFile: "internal/empty_test.go",
+			DestFile:   "internal/empty_test.go",
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
 }
 
 func AddGoMsxDependency(_ []string) error {

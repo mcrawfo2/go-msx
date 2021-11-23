@@ -1,18 +1,21 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: all test dist debug assemblies manifest package package-publish
+.PHONY: all vet test dist debug assemblies manifest package package-publish
 .PHONY: docker docker-publish publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build update-go-msx-beats
 
 #if GENERATOR_APP
-all: clean test docker assemblies deployment manifest
+all: clean vet test docker assemblies deployment manifest
 #endif GENERATOR_APP
 #if GENERATOR_BEAT
-all: clean test docker deployment manifest
+all: clean vet test docker deployment manifest
 #endif GENERATOR_BEAT
 #if GENERATOR_SP
-all: clean test docker assemblies deployment manifest package
+all: clean vet test docker assemblies deployment manifest package
 #endif GENERATOR_SP
+
+vet:
+	$(BUILDER) go-vet
 
 test:
 	$(BUILDER) download-test-deps
