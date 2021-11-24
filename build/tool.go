@@ -70,6 +70,7 @@ func buildToolForOs(goos string) error {
 	buildArgs := []string{
 		"build",
 		"-o", path.Join(BuildConfig.OutputToolPath(), BuildConfig.Tool.Name, goos, BuildConfig.Tool.Cmd),
+		"-ldflags", "-X main.BuildNumber=" + BuildConfig.Build.Number,
 	}
 
 	builderFlags := strings.Fields(os.Getenv("BUILDER_FLAGS"))

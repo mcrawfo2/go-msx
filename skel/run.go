@@ -26,6 +26,10 @@ func init() {
 }
 
 func configure(cmd *cobra.Command, args []string) error {
+	if cmd.Use == "version" {
+		return nil
+	}
+
 	if loaded, err := loadProjectConfig(); err != nil {
 		return err
 	} else if loaded {
@@ -112,7 +116,10 @@ func loadGenerateConfig() (bool, error) {
 	return true, nil
 }
 
-func Run() {
+var buildNumber int
+
+func Run(build int) {
+	buildNumber = build
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
 	cli.Run(appName)

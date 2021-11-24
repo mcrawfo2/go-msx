@@ -95,6 +95,10 @@ func locateTestableDirectories() []string {
 		if info.IsDir() {
 			return nil
 		}
+		isTemplate, _ := doublestar.Match("skel/_templates/**/*", path)
+		if isTemplate {
+			return nil
+		}
 		isVendor, _ := doublestar.Match("vendor/**/*", path)
 		if isVendor {
 			return nil

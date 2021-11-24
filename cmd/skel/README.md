@@ -6,11 +6,11 @@ go-msx skeleton project generator
 
 Prerequisites:
 
-- Go 1.13
+- Go 1.14
 
 0. Configure your GO proxy:
    ```bash
-   export GOPRIVATE="cto-github.cisco.com/NFV-BU"
+   export GOPRIVATE="cto-github.cisco.com"
    export GOPROXY="https://proxy.golang.org,direct"
    ```
 
