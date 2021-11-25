@@ -1,6 +1,6 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: all vet test dist debug assemblies manifest package package-publish
+.PHONY: all vet test dist debug assemblies manifest package package-publish package-deploy
 .PHONY: docker docker-publish publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build update-go-msx-beats
 
@@ -50,6 +50,9 @@ package:
 
 package-publish: all
 	$(BUILDER) publish-package
+
+package-deploy:
+	$(BUILDER) deploy-package
 #endif GENERATOR_SP
 
 docker:

@@ -18,6 +18,7 @@ spec:
       name: ${app.name}
       app: ${app.name}
       group: dataplatform
+      consul-gossip: allow
   updateStrategy:
     type: RollingUpdate
   template:
@@ -26,6 +27,7 @@ spec:
         name: ${app.name}
         app: ${app.name}
         group: dataplatform
+        consul-gossip: allow
       annotations:
         tagprefix: logfmt
     spec:
