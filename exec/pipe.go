@@ -34,6 +34,7 @@ func Info(template string, args ...interface{}) pipe.Pipe {
 	}
 }
 
+// ExecutePipes executes the pipes, and on failure, sends output/error directly to our stderr
 func ExecutePipes(pipes ...pipe.Pipe) error {
 	for _, p := range pipes {
 		if outputBytes, err := pipe.CombinedOutput(WithOutput(p)); err != nil {
@@ -45,6 +46,7 @@ func ExecutePipes(pipes ...pipe.Pipe) error {
 	return nil
 }
 
+// ExecutePipesStderr executes the pipes and sends output/error directly to our stdout
 func ExecutePipesStderr(pipes ...pipe.Pipe) error {
 	for _, p := range pipes {
 		p = WithOutput(p)
@@ -83,8 +85,18 @@ func WithDir(directory string, p pipe.Pipe) pipe.Pipe {
 		p)
 }
 
+// WithOutput sends the output of p to our stdout
 func WithOutput(p pipe.Pipe) pipe.Pipe {
 	return pipe.Line(
 		p,
 		pipe.Write(os.Stdout))
+}
+
+// Run executes the pipe and sends output/error directly to our stdout/stderr
+func Run(p pipe.Pipe) error {
+	s := pipe.NewState(os.Stdout, os.Stderr)
+	if err := p(s); err != nil {
+		return err
+	}
+	return s.RunTasks()
 }
