@@ -47,8 +47,8 @@ type PricePlanOptionDetail struct {
 	TimePeriod              string `json:"timePeriod"`
 	IncludeQuantity         int    `json:"includeQuantity"`
 	AdditionalOneTimePrice  int    `json:"additionalOneTimePrice"`
-	AdditionalPeriodicPrice int    `json:"additionalOneTimePrice"`
-	AdditionalQuantity      int    `json:"additionalOneTimePrice"`
+	AdditionalPeriodicPrice int    `json:"additionalPeriodicPrice"`
+	AdditionalQuantity      int    `json:"additionalQuantity"`
 }
 
 type ServicesResponse struct {

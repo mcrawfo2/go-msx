@@ -102,7 +102,7 @@ type TenantResponseV8 struct {
 	Name             string      `json:"name"`
 	Image            *string     `json:"image"`
 	Email            *string     `json:"email"`
-	Description      string      `json:"description""`
+	Description      string      `json:"description"`
 	URL              string      `json:"url"`
 	Suspended        bool        `json:"suspended"`
 	NumberOfChildren int64       `json:"numberOfChildren"`

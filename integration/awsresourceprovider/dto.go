@@ -150,7 +150,7 @@ type StackOutput struct {
 
 type AwsAmiRegion struct {
 	AmiName string      `json:"amiName"`
-	Regions []AwsRegion `json:regions`
+	Regions []AwsRegion `json:"regions"`
 }
 
 type AwsRegion struct {
