@@ -3,7 +3,6 @@ module cto-github.cisco.com/NFV-BU/go-msx
 go 1.14
 
 require (
-	cto-github.cisco.com/NFV-BU/msx-platform-go-client v1.0.4
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Shopify/sarama v1.26.1
