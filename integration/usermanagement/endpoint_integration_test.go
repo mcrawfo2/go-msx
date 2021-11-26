@@ -11,13 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net/http"
+	"reflect"
 	"testing"
 )
 
 type EndpointCall func(t *testing.T, executor integration.MsxContextServiceExecutor) (*integration.MsxResponse, error)
+type MultiTenantEndpointCall func(t *testing.T, executor integration.MsxContextServiceExecutor) (*integration.MsxResponse, []types.UUID, error)
 
 type EndpointTest struct {
 	Call      EndpointCall
+	MultiTenantResultCall MultiTenantEndpointCall
 	Injectors types.ContextInjectors
 	Checks    struct {
 		Request  clienttest.EndpointRequestCheck
@@ -32,10 +35,21 @@ type EndpointTest struct {
 		Request  []error
 		Endpoint []error
 	}
+	Tenants []types.UUID
 }
 
 func (c *EndpointTest) WithCall(call EndpointCall) *EndpointTest {
 	c.Call = call
+	return c
+}
+
+func (c *EndpointTest) WithMultiTenantResultCall(call MultiTenantEndpointCall) *EndpointTest {
+	c.MultiTenantResultCall = call
+	return c
+}
+
+func (c *EndpointTest) WithTenants(tenants []types.UUID) *EndpointTest {
+	c.Tenants = tenants
 	return c
 }
 
@@ -114,7 +128,7 @@ func (c *EndpointTest) withResponseBody() {
 	}
 }
 
-func (c *EndpointTest) Test(t *testing.T) {
+func (c *EndpointTest) getExecutor() *integration.MockMsxContextServiceExecutor {
 	executor := new(integration.MockMsxContextServiceExecutor)
 	executor.On("Context").Return(c.Injectors.Inject(context.Background())).Maybe()
 
@@ -139,8 +153,10 @@ func (c *EndpointTest) Test(t *testing.T) {
 		call.Return(&c.Response, nil)
 	}
 
-	response, err := c.Call(t, executor)
+	return executor
+}
 
+func (c *EndpointTest) assertResponse(t *testing.T, executor *integration.MockMsxContextServiceExecutor, response *integration.MsxResponse, err error) {
 	if c.ResponseError != nil {
 		assert.Error(t, err)
 	} else {
@@ -154,3 +170,25 @@ func (c *EndpointTest) Test(t *testing.T) {
 	testhelpers.ReportErrors(t, "Request", c.Errors.Request)
 	testhelpers.ReportErrors(t, "Endpoint", c.Errors.Endpoint)
 }
+
+func (c *EndpointTest) Test(t *testing.T) {
+	executor := c.getExecutor()
+
+	response, err := c.Call(t, executor)
+
+	c.assertResponse(t, executor, response, err)
+}
+
+func (c *EndpointTest) TestMultiTenantResult(t *testing.T) {
+	executor := c.getExecutor()
+
+	response, tenants, err := c.MultiTenantResultCall(t, executor)
+
+	c.assertResponse(t, executor, response, err)
+
+	if !reflect.DeepEqual(tenants, c.Tenants) {
+		t.Error("unexpected result: ")
+		t.Errorf(testhelpers.Diff(c.Tenants, tenants))
+	}
+}
+
