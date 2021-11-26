@@ -2,18 +2,19 @@ package usermanagement
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"encoding/json"
 	"github.com/pkg/errors"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -67,9 +68,11 @@ const (
 	endpointNameSetSecretPolicy   = "setSecretPolicy"
 	endpointNameUnsetSecretPolicy = "unsetSecretPolicy"
 
-	endpointTenantHierarchyRoot      = "getTenantHierarchyRoot"
-	endpointTenantHierarchyParent    = "getTenantHierarchyParent"
-	endpointTenantHierarchyAncestors = "getTenantHierarchyAncestors"
+	endpointTenantHierarchyRoot        = "getTenantHierarchyRoot"
+	endpointTenantHierarchyParent      = "getTenantHierarchyParent"
+	endpointTenantHierarchyAncestors   = "getTenantHierarchyAncestors"
+	endpointTenantHierarchyDescendants = "getTenantHierarchyDescendants"
+	endpointTenantHierarchyChildren    = "getTenantHierarchyChildren"
 
 	idmServiceName     = integration.ServiceNameUserManagement
 	authServiceName    = integration.ServiceNameAuth
@@ -115,9 +118,11 @@ var (
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 		endpointNameGetTokenKeys:    {Method: "GET", Path: "/v2/jwks"},
 
-		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
-		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
-		endpointTenantHierarchyAncestors: {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+		endpointTenantHierarchyRoot:        {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
+		endpointTenantHierarchyParent:      {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
+		endpointTenantHierarchyAncestors:   {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+		endpointTenantHierarchyDescendants: {Method: "GET", Path: "/v2/tenant_hierarchy/descendants"},
+		endpointTenantHierarchyChildren:    {Method: "GET", Path: "/v2/tenant_hierarchy/children"},
 	}
 
 	secretsEndpoints = map[string]integration.MsxServiceEndpoint{
@@ -175,9 +180,11 @@ var (
 		endpointNameGetTokenDetails: {Method: "POST", Path: "/v2/check_token"},
 		endpointNameGetTokenKeys:    {Method: "GET", Path: "/v2/jwks"},
 
-		endpointTenantHierarchyRoot:      {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
-		endpointTenantHierarchyParent:    {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
-		endpointTenantHierarchyAncestors: {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+		endpointTenantHierarchyRoot:        {Method: "GET", Path: "/v2/tenant_hierarchy/root"},
+		endpointTenantHierarchyParent:      {Method: "GET", Path: "/v2/tenant_hierarchy/parent"},
+		endpointTenantHierarchyAncestors:   {Method: "GET", Path: "/v2/tenant_hierarchy/ancestors"},
+		endpointTenantHierarchyDescendants: {Method: "GET", Path: "/v2/tenant_hierarchy/descendants"},
+		endpointTenantHierarchyChildren:    {Method: "GET", Path: "/v2/tenant_hierarchy/children"},
 
 		endpointNameGetSystemSecrets:      {Method: "GET", Path: "/api/v2/secrets/scope/{{.scope}}"},
 		endpointNameAddSystemSecrets:      {Method: "POST", Path: "/api/v2/secrets/scope/{{.scope}}"},
@@ -879,6 +886,52 @@ func (i *Integration) GetTenantHierarchyParent(tenantId types.UUID) (*integratio
 
 func (i *Integration) GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
 	request, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyAncestors)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	request.QueryParameters = url.Values{
+		"tenantId": []string{tenantId.String()},
+	}
+
+	response, err := i.execute(request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var result []types.UUID
+	if err = json.Unmarshal(response.Body, &result); err != nil {
+		return nil, nil, err
+	}
+
+	return response, result, err
+}
+
+func (i *Integration) GetTenantHierarchyDescendants(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
+	request, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyDescendants)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	request.QueryParameters = url.Values{
+		"tenantId": []string{tenantId.String()},
+	}
+
+	response, err := i.execute(request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var result []types.UUID
+	if err = json.Unmarshal(response.Body, &result); err != nil {
+		return nil, nil, err
+	}
+
+	return response, result, err
+}
+
+func (i *Integration) GetTenantHierarchyChildren(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
+	request, err := i.buildTenantHierarchyMsxEndpointRequest(endpointTenantHierarchyChildren)
 	if err != nil {
 		return nil, nil, err
 	}
