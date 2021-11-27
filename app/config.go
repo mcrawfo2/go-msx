@@ -229,7 +229,7 @@ func watchConfig(ctx context.Context) error {
 }
 
 func mustLoadConfig(ctx context.Context, cfg *config.Config) error {
-	loadContext, cancel := context.WithTimeout(ctx, time.Second*15)
+	loadContext, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	return cfg.Load(loadContext)

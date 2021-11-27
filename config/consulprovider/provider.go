@@ -6,6 +6,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/pkg/errors"
 	"time"
@@ -16,14 +17,18 @@ const (
 	configKeyAppName               = "spring.application.name"
 )
 
-var logger = log.NewLogger("msx.config.consulprovider")
+var (
+	logger              = log.NewLogger("msx.config.consulprovider")
+	ErrSettingsRequired = errors.New("No settings returned from required path")
+)
 
 type ProviderConfig struct {
-	Enabled        bool   `config:"default=false"`
-	Prefix         string `config:"default=userviceconfiguration"`
-	DefaultContext string `config:"default=defaultapplication"`
-	Pool           bool   `config:"default=false"`
-	Delay          int    `config:"default=3"`
+	Enabled        bool     `config:"default=false"`
+	Prefix         string   `config:"default=userviceconfiguration"`
+	DefaultContext string   `config:"default=defaultapplication"`
+	Pool           bool     `config:"default=false"`
+	Delay          int      `config:"default=3"`
+	Required       []string `config:"default=${spring.cloud.consul.config.prefix}/${spring.cloud.consul.config.default-context}"`
 }
 
 type Provider struct {
@@ -67,6 +72,7 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string, err error) {
 	var waitTime = new(time.Duration)
 	*waitTime = time.Nanosecond
+	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath())
 
 	err = retry.NewRetry(ctx, retry.RetryConfig{
 		Attempts: 10,
@@ -75,11 +81,17 @@ func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string
 		Linear:   true,
 	}).Retry(func() error {
 		if ctx.Err() != nil {
-			return &retry.PermanentError{Cause: err}
+			return &retry.PermanentError{Cause: ctx.Err()}
 		}
+
 		if _, settings, err = p.connection.WatchKeyValuePairs(ctx, p.ContextPath(), nil, waitTime); err != nil {
 			return errors.Wrap(err, "Failed to load configuration from consul")
 		}
+
+		if required && len(settings) == 0 {
+			return &retry.TransientError{Cause: ErrSettingsRequired}
+		}
+
 		return nil
 	})
 
@@ -93,6 +105,7 @@ func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string
 func (p *Provider) Run(ctx context.Context) {
 	logger.WithContext(ctx).Infof("Starting config watcher for %s", p.Description())
 	var lastIndex *uint64
+	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath())
 
 	for {
 		foundIndex, settings, err := p.connection.WatchKeyValuePairs(ctx, p.ContextPath(), lastIndex, nil)
@@ -101,7 +114,11 @@ func (p *Provider) Run(ctx context.Context) {
 				logger.WithContext(ctx).WithError(err).Infof("Stopping config watcher for %s", p.Description())
 				return
 			}
+		} else if required && len(settings) == 0 {
+			err = ErrSettingsRequired
+		}
 
+		if err != nil {
 			logger.WithContext(ctx).WithError(err).Infof("Failed to watch config %s", p.Description())
 			p.backoff(ctx)
 			continue
