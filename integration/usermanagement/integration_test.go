@@ -137,9 +137,17 @@ func NewUserManagementIntegrationTest() *UserManagementIntegrationTest {
 }
 
 type ManageCall func(t *testing.T, api Api) (*integration.MsxResponse, error)
+type AuthCall func(t *testing.T, api Api) (*integration.MsxResponse, []types.UUID, error)
 
 func (m *UserManagementIntegrationTest) WithCall(call ManageCall) *UserManagementIntegrationTest {
 	m.EndpointTest.WithCall(func(t *testing.T, executor integration.MsxContextServiceExecutor) (*integration.MsxResponse, error) {
+		return call(t, NewIntegrationWithExecutor(executor))
+	})
+	return m
+}
+
+func (m *UserManagementIntegrationTest) WithMultiTenantResultCall(call AuthCall) *UserManagementIntegrationTest {
+	m.EndpointTest.WithMultiTenantResultCall(func(t *testing.T, executor integration.MsxContextServiceExecutor) (*integration.MsxResponse, []types.UUID, error) {
 		return call(t, NewIntegrationWithExecutor(executor))
 	})
 	return m
@@ -1035,4 +1043,106 @@ func TestIntegration_GetTenantHierarchyParent(t *testing.T) {
 			clienttest.ServiceEndpointHasMethod(http.MethodGet),
 			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/parent")).
 		Test(t)
+}
+
+func TestIntegration_GetTenantHierarchyChildren(t *testing.T) {
+	tenantId, _ := types.NewUUID()
+	child1, _ := types.NewUUID()
+	child2, _ := types.NewUUID()
+
+	children := []types.UUID{child1, child2}
+
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
+	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+
+	NewUserManagementIntegrationTest().
+		WithMultiTenantResultCall(func(t *testing.T, api Api) (*integration.MsxResponse, []types.UUID, error) {
+			return api.GetTenantHierarchyChildren(tenantId)
+		}).
+		WithInjector(func(ctx context.Context) context.Context {
+			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponsePayload(children).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Authorization", securityClientSettings.Authorization())).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Accept", httpclient.MimeTypeApplicationJson)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointTenantHierarchyChildren),
+			clienttest.EndpointRequestHasQueryParam("tenantId", tenantId.String()),
+			clienttest.EndpointRequestHasToken(false),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/children")).
+		WithTenants(children).
+		TestMultiTenantResult(t)
+}
+
+func TestIntegration_GetTenantHierarchyDescendants(t *testing.T) {
+	tenantId, _ := types.NewUUID()
+	desc1, _ := types.NewUUID()
+	desc2, _ := types.NewUUID()
+
+	descendants := []types.UUID{desc1, desc2}
+
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
+	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+
+	NewUserManagementIntegrationTest().
+		WithMultiTenantResultCall(func(t *testing.T, api Api) (*integration.MsxResponse, []types.UUID, error) {
+			return api.GetTenantHierarchyDescendants(tenantId)
+		}).
+		WithInjector(func(ctx context.Context) context.Context {
+			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponsePayload(descendants).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Authorization", securityClientSettings.Authorization())).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Accept", httpclient.MimeTypeApplicationJson)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointTenantHierarchyDescendants),
+			clienttest.EndpointRequestHasQueryParam("tenantId", tenantId.String()),
+			clienttest.EndpointRequestHasToken(false),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/descendants")).
+		WithTenants(descendants).
+		TestMultiTenantResult(t)
+}
+
+func TestIntegration_GetTenantHierarchyAncestors(t *testing.T) {
+	tenantId, _ := types.NewUUID()
+	ancestor1, _ := types.NewUUID()
+	ancestor2, _ := types.NewUUID()
+
+	ancestors := []types.UUID{ancestor1, ancestor2}
+
+	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
+	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+
+	NewUserManagementIntegrationTest().
+		WithMultiTenantResultCall(func(t *testing.T, api Api) (*integration.MsxResponse, []types.UUID, error) {
+			return api.GetTenantHierarchyAncestors(tenantId)
+		}).
+		WithInjector(func(ctx context.Context) context.Context {
+			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponsePayload(ancestors).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Authorization", securityClientSettings.Authorization())).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Content-Type", httpclient.MimeTypeApplicationWwwFormUrlencoded)).
+		WithRequestPredicate(clienttest.EndpointRequestHasHeader("Accept", httpclient.MimeTypeApplicationJson)).
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointTenantHierarchyAncestors),
+			clienttest.EndpointRequestHasQueryParam("tenantId", tenantId.String()),
+			clienttest.EndpointRequestHasToken(false),
+			clienttest.EndpointRequestHasExpectEnvelope(false)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/v2/tenant_hierarchy/ancestors")).
+		WithTenants(ancestors).
+		TestMultiTenantResult(t)
 }
