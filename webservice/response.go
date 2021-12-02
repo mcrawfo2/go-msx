@@ -57,7 +57,7 @@ func RawResponse(req *restful.Request, resp *restful.Response, body interface{},
 		status = statusProvider.StatusCode()
 	}
 
-	err = resp.WriteHeaderAndJson(status, body, "application/json;charset=utf-8")
+	err = resp.WriteHeaderAndJson(status, body, MIME_JSON_CHARSET)
 	if err != nil {
 		logger.WithError(err).Error("Failed to write body")
 	}
@@ -102,7 +102,7 @@ func WriteErrorRaw(req *restful.Request, resp *restful.Response, status int, err
 	envelope := reflect.New(reflect.TypeOf(payload).Elem()).Interface().(ErrorRaw)
 	envelope.SetError(status, err, req.Request.URL.Path)
 
-	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON)
+	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON_CHARSET)
 	if err2 != nil {
 		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error payload")
 	}
@@ -123,7 +123,7 @@ func WriteErrorEnvelope(req *restful.Request, resp *restful.Response, status int
 		envelope.Errors = errorList.Strings()
 	}
 
-	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
+	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON_CHARSET); err != nil {
 		logger.WithContext(req.Request.Context()).WithError(err).Error("Failed to write error envelope")
 	}
 }
@@ -151,7 +151,7 @@ func WriteSuccessEnvelope(req *restful.Request, resp *restful.Response, status i
 		envelope.HttpStatus = integration.GetSpringStatusNameForCode(status)
 	}
 
-	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON); err != nil {
+	if err := resp.WriteHeaderAndJson(status, envelope, MIME_JSON_CHARSET); err != nil {
 		logger.WithError(err).Error("Failed to write body")
 	}
 }
