@@ -184,6 +184,20 @@ func (_m *CrudRepositoryApi) FindAllSortedBy(ctx context.Context, where map[stri
 	return r0
 }
 
+// FindAllSortedByExpression provides a mock function with given fields: ctx, where, sortOrder, dest
+func (_m *CrudRepositoryApi) FindAllSortedByExpression(ctx context.Context, where exp.Expression, sortOrder paging.SortOrder, dest interface{}) error {
+	ret := _m.Called(ctx, where, sortOrder, dest)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, exp.Expression, paging.SortOrder, interface{}) error); ok {
+		r0 = rf(ctx, where, sortOrder, dest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindOneBy provides a mock function with given fields: ctx, where, dest
 func (_m *CrudRepositoryApi) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) error {
 	ret := _m.Called(ctx, where, dest)
