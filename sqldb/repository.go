@@ -26,6 +26,7 @@ type CrudRepositoryApi interface {
 	FindAllPagedByExpression(ctx context.Context, where goqu.Expression, preq paging.Request, dest interface{}) (presp paging.Response, err error)
 	FindAllDistinctBy(ctx context.Context, distinct []string, where map[string]interface{}, dest interface{}) (err error)
 	FindAllSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
+	FindAllSortedByExpression(ctx context.Context, where goqu.Expression, sortOrder paging.SortOrder, dest interface{}) (err error)
 	FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error)
 	FindOneSortedBy(ctx context.Context, where map[string]interface{}, sortOrder paging.SortOrder, dest interface{}) (err error)
 	Insert(ctx context.Context, value interface{}) (err error)
@@ -267,6 +268,24 @@ func (c *CrudRepository) FindAllSortedBy(ctx context.Context, where map[string]i
 	})
 }
 
+func (c *CrudRepository) FindAllSortedByExpression(ctx context.Context, where goqu.Expression, sortOrder paging.SortOrder, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+		stmt, args, err := c.constructSortedQueryWithArgsByExpression(conn, where, sortOrder)
+		if err != nil {
+			return err
+		}
+		return conn.SelectContext(ctx, dest, stmt, args...)
+	})
+}
+
 func (c *CrudRepository) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -302,6 +321,24 @@ func (c *CrudRepository) constructSortedQueryWithArgs(conn *sqlx.DB, where map[s
 	selectDataSet := c.dialect(conn).
 		From(c.tableName).
 		Where(goqu.Ex(where))
+
+	ident := goqu.I(sortOrder.Property)
+	switch sortOrder.Direction {
+	case paging.SortDirectionDesc:
+		selectDataSet = selectDataSet.OrderAppend(ident.Desc())
+	default:
+		selectDataSet = selectDataSet.OrderAppend(ident.Asc())
+	}
+
+	sql, args, err = selectDataSet.ToSQL()
+
+	return
+}
+
+func (c *CrudRepository) constructSortedQueryWithArgsByExpression(conn *sqlx.DB, where goqu.Expression, sortOrder paging.SortOrder) (sql string, args []interface{}, err error) {
+	selectDataSet := c.dialect(conn).
+		From(c.tableName).
+		Where(where)
 
 	ident := goqu.I(sortOrder.Property)
 	switch sortOrder.Direction {

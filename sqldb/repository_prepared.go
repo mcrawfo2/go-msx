@@ -253,6 +253,25 @@ func (c *CrudPreparedRepository) FindAllSortedBy(ctx context.Context, where map[
 	})
 }
 
+func (c *CrudPreparedRepository) FindAllSortedByExpression(ctx context.Context, where goqu.Expression, sortOrder paging.SortOrder, dest interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+		if where == nil {
+			where = goqu.Literal("true")
+		}
+		stmt, args, err := c.constructSortedQueryWithArgsByExpression(conn, where, sortOrder)
+		if err != nil {
+			return err
+		}
+		stmt = c.Rebind(conn, stmt)
+		return conn.SelectContext(ctx, dest, stmt, args...)
+	})
+}
+
 func (c *CrudPreparedRepository) FindOneBy(ctx context.Context, where map[string]interface{}, dest interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -289,6 +308,24 @@ func (c *CrudPreparedRepository) constructSortedQueryWithArgs(conn *sqlx.DB, whe
 	selectDataSet := c.dialect(conn).
 		From(c.tableName).
 		Where(goqu.Ex(where))
+
+	ident := goqu.I(sortOrder.Property)
+	switch sortOrder.Direction {
+	case paging.SortDirectionDesc:
+		selectDataSet = selectDataSet.OrderAppend(ident.Desc())
+	default:
+		selectDataSet = selectDataSet.OrderAppend(ident.Asc())
+	}
+
+	sql, args, err = selectDataSet.Prepared(true).ToSQL()
+
+	return
+}
+
+func (c *CrudPreparedRepository) constructSortedQueryWithArgsByExpression(conn *sqlx.DB, where goqu.Expression, sortOrder paging.SortOrder) (sql string, args []interface{}, err error) {
+	selectDataSet := c.dialect(conn).
+		From(c.tableName).
+		Where(where)
 
 	ident := goqu.I(sortOrder.Property)
 	switch sortOrder.Direction {
