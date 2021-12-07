@@ -65,34 +65,39 @@ func generateSchemaValidation(f *File, schema Schema) (Code, error) {
 }
 
 func generateSchemaProperties(f *File, schema Schema) ([]Code, map[string]string, error) {
-	var properties []Code
-	var imports = make(map[string]string)
+	var (
+		properties = make([]Code, 0)
+		imports    = make(map[string]string)
+		ns         = schema.Namespace(skeletonConfig.AppPackageUrl())
 
-	schemaProperties, err := schema.Properties()
-	if err != nil {
+		schemaProps []Property
+		err         error
+	)
+
+	if schemaProps, err = schema.Properties(); err != nil {
 		return nil, nil, err
 	}
 
-	for _, schemaProperty := range schemaProperties {
-		// Name
-		property := Id(schemaProperty.StructFieldName())
+	for _, prop := range schemaProps {
+		var (
+			fieldName = prop.StructFieldName()
+			statement = Id(fieldName)
+
+			jsonName  = strcase.ToLowerCamel(prop.JsonName())
+			fieldTags = map[string]string{"json": jsonName}
+		)
 
 		// Type
-		if !schemaProperty.Schema.Required() && !schemaProperty.Schema.IsReference() {
-			property = property.Op("*")
+		if !prop.Schema.Required() && !prop.Schema.IsReference() {
+			statement = statement.Op("*")
 		}
 
-		err := generateTypeWithImport(f, schema.Namespace(skeletonConfig.AppPackageUrl()), property, schemaProperty.Schema)
-		if err != nil {
+		if err = generateTypeWithImport(f, ns, statement, prop.Schema); err != nil {
 			return nil, nil, errors.Wrap(err, "Failed to generate property type")
 		}
 
 		// Tags
-		property = property.Tag(map[string]string{
-			"json": strcase.ToLowerCamel(schemaProperty.JsonName()),
-		})
-
-		properties = append(properties, property)
+		properties = append(properties, statement.Tag(fieldTags))
 	}
 
 	return properties, imports, nil

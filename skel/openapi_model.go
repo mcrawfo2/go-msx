@@ -1,15 +1,17 @@
 package skel
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
+	"path"
+	"sort"
+	"strings"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/gedex/inflector"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
-	"path"
-	"strings"
 )
 
 const extKeyMsxPermissions = "x-msx-permissions"
@@ -182,7 +184,35 @@ func (s Schema) Required() bool {
 }
 
 func (s Schema) Properties() ([]Property, error) {
-	return addNestedProperties(nil, s.schemaRef)
+	var (
+		propMap    = make(map[string]Property)
+		props, err = addNestedProperties(nil, s.schemaRef)
+
+		names []string
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range props {
+		if _, ok := propMap[p.name]; ok {
+			logger.Printf("Overlapping property name on %s: %s", s.name, p.name)
+			continue
+		}
+
+		names = append(names, p.name)
+		propMap[p.name] = p
+	}
+
+	sort.Strings(names)
+
+	results := make([]Property, 0, len(propMap))
+	for _, name := range names {
+		results = append(results, propMap[name])
+	}
+
+	return results, nil
 }
 
 func addNestedProperties(properties []Property, subschema *openapi3.SchemaRef) ([]Property, error) {
