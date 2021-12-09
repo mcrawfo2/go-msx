@@ -230,7 +230,11 @@ func stringLiterals(values []string) []Code {
 func anyLiterals(values []interface{}) []Code {
 	var literals []Code
 	for _, value := range values {
-		literals = append(literals, Lit(value))
+		if value != nil {
+			literals = append(literals, Lit(value))
+		} else {
+			literals = append(literals, Null())
+		}
 	}
 	return literals
 }
