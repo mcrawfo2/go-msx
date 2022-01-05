@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/pkg/errors"
 )
 
@@ -15,8 +16,13 @@ func (p Pojo) StringValue(key string) (string, error) {
 		return "", errors.Wrapf(ErrNoSuchDetailsKey, "Key %q not found", key)
 	}
 
-	vs, ok := v.(string)
-	if !ok {
+	var vs string
+	switch vt := v.(type) {
+	case string:
+		vs = vt
+	case json.Number:
+		vs = string(vt)
+	default:
 		return "", errors.Wrapf(ErrValueWrongType, "Key %q does not contain a string: %T found", key, v)
 	}
 
@@ -62,8 +68,17 @@ func (p Pojo) FloatValue(key string) (float64, error) {
 		return 0, errors.Wrapf(ErrNoSuchDetailsKey, "Key %q not found", key)
 	}
 
-	vs, ok := v.(float64)
-	if !ok {
+	var vs float64
+	switch vt := v.(type) {
+	case float64:
+		vs = vt
+	case json.Number:
+		var err error
+		vs, err = vt.Float64()
+		if err != nil {
+			return 0, err
+		}
+	default:
 		return 0, errors.Wrapf(ErrValueWrongType, "Key %q does not contain an float64: %T found", key, v)
 	}
 
@@ -110,9 +125,14 @@ func (p Poja) StringValue(index int) (string, error) {
 		return "", errors.Wrapf(ErrNoSuchDetailsKey, "Index %d out of bounds", index)
 	}
 
-	vs, ok := p[index].(string)
-	if !ok {
-		return "", errors.Wrap(ErrValueWrongType, "Index %q does not contain a string")
+	var vs string
+	switch vt := p[index].(type) {
+	case string:
+		vs = vt
+	case json.Number:
+		vs = string(vt)
+	default:
+		return "", errors.Wrapf(ErrValueWrongType, "Index %q does not contain a string: %T found", index, p[index])
 	}
 
 	return vs, nil
@@ -149,9 +169,18 @@ func (p Poja) FloatValue(index int) (float64, error) {
 		return 0, errors.Wrapf(ErrNoSuchDetailsKey, "Index %d out of bounds", index)
 	}
 
-	vs, ok := p[index].(float64)
-	if !ok {
-		return 0, errors.Wrapf(ErrValueWrongType, "Index %q does not contain a float: %T found", index, p[index])
+	var vs float64
+	switch vt := p[index].(type) {
+	case float64:
+		vs = vt
+	case json.Number:
+		var err error
+		vs, err = vt.Float64()
+		if err != nil {
+			return 0, err
+		}
+	default:
+		return 0, errors.Wrapf(ErrValueWrongType, "Index %q does not contain a string: %T found", index, p[index])
 	}
 
 	return vs, nil
