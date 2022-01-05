@@ -9,6 +9,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"mime"
 	"mime/multipart"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	requestTag = "req"
+	requestTag  = "req"
 	sanitizeTag = "san"
 
 	requestTagSourceBody   = "body"
@@ -101,6 +102,12 @@ func (r RouteParam) Populate(req *restful.Request, paramsValue reflect.Value) er
 func (r RouteParam) populateBody(req *restful.Request, fieldValue reflect.Value) error {
 	var val = fieldValue.Addr().Interface()
 	if err := req.ReadEntity(val); err != nil {
+		if err == io.EOF {
+			if r.Options["optional"] == "true" {
+				return nil
+			}
+			err = errors.Wrap(err, "Missing required body")
+		}
 		return NewBadRequestError(err)
 	}
 
@@ -117,7 +124,7 @@ func (r RouteParam) populateBody(req *restful.Request, fieldValue reflect.Value)
 func (r RouteParam) populateHeader(req *restful.Request, fieldValue reflect.Value) error {
 	headerValues := req.Request.Header.Values(r.Name)
 	if len(headerValues) == 0 {
-		if fieldValue.Kind() != reflect.Ptr {
+		if fieldValue.Kind() != reflect.Ptr && r.Options["optional"] != "true" {
 			return errors.Errorf("Missing non-optional header %q", r.Name)
 		}
 		return nil
@@ -135,7 +142,7 @@ func (r RouteParam) populatePath(req *restful.Request, fieldValue reflect.Value)
 func (r RouteParam) populateQuery(req *restful.Request, fieldValue reflect.Value) error {
 	queryValues, ok := req.Request.URL.Query()[r.Name]
 	if !ok || len(queryValues) == 0 {
-		if fieldValue.Kind() != reflect.Ptr {
+		if fieldValue.Kind() != reflect.Ptr && r.Options["optional"] != "true" {
 			return errors.Errorf("Missing non-optional query parameter %q", r.Name)
 		}
 		return nil
@@ -228,7 +235,7 @@ func (r RouteParam) populateMultipartForm(req *restful.Request, fieldValue refle
 		formValues, ok = queryValues[r.Name]
 	}
 	if !ok || len(formValues) == 0 {
-		if fieldValue.Kind() != reflect.Ptr {
+		if fieldValue.Kind() != reflect.Ptr && r.Options["optional"] != "true" {
 			return errors.Errorf("Missing non-optional form field %q", r.Name)
 		}
 		return nil
