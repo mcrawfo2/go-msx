@@ -1,0 +1,31 @@
+{
+  "cas_required": false,
+  "created_time": "2021-12-31T18:48:48.365769237Z",
+  "current_version": 4,
+  "delete_version_after": "0s",
+  "max_versions": 0,
+  "oldest_version": 0,
+  "updated_time": "2021-12-31T19:18:20.095925787Z",
+  "versions": {
+    "1": {
+      "created_time": "2021-12-31T18:48:48.365769237Z",
+      "deletion_time": "",
+      "destroyed": false
+    },
+    "2": {
+      "created_time": "2021-12-31T18:48:52.788773483Z",
+      "deletion_time": "",
+      "destroyed": false
+    },
+    "3": {
+      "created_time": "2021-12-31T19:16:01.140677219Z",
+      "deletion_time": "",
+      "destroyed": false
+    },
+    "4": {
+      "created_time": "2021-12-31T19:18:20.095925787Z",
+      "deletion_time": "",
+      "destroyed": false
+    }
+  }
+}

@@ -25,6 +25,14 @@ type ConnectionIssuerConfig struct {
 	Mount string `config:"default=/pki"` // Mount sets targeted mount point for Vault PKI
 }
 
+type ConnectionKvConfig struct {
+	Mount string `config:"default=/secret"`
+}
+
+type ConnectionKv2Config struct {
+	Mount string `config:"default=/v2secret"`
+}
+
 type ConnectionKubernetesConfig struct {
 	LoginPath string `config:"default=/auth/kubernetes/login"`
 }
@@ -43,6 +51,8 @@ type ConnectionConfig struct {
 	Issuer      ConnectionIssuerConfig
 	Kubernetes  ConnectionKubernetesConfig
 	AppRole     ConnectionAppRoleConfig
+	KV          ConnectionKvConfig
+	KV2         ConnectionKv2Config
 }
 
 func (c ConnectionConfig) Address() string {

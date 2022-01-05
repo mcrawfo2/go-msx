@@ -9,9 +9,15 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"github.com/hashicorp/vault/api"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
+	"path"
+	"strconv"
+	"strings"
 )
 
 type connectionImpl struct {
@@ -58,7 +64,7 @@ func (c connectionImpl) Client() *api.Client {
 func (c connectionImpl) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
 	results = make(map[string]string)
 
-	if secrets, err := c.read(ctx, path); err != nil {
+	if secrets, err := c.read(ctx, path, nil); err != nil {
 		return nil, errors.Wrap(err, "Failed to list vault secrets")
 	} else if secrets != nil {
 		for key, val := range secrets.Data {
@@ -70,9 +76,9 @@ func (c connectionImpl) ListSecrets(ctx context.Context, path string) (results m
 }
 
 // Copied from vault/logical to allow custom context
-func (c connectionImpl) read(ctx context.Context, path string) (*api.Secret, error) {
+func (c connectionImpl) read(ctx context.Context, path string, query url.Values) (*api.Secret, error) {
 	r := c.client.NewRequest("GET", "/v1/"+path)
-
+	r.Params = query
 	resp, err := c.client.RawRequestWithContext(ctx, r)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -98,20 +104,6 @@ func (c connectionImpl) read(ctx context.Context, path string) (*api.Secret, err
 	return api.ParseSecret(resp.Body)
 }
 
-func (c connectionImpl) readRaw(ctx context.Context, path string) ([]byte, error) {
-	r := c.client.NewRequest("GET", "/v1/"+path)
-
-	resp, err := c.client.RawRequestWithContext(ctx, r)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return ioutil.ReadAll(resp.Body)
-}
-
 func (c connectionImpl) StoreSecrets(ctx context.Context, path string, secrets map[string]string) (err error) {
 	if _, err = c.write(ctx, path, secrets); err != nil {
 		err = errors.Wrap(err, "Failed to store vault secrets")
@@ -119,10 +111,63 @@ func (c connectionImpl) StoreSecrets(ctx context.Context, path string, secrets m
 	return
 }
 
+func (c connectionImpl) DeleteSecrets(ctx context.Context, p string, request VersionRequest) (err error) {
+	if p[0] == '/' {
+		p = p[1:]
+	}
+	pathParts := strings.Split(p, "/")
+	pathParts = append([]string{pathParts[0], "delete"})
+
+	if _, err = c.write(ctx, p, request); err != nil {
+		err = errors.Wrap(err, "Failed to delete vault secret versions")
+	}
+
+	return
+}
+
 func (c connectionImpl) write(ctx context.Context, path string, requestBody interface{}) (*api.Secret, error) {
 	r := c.client.NewRequest("POST", "/v1/"+path)
 	if err := r.SetJSONBody(requestBody); err != nil {
 		return nil, err
+	}
+
+	ctx, cancelFunc := context.WithCancel(ctx)
+	defer cancelFunc()
+	resp, err := c.client.RawRequestWithContext(ctx, r)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if resp != nil && resp.StatusCode == 404 {
+		secret, parseErr := api.ParseSecret(resp.Body)
+		switch parseErr {
+		case nil:
+		case io.EOF:
+			return nil, nil
+		default:
+			return nil, err
+		}
+		if secret != nil && (len(secret.Warnings) > 0 || len(secret.Data) > 0) {
+			return secret, err
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return api.ParseSecret(resp.Body)
+}
+
+func (c connectionImpl) action(ctx context.Context, method string, path string, requestBody interface{}) (*api.Secret, error) {
+	r := c.client.NewRequest(method, "/v1/"+path)
+	if err := r.SetJSONBody(requestBody); err != nil {
+		return nil, err
+	}
+
+	if method == http.MethodPatch {
+		if r.Headers == nil {
+			r.Headers = make(http.Header)
+		}
+		r.Headers.Set("Content-Type", "application/merge-patch+json")
 	}
 
 	ctx, cancelFunc := context.WithCancel(ctx)
@@ -186,22 +231,133 @@ func (c connectionImpl) delete(ctx context.Context, path string) (*api.Secret, e
 	return api.ParseSecret(resp.Body)
 }
 
+func (c connectionImpl) GetVersionedSecrets(ctx context.Context, p string, version *int) (results map[string]interface{}, err error) {
+	versionKvDataPath := path.Join(c.cfg.KV2.Mount, "data", p)
+	var query url.Values
+	if version != nil {
+		query = make(url.Values)
+		query.Set("version", strconv.Itoa(*version))
+	}
+
+	results = make(types.Pojo)
+	if secrets, err := c.read(ctx, versionKvDataPath, query); err != nil {
+		return nil, errors.Wrap(err, "Failed to list vault secrets")
+	} else if secrets != nil {
+		for key, val := range secrets.Data {
+			results[key] = val
+		}
+	}
+
+	return
+}
+
+func (c connectionImpl) StoreVersionedSecrets(ctx context.Context, p string, request VersionedWriteRequest) (err error) {
+	versionKvDataPath := path.Join(c.cfg.KV2.Mount, "data", p)
+
+	if _, err = c.action(ctx, http.MethodPost, versionKvDataPath, request); err != nil {
+		err = errors.Wrap(err, "Failed to store vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) PatchVersionedSecrets(ctx context.Context, p string, request VersionedWriteRequest) (err error) {
+	versionKvDataPath := path.Join(c.cfg.KV2.Mount, "data", p)
+
+	if _, err = c.action(ctx, http.MethodPatch, versionKvDataPath, request); err != nil {
+		err = errors.Wrap(err, "Failed to patch vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) DeleteVersionedSecretsLatest(ctx context.Context, p string) (err error) {
+	versionKvDataPath := path.Join(c.cfg.KV2.Mount, "data", p)
+
+	if _, err = c.delete(ctx, versionKvDataPath); err != nil {
+		err = errors.Wrap(err, "Failed to delete vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) DeleteVersionedSecrets(ctx context.Context, p string, request VersionRequest) (err error) {
+	versionKvDeletePath := path.Join(c.cfg.KV2.Mount, "delete", p)
+
+	if _, err = c.action(ctx, http.MethodPost, versionKvDeletePath, request); err != nil {
+		err = errors.Wrap(err, "Failed to soft-delete vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) UndeleteVersionedSecrets(ctx context.Context, p string, request VersionRequest) (err error) {
+	versionKvUndeletePath := path.Join(c.cfg.KV2.Mount, "undelete", p)
+
+	if _, err = c.action(ctx, http.MethodPost, versionKvUndeletePath, request); err != nil {
+		err = errors.Wrap(err, "Failed to soft-undelete vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) DestroyVersionedSecrets(ctx context.Context, p string, request VersionRequest) (err error) {
+	versionKvDestroyPath := path.Join(c.cfg.KV2.Mount, "destroy", p)
+
+	if _, err = c.action(ctx, http.MethodPost, versionKvDestroyPath, request); err != nil {
+		err = errors.Wrap(err, "Failed to destroy vault secrets")
+	}
+	return
+}
+
+func (c connectionImpl) GetVersionedMetadata(ctx context.Context, p string) (results VersionedMetadata, err error) {
+	versionKvMetadataPath := path.Join(c.cfg.KV2.Mount, "metadata", p)
+
+	secrets, err := c.read(ctx, versionKvMetadataPath, nil)
+	if err != nil {
+		err = errors.Wrap(err, "Failed to read vault metadata")
+		return
+	}
+
+	if secrets != nil {
+		err = mapstructure.Decode(secrets.Data, &results)
+		if err != nil {
+			err = errors.Wrap(err, "Failed to decode vault metadata")
+		}
+	}
+
+	return
+}
+
+func (c connectionImpl) StoreVersionedMetadata(ctx context.Context, p string, request VersionedMetadataRequest) (err error) {
+	versionKvMetadataPath := path.Join(c.cfg.KV2.Mount, "metadata", p)
+
+	if _, err = c.action(ctx, http.MethodPost, versionKvMetadataPath, request); err != nil {
+		err = errors.Wrap(err, "Failed to store vault secrets metadata")
+	}
+	return
+}
+
+func (c connectionImpl) DeleteVersionedMetadata(ctx context.Context, p string) (err error) {
+	versionKvMetadataPath := path.Join(c.cfg.KV2.Mount, "metadata", p)
+
+	if _, err = c.delete(ctx, versionKvMetadataPath); err != nil {
+		err = errors.Wrap(err, "Failed to delete vault secrets metadata")
+	}
+	return
+}
+
 func (c connectionImpl) CreateTransitKey(ctx context.Context, keyName string, request CreateTransitKeyRequest) (err error) {
-	path := "transit/keys/" + keyName
-	if _, err = c.write(ctx, path, request); err != nil {
+	p := "transit/keys/" + keyName
+	if _, err = c.write(ctx, p, request); err != nil {
 		err = errors.Wrap(err, "Failed to create transit key")
 	}
 	return
 }
 
 func (c connectionImpl) TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error) {
-	path := "/transit/encrypt/" + keyName
+	p := "/transit/encrypt/" + keyName
 
 	data := map[string]interface{}{
 		"plaintext": base64.StdEncoding.EncodeToString([]byte(plaintext)),
 	}
 
-	result, err := c.write(ctx, path, data)
+	result, err := c.write(ctx, p, data)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to encrypt data")
 	}
@@ -256,13 +412,13 @@ func (c connectionImpl) TransitBulkDecrypt(ctx context.Context, keyName string, 
 }
 
 func (c connectionImpl) TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error) {
-	path := "/transit/decrypt/" + keyName
+	p := "/transit/decrypt/" + keyName
 
 	data := map[string]interface{}{
 		"ciphertext": ciphertext,
 	}
 
-	result, err := c.write(ctx, path, data)
+	result, err := c.write(ctx, p, data)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to decrypt data")
 	}
@@ -277,9 +433,9 @@ func (c connectionImpl) TransitDecrypt(ctx context.Context, keyName string, ciph
 }
 
 func (c connectionImpl) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
-	path := c.cfg.Issuer.Mount + "/issue/" + role
+	p := c.cfg.Issuer.Mount + "/issue/" + role
 
-	if secret, err := c.write(ctx, path, request.Data()); err != nil {
+	if secret, err := c.write(ctx, p, request.Data()); err != nil {
 		return nil, errors.Wrap(err, "Failed to issue certificate")
 	} else {
 		crtPEM := []byte(secret.Data["certificate"].(string))
@@ -360,6 +516,20 @@ func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certi
 	}
 
 	return x509.ParseCertificate(pemBlock.Bytes)
+}
+
+func (c connectionImpl) readRaw(ctx context.Context, path string) ([]byte, error) {
+	r := c.client.NewRequest("GET", "/v1/"+path)
+
+	resp, err := c.client.RawRequestWithContext(ctx, r)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 func newConnectionImpl(cfg *ConnectionConfig, client *api.Client) *connectionImpl {

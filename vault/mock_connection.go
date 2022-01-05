@@ -19,22 +19,6 @@ type MockConnection struct {
 	mock.Mock
 }
 
-// Client provides a mock function with given fields:
-func (_m *MockConnection) Client() *api.Client {
-	ret := _m.Called()
-
-	var r0 *api.Client
-	if rf, ok := ret.Get(0).(func() *api.Client); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*api.Client)
-		}
-	}
-
-	return r0
-}
-
 // CreateTransitKey provides a mock function with given fields: ctx, keyName, request
 func (_m *MockConnection) CreateTransitKey(ctx context.Context, keyName string, request CreateTransitKeyRequest) error {
 	ret := _m.Called(ctx, keyName, request)
@@ -42,6 +26,48 @@ func (_m *MockConnection) CreateTransitKey(ctx context.Context, keyName string, 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, CreateTransitKeyRequest) error); ok {
 		r0 = rf(ctx, keyName, request)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteVersionedMetadata provides a mock function with given fields: ctx, path
+func (_m *MockConnection) DeleteVersionedMetadata(ctx context.Context, path string) error {
+	ret := _m.Called(ctx, path)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, path)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteVersionedSecrets provides a mock function with given fields: ctx, path, request
+func (_m *MockConnection) DeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) error {
+	ret := _m.Called(ctx, path, request)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, VersionRequest) error); ok {
+		r0 = rf(ctx, path, request)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DestroyVersionedSecrets provides a mock function with given fields: ctx, path, request
+func (_m *MockConnection) DestroyVersionedSecrets(ctx context.Context, path string, request VersionRequest) error {
+	ret := _m.Called(ctx, path, request)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, VersionRequest) error); ok {
+		r0 = rf(ctx, path, request)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -72,6 +98,27 @@ func (_m *MockConnection) GenerateRandomBytes(ctx context.Context, length int) (
 	return r0, r1
 }
 
+// GetVersionedMetadata provides a mock function with given fields: ctx, path
+func (_m *MockConnection) GetVersionedMetadata(ctx context.Context, path string) (VersionedMetadata, error) {
+	ret := _m.Called(ctx, path)
+
+	var r0 VersionedMetadata
+	if rf, ok := ret.Get(0).(func(context.Context, string) VersionedMetadata); ok {
+		r0 = rf(ctx, path)
+	} else {
+		r0 = ret.Get(0).(VersionedMetadata)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, path)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Health provides a mock function with given fields: ctx
 func (_m *MockConnection) Health(ctx context.Context) (*api.HealthResponse, error) {
 	ret := _m.Called(ctx)
@@ -93,20 +140,6 @@ func (_m *MockConnection) Health(ctx context.Context) (*api.HealthResponse, erro
 	}
 
 	return r0, r1
-}
-
-// Host provides a mock function with given fields:
-func (_m *MockConnection) Host() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
 }
 
 // IssueCertificate provides a mock function with given fields: ctx, role, request
@@ -155,6 +188,29 @@ func (_m *MockConnection) ListSecrets(ctx context.Context, path string) (map[str
 	return r0, r1
 }
 
+// ListVersionedSecrets provides a mock function with given fields: ctx, path, version
+func (_m *MockConnection) ListVersionedSecrets(ctx context.Context, path string, version *int) (map[string]interface{}, error) {
+	ret := _m.Called(ctx, path, version)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *int) map[string]interface{}); ok {
+		r0 = rf(ctx, path, version)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, *int) error); ok {
+		r1 = rf(ctx, path, version)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LoginWithAppRole provides a mock function with given fields: ctx, roleId, secretId
 func (_m *MockConnection) LoginWithAppRole(ctx context.Context, roleId string, secretId string) (string, error) {
 	ret := _m.Called(ctx, roleId, secretId)
@@ -195,6 +251,20 @@ func (_m *MockConnection) LoginWithKubernetes(ctx context.Context, jwt string, r
 	}
 
 	return r0, r1
+}
+
+// PatchVersionedSecrets provides a mock function with given fields: ctx, path, secrets
+func (_m *MockConnection) PatchVersionedSecrets(ctx context.Context, path string, secrets map[string]interface{}) error {
+	ret := _m.Called(ctx, path, secrets)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, map[string]interface{}) error); ok {
+		r0 = rf(ctx, path, secrets)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ReadCaCertificate provides a mock function with given fields: ctx
@@ -278,6 +348,20 @@ func (_m *MockConnection) TransitBulkDecrypt(ctx context.Context, keyName string
 	return r0, r1
 }
 
+// StoreVersionedSecrets provides a mock function with given fields: ctx, path, secrets
+func (_m *MockConnection) StoreVersionedSecrets(ctx context.Context, path string, secrets map[string]interface{}) error {
+	ret := _m.Called(ctx, path, secrets)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, map[string]interface{}) error); ok {
+		r0 = rf(ctx, path, secrets)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // TransitDecrypt provides a mock function with given fields: ctx, keyName, ciphertext
 func (_m *MockConnection) TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (string, error) {
 	ret := _m.Called(ctx, keyName, ciphertext)
@@ -318,4 +402,18 @@ func (_m *MockConnection) TransitEncrypt(ctx context.Context, keyName string, pl
 	}
 
 	return r0, r1
+}
+
+// UndeleteVersionedSecrets provides a mock function with given fields: ctx, path, request
+func (_m *MockConnection) UndeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) error {
+	ret := _m.Called(ctx, path, request)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, VersionRequest) error); ok {
+		r0 = rf(ctx, path, request)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
