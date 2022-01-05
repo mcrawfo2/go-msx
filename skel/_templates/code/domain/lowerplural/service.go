@@ -52,7 +52,7 @@ func (s *lowerCamelSingularService) ListUpperCamelPlural(ctx context.Context,
 	//#else TENANT_DOMAIN
 	results, err := s.lowerCamelSingularRepository.FindAll(ctx)
 	//#endif TENANT_DOMAIN
-	if err != nil {
+	if err == nil {
 		body = s.lowerCamelSingularConverter.ToUpperCamelSingularListResponse(results)
 	}
 	return
