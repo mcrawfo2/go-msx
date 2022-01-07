@@ -19,7 +19,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2021, 12, 19, 18, 36, 18, 57711409, time.UTC),
+			modTime: time.Date(2022, 1, 6, 16, 38, 52, 382163573, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
@@ -153,7 +153,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2021, 12, 19, 18, 36, 18, 63874924, time.UTC),
+			modTime: time.Date(2022, 1, 5, 19, 5, 17, 102977960, time.UTC),
 		},
 		"/webservice/defaults-security-actuator.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-security-actuator.properties",
