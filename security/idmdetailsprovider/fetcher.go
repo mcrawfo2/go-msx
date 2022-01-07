@@ -2,9 +2,9 @@ package idmdetailsprovider
 
 import (
 	"context"
-
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
 type detailsFetcher interface {
@@ -19,11 +19,18 @@ func (t *fastDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 }
 
 func (t *fastDetailsFetcher) FetchActive(ctx context.Context) (bool, error) {
-	details, err := t.fetchUserContextDetails(ctx)
+	userManagementApi, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return false, err
 	}
-	return details.Active, err
+
+	response, err := userManagementApi.GetTokenDetails(true)
+	if err != nil {
+		return false, err
+	}
+
+	payload := response.Payload.(*usermanagement.TokenDetails)
+	return payload.Active, nil
 }
 
 func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*security.UserContextDetails, error) {
@@ -38,7 +45,27 @@ func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*secu
 	}
 
 	payload := response.Payload.(*usermanagement.TokenDetails)
-	return t.toUserContextDetails(payload), nil
+	accessibleTenantsSet := make(types.UUIDSet)
+	accessibleTenantsSet.Add(payload.Tenants...)
+
+	for _, tenantId := range payload.Tenants {
+		_, descendants, e := userManagementApi.GetTenantHierarchyDescendants(tenantId)
+		if e != nil {
+			return nil, e
+		}
+		accessibleTenantsSet.Add(descendants...)
+	}
+
+	accessibleTenants := make([]types.UUID, len(accessibleTenantsSet))
+	i := 0
+	for k := range accessibleTenantsSet {
+		accessibleTenants[i] = types.MustFormatUUID(k[:])
+		i++
+	}
+
+	userContext := t.toUserContextDetails(payload)
+	userContext.Tenants = accessibleTenants //for backward compatibility, set userContext.tenants to the full accessible tenants list
+	return userContext, nil
 }
 
 func (t *fastDetailsFetcher) toUserContextDetails(payload *usermanagement.TokenDetails) *security.UserContextDetails {
