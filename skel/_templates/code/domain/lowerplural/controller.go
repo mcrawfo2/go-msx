@@ -129,7 +129,7 @@ func (c *lowerCamelSingularController) getUpperCamelSingular(svc *restful.WebSer
 
 func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.WebService) *restful.RouteBuilder {
 	type params struct {
-		Request api.UpperCamelSingularCreateRequest `req:"body"`
+		Request api.UpperCamelSingularCreateRequest `req:"body,san"`
 	}
 
 	return svc.POST(pathPrefixUpperCamelPlural).
@@ -165,7 +165,7 @@ func (c *lowerCamelSingularController) createUpperCamelSingular(svc *restful.Web
 func (c *lowerCamelSingularController) updateUpperCamelSingular(svc *restful.WebService) *restful.RouteBuilder {
 	type params struct {
 		UpperCamelSingularId types.UUID                          `req:"path"`
-		Request              api.UpperCamelSingularUpdateRequest `req:"body"`
+		Request              api.UpperCamelSingularUpdateRequest `req:"body,san"`
 	}
 
 	return svc.PUT(pathPrefixUpperCamelPlural + pathSuffixUpperCamelSingularId).
