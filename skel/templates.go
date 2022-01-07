@@ -422,8 +422,8 @@ var staticFiles = map[string]*staticFilesFile{
 		size:  431,
 	},
 	"go.mod.tpl": {
-		data:  "module cto-github.cisco.com/NFV-BU/${app.name}\n\ngo 1.13\n",
-		hash:  "7add4d7481302a0b10895862aced372e456af72eb12acb54ea0b2a5617df7bff",
+		data:  "module cto-github.cisco.com/NFV-BU/${app.name}\n\ngo 1.16\n",
+		hash:  "b02c080e6fc6ed39c8b97125f32e988b85678ca12b8ba9efd07cc31dce110d32",
 		mime:  "application/vnd.groove-tool-template",
 		mtime: time.Unix(1643652005, 0),
 		size:  0,
