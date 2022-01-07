@@ -23,6 +23,7 @@ type SkeletonConfig struct {
 	ServiceType       string `survey:"serviceType" json:"serviceType"`
 	DeploymentGroup   string `survey:"deploymentGroup" json:"deploymentGroup"`
 	KubernetesGroup   string `json:"kubernetesGroup"`
+	SlackChannel      string `survey:"slackChannel" json:"slackChannel"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -58,13 +59,14 @@ var skeletonConfig = &SkeletonConfig{
 	AppName:           "someservice",
 	AppDisplayName:    "Some Microservice",
 	AppDescription:    "Does Something",
-	AppVersion:        "4.1.0",
+	AppVersion:        "4.2.0",
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
 	Repository:        "cassandra",
 	BeatProtocol:      "",
 	ServiceType:       "",
+	SlackChannel:      "go-msx-build",
 }
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
@@ -138,6 +140,14 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			},
 			Validate: survey.Required,
 		},
+		{
+			Name: "slackChannel",
+			Prompt: &survey.Input{
+				Message: "Build notifications slack channel:",
+				Default: skeletonConfig.SlackChannel,
+			},
+			Validate: survey.Required,
+		},
 	},
 	archetypeKeyBeat: {
 		{
@@ -161,6 +171,14 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Prompt: &survey.Input{
 				Message: "Protocol:",
 				Default: "icmp",
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "slackChannel",
+			Prompt: &survey.Input{
+				Message: "Build notifications slack channel:",
+				Default: skeletonConfig.SlackChannel,
 			},
 			Validate: survey.Required,
 		},
@@ -246,8 +264,16 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 		{
 			Name: "serviceType",
 			Prompt: &survey.Input{
-				Message: "Catalog Service Type: ",
+				Message: "Catalog Service Type:",
 				Default: skeletonConfig.ServiceType,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "slackChannel",
+			Prompt: &survey.Input{
+				Message: "Build notifications slack channel:",
+				Default: skeletonConfig.SlackChannel,
 			},
 			Validate: survey.Required,
 		},

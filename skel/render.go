@@ -85,6 +85,7 @@ func NewRenderOptions() RenderOptions {
 			"generator":                    skeletonConfig.Archetype,
 			"beat.protocol":                skeletonConfig.BeatProtocol,
 			"service.type":                 skeletonConfig.ServiceType,
+			"slack.channel":                skeletonConfig.SlackChannel,
 		},
 		Conditions: map[string]bool{
 			"REPOSITORY_COCKROACH": skeletonConfig.Repository == "cockroach",
