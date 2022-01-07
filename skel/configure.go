@@ -63,7 +63,7 @@ var skeletonConfig = &SkeletonConfig{
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
-	Repository:        "cassandra",
+	Repository:        "cockroach",
 	BeatProtocol:      "",
 	ServiceType:       "",
 	SlackChannel:      "go-msx-build",
