@@ -143,6 +143,11 @@ func GenerateJenkinsCi(_ []string) error {
 			SourceFile: "build/ci/config.xml",
 			Format:     FileFormatXml,
 		},
+		{
+			Name:       "Creating checks file",
+			SourceFile: "build/ci/checks.yml",
+			Format:     FileFormatYaml,
+		},
 	}
 
 	return templates.Render(NewRenderOptions())
