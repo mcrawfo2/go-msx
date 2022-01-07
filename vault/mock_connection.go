@@ -225,6 +225,29 @@ func (_m *MockConnection) ListSecrets(ctx context.Context, path string) (map[str
 	return r0, r1
 }
 
+// ListVersionedSecrets provides a mock function with given fields: ctx, path, version
+func (_m *MockConnection) ListVersionedSecrets(ctx context.Context, path string, version *int) (map[string]interface{}, error) {
+	ret := _m.Called(ctx, path, version)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *int) map[string]interface{}); ok {
+		r0 = rf(ctx, path, version)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, *int) error); ok {
+		r1 = rf(ctx, path, version)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LoginWithAppRole provides a mock function with given fields: ctx, roleId, secretId
 func (_m *MockConnection) LoginWithAppRole(ctx context.Context, roleId string, secretId string) (string, error) {
 	ret := _m.Called(ctx, roleId, secretId)
