@@ -31,6 +31,9 @@ state-store:
   target: vault
   path: beats/${info.app.name}
 
+seccomp:
+  enabled: true
+
 server:
   port: 8080
   context-path: ""
