@@ -250,6 +250,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Publish Artifacts') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {
