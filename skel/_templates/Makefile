@@ -122,4 +122,4 @@ ui:
 #endif UI
 
 verify-contract:
-	ccv check
+	ls ccv.yml && ccv check || echo "WARNING! No ccv.yml found"
