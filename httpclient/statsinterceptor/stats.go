@@ -44,9 +44,9 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 
 			if err != nil {
 				counterVecCallErrors.WithLabelValues(operationName, host, path).Inc()
+			} else {
+				counterVecCallCodes.WithLabelValues(operationName, host, path, strconv.Itoa(response.StatusCode)).Inc()
 			}
-
-			counterVecCallCodes.WithLabelValues(operationName, host, path, strconv.Itoa(response.StatusCode)).Inc()
 		}()
 
 		response, err = fn(req)
