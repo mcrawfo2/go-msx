@@ -15,16 +15,25 @@ const (
 	statsHistogramVaultCallTime = "call_time"
 	statsCounterVaultCallErrors = "call_errors"
 
-	statsApiListSecrets         = "listSecrets"
-	statsApiStoreSecrets        = "storeSecrets"
-	statsApiRemoveSecrets       = "removeSecrets"
-	statsApiHealth              = "health"
-	statsApiCreateTransitKey    = "createTransitKey"
-	statsApiTransitEncrypt      = "transitEncrypt"
-	statsApiTransitDecrypt      = "transitDecrypt"
-	statsApiIssueCertificate    = "issueCertificate"
-	statsApiGenerateRandomBytes = "generateRandomBytes"
-	statsApiReadCaCertificate   = "readCaCertificate"
+	statsApiListSecrets              = "listSecrets"
+	statsApiStoreSecrets             = "storeSecrets"
+	statsApiRemoveSecrets            = "removeSecrets"
+	statsApiGetVersionedSecrets      = "getVersionedSecrets"
+	statsApiStoreVersionedSecrets    = "storeVersionedSecrets"
+	statsApiPatchVersionedSecrets    = "patchVersionedSecrets"
+	statsApiDeleteVersionedSecrets   = "deleteVersionedSecrets"
+	statsApiUndeleteVersionedSecrets = "undeleteVersionedSecrets"
+	statsApiDestroyVersionedSecrets  = "destroyVersionedSecrets"
+	statsApiGetVersionedMetadata     = "getVersionedMetadata"
+	statsApiStoreVersionedMetadata   = "storeVersionedMetadata"
+	statsApiDeleteVersionedMetadata  = "deleteVersionedMetadata"
+	statsApiHealth                   = "health"
+	statsApiCreateTransitKey         = "createTransitKey"
+	statsApiTransitEncrypt           = "transitEncrypt"
+	statsApiTransitDecrypt           = "transitDecrypt"
+	statsApiIssueCertificate         = "issueCertificate"
+	statsApiGenerateRandomBytes      = "generateRandomBytes"
+	statsApiReadCaCertificate        = "readCaCertificate"
 )
 
 var (
@@ -73,6 +82,71 @@ func (s statsConnection) StoreSecrets(ctx context.Context, path string, secrets 
 func (s statsConnection) RemoveSecrets(ctx context.Context, path string) (err error) {
 	err = s.Observe(statsApiRemoveSecrets, path, func() error {
 		return s.ConnectionApi.RemoveSecrets(ctx, path)
+	})
+	return
+}
+
+func (s statsConnection) GetVersionedSecrets(ctx context.Context, path string, version *int) (results map[string]interface{}, err error) {
+	err = s.Observe(statsApiGetVersionedSecrets, path, func() error {
+		results, err = s.ConnectionApi.GetVersionedSecrets(ctx, path, version)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) StoreVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error) {
+	err = s.Observe(statsApiStoreVersionedSecrets, path, func() error {
+		return s.ConnectionApi.StoreVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) PatchVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error) {
+	err = s.Observe(statsApiPatchVersionedSecrets, path, func() error {
+		return s.ConnectionApi.PatchVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) DeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = s.Observe(statsApiDeleteVersionedSecrets, path, func() error {
+		return s.ConnectionApi.DeleteVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) UndeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = s.Observe(statsApiUndeleteVersionedSecrets, path, func() error {
+		return s.ConnectionApi.UndeleteVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) DestroyVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = s.Observe(statsApiDestroyVersionedSecrets, path, func() error {
+		return s.ConnectionApi.DestroyVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) GetVersionedMetadata(ctx context.Context, path string) (results VersionedMetadata, err error) {
+	err = s.Observe(statsApiGetVersionedMetadata, path, func() error {
+		results, err = s.ConnectionApi.GetVersionedMetadata(ctx, path)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) StoreVersionedMetadata(ctx context.Context, path string, request VersionedMetadataRequest) (err error) {
+	err = s.Observe(statsApiStoreVersionedMetadata, path, func() error {
+		return s.ConnectionApi.StoreVersionedMetadata(ctx, path, request)
+	})
+	return
+}
+
+func (s statsConnection) DeleteVersionedMetadata(ctx context.Context, path string) (err error) {
+	err = s.Observe(statsApiDeleteVersionedMetadata, path, func() error {
+		return s.ConnectionApi.DeleteVersionedMetadata(ctx, path)
 	})
 	return
 }

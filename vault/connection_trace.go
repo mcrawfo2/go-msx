@@ -36,6 +36,71 @@ func (s traceConnection) RemoveSecrets(ctx context.Context, path string) (err er
 	return
 }
 
+func (s traceConnection) GetVersionedSecrets(ctx context.Context, path string, version *int) (results map[string]interface{}, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiGetVersionedSecrets, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.GetVersionedSecrets(ctx, path, version)
+		return err
+	})
+	return
+}
+
+func (s traceConnection) StoreVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiStoreVersionedSecrets, func(ctx context.Context) error {
+		return s.ConnectionApi.StoreVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) PatchVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiPatchVersionedSecrets, func(ctx context.Context) error {
+		return s.ConnectionApi.PatchVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) DeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiDeleteVersionedSecrets, func(ctx context.Context) error {
+		return s.ConnectionApi.DeleteVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) UndeleteVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiUndeleteVersionedSecrets, func(ctx context.Context) error {
+		return s.ConnectionApi.UndeleteVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) DestroyVersionedSecrets(ctx context.Context, path string, request VersionRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiDestroyVersionedSecrets, func(ctx context.Context) error {
+		return s.ConnectionApi.DestroyVersionedSecrets(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) GetVersionedMetadata(ctx context.Context, path string) (results VersionedMetadata, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiGetVersionedMetadata, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.GetVersionedMetadata(ctx, path)
+		return err
+	})
+	return
+}
+
+func (s traceConnection) StoreVersionedMetadata(ctx context.Context, path string, request VersionedMetadataRequest) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiStoreVersionedMetadata, func(ctx context.Context) error {
+		return s.ConnectionApi.StoreVersionedMetadata(ctx, path, request)
+	})
+	return
+}
+
+func (s traceConnection) DeleteVersionedMetadata(ctx context.Context, path string) (err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiDeleteVersionedMetadata, func(ctx context.Context) error {
+		return s.ConnectionApi.DeleteVersionedMetadata(ctx, path)
+	})
+	return
+}
+
 func (s traceConnection) CreateTransitKey(ctx context.Context, keyName string, request CreateTransitKeyRequest) (err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiCreateTransitKey, func(ctx context.Context) error {
 		return s.ConnectionApi.CreateTransitKey(ctx, keyName, request)
