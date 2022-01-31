@@ -83,6 +83,8 @@ func TestNewConnectionConfig(t *testing.T) {
 					"spring.cloud.vault.ssl.client-key":      "client.key",
 					"spring.cloud.vault.ssl.insecure":        "false",
 					"spring.cloud.vault.issuer.mount":        "/pki/vms",
+					"spring.cloud.vault.kv.mount":            "/secret",
+					"spring.cloud.vault.kv2.mount":           "/v2secret",
 				}),
 			},
 			want: &ConnectionConfig{

@@ -633,6 +633,11 @@ func NewRouteParam(ctx context.Context, route *restful.Route, field reflect.Stru
 
 	tag = field.Tag.Get(sanitizeTag)
 	r.SanitizeOptions = sanitize.NewOptions(tag)
+	if tag != "" {
+		if _, exists := r.Options["san"]; !exists {
+			r.Options["san"] = "true"
+		}
+	}
 
 	return r
 }

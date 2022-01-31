@@ -9,7 +9,7 @@ type UpperCamelSingularCreateRequest struct {
 	//#if TENANT_DOMAIN
 	TenantId types.UUID `json:"tenantId"`
 	//#endif TENANT_DOMAIN
-	Data string `json:"data"`
+	Data string `json:"data" san:"xss"`
 }
 
 func (r *UpperCamelSingularCreateRequest) Validate() error {
@@ -22,7 +22,7 @@ func (r *UpperCamelSingularCreateRequest) Validate() error {
 }
 
 type UpperCamelSingularUpdateRequest struct {
-	Data string `json:"data"`
+	Data string `json:"data" san:"xss"`
 }
 
 func (r *UpperCamelSingularUpdateRequest) Validate() error {

@@ -23,6 +23,9 @@ populate:
   usermanagement.secret-policy.enabled: false
   serviceconfig.enabled: false
 
+seccomp:
+  enabled: true
+
 server:
   port: ${server.port}
   context-path: ${server.contextPath}

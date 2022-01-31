@@ -28,6 +28,8 @@ dist:
 	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) build-executable
+	$(BUILDER) download-seccomp-dependencies
+	$(BUILDER) generate-seccomp-profile
 
 debug:
 	$(BUILDER) build-debug-executable

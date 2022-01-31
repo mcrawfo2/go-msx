@@ -1,0 +1,49 @@
+checks:
+
+  - name: Modules
+    commands:
+      - go: mod download
+        fail: delay
+        retries: 3
+    analyzers:
+      - builtin: go-msx-version
+    fixes:
+      - builtin: go-msx-version-fix
+
+  - name: Vet
+    commands:
+      - make: vet
+        fail: ignore
+    analyzers:
+      - builtin: generate-vet-report
+
+  - name: Test
+    commands:
+      - make: test
+        fail: delay
+    analyzers:
+      - builtin: generate-test-report
+        config:
+          title: 'Microservice Tests'
+
+  - name: Image
+    commands:
+      - make: docker
+        retries: 3
+    analyzers:
+      - builtin: generate-images-report
+
+  - name: Assemblies
+    commands:
+      - make: assemblies
+
+  - name: Deployment
+    commands:
+      - make: deployment
+
+  - name: Manifest
+    commands:
+      - make: manifest
+
+slack:
+  channel: ${slack.channel}

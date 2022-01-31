@@ -35,7 +35,7 @@ func InstallGenerateDependencies(args []string) error {
 		exec.Info("Downloading generator dependencies"),
 		pipe.ChDir(filepath.Join(goPath, "bin")),
 		tarInstall(fmt.Sprintf(
-			"https://github.com/vektra/mockery/releases/download/v2.3.0/mockery_2.3.0_%s_x86_64.tar.gz", goos),
+			"https://github.com/vektra/mockery/releases/download/v2.9.4/mockery_2.9.4_%s_x86_64.tar.gz", goos),
 			"mockery"),
 		goInstall("bou.ke/staticfiles"),
 		pipe.Write(os.Stdout),
