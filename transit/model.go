@@ -26,14 +26,14 @@ func (s *SecureData) cleanValue() (string, error) {
 
 	// Lazy encrypt on dirty write
 	if s.dirty {
-		payload, encrypted, err := encrypterFactory.
+		securePayload, encrypted, err := encrypterFactory.
 			Create(s.ctx, s.keyId).
 			Encrypt(s.payload)
 		if err != nil {
 			return "", err
 		}
 		if encrypted {
-			s.secure = NewSecureValue(s.keyId, payload)
+			s.secure = NewSecureValue(s.keyId, securePayload)
 		} else {
 			s.secure, err = NewValue(s.keyId, s.payload)
 			if err != nil {
@@ -169,6 +169,16 @@ func (s *SecureData) SetKeyId(ctx context.Context, keyId types.UUID) *SecureData
 
 func (s *SecureData) KeyId() types.UUID {
 	return s.keyId
+}
+
+func (s *SecureData) withDecryptedValue(insecureValue Value) (err error) {
+	s.payload, err = insecureValue.Payload()
+	if err != nil {
+		return err
+	}
+	s.dirty = false
+	s.secure = insecureValue
+	return nil
 }
 
 type WithSecureData struct {

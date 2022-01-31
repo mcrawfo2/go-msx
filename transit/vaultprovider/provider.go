@@ -61,6 +61,45 @@ func (p Provider) Decrypt(ctx context.Context, secureValue transit.Value) (value
 	return secureValue.WithDecryptedPayload(plaintext), nil
 }
 
+func (p Provider) DecryptBulk(ctx context.Context, secureValues []transit.Value) (values []transit.Value, err error) {
+	if len(secureValues) == 0 || !p.cfg.Enabled {
+		return secureValues, nil
+	}
+
+	keyName := secureValues[0].KeyName()
+	var payloads []string
+	for _, secureValue := range secureValues {
+		if secureValue.IsEmpty() || !secureValue.IsEncrypted() {
+			continue
+		}
+		payloads = append(payloads, secureValue.RawPayload())
+	}
+
+	var insecurePayloads []string
+	if len(payloads) > 0 {
+		insecurePayloads, err = vault.
+			ConnectionFromContext(ctx).
+			TransitBulkDecrypt(ctx, keyName, payloads...)
+		if err != nil {
+			return
+		}
+	}
+
+	for i,j := 0, 0; i < len(secureValues); i++ {
+		secureValue := secureValues[i]
+		if secureValue.IsEmpty() || !secureValue.IsEncrypted() {
+			values = append(values, secureValue)
+			continue
+		}
+		insecurePayload := insecurePayloads[j]
+		value := secureValues[i].WithDecryptedPayload(insecurePayload)
+		values = append(values, value)
+		j++
+	}
+
+	return
+}
+
 func RegisterVaultTransitProvider(ctx context.Context) error {
 	cfg, err := NewEncryptionConfig(config.FromContext(ctx))
 	if err != nil {

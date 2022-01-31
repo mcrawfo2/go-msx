@@ -64,6 +64,10 @@ func (v Value) IsEmpty() bool {
 	return len(v.payload) == 0
 }
 
+func (v Value) IsEncrypted() bool {
+	return v.encrypted
+}
+
 func (v Value) Payload() (map[string]*string, error) {
 	if v.encrypted {
 		return nil, ErrValueEncrypted

@@ -376,3 +376,77 @@ func TestRegisterVaultTransitProvider(t *testing.T) {
 		})
 	}
 }
+
+func TestProvider_DecryptBulk(t *testing.T) {
+	keyName := "a4b1d114-22fb-4135-9a57-a5b60d06d175"
+	keyId := types.MustParseUUID(keyName)
+
+	cfg := &Config{Enabled: true}
+
+	emptyValue, _ := transit.NewValue(keyId, map[string]*string{})
+	nonEmptyCiphertext := "ABC"
+	nonEmptyPlaintext := `["java.util.HashMap",{"key":"value"}]`
+	nonEmptyDecryptedValue, _ := transit.NewValue(keyId, map[string]*string{
+		"key": types.NewOptionalStringFromString("value").Ptr(),
+	})
+	nonEmptyEncryptedValue := nonEmptyDecryptedValue.WithEncryptedPayload(nonEmptyCiphertext)
+
+	tests := []struct {
+		name         string
+		cfg          *Config
+		ctx          context.Context
+		secureValues []transit.Value
+		wantValues   []transit.Value
+		wantErr      bool
+	}{
+		{
+			name:         "EmptyValue",
+			cfg:          cfg,
+			ctx:          vault.ContextWithConnection(context.Background(), new(vault.MockConnection)),
+			secureValues: []transit.Value{emptyValue},
+			wantValues:   []transit.Value{emptyValue},
+			wantErr:      false,
+		},
+		{
+			name:         "DecryptedValue",
+			cfg:          cfg,
+			ctx:          vault.ContextWithConnection(context.Background(), new(vault.MockConnection)),
+			secureValues: []transit.Value{nonEmptyDecryptedValue},
+			wantValues:   []transit.Value{nonEmptyDecryptedValue},
+			wantErr:      false,
+		},
+		{
+			name: "Success",
+			cfg:  cfg,
+			ctx: func() context.Context {
+				mockConnection := new(vault.MockConnection)
+				mockConnection.
+					On("TransitBulkDecrypt",
+						mock.AnythingOfType("*context.valueCtx"),
+						keyName,
+					nonEmptyCiphertext).
+					Return([]string{
+						nonEmptyPlaintext,
+					}, nil)
+				return vault.ContextWithConnection(context.Background(), mockConnection)
+			}(),
+			secureValues: []transit.Value{nonEmptyEncryptedValue},
+			wantValues:   []transit.Value{nonEmptyDecryptedValue},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Provider{
+				cfg: tt.cfg,
+			}
+			gotValues, err := p.DecryptBulk(tt.ctx, tt.secureValues)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DecryptBulk() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotValues, tt.wantValues) {
+				t.Errorf("DecryptBulk() gotValues = %v, want %v", gotValues, tt.wantValues)
+			}
+		})
+	}
+}
