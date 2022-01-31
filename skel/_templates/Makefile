@@ -120,3 +120,6 @@ ui:
 	cd ui && npm install && npm run build
 
 #endif UI
+
+verify-contract:
+	ls ccv.yml && ccv check || echo "WARNING! No ccv.yml found"
