@@ -2,6 +2,7 @@ package vault
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -47,6 +48,12 @@ func TestNewConnectionConfig(t *testing.T) {
 				},
 				AppRole: ConnectionAppRoleConfig{
 					LoginPath: "/auth/approle/login",
+				},
+				KV: ConnectionKvConfig{
+					Mount: "/secret",
+				},
+				KV2: ConnectionKv2Config{
+					Mount: "/v2secret",
 				},
 			},
 			wantAddress:      "http://localhost:8200",
@@ -101,6 +108,12 @@ func TestNewConnectionConfig(t *testing.T) {
 				AppRole: ConnectionAppRoleConfig{
 					LoginPath: "/auth/approle/login",
 				},
+				KV: ConnectionKvConfig{
+					Mount: "/secret",
+				},
+				KV2: ConnectionKv2Config{
+					Mount: "/v2secret",
+				},
 			},
 			wantClientConfig: false,
 			wantAddress:      "https://remote-vm:9999",
@@ -115,7 +128,7 @@ func TestNewConnectionConfig(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("newConnectionConfig() got = %v, want %v", got, tt.want)
+				t.Errorf(testhelpers.Diff(tt.want, got))
 			}
 			if got != nil {
 				assert.Equal(t, got.Address(), tt.wantAddress)
