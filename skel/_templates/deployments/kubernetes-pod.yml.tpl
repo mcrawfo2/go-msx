@@ -54,9 +54,9 @@ spec:
           name: keystore
         - mountPath: /etc/ssl/certs/ca-certificates.crt
           name: rootcert
-        - mountPath: /certs/zscalerservice-key.pem
+        - mountPath: /certs/${app.name}-key.pem
           name: cockroach-client-sslkey
-        - mountPath: /certs/zscalerservice.pem
+        - mountPath: /certs/${app.name}.pem
           name: cockroach-client-sslcert
   volumes:
     - name: keystore
@@ -66,8 +66,8 @@ spec:
         path: /etc/ssl/certs/ca-bundle.crt
       name: rootcert
     - hostPath:
-        path: /etc/ssl/vms-certs/zscalerservice-key.pem
+        path: /etc/ssl/vms-certs/${app.name}-key.pem
       name: cockroach-client-sslkey
     - hostPath:
-        path: /etc/ssl/vms-certs/zscalerservice.pem
+        path: /etc/ssl/vms-certs/${app.name}.pem
       name: cockroach-client-sslcert
