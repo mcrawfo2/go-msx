@@ -202,6 +202,38 @@ func (_m *MockConnection) IssueCertificate(ctx context.Context, role string, req
 	return r0, r1
 }
 
+// IssueCustomCertificate provides a mock function with given fields: ctx, pki, role, request
+func (_m *MockConnection) IssueCustomCertificate(ctx context.Context, pki string, role string, request IssueCertificateRequest) (*tls.Certificate, *x509.Certificate, error) {
+	ret := _m.Called(ctx, pki, role, request)
+
+	var r0 *tls.Certificate
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, IssueCertificateRequest) *tls.Certificate); ok {
+		r0 = rf(ctx, pki, role, request)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*tls.Certificate)
+		}
+	}
+
+	var r1 *x509.Certificate
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, IssueCertificateRequest) *x509.Certificate); ok {
+		r1 = rf(ctx, pki, role, request)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*x509.Certificate)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, IssueCertificateRequest) error); ok {
+		r2 = rf(ctx, pki, role, request)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // ListSecrets provides a mock function with given fields: ctx, path
 func (_m *MockConnection) ListSecrets(ctx context.Context, path string) (map[string]string, error) {
 	ret := _m.Called(ctx, path)
@@ -297,6 +329,29 @@ func (_m *MockConnection) ReadCaCertificate(ctx context.Context) (*x509.Certific
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReadCustomCaCertificate provides a mock function with given fields: ctx, pki
+func (_m *MockConnection) ReadCustomCaCertificate(ctx context.Context, pki string) (*x509.Certificate, error) {
+	ret := _m.Called(ctx, pki)
+
+	var r0 *x509.Certificate
+	if rf, ok := ret.Get(0).(func(context.Context, string) *x509.Certificate); ok {
+		r0 = rf(ctx, pki)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*x509.Certificate)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, pki)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -182,9 +182,17 @@ func (s statsConnection) TransitBulkDecrypt(ctx context.Context, keyName string,
 	return
 }
 
-func (s statsConnection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
-	err = s.Observe(statsApiIssueCertificate, role, func() error {
-		cert, err = s.ConnectionApi.IssueCertificate(ctx, role, request)
+func (s statsConnection) IssueCustomCertificate(ctx context.Context, pki string, role string, request IssueCertificateRequest) (cert *tls.Certificate, ca *x509.Certificate, err error) {
+	err = s.Observe(statsApiIssueCertificate, pki, func() error {
+		cert, ca, err = s.ConnectionApi.IssueCustomCertificate(ctx, pki, role, request)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) ReadCustomCaCertificate(ctx context.Context, pki string) (cert *x509.Certificate, err error) {
+	err = s.Observe(statsApiReadCaCertificate, pki, func() error {
+		cert, err = s.ConnectionApi.ReadCustomCaCertificate(ctx, pki)
 		return err
 	})
 	return
@@ -193,14 +201,6 @@ func (s statsConnection) IssueCertificate(ctx context.Context, role string, requ
 func (s statsConnection) GenerateRandomBytes(ctx context.Context, length int) (data []byte, err error) {
 	err = s.Observe(statsApiGenerateRandomBytes, "", func() error {
 		data, err = s.ConnectionApi.GenerateRandomBytes(ctx, length)
-		return err
-	})
-	return
-}
-
-func (s statsConnection) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
-	err = s.Observe(statsApiReadCaCertificate, "", func() error {
-		cert, err = s.ConnectionApi.ReadCaCertificate(ctx)
 		return err
 	})
 	return

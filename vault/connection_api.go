@@ -33,9 +33,13 @@ type ConnectionApi interface {
 	TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error)
 	TransitBulkDecrypt(ctx context.Context, keyName string, ciphertext ...string) (plaintext []string, err error)
 
-	// Certificate
+	// Certificate (Default Mount)
 	IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error)
 	ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error)
+
+	// Certificate (Custom Mount)
+	IssueCustomCertificate(ctx context.Context, mount string, role string, request IssueCertificateRequest) (cert *tls.Certificate, ca *x509.Certificate, err error)
+	ReadCustomCaCertificate(ctx context.Context, mount string) (cert *x509.Certificate, err error)
 
 	Health(ctx context.Context) (response *api.HealthResponse, err error)
 

@@ -13,10 +13,18 @@ type IssueCertificateRequest struct {
 }
 
 func (r IssueCertificateRequest) Data() map[string]interface{} {
-	return map[string]interface{}{
+	result := map[string]interface{}{
 		"common_name": r.CommonName,
 		"ttl":         r.Ttl.String(),
-		"alt_names":   strings.Join(r.AltNames, ","),
-		"ip_sans":     strings.Join(r.IpSans, ","),
 	}
+
+	if len(r.AltNames) > 0 {
+		result["alt_names"] = strings.Join(r.AltNames, ",")
+	}
+
+	if len(r.IpSans) > 0 {
+		result["ip_sans"] = strings.Join(r.IpSans, ",")
+	}
+
+	return result
 }

@@ -132,9 +132,17 @@ func (s traceConnection) TransitBulkDecrypt(ctx context.Context, keyName string,
 	return
 }
 
-func (s traceConnection) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
+func (s traceConnection) IssueCustomCertificate(ctx context.Context, pki string, role string, request IssueCertificateRequest) (cert *tls.Certificate, ca *x509.Certificate, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiIssueCertificate, func(ctx context.Context) error {
-		cert, err = s.ConnectionApi.IssueCertificate(ctx, role, request)
+		cert, ca, err = s.ConnectionApi.IssueCustomCertificate(ctx, pki, role, request)
+		return err
+	})
+	return
+}
+
+func (s traceConnection) ReadCustomCaCertificate(ctx context.Context, pki string) (cert *x509.Certificate, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiReadCaCertificate, func(ctx context.Context) error {
+		cert, err = s.ConnectionApi.ReadCustomCaCertificate(ctx, pki)
 		return err
 	})
 	return
@@ -151,14 +159,6 @@ func (s traceConnection) GenerateRandomBytes(ctx context.Context, length int) (d
 func (s traceConnection) Health(ctx context.Context) (response *api.HealthResponse, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiHealth, func(ctx context.Context) error {
 		response, err = s.ConnectionApi.Health(ctx)
-		return err
-	})
-	return
-}
-
-func (s traceConnection) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
-	err = trace.Operation(ctx, tracePrefixVault+statsApiReadCaCertificate, func(ctx context.Context) error {
-		cert, err = s.ConnectionApi.ReadCaCertificate(ctx)
 		return err
 	})
 	return

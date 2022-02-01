@@ -21,6 +21,7 @@ type Provider struct {
 
 // ProviderConfig defines the settings used to interact with Vault PKI
 type ProviderConfig struct {
+	Path     string        `config:"default="`          //Path is for using a non-default PKI provider path in vault
 	Role     string        ``                           //Role is the Vault role with permissions to access PKI.
 	TTL      time.Duration `config:"default=730h"`      //TTL sets requested time to live for certs. can't be longer than PKI's configured default
 	CN       string        ``                           //CN for the certificate request, must be allowed by the role.
@@ -36,11 +37,12 @@ func (f Provider) GetCertificate(ctx context.Context) (*tls.Certificate, error) 
 		IpSans:     f.cfg.IPSans,
 	}
 
-	return vault.ConnectionFromContext(ctx).IssueCertificate(ctx, f.cfg.Role, request)
+	cert, _, err := vault.ConnectionFromContext(ctx).IssueCustomCertificate(ctx, f.cfg.Path, f.cfg.Role, request)
+	return cert, err
 }
 
 func (f Provider) GetCaCertificate(ctx context.Context) (*x509.Certificate, error) {
-	return vault.ConnectionFromContext(ctx).ReadCaCertificate(ctx)
+	return vault.ConnectionFromContext(ctx).ReadCustomCaCertificate(ctx, f.cfg.Path)
 }
 
 func (f Provider) Renewable() bool {
