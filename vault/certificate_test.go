@@ -47,8 +47,6 @@ func TestIssueCertificateRequest_Data(t *testing.T) {
 			want: map[string]interface{}{
 				"common_name": "TestIssueCertificateRequest_Data",
 				"ttl":         "30m0s",
-				"alt_names":   "",
-				"ip_sans":     "",
 			},
 		},
 	}

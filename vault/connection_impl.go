@@ -433,24 +433,65 @@ func (c connectionImpl) TransitDecrypt(ctx context.Context, keyName string, ciph
 }
 
 func (c connectionImpl) IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error) {
-	p := c.cfg.Issuer.Mount + "/issue/" + role
+	cert, _, err = c.IssueCustomCertificate(ctx, c.cfg.Issuer.Mount, role, request)
+	return
+}
 
-	if secret, err := c.write(ctx, p, request.Data()); err != nil {
-		return nil, errors.Wrap(err, "Failed to issue certificate")
+func (c connectionImpl) IssueCustomCertificate(ctx context.Context, mount string, role string, request IssueCertificateRequest) (cert *tls.Certificate, ca *x509.Certificate, err error) {
+	fullPath := path.Join(mount, "issue", role)
+
+	if secret, err := c.write(ctx, fullPath, request.Data()); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to issue certificate")
 	} else {
 		crtPEM := []byte(secret.Data["certificate"].(string))
 		keyPEM := []byte(secret.Data["private_key"].(string))
+		caPEM := []byte(secret.Data["issuing_ca"].(string))
 
 		var converted tls.Certificate
 		converted, err = tls.X509KeyPair(crtPEM, keyPEM)
 		if err != nil {
-			return nil, errors.Wrap(err, "Failed to parse X.509 keypair")
+			return nil, nil, errors.Wrap(err, "Failed to parse X.509 keypair")
 		} else {
 			cert = &converted
+		}
+
+		// Decode the first block (CA cert)
+		pemBlock, _ := pem.Decode(caPEM)
+		if pemBlock == nil || pemBlock.Type != "CERTIFICATE" {
+			return nil, nil, errors.Errorf("Could not decode certificate: found %q", pemBlock.Type)
+		}
+
+		var convertedAuthority *x509.Certificate
+		convertedAuthority, err = x509.ParseCertificate(pemBlock.Bytes)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "Failed to parse X509 ca certificate")
+		} else {
+			ca = convertedAuthority
 		}
 	}
 
 	return
+}
+
+func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
+	return c.ReadCustomCaCertificate(ctx, c.cfg.Issuer.Mount)
+}
+
+func (c connectionImpl) ReadCustomCaCertificate(ctx context.Context, mount string) (cert *x509.Certificate, err error) {
+	fullPath := path.Join(mount, "ca", "pem")
+
+	pemBytes, err := c.readRaw(ctx, fullPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode the first block (CA cert)
+	pemBlock, _ := pem.Decode(pemBytes)
+	if pemBlock == nil || pemBlock.Type != "CERTIFICATE" {
+		return nil, errors.Errorf("Could not decode certificate: found %q", pemBlock.Type)
+	}
+
+	return x509.ParseCertificate(pemBlock.Bytes)
 }
 
 // Health returns a health check of the Vault server.
@@ -501,21 +542,6 @@ func (c connectionImpl) GenerateRandomBytes(ctx context.Context, length int) (da
 		return nil, err
 	}
 	return data, nil
-}
-
-func (c connectionImpl) ReadCaCertificate(ctx context.Context) (cert *x509.Certificate, err error) {
-	pemBytes, err := c.readRaw(ctx, c.cfg.Issuer.Mount+"/ca/pem")
-	if err != nil {
-		return nil, err
-	}
-
-	// Decode the first block (CA cert)
-	pemBlock, _ := pem.Decode(pemBytes)
-	if pemBlock == nil || pemBlock.Type != "CERTIFICATE" {
-		return nil, errors.Errorf("Could not decode certificate: found %q", pemBlock.Type)
-	}
-
-	return x509.ParseCertificate(pemBlock.Bytes)
 }
 
 func (c connectionImpl) readRaw(ctx context.Context, path string) ([]byte, error) {

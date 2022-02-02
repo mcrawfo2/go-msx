@@ -210,7 +210,7 @@ func Test_traceConnection_IssueCertificate(t *testing.T) {
 					mockConnection := new(MockConnection)
 					mockConnection.
 						On("IssueCertificate",
-							mock.AnythingOfType("*context.valueCtx"),
+							mock.AnythingOfType("*context.emptyCtx"),
 							"role",
 							mock.AnythingOfType("IssueCertificateRequest")).
 						Return(&tls.Certificate{}, nil).
@@ -233,7 +233,7 @@ func Test_traceConnection_IssueCertificate(t *testing.T) {
 					mockConnection := new(MockConnection)
 					mockConnection.
 						On("IssueCertificate",
-							mock.AnythingOfType("*context.valueCtx"),
+							mock.AnythingOfType("*context.emptyCtx"),
 							"role",
 							mock.AnythingOfType("IssueCertificateRequest")).
 						Return(nil, errors.New("")).
