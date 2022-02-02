@@ -25,6 +25,7 @@ func init() {
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
 	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
+	AddTarget("generate-github", "Create github configuration files", GenerateGithub)
 	AddTarget("generate-webservices", "Create web services from swagger manifest", GenerateDomainOpenApi)
 }
 
@@ -51,6 +52,7 @@ func GenerateSkeleton(_ []string) error {
 		"generate-goland",
 		"generate-vscode",
 		"generate-jenkins",
+		"generate-github",
 		"generate-git")
 
 	return ExecTargets(generators...)
@@ -536,4 +538,18 @@ func GenerateGit(_ []string) error {
 				exec.Info("- Setting origin"),
 				pipe.Exec("git", "remote", "add", "origin", gitRepositoryUrl)),
 		))
+}
+
+func GenerateGithub(_ []string) error {
+	logger.Info("Generating github repository configuration files")
+	templates := TemplateSet{
+		{
+			Name:       "Creating Pull Request template",
+			SourceFile: "github/pr-template.md",
+			DestFile:   ".github/PULL_REQUEST_TEMPLATE.md",
+			Format:     FileFormatMarkdown,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
 }
