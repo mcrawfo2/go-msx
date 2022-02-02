@@ -1,6 +1,6 @@
 module cto-github.cisco.com/NFV-BU/go-msx
 
-go 1.14
+go 1.16
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.0.5
@@ -19,7 +19,6 @@ require (
 	github.com/elastic/go-seccomp-bpf v1.2.0
 	github.com/emicklei/go-restful v2.14.3+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
