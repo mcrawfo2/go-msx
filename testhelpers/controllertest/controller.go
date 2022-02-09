@@ -36,6 +36,7 @@ type contextKey int
 const contextKeyTesting contextKey = iota
 
 type ControllerFactory func(ctx context.Context) (webservice.RestController, error)
+type EndpointProducerSourceFactory func(ctx context.Context) (webservice.EndpointsController, error)
 
 type ControllerTest struct {
 	Server struct {
@@ -49,8 +50,9 @@ type ControllerTest struct {
 		Body            []byte
 	}
 	Controller struct {
-		RootPath string
-		Factory  ControllerFactory
+		RootPath        string
+		Factory         ControllerFactory
+		EndpointFactory EndpointProducerSourceFactory
 	}
 	Context struct {
 		Base         context.Context
@@ -101,6 +103,11 @@ func (r *ControllerTest) WithControllerRootPath(rootPath string) *ControllerTest
 
 func (r *ControllerTest) WithControllerFactory(factory ControllerFactory) *ControllerTest {
 	r.Controller.Factory = factory
+	return r
+}
+
+func (r *ControllerTest) WithEndpointProducerSourceFactory(factory EndpointProducerSourceFactory) *ControllerTest {
+	r.Controller.EndpointFactory = factory
 	return r
 }
 
@@ -280,9 +287,17 @@ func (r *ControllerTest) Test(t *testing.T) {
 
 	// Create a web server
 	s := r.newWebServer(context.Background(), t)
-	controller, err := r.Controller.Factory(ctx)
-	assert.NoError(t, err)
-	err = s.RegisterRestController(r.Controller.RootPath, controller)
+	if r.Controller.Factory != nil {
+		var controller webservice.RestController
+		controller, err = r.Controller.Factory(ctx)
+		assert.NoError(t, err)
+		err = s.RegisterRestController(r.Controller.RootPath, controller)
+	} else if r.Controller.EndpointFactory != nil {
+		var source webservice.EndpointsController
+		source, err = r.Controller.EndpointFactory(ctx)
+		assert.NoError(t, err)
+		err = s.RegisterEndpointsController(r.Controller.RootPath, source)
+	}
 	assert.NoError(t, err)
 	ctx = webservice.ContextWithWebServerValue(ctx, s)
 	ctx = trace.ContextWithUntracedContext(ctx)

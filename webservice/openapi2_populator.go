@@ -722,3 +722,13 @@ func generateRouteParams(ctx context.Context, route *restful.Route, paramsType r
 
 	return routeParams, nil
 }
+
+func InjectParams(params interface{}) RouteBuilderFunc {
+	return func(builder *restful.RouteBuilder) {
+		builder.Metadata(AttributeParams, params)
+	}
+}
+
+func ParamsFromRoute(route restful.Route) interface{} {
+	return route.Metadata[AttributeParams]
+}

@@ -38,6 +38,10 @@ type StatusError struct {
 }
 
 func NewStatusError(cause error, status int) error {
+	return NewStatusCodeError(cause, status)
+}
+
+func NewStatusCodeError(cause error, status int) StatusCodeError {
 	if cause == nil {
 		cause = errors.New(fmt.Sprintf("Unknown status error: %d", status))
 	}
@@ -86,4 +90,60 @@ func NewInternalError(cause error) error {
 
 func NewConflictError(cause error) error {
 	return NewStatusError(cause, http.StatusConflict)
+}
+
+func NewBadRequestStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusBadRequest)
+}
+
+func NewUnauthorizedStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusUnauthorized)
+}
+
+func NewForbiddenStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusForbidden)
+}
+
+func NewNotFoundStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusNotFound)
+}
+
+func NewInternalStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusInternalServerError)
+}
+
+func NewConflictStatusError(cause error) StatusCodeError {
+	return NewStatusCodeError(cause, http.StatusConflict)
+}
+
+type ErrorRaw interface {
+	SetError(code int, err error, path string)
+}
+
+type ErrorApplier interface {
+	ApplyError(err error)
+}
+
+type ErrorCoder interface {
+	Code() string
+}
+
+type ErrorV8 struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e *ErrorV8) ApplyError(err error) {
+	if errorCoder, ok := err.(ErrorCoder); ok {
+		e.Code = errorCoder.Code()
+	} else {
+		e.Code = "UNKNOWN"
+	}
+
+	e.Message = err.Error()
+}
+
+type StatusCodeError interface {
+	StatusCodeProvider
+	error
 }

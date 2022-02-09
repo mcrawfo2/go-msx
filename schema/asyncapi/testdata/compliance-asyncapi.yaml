@@ -1,0 +1,408 @@
+asyncapi: 2.3.0
+
+info:
+  title: Compliance Service
+  version: 4.3.0
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+channels:
+  COMPLIANCE_EVENT_TOPIC:
+    description: >-
+      Commands originating from the Compliance service.  Compliance implementors
+      should subscribe to the topic and perform the specified action on the enclosed
+      entity.  Responses should be published to COMPLIANCE_UPDATE_TOPIC.
+    subscribe:
+      summary: Receive compliance commands.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/ToggleComplianceRequest'
+          - $ref: '#/components/messages/DriftCheckRequest'
+          - $ref: '#/components/messages/RemediateRequest'
+
+  COMPLIANCE_UPDATE_TOPIC:
+    description: >-
+      Results of commands notifying the Compliance service.  Compliance implementors
+      should publish to this topic after attempting to perform the actions received from
+      COMPLIANCE_EVENT_TOPIC.
+    publish:        
+      summary: Send compliance action results.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/ToggleComplianceResponse'
+          - $ref: '#/components/messages/DriftCheckResponse'
+          - $ref: '#/components/messages/RemediateResponse'
+
+components:
+  messages:
+    ToggleComplianceRequest:
+      summary: Inform about enable/add entity to compliance monitoring.
+      contentType: application/json
+      correlationId:
+        location: "$message.payload#/messageId"
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: ComplianceUpdate
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [enableCompliance,disableCompliance]
+          - $ref: '#/components/schemas/OutBoundMessagePayload'
+        examples:
+          - payload:
+              action: "enableCompliance"
+              entityType: "device"
+              entityId: "404717b8-efb3-423d-ae49-4d7387dcd3fb"
+              domain: "NSO"
+              groupId: "133b4cbd-ecee-3ffa-0098-1251a0045a73"
+              timestamp: "2021-04-19T18:04:35.72272Z"
+
+    DriftCheckRequest:
+      summary: Request consumer to check drift of entity configuration.
+      contentType: application/json
+      correlationId:
+        location: "$message.payload#/messageId"
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: CheckDrift
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [checkDrift]
+          - $ref: '#/components/schemas/OutBoundMessagePayload'
+        examples:
+          - payload:
+              action: "checkDrift"
+              entityType: "device"
+              entityId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+              domain: "nso"
+              groupId: "ba591b0b-ee39-20af-8809-1a4f3437879c"
+              messageId: "ba591b0b-ee39-20af-8809-1a4f3437879c"
+              entityLevelCompliance: "full"
+              standards:
+                - config:
+                  name: "standardConfig-1"
+                  category: "DNS and Logging Configuration Exclusive"
+                  parameters:
+                    - parameter:
+                      name: "sp_domain_name"
+                      value: "cisco.com"
+                    - parameter:
+                      name: "dnsServer1"
+                      value: "208.67.222.222"
+                    - parameter:
+                      name: "dnsServer2"
+                      value: "8.8.8.8"
+
+    RemediateRequest:
+      summary: Request consumer to remediate entity configuration.
+      contentType: application/json
+      correlationId:
+        location: "$message.payload#/messageId"
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: Remediate
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [remediate]
+          - $ref: '#/components/schemas/OutBoundMessagePayload'
+        examples:
+          - payload:
+            action: "remediate"
+            entityType: "device"
+            entityId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+            domain: "nso"
+            groupId: "ba591b0b-ee39-20af-8809-1a4f3437879c"
+            messageId: "ba591b0b-ee39-20af-8809-1a4f3437879c"
+            entityLevelCompliance: "full"
+            standards:
+              - config:
+                name: "standardConfig-1"
+                category: "DNS and Logging Configuration Exclusive"
+                parameters:
+                  - parameter:
+                    name: "sp_domain_name"
+                    value: "cisco.com"
+                  - parameter:
+                    name: "dnsServer1"
+                    value: "208.67.222.222"
+                  - parameter:
+                    name: "dnsServer2"
+                    value: "8.8.8.8"
+
+    ToggleComplianceResponse:
+      summary: response message of toggle compliance monitoring request
+      contentType: application/json
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: ComplianceUpdate
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [enableCompliance, disableCompliance]
+          - $ref: '#/components/schemas/InboundMessagePayload'
+        examples:
+          - payload:
+            timestamp: "2021-04-19T18:04:35.72272Z"
+            entityType: "DEVICE"
+            entityId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+            action: "enableCompliance"
+            status: "success"
+            message: "good job"
+
+    DriftCheckResponse:
+      summary: response message of drift check request
+      contentType: application/json
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: CheckDrift
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [checkDrift]
+          - $ref: '#/components/schemas/InboundMessagePayload'
+        examples:
+          - payload:
+              timestamp: "2021-04-19T18:04:35.72272Z"
+              entityType: "DEVICE"
+              entityId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+              action: "checkDrift"
+              status: "success"
+              message: "good job"
+              messageId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+              drifted: true
+              entityLevelCompliance: full
+              driftedPortion:
+                - config:
+                  name: "standardConfig-1"
+                  category: "DNS and Logging Configuration Exclusive"
+                  parameters:
+                    - parameter:
+                      name: "sp_domain_name"
+                      value: "cisco.com"
+                      standardValue: "test.com"
+                    - parameter:
+                      name: "dnsServer1"
+                      value: "208.67.222.222"
+                      standardValue: "192.168.253.2"
+                    - parameter:
+                      name: "dnsServer2"
+                      value: "208.67.222.10"
+                      standardValue: "8.8.4.5"
+
+    RemediateResponse:
+      summary: response message of remediation request.
+      contentType: application/json
+      headers:
+        allOf:
+          - type: object
+            properties:
+              eventType:
+                const: Remediate
+          - $ref: '#/components/schemas/CommonHeaders'
+      payload:
+        allOf:
+          - type: object
+            properties:
+              action:
+                enum: [ remediate ]
+          - $ref: '#/components/schemas/InboundMessagePayload'
+        examples:
+          - payload:
+              action: "remediate"
+              timestamp: "2021-04-19T18:04:35.72272Z"
+              status: "completed"
+              message: "good job"
+              messageId: "7153c5d7-8c64-4f17-b687-1b0af7f3c9a5"
+
+  schemas:
+    OutBoundMessagePayload:
+      type: object
+      required:
+        - action
+        - entityType
+        - entityId
+        - domain
+        - groupId
+        - timestamp
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        entityType:
+          type: string
+          description: type of managed entity
+        entityId:
+          type: string
+          format: uuid
+        domain:
+          type: string
+          description: domain that manages entity
+        groupId:
+          type: string
+          format: uuid
+          description: id of compliance group
+        timestamp:
+          type: string
+          format: date-time
+        messageId:
+          type: string
+          format: uuid
+        standards:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigPayload'
+        entityLevelCompliance:
+          type: string
+          description: specification of drift check level (standard/device)
+    ConfigPayload:
+      type: object
+      required:
+        - name
+        - category
+        - pendingDrift
+      properties:
+        name:
+          type: string
+          description: standard config name
+        category:
+          type: string
+          description: category name
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
+        difference:
+          type: string
+          description: raw payload of configuration difference
+        diffValues:
+          $ref: '#/components/schemas/DiffValues'
+        pendingDrift:
+          type: boolean
+          description: true for the categories that are sent only to update UFP
+    Parameter:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    DiffValues:
+      type: object
+      properties:
+        xml:
+          type: string
+          description: xml format of configuration difference
+        cli:
+          type: string
+          description: NSO's cli format of configuration difference
+    InboundMessagePayload:
+      type: object
+      required:
+        - action
+        - entityType
+        - status
+        - message
+        - timestamp
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        entityType:
+          type: string
+          description: type of managed entity
+        entityId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          description: status of action result
+        message:
+          type: string
+          description: status meesage of action result
+        timestamp:
+          type: string
+          format: date-time
+        messageId:
+          type: string
+          format: uuid
+        drifted:
+          type: boolean
+          description: flag of drift check result
+        driftedPortion:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigPayload'
+        entityLevelCompliance:
+          type: string
+          description: specification of drift check level (standard/device)
+    InboundConfigPayload:
+      type: object
+      properties:
+        name:
+          type: string
+          description: standard config name
+        category:
+          type: string
+          description: category name
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/InboundParameter'
+        difference:
+          type: string
+          description: raw payload of configuration difference
+        diffValues:
+          $ref: '#/components/schemas/DiffValues'
+    InboundParameter:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        standardValue:
+          type: string
+    EventType:
+      type: string
+      enum: [ CheckDrift, ComplianceUpdate, Remediate ]
+    Action:
+      type: string
+      description: action type
+      enum: [ checkDrift, enableCompliance, disableCompliance, remediate ]
+    CommonHeaders:
+      type: object
+      properties: {}

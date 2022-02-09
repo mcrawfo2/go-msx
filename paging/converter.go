@@ -109,3 +109,17 @@ func (c Converter) SortOrderListToSortOrderResponseList(orders []SortOrder) []So
 	}
 	return results
 }
+
+func ToApiSingleSortBy(orders []SortOrder) string {
+	if len(orders) != 1 {
+		return ""
+	}
+	return orders[0].Property
+}
+
+func ToApiSingleSortOrder(orders []SortOrder) string {
+	if len(orders) != 1 {
+		return ""
+	}
+	return string(orders[0].Direction)
+}

@@ -100,6 +100,40 @@ func (s *WebServer) RegisterRestController(path string, controller RestControlle
 	return nil
 }
 
+type EndpointsController interface {
+	Endpoints() EndpointProducer
+}
+
+func (s *WebServer) RegisterEndpointsController(root string, source EndpointsController) (err error) {
+	return s.RegisterEndpoints(root, source.Endpoints())
+}
+
+// RegisterEndpoints registers the contents of an EndpointProducer
+func (s *WebServer) RegisterEndpoints(root string, producer EndpointProducer) (err error) {
+	svc, err := s.NewService(root)
+	if err != nil {
+		return err
+	}
+
+	for _, endpoint := range producer.Endpoints {
+		//endpoint.Tags = []string{tag.Name}
+		for _, transformer := range producer.Transformers {
+			endpoint = transformer(endpoint)
+		}
+
+		endpoint.Path = svc.RootPath() + endpoint.Path
+
+		rb := endpoint.RouteBuilder(svc)
+		svc.Route(rb)
+
+		routes := svc.Routes()
+		route := routes[len(routes)-1]
+		DocumentRoute(route)
+	}
+
+	return nil
+}
+
 // SetAuthenticationProvider registers the specified AuthenticationProvider
 func (s *WebServer) SetAuthenticationProvider(provider AuthenticationProvider) {
 	if provider != nil {

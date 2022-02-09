@@ -14,6 +14,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/repository/migrate"
 	_ "cto-github.cisco.com/NFV-BU/go-msx/stats/logstats"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -34,6 +35,7 @@ const (
 	CommandMigrate  = "migrate"
 	CommandPopulate = "populate"
 	CommandVersion  = "version"
+	CommandOpenApi  = "openapi"
 
 	configValueFalse = "false"
 )
@@ -78,6 +80,12 @@ func init() {
 
 	if _, err := AddCommand(CommandVersion, "Show version", version.Version, commandVersionInit); err != nil {
 		cli.Fatal(err)
+	}
+
+	if openApiCommand, err := AddCommand(CommandOpenApi, "Generate OpenApi specification", swaggerprovider.GenerateOpenApiSpecCommand, commandOpenApiInit); err != nil {
+		cli.Fatal(err)
+	} else {
+		swaggerprovider.CustomizeOpenApiSpecCommand(openApiCommand)
 	}
 }
 
@@ -138,6 +146,21 @@ func commandVersionInit(context.Context) error {
 		configKeyKafkaEnable:           configValueFalse,
 		configKeyConsulDiscoveryEnable: configValueFalse,
 		configKeyServerEnable:          configValueFalse,
+		configKeyLeaderEnable:          configValueFalse,
+		configKeyCassandraEnable:       configValueFalse,
+		configKeySqlDbEnable:           configValueFalse,
+		configKeyConsulEnable:          configValueFalse,
+		configKeyVaultEnable:           configValueFalse,
+	})
+
+	return nil
+}
+
+func commandOpenApiInit(context.Context) error {
+	OverrideConfig(map[string]string{
+		configKeyRedisEnable:           configValueFalse,
+		configKeyKafkaEnable:           configValueFalse,
+		configKeyConsulDiscoveryEnable: configValueFalse,
 		configKeyLeaderEnable:          configValueFalse,
 		configKeyCassandraEnable:       configValueFalse,
 		configKeySqlDbEnable:           configValueFalse,

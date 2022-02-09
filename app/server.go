@@ -12,6 +12,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/aliveprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/apilistprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/asyncapiprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/authprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/debugprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
@@ -39,6 +40,7 @@ func registerRegistrations(cfg *config.Config) error {
 		OnEvent(EventStart, PhaseBefore, registerDebugWebServices)
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 		OnEvent(EventStart, PhaseBefore, registerApiListWebService)
+		OnEvent(EventStart, PhaseBefore, registerAsyncApiWebService)
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
 		OnEvent(EventStop, PhaseBefore, webservice.Stop)
 	}
@@ -97,4 +99,17 @@ func registerApiListWebService(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func registerAsyncApiWebService(ctx context.Context) error {
+	logger.WithContext(ctx).Info("Registering AsyncApi documentation provider")
+	err := asyncapiprovider.RegisterProvider(ctx)
+
+	switch err {
+	case asyncapiprovider.ErrDisabled:
+		logger.Info("AsyncApi documentation provider disabled")
+		return nil
+	default:
+		return err
+	}
 }

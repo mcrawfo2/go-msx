@@ -63,7 +63,56 @@ func NewOptionalStringFromString(value string) OptionalString {
 	return OptionalString{Value: &value}
 }
 
+type OptionalBool struct {
+	IsValid bool
+	Value   bool
+}
+
+func (b OptionalBool) OrElse(value bool) bool {
+	if b.IsValid {
+		return b.Value
+	}
+	return value
+}
+
+func NewOptionalBool(value *bool) OptionalBool {
+	if value != nil {
+		return OptionalBool{
+			IsValid: true,
+			Value:   *value,
+		}
+	}
+	return OptionalBool{}
+}
+
+func NewOptionalBoolFromBool(value bool) OptionalBool {
+	return OptionalBool{
+		IsValid: true,
+		Value:   value,
+	}
+}
+
+func NewByteSlicePtr(value []byte) *[]byte {
+	return &value
+}
+
 func NewStringPtr(value string) *string {
+	return &value
+}
+
+func NewIntPtr(value int) *int {
+	return &value
+}
+
+func NewBoolPtr(value bool) *bool {
+	return &value
+}
+
+func NewFloatPtr(value float64) *float64 {
+	return &value
+}
+
+func NewTimePtr(value Time) *Time {
 	return &value
 }
 

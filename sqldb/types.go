@@ -14,16 +14,13 @@ import (
 var ErrDataInvalid = errors.New("invalid data")
 var errNotByteArray = errors.Wrap(ErrDataInvalid, "expecting []byte")
 
+// Deprecated
 type MapStrStr map[string]string
 
-// Make the Attrs struct implement the driver.Valuer interface. This method
-// simply returns the JSON-encoded representation of the struct.
 func (a MapStrStr) Value() (driver.Value, error) {
 	return json.Marshal(a)
 }
 
-// Make the Attrs struct implement the sql.Scanner interface. This method
-// simply decodes a JSON-encoded value into the struct fields.
 func (a *MapStrStr) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
@@ -33,6 +30,23 @@ func (a *MapStrStr) Scan(value interface{}) error {
 	return json.Unmarshal(b, &a)
 }
 
+// Deprecated
+type MapStrIface map[string]interface{}
+
+func (a MapStrIface) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *MapStrIface) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &a)
+}
+
+// Deprecated
 type Bytes []byte
 
 func (b Bytes) Value() (driver.Value, error) {

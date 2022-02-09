@@ -19,13 +19,14 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
-	github.com/emicklei/go-restful v2.14.3+incompatible
-	github.com/emicklei/go-restful-openapi v1.2.0
+	github.com/emicklei/go-restful v2.15.0+incompatible
+	github.com/emicklei/go-restful-openapi v1.4.1
+	github.com/fatih/structtag v1.2.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.48.0
-	github.com/go-openapi/spec v0.20.3
+	github.com/go-openapi/spec v0.20.4
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v7 v7.4.1
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
@@ -43,10 +44,10 @@ require (
 	github.com/jackc/puddle v1.2.1
 	github.com/jackpal/gateway v1.0.7
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/opentracing/opentracing-go v1.1.0
@@ -59,6 +60,7 @@ require (
 	github.com/radovskyb/watcher v1.0.7
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
 	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
@@ -66,9 +68,13 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v0.0.0-20190116191733-b6c0e53d7304 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	github.com/swaggest/jsonschema-go v0.3.24
+	github.com/swaggest/openapi-go v0.2.10
+	github.com/swaggest/refl v1.0.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.6.4
 	github.com/uber-go/atomic v1.4.0 // indirect

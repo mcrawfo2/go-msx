@@ -4,7 +4,10 @@
 
 package validate
 
-import "cto-github.cisco.com/NFV-BU/go-msx/types"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"reflect"
+)
 
 type Validatable interface {
 	Validate() error
@@ -18,4 +21,28 @@ func Validate(validatable Validatable) error {
 		}
 	}
 	return err
+}
+
+var validatableInstance Validatable
+var validatableType = reflect.TypeOf(&validatableInstance).Elem()
+
+func ValidateValue(value reflect.Value) error {
+	if value.Type().Implements(validatableType) {
+		return Validate(value.Interface().(Validatable))
+	}
+
+	if value.Kind() == reflect.Ptr {
+		return nil
+	}
+
+	if !value.CanAddr() {
+		return nil
+	}
+
+	value = value.Addr()
+	if value.Type().Implements(validatableType) {
+		return Validate(value.Interface().(Validatable))
+	}
+
+	return nil
 }

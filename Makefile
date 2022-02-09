@@ -25,6 +25,13 @@ vendor:
 generate:
 	$(BUILDER) download-generate-deps
 	$(BUILDER) generate
+	#cat stream/asyncapi/2.3.0-patched.json | \
+	#	docker run -i --rm swaggest/json-cli json-cli gen-go - \
+	#	--package-name asyncapi \
+	#	--root-name Spec \
+	#	--with-zero-values \
+	#	--fluent-setters | \
+	#		grep -v "Deprecated" > stream/asyncapi/entities.go
 
 precommit: generate license
 	$(BUILDER) go-fmt

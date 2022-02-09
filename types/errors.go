@@ -15,7 +15,24 @@ type Filterable interface {
 	Filter() error
 }
 
+type CompositeError interface {
+	Errors() interface{}
+}
+
 type ErrorList []error
+
+func (l ErrorList) Errors() interface{} {
+	var result []interface{}
+	for _, err := range l {
+		switch typedErr := err.(type) {
+		case CompositeError:
+			result = append(result, typedErr.Errors())
+		case error:
+			result = append(result, typedErr.Error())
+		}
+	}
+	return result
+}
 
 func (l ErrorList) Error() string {
 	var buffer bytes.Buffer
@@ -54,6 +71,19 @@ func FilterList(source ErrorList) error {
 }
 
 type ErrorMap map[string]error
+
+func (m ErrorMap) Errors() interface{} {
+	var result map[string]interface{}
+	for k, err := range m {
+		switch typedErr := err.(type) {
+		case CompositeError:
+			result[k] = typedErr.Errors()
+		case error:
+			result[k] = typedErr.Error()
+		}
+	}
+	return result
+}
 
 // Error returns the error string of Errors.
 func (m ErrorMap) Error() string {

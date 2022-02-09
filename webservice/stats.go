@@ -58,7 +58,7 @@ func statsFilter(req *restful.Request, resp *restful.Response, chain *restful.Fi
 
 	err = resp.Error()
 	if err == nil {
-		errInterface := req.Attribute(AttributeError)
+		errInterface := ErrorFromRequest(req)
 		if errInterface != nil {
 			err = errInterface.(error)
 		}

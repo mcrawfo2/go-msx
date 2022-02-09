@@ -126,3 +126,9 @@ func RecoverErrorDecorator(action ActionFunc) ActionFunc {
 		return err
 	}
 }
+
+type OperationFactory interface {
+	New(fn ActionFunc) Operation
+}
+
+type OperationFactoryFunc func(fn ActionFunc) Operation

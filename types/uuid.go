@@ -114,7 +114,6 @@ func MustParseUUID(value string) UUID {
 	return result
 }
 
-
 func EmptyUUID() UUID {
 	return UUID([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 }
@@ -155,3 +154,5 @@ func (s UUIDSet) Contains(u UUID) bool {
 }
 
 type UUIDSlice []UUID
+
+var ExampleUUID = MustParseUUID("3fa85f64-5717-4562-b3fc-2c963f66afa6")

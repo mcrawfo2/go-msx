@@ -6,15 +6,15 @@ package swaggerprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"encoding/json"
 	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful-openapi"
-	"github.com/go-openapi/spec"
+	restfulspec "github.com/emicklei/go-restful-openapi"
+	spec "github.com/go-openapi/spec"
 	"github.com/pkg/errors"
+	yaml2 "gopkg.in/yaml.v2"
 	"sort"
 	"strings"
 )
@@ -51,7 +51,7 @@ func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interfa
 			Name:           "platform",
 			Location:       p.cfg.SwaggerPath + p.cfg.ApiPath,
 			Url:            p.cfg.SwaggerPath + p.cfg.ApiPath,
-			SwaggerVersion: "2.0",
+			SwaggerVersion: p.cfg.Version,
 		},
 	}, nil
 }
@@ -109,8 +109,40 @@ func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{},
 	}, nil
 }
 
-func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err error) {
+func (p SwaggerProvider) Spec(req *restful.Request) (body interface{}, err error) {
 	return p.spec, nil
+}
+
+func (p SwaggerProvider) YamlSpec(_ *restful.Request, response *restful.Response) {
+	specYamlBytes, err := p.RenderYamlSpec()
+	if err != nil {
+		_ = response.WriteError(500, errors.Wrap(err, "Failed to serialize spec to YAML"))
+		return
+	}
+
+	response.AddHeader("Content-Type", webservice.MIME_YAML_CHARSET)
+	response.WriteHeader(200)
+	_, _ = response.Write(specYamlBytes)
+}
+
+func (p SwaggerProvider) RenderYamlSpec() ([]byte, error) {
+	specJsonBytes, err := json.Marshal(p.spec)
+	if err != nil {
+		return nil, err
+	}
+
+	var specYaml = yaml2.MapSlice{}
+	err = yaml2.Unmarshal(specJsonBytes, &specYaml)
+	if err != nil {
+		return nil, err
+	}
+
+	specYamlBytes, err := yaml2.Marshal(specYaml)
+	if err != nil {
+		return nil, err
+	}
+
+	return specYamlBytes, nil
 }
 
 func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
@@ -136,8 +168,13 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	})
 
 	swaggerService.Route(swaggerService.GET(p.cfg.ApiPath).
-		To(webservice.RawController(p.GetSpec)).
+		To(webservice.RawController(p.Spec)).
 		Produces(webservice.MIME_JSON).
+		Do(webservice.Returns(200, 401)))
+
+	swaggerService.Route(swaggerService.GET(p.cfg.ApiYamlPath).
+		To(p.YamlSpec).
+		Produces(webservice.MIME_YAML).
 		Do(webservice.Returns(200, 401)))
 
 	swaggerService.Route(swaggerService.GET("/configuration/security").
@@ -167,6 +204,13 @@ func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *r
 	if p.cfg.Ui.Enabled {
 		webServer := webservice.WebServerFromContext(p.ctx)
 		webServer.RegisterAlias(p.cfg.Ui.Endpoint, p.cfg.Ui.View)
+
+		logger.Infof("Serving Swagger %s on http://%s:%d%s%s",
+			p.cfg.Version,
+			p.cfg.Server.Host,
+			p.cfg.Server.Port,
+			contextPath,
+			p.cfg.Ui.Endpoint)
 	}
 
 	return nil
@@ -259,32 +303,4 @@ func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
 
 		swagger.Definitions[typeName] = *schemaDef
 	}
-}
-
-func RegisterSwaggerProvider(ctx context.Context) error {
-	server := webservice.WebServerFromContext(ctx)
-	if server == nil {
-		return nil
-	}
-
-	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	if !cfg.Enabled {
-		return ErrDisabled
-	}
-
-	appInfo, err := AppInfoFromConfig(config.MustFromContext(ctx))
-	if err != nil {
-		return err
-	}
-
-	server.AddDocumentationProvider(&SwaggerProvider{
-		ctx:     ctx,
-		cfg:     cfg,
-		appInfo: appInfo,
-	})
-	return nil
 }
