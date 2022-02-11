@@ -14,6 +14,7 @@ var (
 func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 	return func(req *http.Request) (*http.Response, error) {
 		ctx := req.Context()
+
 		operationName := httpclient.OperationNameFromContext(ctx)
 		ctx, span := trace.NewSpan(ctx, operationName,
 			trace.StartWithTag(trace.FieldOperation, operationName),
