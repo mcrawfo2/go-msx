@@ -53,7 +53,7 @@ func StartRouter(ctx context.Context) error {
 	registered := 0
 	for topic, topicListeners := range listeners {
 		for _, topicListener := range topicListeners {
-			err = addListener(cfg, topic, topicListener)
+			err = addListener(ctx, topic, topicListener)
 			switch err {
 			case ErrBinderNotEnabled, ErrConsumerNotEnabled:
 				// Ignore
@@ -112,13 +112,13 @@ func StopRouter(context.Context) error {
 	return nil
 }
 
-func addListener(cfg *config.Config, topic string, action ListenerAction) error {
-	subscriber, err := NewSubscriber(cfg, topic)
+func addListener(ctx context.Context, topic string, action ListenerAction) error {
+	subscriber, err := NewSubscriber(ctx, topic)
 	if err != nil {
 		return err
 	}
 
-	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, topic)
+	bindingConfig, err := NewBindingConfigurationFromConfig(config.FromContext(ctx), topic)
 	if err != nil {
 		return err
 	}

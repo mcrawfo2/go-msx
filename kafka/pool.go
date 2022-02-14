@@ -4,10 +4,10 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/Shopify/sarama"
+	"github.com/jackc/puddle"
 	"github.com/pkg/errors"
 	"sync"
 	"time"
-	"vitess.io/vitess/go/pools"
 )
 
 const (
@@ -22,6 +22,7 @@ type ConnectionPoolConfig struct {
 	Capacity           int           `config:"default=1"`
 	MaxCapacity        int           `config:"default=24"`
 	IdleTimeout        time.Duration `config:"default=60s"`
+	IdleCleanup        time.Duration `config:"default=15s"`
 	PrefillParallelism int           `config:"default=0"`
 }
 
@@ -35,24 +36,51 @@ func NewConnectionPoolConfig(cfg *config.Config) (*ConnectionPoolConfig, error) 
 }
 
 type ConnectionPool struct {
-	pool *pools.ResourcePool
-	cfg  *ConnectionConfig
+	pool       *puddle.Pool
+	poolConfig *ConnectionPoolConfig
+	connConfig *ConnectionConfig
+}
+
+func (p *ConnectionPool) IdleCleanup(ctx context.Context) {
+	logger.WithContext(ctx).Info("Starting kafka connection pool idle cleanup.")
+	timer := time.NewTimer(p.poolConfig.IdleCleanup)
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.WithContext(ctx).WithError(ctx.Err()).Info("Stopping kafka connection pool idle cleanup.")
+			return
+
+		case <-timer.C:
+			logger.WithContext(ctx).Debug("Cleaning kafka idle connections")
+			for _, resource := range p.pool.AcquireAllIdle() {
+				if resource.IdleDuration() > p.poolConfig.IdleTimeout {
+					resource.Destroy()
+				} else {
+					resource.ReleaseUnused()
+				}
+			}
+			timer.Reset(p.poolConfig.IdleCleanup)
+		}
+	}
 }
 
 func (p *ConnectionPool) WithConnection(ctx context.Context, action func(*Connection) error) error {
-	connResource, err := p.pool.Get(ctx)
+	connResource, err := p.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
-	conn, ok := connResource.(*Connection)
+	conn, ok := connResource.Value().(*Connection)
 	if !ok {
 		return errors.New("Failed to retrieve connection")
 	}
 
 	defer func() {
 		if !conn.Client().Closed() {
-			p.pool.Put(connResource)
+			connResource.Release()
+		} else {
+			connResource.Destroy()
 		}
 	}()
 
@@ -103,19 +131,24 @@ func (p *ConnectionPool) WithClusterAdmin(ctx context.Context, action func(saram
 	})
 }
 
-func (p *ConnectionPool) connection() (pools.Resource, error) {
-	return NewConnection(p.cfg)
+func (p *ConnectionPool) construct(ctx context.Context) (interface{}, error) {
+	return NewConnection(ctx, p.connConfig)
+}
+
+func (p *ConnectionPool) destruct(res interface{}) {
+	conn := res.(*Connection)
+	conn.Close()
 }
 
 func (p *ConnectionPool) ConnectionConfig() *ConnectionConfig {
-	return p.cfg
+	return p.connConfig
 }
 
 func Pool() *ConnectionPool {
 	return pool
 }
 
-func ConfigurePool(cfg *config.Config) error {
+func ConfigurePool(ctx context.Context) error {
 	poolMtx.Lock()
 	defer poolMtx.Unlock()
 
@@ -123,6 +156,7 @@ func ConfigurePool(cfg *config.Config) error {
 		return nil
 	}
 
+	cfg := config.MustFromContext(ctx)
 	connConfig, err := NewConnectionConfig(cfg)
 	if err != nil {
 		return err
@@ -142,17 +176,18 @@ func ConfigurePool(cfg *config.Config) error {
 	}
 
 	p := ConnectionPool{
-		cfg: connConfig,
+		connConfig: connConfig,
+		poolConfig: poolConfig,
 	}
 
-	p.pool = pools.NewResourcePool(
-		p.connection,
-		poolConfig.Capacity,
-		poolConfig.MaxCapacity,
-		poolConfig.IdleTimeout,
-		poolConfig.PrefillParallelism)
+	p.pool = puddle.NewPool(
+		p.construct,
+		p.destruct,
+		int32(poolConfig.MaxCapacity))
 
 	pool = &p
+
+	go pool.IdleCleanup(ctx)
 
 	return nil
 }

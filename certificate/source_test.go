@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"math/rand"
 	"reflect"
 	"testing"
 	"time"
@@ -113,40 +114,61 @@ func TestSource_setCertificate(t *testing.T) {
 }
 
 func TestSource_period(t *testing.T) {
-	clock := types.NewMockClock()
+	rand.Seed(time.Now().UnixNano())
 
 	tests := []struct {
-		name    string
-		src     *Source
-		wantMin time.Duration
-		wantMax time.Duration
-		wantErr error
+		name string
+		//src        *Source
+		certPeriod time.Duration
+		advance    time.Duration
+		wantMin    time.Duration
+		wantMax    time.Duration
+		wantErr    error
 	}{
 		{
-			name: "ShortCertificate",
-			src: &Source{
-				certificate: generateCertificate(t, clock, 10*time.Minute),
-				clock:       clock,
-			},
-			wantMin: 5*time.Minute + 140*time.Second,
-			wantMax: 5*time.Minute + 225*time.Second,
-			wantErr: nil,
+			name:       "ShortCertificateUp",
+			certPeriod: 10 * time.Minute,
+			advance:    3*time.Minute + 30*time.Second,
+			wantMin:    1*time.Minute + 29*time.Second,
+			wantMax:    1*time.Minute + 45*time.Second,
+			wantErr:    nil,
 		},
 		{
-			name: "LongCertificate",
-			src: &Source{
-				certificate: generateCertificate(t, clock, 30*time.Minute),
-				clock:       clock,
-			},
-			wantMin: 15 * time.Minute,
-			wantMax: 30 * time.Minute,
-			wantErr: nil,
+			name:       "ShortCertificateDegraded",
+			certPeriod: 10 * time.Minute,
+			advance:    5 * time.Minute,
+			wantMin:    1*time.Minute + 0*time.Second,
+			wantMax:    1*time.Minute + 15*time.Second,
+			wantErr:    nil,
+		},
+		{
+			name:       "LongCertificateUp",
+			certPeriod: 30 * time.Minute,
+			advance:    5*time.Minute + 30*time.Second,
+			wantMin:    9*time.Minute + 29*time.Second,
+			wantMax:    9*time.Minute + 45*time.Second,
+			wantErr:    nil,
+		},
+		{
+			name:       "LongCertificateDegraded",
+			certPeriod: 30 * time.Minute,
+			advance:    15 * time.Minute,
+			wantMin:    1*time.Minute + 0*time.Second,
+			wantMax:    1*time.Minute + 15*time.Second,
+			wantErr:    nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := tt.src
+			clock := types.NewMockClock()
+			c := &Source{
+				certificate: generateCertificate(t, clock, tt.certPeriod),
+				clock:       clock,
+			}
+
+			clock.Advance(tt.advance)
+
 			got, gotErr := c.period()
 			if gotErr != tt.wantErr {
 				t.Errorf("Expected error %v; got %v", tt.wantErr, gotErr)

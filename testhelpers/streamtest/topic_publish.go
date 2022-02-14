@@ -71,7 +71,14 @@ func (t *TopicPublishTest) Test(tt *testing.T) {
 
 	mockProvider.
 		On("NewPublisher",
-			mock.AnythingOfType("*config.Config"),
+			mock.AnythingOfType("*context.emptyCtx"),
+			t.TopicName,
+			mock.AnythingOfType("*stream.BindingConfiguration")).
+		Return(mockPublisher, nil)
+
+	mockProvider.
+		On("NewPublisher",
+			mock.AnythingOfType("*context.valueCtx"),
 			t.TopicName,
 			mock.AnythingOfType("*stream.BindingConfiguration")).
 		Return(mockPublisher, nil)

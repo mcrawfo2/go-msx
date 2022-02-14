@@ -202,13 +202,13 @@ func (_m *MockConnection) IssueCertificate(ctx context.Context, role string, req
 	return r0, r1
 }
 
-// IssueCustomCertificate provides a mock function with given fields: ctx, pki, role, request
-func (_m *MockConnection) IssueCustomCertificate(ctx context.Context, pki string, role string, request IssueCertificateRequest) (*tls.Certificate, *x509.Certificate, error) {
-	ret := _m.Called(ctx, pki, role, request)
+// IssueCustomCertificate provides a mock function with given fields: ctx, mount, role, request
+func (_m *MockConnection) IssueCustomCertificate(ctx context.Context, mount string, role string, request IssueCertificateRequest) (*tls.Certificate, *x509.Certificate, error) {
+	ret := _m.Called(ctx, mount, role, request)
 
 	var r0 *tls.Certificate
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, IssueCertificateRequest) *tls.Certificate); ok {
-		r0 = rf(ctx, pki, role, request)
+		r0 = rf(ctx, mount, role, request)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*tls.Certificate)
@@ -217,7 +217,7 @@ func (_m *MockConnection) IssueCustomCertificate(ctx context.Context, pki string
 
 	var r1 *x509.Certificate
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, IssueCertificateRequest) *x509.Certificate); ok {
-		r1 = rf(ctx, pki, role, request)
+		r1 = rf(ctx, mount, role, request)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*x509.Certificate)
@@ -226,7 +226,7 @@ func (_m *MockConnection) IssueCustomCertificate(ctx context.Context, pki string
 
 	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, string, string, IssueCertificateRequest) error); ok {
-		r2 = rf(ctx, pki, role, request)
+		r2 = rf(ctx, mount, role, request)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -336,13 +336,13 @@ func (_m *MockConnection) ReadCaCertificate(ctx context.Context) (*x509.Certific
 	return r0, r1
 }
 
-// ReadCustomCaCertificate provides a mock function with given fields: ctx, pki
-func (_m *MockConnection) ReadCustomCaCertificate(ctx context.Context, pki string) (*x509.Certificate, error) {
-	ret := _m.Called(ctx, pki)
+// ReadCustomCaCertificate provides a mock function with given fields: ctx, mount
+func (_m *MockConnection) ReadCustomCaCertificate(ctx context.Context, mount string) (*x509.Certificate, error) {
+	ret := _m.Called(ctx, mount)
 
 	var r0 *x509.Certificate
 	if rf, ok := ret.Get(0).(func(context.Context, string) *x509.Certificate); ok {
-		r0 = rf(ctx, pki)
+		r0 = rf(ctx, mount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*x509.Certificate)
@@ -351,7 +351,7 @@ func (_m *MockConnection) ReadCustomCaCertificate(ctx context.Context, pki strin
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, pki)
+		r1 = rf(ctx, mount)
 	} else {
 		r1 = ret.Error(1)
 	}

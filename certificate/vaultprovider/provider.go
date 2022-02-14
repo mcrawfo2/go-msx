@@ -29,12 +29,32 @@ type ProviderConfig struct {
 	IPSans   []string      `config:"default=127.0.0.1"` //IPSans is a comma separated list of ipsans for the certificate request, optional
 }
 
+func (c ProviderConfig) IPSANS() []string {
+	var results []string
+	for _, v := range c.IPSans {
+		if v != "" {
+			results = append(results, v)
+		}
+	}
+	return results
+}
+
+func (c ProviderConfig) SANS() []string {
+	var results []string
+	for _, v := range c.AltNames {
+		if v != "" {
+			results = append(results, v)
+		}
+	}
+	return results
+}
+
 func (f Provider) GetCertificate(ctx context.Context) (*tls.Certificate, error) {
 	request := vault.IssueCertificateRequest{
 		CommonName: f.cfg.CN,
 		Ttl:        f.cfg.TTL,
-		AltNames:   f.cfg.AltNames,
-		IpSans:     f.cfg.IPSans,
+		AltNames:   f.cfg.SANS(),
+		IpSans:     f.cfg.IPSANS(),
 	}
 
 	cert, _, err := vault.ConnectionFromContext(ctx).IssueCustomCertificate(ctx, f.cfg.Path, f.cfg.Role, request)

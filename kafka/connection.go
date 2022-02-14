@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"github.com/Shopify/sarama"
@@ -37,8 +37,9 @@ func (c *Connection) Close() {
 	}
 }
 
-func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
-	saramaConfig, err := cfg.SaramaConfig()
+// NewConnection creates a new Connection using the supplied configuration
+func NewConnection(ctx context.Context, cfg *ConnectionConfig) (*Connection, error) {
+	saramaConfig, err := cfg.SaramaConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -47,24 +48,12 @@ func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
 		cfg: cfg,
 	}
 
-	if saramaClient, err := sarama.NewClient(cfg.BrokerAddresses(), saramaConfig); err != nil {
+	saramaClient, err := sarama.NewClient(cfg.BrokerAddresses(), saramaConfig)
+	if err != nil {
 		return nil, err
 	} else {
 		conn.client = saramaClient
 	}
 
 	return conn, nil
-}
-
-func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
-	connectionConfig, err := NewConnectionConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	if !connectionConfig.Enabled {
-		return nil, ErrDisabled
-	}
-
-	return NewConnection(connectionConfig)
 }

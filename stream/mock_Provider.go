@@ -3,7 +3,8 @@
 package stream
 
 import (
-	config "cto-github.cisco.com/NFV-BU/go-msx/config"
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -12,13 +13,13 @@ type MockProvider struct {
 	mock.Mock
 }
 
-// NewPublisher provides a mock function with given fields: cfg, name, configuration
-func (_m *MockProvider) NewPublisher(cfg *config.Config, name string, configuration *BindingConfiguration) (Publisher, error) {
-	ret := _m.Called(cfg, name, configuration)
+// NewPublisher provides a mock function with given fields: ctx, name, configuration
+func (_m *MockProvider) NewPublisher(ctx context.Context, name string, configuration *BindingConfiguration) (Publisher, error) {
+	ret := _m.Called(ctx, name, configuration)
 
 	var r0 Publisher
-	if rf, ok := ret.Get(0).(func(*config.Config, string, *BindingConfiguration) Publisher); ok {
-		r0 = rf(cfg, name, configuration)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *BindingConfiguration) Publisher); ok {
+		r0 = rf(ctx, name, configuration)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(Publisher)
@@ -26,8 +27,8 @@ func (_m *MockProvider) NewPublisher(cfg *config.Config, name string, configurat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*config.Config, string, *BindingConfiguration) error); ok {
-		r1 = rf(cfg, name, configuration)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *BindingConfiguration) error); ok {
+		r1 = rf(ctx, name, configuration)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,13 +36,13 @@ func (_m *MockProvider) NewPublisher(cfg *config.Config, name string, configurat
 	return r0, r1
 }
 
-// NewSubscriber provides a mock function with given fields: cfg, name, configuration
-func (_m *MockProvider) NewSubscriber(cfg *config.Config, name string, configuration *BindingConfiguration) (Subscriber, error) {
-	ret := _m.Called(cfg, name, configuration)
+// NewSubscriber provides a mock function with given fields: ctx, name, configuration
+func (_m *MockProvider) NewSubscriber(ctx context.Context, name string, configuration *BindingConfiguration) (Subscriber, error) {
+	ret := _m.Called(ctx, name, configuration)
 
 	var r0 Subscriber
-	if rf, ok := ret.Get(0).(func(*config.Config, string, *BindingConfiguration) Subscriber); ok {
-		r0 = rf(cfg, name, configuration)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *BindingConfiguration) Subscriber); ok {
+		r0 = rf(ctx, name, configuration)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(Subscriber)
@@ -49,8 +50,8 @@ func (_m *MockProvider) NewSubscriber(cfg *config.Config, name string, configura
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*config.Config, string, *BindingConfiguration) error); ok {
-		r1 = rf(cfg, name, configuration)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *BindingConfiguration) error); ok {
+		r1 = rf(ctx, name, configuration)
 	} else {
 		r1 = ret.Error(1)
 	}
