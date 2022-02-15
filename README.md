@@ -10,7 +10,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 ## Requirements
 
-- Go 1.14+
+- Go 1.16+
 
     - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
         ```bash
@@ -43,7 +43,29 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
               insteadOf = https://cto-github.cisco.com/
       ```
 
+- Skel tool for code generation
+
+    - Check out go-msx into your local workspace:
+        
+        ```bash
+        mkdir -p $HOME/msx && cd $HOME/msx
+        git clone git@cto-github.cisco.com:NFV-BU/go-msx.git
+        cd go-msx
+        go mod download
+        ```
+
+    - Install `skel`:
+  
+        ```bash
+        make install-skel
+        ```
+
 ## Quick Start
+
+- To continue working on an existing go-msx project:
+
+    - Return to the original project README instructions
+      and continue.
 
 - To add go-msx to an existing module-enabled go project:
 
@@ -52,14 +74,11 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     ```
 
 - To create a new go-msx microservice skeleton project:
-    - Install the `skel` generator by running the command below from the `go-msx` directory:
-        ```bash
-        go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
-        ```
-    - Run the `skel` generator:
-        ```bash
-        skel
-        ```
+    
+    ```bash
+    cd $HOME/msx
+    skel
+    ```
 
 ## Contributing
 
