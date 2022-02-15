@@ -419,18 +419,19 @@ func Test_buildTlsConfig(t *testing.T) {
 
 	new(WebServerTest).
 		WithStaticConfig(map[string]string{
-			"server.tls.enabled":                  "true",
-			"server.tls.ca-file":                  "testdata/server.crt",
-			"server.tls.cert-file":                "testdata/server.crt",
-			"server.tls.key-file":                 "testdata/server.key",
-			"server.tls.min-version":              "tls13",
-			"server.tls.cipher-suites":            "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-			"certificate.source.server.provider":  "file",
-			"certificate.source.server.cert-file": "${server.tls.cert-file}",
-			"certificate.source.server.key-file":  "${server.tls.key-file}",
+			"server.tls.enabled":                     "true",
+			"server.tls.ca-file":                     "testdata/server.crt",
+			"server.tls.cert-file":                   "testdata/server.crt",
+			"server.tls.key-file":                    "testdata/server.key",
+			"server.tls.min-version":                 "tls13",
+			"server.tls.cipher-suites":               "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+			"certificate.source.server.provider":     "file",
+			"certificate.source.server.ca-cert-file": "${server.tls.ca-file}",
+			"certificate.source.server.cert-file":    "${server.tls.cert-file}",
+			"certificate.source.server.key-file":     "${server.tls.key-file}",
 		}).
 		WithWebServerVerifier(func(t *testing.T, s *WebServer) {
-			tlsConfig, err := buildTlsConfig(s.ctx, s.cfg)
+			tlsConfig, err := s.cfg.Tls.TlsConfig(s.ctx)
 			assert.NoError(t, err)
 			assert.NotNil(t, tlsConfig)
 			assert.Equal(t, tlsConfig.MinVersion, uint16(tls.VersionTLS13))

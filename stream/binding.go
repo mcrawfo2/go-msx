@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"fmt"
@@ -37,6 +38,15 @@ type ConsumerConfiguration struct {
 	InstanceCount          int     `config:"default=${spring.cloud.stream.default.consumer.instance-count:-1}"`
 }
 
+func NewBindingConfiguration(ctx context.Context, key string) (*BindingConfiguration, error) {
+	cfg := config.FromContext(ctx)
+	if cfg == nil {
+		return nil, config.ErrNotLoaded
+	}
+	return NewBindingConfigurationFromConfig(cfg, key)
+}
+
+// Deprecated: NewBindingConfigurationFromConfig should be replaced with NewBindingConfiguration.
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string) (*BindingConfiguration, error) {
 	prefix := fmt.Sprintf("%s.%s", configRootSubscriberBindings, key)
 

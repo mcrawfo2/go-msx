@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
@@ -18,7 +19,7 @@ func init() {
 }
 
 func NewSaramaClient(config *ConnectionConfig) (sarama.Client, error) {
-	saramaConfig, err := config.SaramaConfig()
+	saramaConfig, err := config.SaramaConfig(context.TODO())
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to configure kafka client")
 	}
@@ -41,7 +42,7 @@ func NewSyncProducer(config *ConnectionConfig) (sarama.SyncProducer, error) {
 }
 
 func NewClusterAdmin(config *ConnectionConfig) (sarama.ClusterAdmin, error) {
-	saramaConfig, err := config.SaramaConfig()
+	saramaConfig, err := config.SaramaConfig(context.TODO())
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to configure kafka client")
 	}

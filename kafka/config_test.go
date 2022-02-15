@@ -1,7 +1,9 @@
 package kafka
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
@@ -42,6 +44,18 @@ func TestNewConnectionConfig(t *testing.T) {
 				ClientIdSuffix:         "XYZABC",
 				Enabled:                false,
 				Partitioner:            "hash",
+				Tls: certificate.TLSConfig{
+					MinVersion:        "tls12",
+					CertificateSource: "server",
+					CipherSuites: []string{
+						"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+						"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+						"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+						"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+						"TLS_RSA_WITH_AES_256_GCM_SHA384",
+						"TLS_RSA_WITH_AES_256_CBC_SHA",
+					},
+				},
 			},
 		},
 		{
@@ -83,6 +97,18 @@ func TestNewConnectionConfig(t *testing.T) {
 				ClientIdSuffix:         "XYZABC",
 				Enabled:                true,
 				Partitioner:            "random",
+				Tls: certificate.TLSConfig{
+					MinVersion:        "tls12",
+					CertificateSource: "server",
+					CipherSuites: []string{
+						"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+						"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+						"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+						"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+						"TLS_RSA_WITH_AES_256_GCM_SHA384",
+						"TLS_RSA_WITH_AES_256_CBC_SHA",
+					},
+				},
 			},
 		},
 	}
@@ -95,7 +121,7 @@ func TestNewConnectionConfig(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewConnectionConfig() got = %v, want %v", got, tt.want)
+				t.Errorf(testhelpers.Diff(tt.want, got))
 			}
 		})
 	}

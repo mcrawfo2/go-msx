@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"fmt"
@@ -19,6 +20,12 @@ type BindingConfiguration struct {
 	StreamBindingConfig *stream.BindingConfiguration `config:"-"`
 }
 
+func NewBindingConfiguration(ctx context.Context, key string, streamBindingConfig *stream.BindingConfiguration) (*BindingConfiguration, error) {
+	cfg := config.FromContext(ctx)
+	return NewBindingConfigurationFromConfig(cfg, key, streamBindingConfig)
+}
+
+// Deprecated: NewBindingConfigurationFromConfig should be replaced by NewBindingConfiguration.
 func NewBindingConfigurationFromConfig(cfg *config.Config, key string, streamBindingConfig *stream.BindingConfiguration) (*BindingConfiguration, error) {
 	prefix := fmt.Sprintf("%s.%s", configRootKafkaBindings, key)
 

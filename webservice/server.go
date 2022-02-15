@@ -3,16 +3,13 @@ package webservice
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
-	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	stdlog "log"
 	"net"
 	"net/http"
@@ -292,7 +289,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 			var tlsConfig *tls.Config
 
 			logger.Infof("Serving on https://%s%s", s.cfg.Address(), s.cfg.ContextPath)
-			tlsConfig, err = buildTlsConfig(s.ctx, s.cfg)
+			tlsConfig, err = s.cfg.Tls.TlsConfig(s.ctx)
 			var ln net.Listener
 			if err == nil {
 				tlsConfig.BuildNameToCertificate()
@@ -361,36 +358,6 @@ func requestContextInjectorFilter(ctx context.Context, container *restful.Contai
 
 		chain.ProcessFilter(req, resp)
 	}
-}
-
-func buildTlsConfig(ctx context.Context, cfg *WebServerConfig) (*tls.Config, error) {
-	ca, err := ioutil.ReadFile(cfg.Tls.CaFile)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to read CA certificate file %q", cfg.Tls.CaFile)
-	}
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(ca)
-
-	ciphers, err := ParseCiphers(cfg.Tls.CipherSuites)
-	if err != nil {
-		return nil, err
-	}
-
-	w, err := certificate.NewSource(ctx, cfg.Tls.CertificateSource)
-	if err != nil {
-		return nil, err
-	}
-
-	tlsconfig := &tls.Config{
-		ClientAuth:     tls.VerifyClientCertIfGiven,
-		ClientCAs:      caCertPool,
-		MinVersion:     TLSLookup[cfg.Tls.MinVersion],
-		CipherSuites:   ciphers,
-		GetCertificate: w.TlsCertificate,
-	}
-
-	return tlsconfig, nil
 }
 
 func (s *WebServer) getTLSListener(tlscfg *tls.Config) (net.Listener, error) {

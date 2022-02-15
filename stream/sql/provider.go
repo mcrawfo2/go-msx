@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
@@ -57,13 +58,13 @@ func (p *Provider) newSqlPublisher() (*sql.Publisher, error) {
 	return sqlPublisher, nil
 }
 
-func (p *Provider) newSqlSubscriber(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (*sql.Subscriber, error) {
+func (p *Provider) newSqlSubscriber(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (*sql.Subscriber, error) {
 	sqlSubscriberDatabase, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}
 
-	bindingConfiguration, err := NewBindingConfigurationFromConfig(cfg, name, streamBinding)
+	bindingConfiguration, err := NewBindingConfiguration(ctx, name, streamBinding)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create binding configuration")
 	}
@@ -89,7 +90,7 @@ func (p *Provider) newSqlSubscriber(cfg *config.Config, name string, streamBindi
 	return sqlSubscriber, nil
 }
 
-func (p *Provider) NewPublisher(_ *config.Config, _ string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
+func (p *Provider) NewPublisher(_ context.Context, _ string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
 	sqlPublisher, err := p.newSqlPublisher()
 	if err != nil {
 		return nil, err
@@ -99,8 +100,8 @@ func (p *Provider) NewPublisher(_ *config.Config, _ string, streamBinding *strea
 	return publisher, nil
 }
 
-func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
-	sqlSubscriber, err := p.newSqlSubscriber(cfg, name, streamBinding)
+func (p *Provider) NewSubscriber(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
+	sqlSubscriber, err := p.newSqlSubscriber(ctx, name, streamBinding)
 	if err != nil {
 		return nil, err
 	}

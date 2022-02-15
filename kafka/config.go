@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"fmt"
 	"github.com/Shopify/sarama"
@@ -31,9 +33,10 @@ type ConnectionConfig struct {
 	ClientIdSuffix         string   `config:"default=${spring.application.instance}"`
 	Enabled                bool     `config:"default=false"`
 	Partitioner            string   `config:"default=hash"`
+	Tls                    certificate.TLSConfig
 }
 
-func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
+func (c *ConnectionConfig) SaramaConfig(ctx context.Context) (*sarama.Config, error) {
 	saramaConfig := sarama.NewConfig()
 	saramaConfig.ClientID = c.ClientId + "-" + c.ClientIdSuffix
 	saramaConfig.Consumer.Fetch.Default = 1024 * 1024
@@ -71,6 +74,16 @@ func (c *ConnectionConfig) SaramaConfig() (*sarama.Config, error) {
 		saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
 	case "manual":
 		saramaConfig.Producer.Partitioner = sarama.NewManualPartitioner
+	}
+
+	if c.Tls.Enabled {
+		tlsConfig, err := c.Tls.TlsConfig(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig.CipherSuites = nil
+		saramaConfig.Net.TLS.Enable = true
+		saramaConfig.Net.TLS.Config = tlsConfig
 	}
 
 	return saramaConfig, nil

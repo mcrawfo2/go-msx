@@ -1,67 +1,13 @@
 package webservice
 
 import (
-	"crypto/tls"
+	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
 )
-
-func TestParseCiphers(t *testing.T) {
-	type args struct {
-		ciphers []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []uint16
-		wantErr bool
-	}{
-		{
-			name: "Single",
-			args: args{
-				ciphers: []string{"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"},
-			},
-			want:    []uint16{tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305},
-			wantErr: false,
-		},
-		{
-			name: "Invalid",
-			args: args{
-				ciphers: []string{"XYZ"},
-			},
-			want:    nil,
-			wantErr: true,
-		},
-		{
-			name: "Ordered",
-			args: args{
-				ciphers: []string{
-					"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
-					"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-				},
-			},
-			want: []uint16{
-				tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseCiphers(tt.args.ciphers)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseCiphers() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseCiphers() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func TestWebServerConfig_Address(t *testing.T) {
 	tests := []struct {
@@ -106,7 +52,7 @@ func TestWebServerConfig_Url(t *testing.T) {
 			cfg: WebServerConfig{
 				Host: "0.0.0.0",
 				Port: 80,
-				Tls: TLSConfig{
+				Tls: certificate.TLSConfig{
 					Enabled: true,
 				},
 			},
@@ -149,11 +95,10 @@ func TestNewWebServerConfig(t *testing.T) {
 				Enabled: false,
 				Host:    "0.0.0.0",
 				Port:    8080,
-				Tls: TLSConfig{
+				Tls: certificate.TLSConfig{
 					Enabled:           false,
 					MinVersion:        "tls12",
 					CertificateSource: "server",
-					CaFile:            "ca.pem",
 					CipherSuites: []string{
 						"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
 						"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
@@ -198,11 +143,10 @@ func TestNewWebServerConfig(t *testing.T) {
 				Enabled: true,
 				Host:    "0.0.0.0",
 				Port:    3030,
-				Tls: TLSConfig{
+				Tls: certificate.TLSConfig{
 					Enabled:           false,
 					MinVersion:        "tls12",
 					CertificateSource: "server",
-					CaFile:            "server.crt",
 					CipherSuites: []string{
 						"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
 						"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",

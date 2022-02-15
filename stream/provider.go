@@ -1,14 +1,14 @@
 package stream
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"context"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 )
 
 type Provider interface {
-	NewPublisher(cfg *config.Config, name string, configuration *BindingConfiguration) (Publisher, error)
-	NewSubscriber(cfg *config.Config, name string, configuration *BindingConfiguration) (Subscriber, error)
+	NewPublisher(ctx context.Context, name string, configuration *BindingConfiguration) (Publisher, error)
+	NewSubscriber(ctx context.Context, name string, configuration *BindingConfiguration) (Subscriber, error)
 }
 
 var (
@@ -22,8 +22,8 @@ func RegisterProvider(name string, provider Provider) {
 }
 
 // NewPublisher creates a Publisher instance based on the specified binding name
-func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
-	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name)
+func NewPublisher(ctx context.Context, name string) (Publisher, error) {
+	bindingConfig, err := NewBindingConfiguration(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
 		return nil, ErrBinderNotEnabled
 	}
 
-	publisher, err := provider.NewPublisher(cfg, name, bindingConfig)
+	publisher, err := provider.NewPublisher(ctx, name, bindingConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,8 @@ func NewPublisher(cfg *config.Config, name string) (Publisher, error) {
 }
 
 // NewSubscriber creates a Subscriber instance based on the specified binding name
-func NewSubscriber(cfg *config.Config, name string) (message.Subscriber, error) {
-	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name)
+func NewSubscriber(ctx context.Context, name string) (message.Subscriber, error) {
+	bindingConfig, err := NewBindingConfiguration(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func NewSubscriber(cfg *config.Config, name string) (message.Subscriber, error) 
 		return nil, ErrBinderNotEnabled
 	}
 
-	subscriber, err := provider.NewSubscriber(cfg, name, bindingConfig)
+	subscriber, err := provider.NewSubscriber(ctx, name, bindingConfig)
 	if err != nil {
 		return nil, err
 	}

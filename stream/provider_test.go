@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
@@ -21,26 +21,26 @@ func registerMockProvider() (*MockPublisher, *MockSubscriber) {
 	mockProvider := new(MockProvider)
 	mockProvider.
 		On("NewPublisher",
-			mock.AnythingOfType("*config.Config"),
+			mock.AnythingOfType("*context.valueCtx"),
 			"mybinding",
 			mock.AnythingOfType("*stream.BindingConfiguration")).
 		Return(mockPublisher, nil)
 	mockProvider.
 		On("NewPublisher",
-			mock.AnythingOfType("*config.Config"),
+			mock.AnythingOfType("*context.valueCtx"),
 			"errbinding",
 			mock.AnythingOfType("*stream.BindingConfiguration")).
 		Return(nil, errPublisher)
 
 	mockProvider.
 		On("NewSubscriber",
-			mock.AnythingOfType("*config.Config"),
+			mock.AnythingOfType("*context.valueCtx"),
 			"mybinding",
 			mock.AnythingOfType("*stream.BindingConfiguration")).
 		Return(mockSubscriber, nil)
 	mockProvider.
 		On("NewSubscriber",
-			mock.AnythingOfType("*config.Config"),
+			mock.AnythingOfType("*context.valueCtx"),
 			"errbinding",
 			mock.AnythingOfType("*stream.BindingConfiguration")).
 		Return(nil, errSubscriber)
@@ -54,7 +54,7 @@ func TestNewPublisher(t *testing.T) {
 	mockPublisher, _ := registerMockProvider()
 
 	type args struct {
-		cfg  *config.Config
+		ctx  context.Context
 		name string
 	}
 	tests := []struct {
@@ -66,7 +66,7 @@ func TestNewPublisher(t *testing.T) {
 		{
 			name: "Exists",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.cloud.stream.bindings.mybinding.binder": "mock",
 					"spring.application.name":                       "TestNewPublisher",
 				}),
@@ -78,7 +78,7 @@ func TestNewPublisher(t *testing.T) {
 		{
 			name: "NotExists",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.application.name": "TestNewPublisher",
 				}),
 				name: "anotherbinding",
@@ -89,7 +89,7 @@ func TestNewPublisher(t *testing.T) {
 		{
 			name: "PublisherFailed",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.cloud.stream.bindings.errbinding.binder": "mock",
 					"spring.application.name":                        "TestNewPublisher",
 				}),
@@ -102,7 +102,7 @@ func TestNewPublisher(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewPublisher(tt.args.cfg, tt.args.name)
+			got, err := NewPublisher(tt.args.ctx, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewPublisher() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -124,7 +124,7 @@ func TestNewSubscriber(t *testing.T) {
 	_, mockSubscriber := registerMockProvider()
 
 	type args struct {
-		cfg  *config.Config
+		ctx  context.Context
 		name string
 	}
 	tests := []struct {
@@ -136,7 +136,7 @@ func TestNewSubscriber(t *testing.T) {
 		{
 			name: "Exists",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.cloud.stream.bindings.mybinding.binder": "mock",
 					"spring.application.name":                       "TestNewSubscriber",
 				}),
@@ -148,7 +148,7 @@ func TestNewSubscriber(t *testing.T) {
 		{
 			name: "NotExists",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.application.name": "TestNewSubscriber",
 				}),
 				name: "anotherbinding",
@@ -159,7 +159,7 @@ func TestNewSubscriber(t *testing.T) {
 		{
 			name: "NotEnabled",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.application.name":                           "TestNewSubscriber",
 					"spring.cloud.stream.default.consumer.auto-startup": "false",
 				}),
@@ -171,7 +171,7 @@ func TestNewSubscriber(t *testing.T) {
 		{
 			name: "SubscriberFailed",
 			args: args{
-				cfg: configtest.NewInMemoryConfig(map[string]string{
+				ctx: configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 					"spring.cloud.stream.bindings.errbinding.binder": "mock",
 					"spring.application.name":                        "TestNewSubscriber",
 				}),
@@ -184,7 +184,7 @@ func TestNewSubscriber(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewSubscriber(tt.args.cfg, tt.args.name)
+			got, err := NewSubscriber(tt.args.ctx, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewSubscriber() error = %v, wantErr %v", err, tt.wantErr)
 				return

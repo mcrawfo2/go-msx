@@ -28,6 +28,10 @@ type Source struct {
 	clock       abtime.AbstractTime
 }
 
+func (c *Source) Provider() Provider {
+	return c.provider
+}
+
 // TlsCertificate fetches the certificate for tls.Config
 func (c *Source) TlsCertificate(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	return c.Certificate(), nil
@@ -85,15 +89,25 @@ func (c *Source) period() (time.Duration, error) {
 		return 0, errors.Wrap(err, "Problem parsing certificate")
 	}
 
-	validity := parsedCert.NotAfter.Sub(time.Now())
-	windowMin, windowMax := int64(0), int64(0)
-	if validity >= 10*time.Minute {
-		windowMin, windowMax = int64(2*time.Minute), int64(5*time.Minute)
-	} else {
-		windowMin, windowMax = int64(validity)*1/4, int64(validity)*3/8
+	validFrom := parsedCert.NotBefore
+	validTo := parsedCert.NotAfter
+	now := c.clock.Now()
+
+	totalValidity := validTo.Sub(validFrom)
+	halfPeriod := 0.5 * float64(totalValidity)
+	validHalf := validFrom.Add(time.Duration(halfPeriod))
+
+	if validHalf.Before(now) {
+		// Retry after 60-75 seconds each time
+		return c.jitter(60, 15), nil
 	}
-	offset := time.Duration(random.Int63n(windowMax-windowMin) + windowMin)
-	return (validity / 2) + offset, nil
+
+	// Sleep until the certificate is half expired
+	return validHalf.Sub(now) + c.jitter(0, 15), nil
+}
+
+func (c *Source) jitter(min, fuzzy int) time.Duration {
+	return (time.Duration(min) + time.Duration(rand.Int63n(int64(fuzzy)))) * time.Second
 }
 
 func (c *Source) renewOnce(ctx context.Context) error {

@@ -23,18 +23,15 @@ var loggerAdapter = stream.NewWatermillLoggerAdapter(loggerWatermillKafka)
 
 type Provider struct{}
 
-func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
-	connectionConfig, err := msxKafka.NewConnectionConfig(cfg)
+func (p *Provider) NewPublisher(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
+	connectionConfig := msxKafka.Pool().ConnectionConfig()
+
+	saramaConfig, err := connectionConfig.SaramaConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	saramaConfig, err := connectionConfig.SaramaConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, name, streamBinding)
+	bindingConfig, err := NewBindingConfiguration(ctx, name, streamBinding)
 	if err != nil {
 		return nil, err
 	}
@@ -44,14 +41,14 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	}
 
 	if connectionConfig.AutoCreateTopics {
-		err = retry.NewRetry(context.Background(), retry.RetryConfig{
+		err = retry.NewRetry(ctx, retry.RetryConfig{
 			Attempts: 3,
 			Delay:    500,
 			BackOff:  0.0,
 			Linear:   true,
 		}).Retry(func() error {
-			return msxKafka.Pool().WithConnection(context.Background(), func(connection *msxKafka.Connection) error {
-				return msxKafka.CreateTopics(context.Background(), connection, streamBinding.Destination)
+			return msxKafka.Pool().WithConnection(ctx, func(connection *msxKafka.Connection) error {
+				return msxKafka.CreateTopics(ctx, connection, streamBinding.Destination)
 			})
 		})
 		if errors.Is(err, ErrTopicAlreadyExists) {
@@ -76,13 +73,9 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	return stream.NewTopicPublisher(publisher, bindingConfig.StreamBindingConfig), nil
 }
 
-func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
-	connectionConfig, err := msxKafka.NewConnectionConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	saramaConfig, err := connectionConfig.SaramaConfig()
+func (p *Provider) NewSubscriber(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
+	connectionConfig := msxKafka.Pool().ConnectionConfig()
+	saramaConfig, err := connectionConfig.SaramaConfig(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
-	OnEvent(EventConfigure, PhaseAfter, withConfig(configureKafkaPool))
+	OnEvent(EventConfigure, PhaseAfter, configureKafkaPool)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(fs.ConfigureFileSystem))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
 }
@@ -141,8 +141,8 @@ func configureRedisPool(cfg *config.Config) error {
 	return nil
 }
 
-func configureKafkaPool(cfg *config.Config) error {
-	if err := kafka.ConfigurePool(cfg); err != nil && err != kafka.ErrDisabled {
+func configureKafkaPool(ctx context.Context) error {
+	if err := kafka.ConfigurePool(ctx); err != nil && err != kafka.ErrDisabled {
 		return err
 	} else if err != kafka.ErrDisabled {
 		RegisterContextInjector(kafka.ContextWithPool)

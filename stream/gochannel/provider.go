@@ -1,6 +1,7 @@
 package gochannel
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
@@ -19,7 +20,7 @@ type Provider struct {
 	channelMtx sync.Mutex
 }
 
-func (p *Provider) channel(cfg *config.Config, key string, streamBinding *stream.BindingConfiguration) (channel *gochannel.GoChannel, err error) {
+func (p *Provider) channel(ctx context.Context, key string, streamBinding *stream.BindingConfiguration) (channel *gochannel.GoChannel, err error) {
 	p.channelMtx.Lock()
 	defer p.channelMtx.Unlock()
 
@@ -27,7 +28,7 @@ func (p *Provider) channel(cfg *config.Config, key string, streamBinding *stream
 		return channel, nil
 	}
 
-	bindingConfig, err := NewBindingConfigurationFromConfig(cfg, key, streamBinding)
+	bindingConfig, err := NewBindingConfiguration(ctx, key, streamBinding)
 	if err != nil {
 		return
 	}
@@ -47,8 +48,8 @@ func (p *Provider) channel(cfg *config.Config, key string, streamBinding *stream
 	return channel, err
 }
 
-func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
-	channel, err := p.channel(cfg, name, streamBinding)
+func (p *Provider) NewPublisher(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (stream.Publisher, error) {
+	channel, err := p.channel(ctx, name, streamBinding)
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +62,8 @@ func (p *Provider) NewPublisher(cfg *config.Config, name string, streamBinding *
 	return publisher, nil
 }
 
-func (p *Provider) NewSubscriber(cfg *config.Config, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
-	channel, err := p.channel(cfg, name, streamBinding)
+func (p *Provider) NewSubscriber(ctx context.Context, name string, streamBinding *stream.BindingConfiguration) (stream.Subscriber, error) {
+	channel, err := p.channel(ctx, name, streamBinding)
 	if err != nil {
 		return nil, err
 	}

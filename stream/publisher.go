@@ -2,7 +2,6 @@ package stream
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"encoding/json"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -21,13 +20,8 @@ func Publish(ctx context.Context, binding string, payload []byte, metadata map[s
 	}
 	msg.SetContext(ctx)
 
-	var cfg *config.Config
-	if cfg = config.FromContext(ctx); cfg == nil {
-		return errors.New("Failed to obtain application config")
-	}
-
 	var publisher Publisher
-	publisher, err = NewPublisher(cfg, binding)
+	publisher, err = NewPublisher(ctx, binding)
 	if err == ErrBinderNotEnabled {
 		return err
 	} else if err != nil {
