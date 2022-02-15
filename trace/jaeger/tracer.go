@@ -131,7 +131,6 @@ func (t *tracer) Extract(carrier trace.TextMapCarrier) (trace.SpanContext, error
 		return nil, errors.Wrap(err, "Failed to extract trace context")
 	}
 
-
 	if traceIdValue == "" {
 		return nil, errors.Wrapf(trace.ErrNoTrace, "Missing %s header", trace.HeaderTraceId)
 	}
@@ -167,7 +166,10 @@ func (t *tracer) Extract(carrier trace.TextMapCarrier) (trace.SpanContext, error
 }
 
 func (t *tracer) Inject(spanContext trace.SpanContext, carrier trace.TextMapCarrier) error {
-	jaegerSpanContext := spanContext.(SpanContext).OpenTracingSpanContext.(jaeger.SpanContext)
+	jaegerSpanContext, ok := spanContext.(SpanContext).OpenTracingSpanContext.(jaeger.SpanContext)
+	if !ok {
+		return opentracing.ErrInvalidSpanContext
+	}
 	carrier.Set(trace.HeaderTraceId, fmt.Sprintf("%016x", jaegerSpanContext.TraceID().Low))
 	carrier.Set(trace.HeaderSpanId, fmt.Sprintf("%016x", uint64(jaegerSpanContext.SpanID())))
 	if jaegerSpanContext.IsSampled() {
