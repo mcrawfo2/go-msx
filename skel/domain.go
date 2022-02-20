@@ -28,6 +28,7 @@ const (
 func init() {
 	AddTarget("generate-domain-system", "Generate system domain implementation", GenerateSystemDomain)
 	AddTarget("generate-domain-tenant", "Generate tenant domain implementation", GenerateTenantDomain)
+	AddTarget("generate-topic-publisher", "Generate publisher topic implementation", GenerateTopicPublisher)
 }
 
 func GenerateSystemDomain(args []string) error {
@@ -54,6 +55,56 @@ func GenerateTenantDomain(args []string) error {
 	}
 
 	return generateDomain(domainName, conditionals)
+}
+
+func GenerateTopicPublisher(args []string) error {
+	if len(args) == 0 {
+		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
+	}
+	topicName := strings.Join(args, " ")
+	inflections := inflect(topicName)
+
+	topicPackageName := inflections[inflectionLowerPlural]
+	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
+	topicPackagePath := path.Join("internal", "stream", topicPackageName)
+	apiPackagePath := path.Join("pkg", "api")
+	apiPackageSource := path.Join("code", "topic", "api")
+	apiPackageUrl := path.Join("cto-github.cisco.com/NFV-BU", skeletonConfig.AppName, apiPackagePath)
+
+	templates := TemplateSet{
+		{
+			Name:       inflections[inflectionTitleSingular] + " Publisher",
+			SourceFile: path.Join(topicPackageSource, "publisher.go"),
+			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "publisher_%s.go"), inflections[inflectionLowerSingular]),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " Producer",
+			SourceFile: path.Join(topicPackageSource, "producer.go"),
+			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "producer_%s.go"), inflections[inflectionLowerSingular]),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " Context",
+			SourceFile: path.Join(topicPackageSource, "context.go"),
+			DestFile:   path.Join(topicPackagePath, "context.go"),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " DTOs",
+			SourceFile: path.Join(apiPackageSource, inflectionLowerPlural+"_message.go"),
+			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[inflectionLowerSingular]),
+		},
+	}
+
+	options := NewRenderOptions()
+	options.AddStrings(inflections)
+	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/topic/api", apiPackageUrl)
+
+	if err := templates.Render(options); err != nil {
+		return err
+	}
+
+	return initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName))
 }
 
 func inflect(title string) map[string]string {
