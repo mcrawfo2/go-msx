@@ -19,11 +19,11 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2022, 2, 14, 16, 39, 23, 193332700, time.UTC),
+			modTime: time.Date(2022, 2, 23, 14, 9, 53, 497622690, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
-			modTime: time.Date(2022, 2, 12, 23, 38, 58, 987712938, time.UTC),
+			modTime: time.Date(2022, 2, 23, 14, 9, 53, 496463968, time.UTC),
 		},
 		"/app/defaults-app.properties": &vfsgen۰FileInfo{
 			name:    "defaults-app.properties",
@@ -32,11 +32,11 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/certificate": &vfsgen۰DirInfo{
 			name:    "certificate",
-			modTime: time.Date(2022, 2, 12, 23, 18, 56, 564684852, time.UTC),
+			modTime: time.Date(2022, 2, 15, 21, 8, 27, 611814237, time.UTC),
 		},
 		"/certificate/defaults-certificate.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-certificate.properties",
-			modTime:          time.Date(2022, 2, 12, 23, 16, 38, 238624346, time.UTC),
+			modTime:          time.Date(2022, 2, 15, 21, 8, 27, 614183107, time.UTC),
 			uncompressedSize: 536,
 
 			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\x41\x0a\xc2\x30\x10\x45\xf7\x3d\xc5\x80\x6e\xdb\x1b\x74\x55\x6f\xd0\x13\x84\x71\x8a\xc1\xc1\x94\xc9\xb4\x20\xd2\xbb\x4b\x42\x42\x14\x6d\xe8\xf6\xff\xf7\xff\xe2\x9d\xe0\x42\x93\x59\x58\x61\x24\x59\x49\x60\x20\x51\x3b\x59\x34\x4a\x30\xba\x45\x90\x1a\x2c\x51\xe7\x63\xd4\xf9\x08\x77\xb3\xb8\xd5\x5e\x49\xa0\x87\xc9\x72\x8d\x44\xd3\x86\xb2\x0d\x18\xf4\x70\x7e\xa5\x5c\xd9\x87\x2e\xc4\x5b\x6d\xbe\xbb\xcd\x45\x6d\x7d\xa7\xe7\xdf\x71\xce\xb7\xa6\x29\x1e\x06\xb6\xf4\xd0\x83\x1e\x30\xc2\x47\x3c\x24\xf2\xc7\xc3\x4d\x75\xce\x25\x3b\x34\xdc\xd6\x74\xe4\x97\xdd\x8b\xba\x8f\x04\x7d\xf9\xf8\x5c\x17\x21\xef\x00\x00\x00\xff\xff\x6d\xd4\x7f\xc7\x18\x02\x00\x00"),
@@ -131,7 +131,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
-			modTime: time.Date(2022, 2, 12, 23, 16, 35, 811081341, time.UTC),
+			modTime: time.Date(2022, 2, 23, 14, 9, 53, 500438746, time.UTC),
 		},
 		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-sqldb.properties",
@@ -153,7 +153,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/webservice": &vfsgen۰DirInfo{
 			name:    "webservice",
-			modTime: time.Date(2022, 2, 12, 23, 16, 38, 240679871, time.UTC),
+			modTime: time.Date(2022, 2, 23, 14, 9, 53, 506877493, time.UTC),
 		},
 		"/webservice/defaults-security-actuator.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-security-actuator.properties",
