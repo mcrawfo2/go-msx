@@ -29,6 +29,7 @@ func init() {
 	AddTarget("generate-domain-system", "Generate system domain implementation", GenerateSystemDomain)
 	AddTarget("generate-domain-tenant", "Generate tenant domain implementation", GenerateTenantDomain)
 	AddTarget("generate-topic-publisher", "Generate publisher topic implementation", GenerateTopicPublisher)
+	AddTarget("generate-topic-subscriber", "Generate subscriber topic implementation", GenerateTopicSubscriber)
 }
 
 func GenerateSystemDomain(args []string) error {
@@ -78,14 +79,9 @@ func GenerateTopicPublisher(args []string) error {
 			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "publisher_%s.go"), inflections[inflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Producer",
-			SourceFile: path.Join(topicPackageSource, "producer.go"),
-			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "producer_%s.go"), inflections[inflectionLowerSingular]),
-		},
-		{
-			Name:       inflections[inflectionTitleSingular] + " Context",
-			SourceFile: path.Join(topicPackageSource, "context.go"),
-			DestFile:   path.Join(topicPackagePath, "context.go"),
+			Name:       inflections[inflectionTitleSingular] + " Package",
+			SourceFile: path.Join(topicPackageSource, "pkg.go"),
+			DestFile:   path.Join(topicPackagePath, "pkg.go"),
 		},
 		{
 			Name:       inflections[inflectionTitleSingular] + " DTOs",
@@ -102,9 +98,74 @@ func GenerateTopicPublisher(args []string) error {
 		return err
 	}
 
-	return initializePackageFromFile(
+	if err := initializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
-		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName))
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName)); err != nil {
+		return err
+	}
+
+	topicPackageAbsPath := filepath.Join(skeletonConfig.TargetDirectory(), topicPackagePath)
+	return GoGenerate(topicPackageAbsPath)
+}
+
+func GenerateTopicSubscriber(args []string) error {
+	if len(args) == 0 {
+		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
+	}
+	topicName := strings.Join(args, " ")
+	inflections := inflect(topicName)
+
+	topicPackageName := inflections[inflectionLowerPlural]
+	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
+	topicPackagePath := path.Join("internal", "stream", topicPackageName)
+	apiPackagePath := path.Join("pkg", "api")
+	apiPackageSource := path.Join("code", "topic", "api")
+	apiPackageUrl := path.Join("cto-github.cisco.com/NFV-BU", skeletonConfig.AppName, apiPackagePath)
+
+	templates := TemplateSet{
+		{
+			Name:       inflections[inflectionTitleSingular] + " Subscriber",
+			SourceFile: path.Join(topicPackageSource, "subscriber.go"),
+			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "subscriber_%s.go"), inflections[inflectionLowerSingular]),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " Package",
+			SourceFile: path.Join(topicPackageSource, "pkg.go"),
+			DestFile:   path.Join(topicPackagePath, "pkg.go"),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " DTOs",
+			SourceFile: path.Join(apiPackageSource, inflectionLowerPlural+"_message.go"),
+			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[inflectionLowerSingular]),
+		},
+	}
+
+	options := NewRenderOptions()
+	options.AddStrings(inflections)
+	options.AddString("cto-github.cisco.com/NFV-BU/go-msx/skel/_templates/code/topic/api", apiPackageUrl)
+
+	if err := templates.Render(options); err != nil {
+		return err
+	}
+
+	if err := initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName)); err != nil {
+		return err
+	}
+
+	var deps []string
+	deps = append(deps,
+		"github.com/ThreeDotsLabs/watermill/message",
+		"github.com/pkg/errors",
+		"github.com/stretchr/testify@v1.7.0")
+
+	if err := AddDependencies(deps); err != nil {
+		return err
+	}
+
+	topicPackageAbsPath := filepath.Join(skeletonConfig.TargetDirectory(), topicPackagePath)
+	return GoGenerate(topicPackageAbsPath)
 }
 
 func inflect(title string) map[string]string {
