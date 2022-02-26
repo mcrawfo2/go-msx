@@ -48,12 +48,13 @@ func (cfg *TLSConfig) TlsConfig(ctx context.Context) (result *tls.Config, err er
 	}
 
 	result = &tls.Config{
-		ClientAuth:         tls.VerifyClientCertIfGiven,
-		ClientCAs:          caCertPool,
-		MinVersion:         tlsVersions[cfg.MinVersion],
-		CipherSuites:       ciphers,
-		GetCertificate:     w.TlsCertificate,
-		InsecureSkipVerify: cfg.InsecureSkipVerify,
+		ClientAuth:           tls.VerifyClientCertIfGiven,
+		ClientCAs:            caCertPool,
+		MinVersion:           tlsVersions[cfg.MinVersion],
+		CipherSuites:         ciphers,
+		GetCertificate:       w.TlsCertificate,
+		GetClientCertificate: w.TlsClientCertificate,
+		InsecureSkipVerify:   cfg.InsecureSkipVerify,
 	}
 
 	return

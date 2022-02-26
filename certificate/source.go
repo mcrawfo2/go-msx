@@ -32,8 +32,13 @@ func (c *Source) Provider() Provider {
 	return c.provider
 }
 
-// TlsCertificate fetches the certificate for tls.Config
+// TlsCertificate fetches the server certificate for tls.Config
 func (c *Source) TlsCertificate(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	return c.Certificate(), nil
+}
+
+// TlsClientCertificate fetches the client certificate for tls.Config
+func (c *Source) TlsClientCertificate(info *tls.CertificateRequestInfo) (*tls.Certificate, error) {
 	return c.Certificate(), nil
 }
 
