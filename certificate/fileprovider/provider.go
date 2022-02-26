@@ -66,7 +66,7 @@ func (p ProviderFactory) New(ctx context.Context, configRoot string) (certificat
 }
 
 func RegisterFactory(ctx context.Context) error {
-	logger.Info("Registering file certificate provider")
+	logger.WithContext(ctx).Info("Registering file certificate provider")
 
 	certificate.RegisterProviderFactory(new(ProviderFactory))
 	return nil

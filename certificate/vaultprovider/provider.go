@@ -89,11 +89,11 @@ func (p ProviderFactory) New(ctx context.Context, configRoot string) (certificat
 func RegisterFactory(ctx context.Context) error {
 	vaultEnabled, _ := config.MustFromContext(ctx).BoolOr("spring.cloud.vault.enabled", false)
 	if !vaultEnabled {
-		logger.Warn("Not registering vault certificate provider: vault is disabled")
+		logger.WithContext(ctx).Warn("Not registering vault certificate provider: vault is disabled")
 		return nil
 	}
 
-	logger.Info("Registering vault certificate provider")
+	logger.WithContext(ctx).Info("Registering vault certificate provider")
 	certificate.RegisterProviderFactory(new(ProviderFactory))
 	return nil
 }
