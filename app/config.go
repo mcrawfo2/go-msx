@@ -29,6 +29,7 @@ const (
 	SourceEmbeddedDefaults = "EmbeddedDefaults"
 	SourceDefaults         = "SpringDefaults"
 	SourceDefault          = "Default"
+	SourceNetwork          = "Network"
 
 	configKeyAppName     = "spring.application.name"
 	configKeyAppInstance = "spring.application.instance"
@@ -44,6 +45,7 @@ type Sources struct {
 	Default           config.Provider
 	DefaultsFiles     []config.Provider
 	DefaultsResources []config.Provider
+	Network           config.Provider
 	FileSystemFiles   []config.Provider
 	BootstrapFiles    []config.Provider
 	ApplicationFiles  []config.Provider
@@ -73,6 +75,7 @@ func (c Sources) Providers() []config.Provider {
 	sourcesList.Append(c.Default)
 	sourcesList.Append(c.DefaultsFiles...)
 	sourcesList.Append(c.DefaultsResources...)
+	sourcesList.Append(c.Network)
 	sourcesList.Append(c.FileSystemFiles...)
 	sourcesList.Append(c.BootstrapFiles...)
 	sourcesList.Append(c.ApplicationFiles...)
@@ -112,6 +115,10 @@ func newEmbeddedDefaultsProviders() []config.Provider {
 
 func newDefaultsFilesProviders(_ *config.Config) []config.Provider {
 	return config.NewFileProvidersFromGlob(SourceDefaults, "defaults-*")
+}
+
+func newNetworkProvider() config.Provider {
+	return config.NewCacheProvider(config.NewNetworkProvider())
 }
 
 func newFileSystemProviders() []config.Provider {
@@ -239,6 +246,7 @@ func loadConfig(ctx context.Context) (err error) {
 	sources := &Sources{
 		Default:           newDefaultsProvider(),
 		DefaultsResources: newEmbeddedDefaultsProviders(),
+		Network:           newNetworkProvider(),
 		FileSystemFiles:   newFileSystemProviders(),
 		Sources:           newSourcesProvider(),
 		Environment:       newEnvironmentProvider(),

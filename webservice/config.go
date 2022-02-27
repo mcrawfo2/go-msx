@@ -8,7 +8,7 @@ import (
 
 type WebServerConfig struct {
 	Enabled       bool   `config:"default=false"`
-	Host          string `config:"default=0.0.0.0"`
+	Host          string `config:"default=${network.outbound.address}"`
 	Port          int    `config:"default=8080"`
 	Tls           certificate.TLSConfig
 	Cors          CorsConfig
