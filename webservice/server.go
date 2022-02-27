@@ -275,7 +275,7 @@ func (s *WebServer) Serve(ctx context.Context) error {
 	s.SetContext(ctx)
 
 	s.server = &http.Server{
-		Addr:     s.cfg.Address(),
+		Addr:     s.cfg.GenericAddress(),
 		Handler:  s.Handler(),
 		ErrorLog: stdlog.New(logger.Level(logrus.ErrorLevel).(*log.LevelLogger), "", 0),
 	}

@@ -29,6 +29,10 @@ func (c WebServerConfig) Address() string {
 	return c.Host + ":" + strconv.Itoa(c.Port)
 }
 
+func (c WebServerConfig) GenericAddress() string {
+	return "0.0.0.0:" + strconv.Itoa(c.Port)
+}
+
 func (c WebServerConfig) Url() string {
 	if c.Tls.Enabled {
 		return "https://" + c.Address() + c.ContextPath
