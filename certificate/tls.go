@@ -52,6 +52,7 @@ func (cfg *TLSConfig) TlsConfig(ctx context.Context) (result *tls.Config, err er
 		ClientCAs:            caCertPool,
 		MinVersion:           tlsVersions[cfg.MinVersion],
 		CipherSuites:         ciphers,
+		RootCAs:              caCertPool,
 		GetCertificate:       w.TlsCertificate,
 		GetClientCertificate: w.TlsClientCertificate,
 		InsecureSkipVerify:   cfg.InsecureSkipVerify,
