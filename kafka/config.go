@@ -33,7 +33,6 @@ type ConnectionConfig struct {
 	ClientIdSuffix         string   `config:"default=${spring.application.instance}"`
 	Enabled                bool     `config:"default=false"`
 	Partitioner            string   `config:"default=hash"`
-	BrokerCertName         string   `config:"default=kafka"`
 	Tls                    certificate.TLSConfig
 }
 
@@ -83,7 +82,6 @@ func (c *ConnectionConfig) SaramaConfig(ctx context.Context) (*sarama.Config, er
 			return nil, err
 		}
 		tlsConfig.CipherSuites = nil
-		tlsConfig.ServerName = c.BrokerCertName
 		saramaConfig.Net.TLS.Enable = true
 		saramaConfig.Net.TLS.Config = tlsConfig
 	}

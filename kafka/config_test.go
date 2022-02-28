@@ -29,7 +29,6 @@ func TestNewConnectionConfig(t *testing.T) {
 			},
 			want: &ConnectionConfig{
 				Brokers:                []string{"localhost"},
-				BrokerCertName:         "kafka",
 				DefaultBrokerPort:      9092,
 				ZkNodes:                []string{"localhost"},
 				DefaultZkPort:          2181,
@@ -84,7 +83,6 @@ func TestNewConnectionConfig(t *testing.T) {
 			},
 			want: &ConnectionConfig{
 				Brokers:                []string{"remote-vm", "remote-vm2"},
-				BrokerCertName:         "kafka",
 				DefaultBrokerPort:      9999,
 				ZkNodes:                []string{"remote-vm", "remote-vm2"},
 				DefaultZkPort:          9998,
