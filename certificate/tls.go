@@ -26,6 +26,12 @@ type TLSConfig struct {
 	// CipherSuites is a comma separated list of desired ciphersuites to use for secure connection
 	// Default list is reasonable minimum as required by PSB
 	CipherSuites []string `config:"default=TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305;TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256;TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384;TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA;TLS_RSA_WITH_AES_256_GCM_SHA384;TLS_RSA_WITH_AES_256_CBC_SHA"`
+
+	// ServerName is used to verify the hostname on the returned
+	// certificates unless InsecureSkipVerify is given. It is also included
+	// in the client's handshake to support virtual hosting unless it is
+	// an IP address.
+	ServerName string `config:"default="`
 }
 
 func (cfg *TLSConfig) TlsConfig(ctx context.Context) (result *tls.Config, err error) {
@@ -48,12 +54,15 @@ func (cfg *TLSConfig) TlsConfig(ctx context.Context) (result *tls.Config, err er
 	}
 
 	result = &tls.Config{
-		ClientAuth:         tls.VerifyClientCertIfGiven,
-		ClientCAs:          caCertPool,
-		MinVersion:         tlsVersions[cfg.MinVersion],
-		CipherSuites:       ciphers,
-		GetCertificate:     w.TlsCertificate,
-		InsecureSkipVerify: cfg.InsecureSkipVerify,
+		ClientAuth:           tls.VerifyClientCertIfGiven,
+		ClientCAs:            caCertPool,
+		MinVersion:           tlsVersions[cfg.MinVersion],
+		CipherSuites:         ciphers,
+		RootCAs:              caCertPool,
+		GetCertificate:       w.TlsCertificate,
+		GetClientCertificate: w.TlsClientCertificate,
+		InsecureSkipVerify:   cfg.InsecureSkipVerify,
+		ServerName:           cfg.ServerName,
 	}
 
 	return

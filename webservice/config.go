@@ -8,7 +8,7 @@ import (
 
 type WebServerConfig struct {
 	Enabled       bool   `config:"default=false"`
-	Host          string `config:"default=0.0.0.0"`
+	Host          string `config:"default=${network.outbound.address:0.0.0.0}"`
 	Port          int    `config:"default=8080"`
 	Tls           certificate.TLSConfig
 	Cors          CorsConfig
@@ -27,6 +27,10 @@ type CorsConfig struct {
 
 func (c WebServerConfig) Address() string {
 	return c.Host + ":" + strconv.Itoa(c.Port)
+}
+
+func (c WebServerConfig) GenericAddress() string {
+	return "0.0.0.0:" + strconv.Itoa(c.Port)
 }
 
 func (c WebServerConfig) Url() string {

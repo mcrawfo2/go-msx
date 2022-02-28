@@ -63,6 +63,7 @@ func TestNewConnectionConfig(t *testing.T) {
 			args: args{
 				cfg: configtest.NewInMemoryConfig(map[string]string{
 					"spring.cloud.stream.kafka.binder.brokers":                   "remote-vm,remote-vm2",
+					"spring.cloud.stream.kafka.binder.broker-cert-name":          "kafka",
 					"spring.cloud.stream.kafka.binder.default-broker-port":       "9999",
 					"spring.cloud.stream.kafka.binder.zk-nodes":                  "remote-vm,remote-vm2",
 					"spring.cloud.stream.kafka.binder.default-zk-port":           "9998",
