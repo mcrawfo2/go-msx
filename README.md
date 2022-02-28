@@ -131,7 +131,8 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 * [Audit Events](#)
 * [Auditable Models](#)
-* [Cache](#)
+* [Cache](cache/lru/README.md)
+* [Certificates and TLS](certificate/README.md)
 * [Executing Commands](#)
 * [Health Checks](#)
 * [Http Client](#)
@@ -139,6 +140,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 * [Pagination](#)
 * [Resources](resource/README.md)
 * [Retry](#)
+* [Sanitization](sanitize/README.md)
 * [Scheduled Tasks](scheduled/README.md)
 * [Transit Encryption](transit/README.md)
 * [Validation](#)
