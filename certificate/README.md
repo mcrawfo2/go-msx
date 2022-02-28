@@ -58,12 +58,11 @@ certificate.source:
     role: "${spring.application.name}"
     cn: "${spring.application.name}"
     alt-names:
-      - "${remote.service.hostname}"
+      - "${network.hostname}"
       - "${spring.application.name}.svc.kubernetes.cluster.local"
       - "${spring.application.name}.service.consul"
     ip-sans:
-      - "${kubernetes.pod.ip}"
-      - "${remote.service.ip}"
+      - "${network.outbound.address}"
 ```
 
 When a subsystem requests certificates from the `identity` source, it will:
