@@ -44,7 +44,11 @@ func (p *NetworkProvider) Load(ctx context.Context) (results ProviderEntries, er
 }
 
 func (p *NetworkProvider) loadOutboundAddress() (addr net.IP, ifName string, subnet net.IPNet, err error) {
-	// Outbound address
+	// Create the underlying transport to an address that is
+	// guaranteed to be _more_ public.   This does not create
+	// a connection (as it is UDP), but instead merely
+	// calculates the local interface from which such a connection
+	// would be made.
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return
