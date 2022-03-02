@@ -5,6 +5,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"time"
@@ -75,6 +76,8 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 		preUpgrade = false
 	}
 
+	// Version where issue that skipped validation was fixed.  See usage below.
+	minValidationVersion, _ := types.NewVersion("4.3.0")
 	n := 0
 	var migration *Migration
 	for n, migration = range m.manifest.Migrations() {
@@ -93,8 +96,15 @@ func (m *Migrator) ValidateManifest(appliedMigrations []AppliedMigration, preUpg
 			continue
 		}
 
+		// Preserve earlier behavior of skipping validation/ignoring errors with older migrations (before the error
+		// check was fixed).  Enabling validation on the older migrations is risky - if a migration was
+		// modified after release, a failure may not appear until a production upgrade.
+		if migration.Version.Lt(minValidationVersion) {
+			continue
+		}
+
 		err = m.ValidateMigration(n, *migration, appliedMigration)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 
