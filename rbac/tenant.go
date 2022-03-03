@@ -16,7 +16,11 @@ var ErrUserDoesNotHaveTenantAccess = errors.New("User does not have access to th
 var ErrTenantDoesNotExist = errors.New("Tenant does not exist.")
 var rootTenantId atomic.Value
 
-// HasTenant Validates if the user is associated with the tenant
+// HasTenant Validates if the user is associated with the tenant (i.e. the tenant is assigned to the
+// user, or a descendent of an assigned tenant).
+//
+// Returns nil for a user with ACCESS_ALL_TENANTS, even for a non-existent tenant. (Use HasAccessToTenant to
+// ensure a tenant exists)
 func HasTenant(ctx context.Context, tenantId types.UUID) error {
 	logger.WithContext(ctx).Debugf("Verifying tenant access for tenantId %q", tenantId.String())
 
@@ -36,18 +40,39 @@ func HasTenant(ctx context.Context, tenantId types.UUID) error {
 		return err
 	}
 
-	if !userContextDetails.HasTenantId(tenantId) {
-		logger.WithContext(ctx).
-			WithError(ErrUserDoesNotHaveTenantAccess).
-			Errorf("Tenant access check failed for tenantId %q", tenantId.String())
-		return ErrUserDoesNotHaveTenantAccess
+	if userContextDetails.HasTenantId(tenantId) {
+		return nil
 	}
 
-	return nil
+	// Fall back to querying the tenant hierarchy to see if an assigned/designated tenant is an
+	// ancestor of the given tenantId.  This will grant access to descendent tenants that are created
+	// during the user's session.
+	tenantHierarchy, err := GetTenantHierarchyApi(ctx)
+	if err != nil {
+		return err
+	}
+	ancestors, err := tenantHierarchy.Ancestors(ctx, tenantId)
+	if err != nil {
+		return err
+	}
+	for _, id := range ancestors {
+		for _, assignedId := range userContextDetails.Tenants {
+			if id.Equals(assignedId) {
+				return nil
+			}
+		}
+	}
+
+	logger.WithContext(ctx).
+		WithError(ErrUserDoesNotHaveTenantAccess).
+		Errorf("Tenant access check failed for tenantId %q", tenantId.String())
+	return ErrUserDoesNotHaveTenantAccess
 }
 
-// HasAccessToTenant validates that the user has access to the tenant.
-// Error returned if user does not have access to tenant (or child/descendent of tenant), nil otherwise
+// HasAccessToTenant validates that the user has access to the tenant, and that the tenant is valid (the tenant exists).
+//
+// Returns nil if the tenant is accessible.  Returns ErrUserDoesNotHaveTenantAccess if the tenant is not
+// accessible.  Returns ErrTenantDoesNotExist when the user has ACCESS_ALL_TENANTS and the tenant does not exist.
 func HasAccessToTenant(ctx context.Context, tenantId types.UUID) error {
 
 	//check if this is an PermissionAccessAllTenants account
@@ -60,8 +85,9 @@ func HasAccessToTenant(ctx context.Context, tenantId types.UUID) error {
 	return HasTenant(ctx, tenantId)
 }
 
+// THIS IS NOT AN ACCESS CONTROL CHECK!
+//
 // ValidateTenant Checks if the tenant id is a valid tenant. See securitytest.MockedTenantValidation for test mocking
-// Must NOT be used for checking access control.
 func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 	userManagementApi, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
