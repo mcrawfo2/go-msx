@@ -104,6 +104,11 @@ func GenerateTopicPublisher(args []string) error {
 		return err
 	}
 
+	var deps = []string{"github.com/stretchr/testify@v1.7.0"}
+	if err := AddDependencies(deps); err != nil {
+		return err
+	}
+
 	topicPackageAbsPath := filepath.Join(skeletonConfig.TargetDirectory(), topicPackagePath)
 	return GoGenerate(topicPackageAbsPath)
 }
