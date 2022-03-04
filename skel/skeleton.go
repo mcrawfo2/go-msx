@@ -287,6 +287,27 @@ func AddGoMsxDependency(_ []string) error {
 	return exec.ExecutePipes(pipes...)
 }
 
+func AddDependencies(deps []string) error {
+	logger.Info("Adding dependencies")
+
+	targetDirectory := skeletonConfig.TargetDirectory()
+
+	var addDependency = func(name string) pipe.Pipe {
+		return exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info(fmt.Sprintf("- Adding %s to modules", name)),
+				pipe.Exec("go", "get", name)))
+
+	}
+
+	var pipes []pipe.Pipe
+	for _, dep := range deps {
+		pipes = append(pipes, addDependency(dep))
+	}
+
+	return exec.ExecutePipes(pipes...)
+}
+
 func GenerateGoland(_ []string) error {
 	logger.Info("Generating Goland project")
 	templates := TemplateSet{
@@ -552,4 +573,18 @@ func GenerateGithub(_ []string) error {
 	}
 
 	return templates.Render(NewRenderOptions())
+}
+
+func GoGenerate(targetDirectory string) error {
+	logger.Info("Executing go generate in " + targetDirectory)
+
+	pipes := []pipe.Pipe{
+		exec.WithDir(targetDirectory,
+			pipe.Line(
+				exec.Info("- Generating"),
+				pipe.Exec("go", "generate")),
+		),
+	}
+
+	return exec.ExecutePipes(pipes...)
 }
