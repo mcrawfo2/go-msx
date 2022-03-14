@@ -121,10 +121,16 @@ spec:
             path: /admin/health
             port: {{ ${app.name}_port }}
             scheme: HTTP
-          initialDelaySeconds: 60
+          initialDelaySeconds: 0
           periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /admin/health
+            port: {{ ${app.name}_port }}
+          failureThreshold: 45
+          timeoutSeconds: 5
 {% if deployment_mode == 'production' %}
         resources:
          limits:
