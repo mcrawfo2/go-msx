@@ -1,12 +1,13 @@
 package skel
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/pipe.v2"
 	"os"
 	"path"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"gopkg.in/pipe.v2"
 )
 
 func init() {
@@ -434,13 +435,20 @@ func GenerateVsCode(_ []string) error {
 
 func GenerateDockerfile(_ []string) error {
 	logger.Info("Generating Dockerfile")
-	template := Template{
-		Name:       "Creating Dockerfile",
-		SourceFile: "build/package/Dockerfile",
-		Format:     FileFormatDocker,
+	templates := TemplateSet{
+		{
+			Name:       "Creating Dockerfile",
+			SourceFile: "build/package/Dockerfile",
+			Format:     FileFormatDocker,
+		},
+		{
+			Name:       "Creating docker entrypoint",
+			SourceFile: "build/package/docker-entrypoint.sh",
+			Format:     FileFormatBash,
+		},
 	}
 
-	return template.Render(NewRenderOptions())
+	return templates.Render(NewRenderOptions())
 }
 
 func GenerateKubernetes(_ []string) error {

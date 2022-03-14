@@ -38,6 +38,7 @@ const (
 	FileFormatMarkdown
 	FileFormatGoMod
 	FileFormatDocker
+	FileFormatBash
 )
 
 type RenderOptions struct {
@@ -230,7 +231,7 @@ func substituteVariables(source string, variableValues map[string]string) string
 
 func conditionalMarkers(format FileFormat) (string, string) {
 	switch format {
-	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker:
+	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker, FileFormatBash:
 		return "#", ""
 	case FileFormatSql:
 		return "--#", ""
