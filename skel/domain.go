@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -201,6 +202,23 @@ func GenerateTimer(args []string) error {
 
 	options := NewRenderOptions()
 	options.AddStrings(inflections)
+
+	// Add required configurations to bootstrap configuration file
+	bootstrapFilePath := path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "bootstrap.yml")
+	leaderElectionKey := "consul.leader.election"
+	leaderElectionConfig := leaderElectionKey + ":\n  enabled: true\n"
+	leaderElectionRegEx := regexp.MustCompile(`(?m)^` + leaderElectionKey + `:\n  enabled: (.*)\n$`)
+	fixedIntervalKey := "scheduled.tasks." + inflections[inflectionLowerSingular] + ".fixed-interval"
+	fixedIntervalConfig := fixedIntervalKey + ": 15m\n"
+	fixedIntervalRegEx := regexp.MustCompile(`(?m)^` + fixedIntervalKey + `:(.*)\n$`)
+
+	if err := addYamlConf(bootstrapFilePath, leaderElectionKey, leaderElectionConfig, leaderElectionRegEx); err != nil {
+		return err
+	}
+
+	if err := addYamlConf(bootstrapFilePath, fixedIntervalKey, fixedIntervalConfig, fixedIntervalRegEx); err != nil {
+		return err
+	}
 
 	if err := templates.Render(options); err != nil {
 		return err
