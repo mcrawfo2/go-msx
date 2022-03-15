@@ -2,13 +2,14 @@ package skel
 
 import (
 	"fmt"
-	"github.com/gedex/inflector"
-	"github.com/iancoleman/strcase"
-	"github.com/pkg/errors"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gedex/inflector"
+	"github.com/iancoleman/strcase"
+	"github.com/pkg/errors"
 )
 
 const (
