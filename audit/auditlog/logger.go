@@ -9,6 +9,10 @@ import (
 
 type State string
 
+func (s State) String() string {
+	return string(s)
+}
+
 const (
 	StateInit    State = "init"
 	StateFail    State = "fail"
