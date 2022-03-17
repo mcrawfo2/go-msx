@@ -20,10 +20,12 @@ type UpperCamelSingularSubscriberApi interface {
 }
 
 type lowerCamelSingularSubscriber struct {
+	// TODO : Declare fields
 }
 
 func (s *lowerCamelSingularSubscriber) OnUpperCamelSingularMessage(ctx context.Context, message api.UpperCamelSingularMessage) error {
 	logger.WithContext(ctx).Debugf("Handling message for lowersingular %q", message.Id.String())
+	// TODO : Implement
 	return nil
 }
 

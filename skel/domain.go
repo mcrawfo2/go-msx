@@ -2,13 +2,15 @@ package skel
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/gedex/inflector"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
-	"path"
-	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -30,6 +32,7 @@ func init() {
 	AddTarget("generate-domain-tenant", "Generate tenant domain implementation", GenerateTenantDomain)
 	AddTarget("generate-topic-publisher", "Generate publisher topic implementation", GenerateTopicPublisher)
 	AddTarget("generate-topic-subscriber", "Generate subscriber topic implementation", GenerateTopicSubscriber)
+	AddTarget("generate-timer", "Generate timer implementation", GenerateTimer)
 }
 
 func GenerateSystemDomain(args []string) error {
@@ -171,6 +174,69 @@ func GenerateTopicSubscriber(args []string) error {
 
 	topicPackageAbsPath := filepath.Join(skeletonConfig.TargetDirectory(), topicPackagePath)
 	return GoGenerate(topicPackageAbsPath)
+}
+
+func GenerateTimer(args []string) error {
+	if len(args) == 0 {
+		return errors.New("No Timer Name specified.  Please provide singular timer name.  Examples: 'employee' or 'device connection'")
+	}
+	timerName := strings.Join(args, " ")
+	inflections := inflect(timerName)
+
+	timerPackageName := inflections[inflectionLowerPlural]
+	timerPackageSource := path.Join("code", "timer", "lowerplural")
+	timerPackagePath := path.Join("internal", "timer", timerPackageName)
+
+	templates := TemplateSet{
+		{
+			Name:       inflections[inflectionTitleSingular] + " Timer",
+			SourceFile: path.Join(timerPackageSource, "timer.go"),
+			DestFile:   fmt.Sprintf(path.Join(timerPackagePath, "timer_%s.go"), inflections[inflectionLowerSingular]),
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " Package",
+			SourceFile: path.Join(timerPackageSource, "pkg.go"),
+			DestFile:   path.Join(timerPackagePath, "pkg.go"),
+		},
+	}
+
+	options := NewRenderOptions()
+	options.AddStrings(inflections)
+
+	// Add required configurations to bootstrap configuration file
+	bootstrapFilePath := path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "bootstrap.yml")
+	leaderElectionKey := "consul.leader.election"
+	leaderElectionConfig := leaderElectionKey + ":\n  enabled: true\n"
+	leaderElectionRegEx := regexp.MustCompile(`(?m)^` + leaderElectionKey + `:\n  enabled: (.*)\n$`)
+	fixedIntervalKey := "scheduled.tasks." + inflections[inflectionLowerSingular] + ".fixed-interval"
+	fixedIntervalConfig := fixedIntervalKey + ": 15m\n"
+	fixedIntervalRegEx := regexp.MustCompile(`(?m)^` + fixedIntervalKey + `:(.*)\n$`)
+
+	if err := addYamlConf(bootstrapFilePath, leaderElectionKey, leaderElectionConfig, leaderElectionRegEx); err != nil {
+		return err
+	}
+
+	if err := addYamlConf(bootstrapFilePath, fixedIntervalKey, fixedIntervalConfig, fixedIntervalRegEx); err != nil {
+		return err
+	}
+
+	if err := templates.Render(options); err != nil {
+		return err
+	}
+
+	if err := initializePackageFromFile(
+		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
+		path.Join(skeletonConfig.AppPackageUrl(), "internal", "timer", timerPackageName)); err != nil {
+		return err
+	}
+
+	var deps = []string{"github.com/stretchr/testify@v1.7.0"}
+	if err := AddDependencies(deps); err != nil {
+		return err
+	}
+
+	timerPackageAbsPath := filepath.Join(skeletonConfig.TargetDirectory(), timerPackagePath)
+	return GoGenerate(timerPackageAbsPath)
 }
 
 func inflect(title string) map[string]string {

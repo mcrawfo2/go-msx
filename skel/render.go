@@ -6,8 +6,6 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
-	"cto-github.cisco.com/NFV-BU/go-msx/exec"
-	"github.com/pkg/errors"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -20,6 +18,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 type FileFormat int
@@ -353,4 +355,80 @@ func iff(cond bool, truth, falsehood string) string {
 		return truth
 	}
 	return falsehood
+}
+
+// addYamlConf attempts to add conf to the file at filePath.
+// If confKey exists in the file, the existing configs that match regEx are replaced
+// and the result is written back to the file.
+// If the confKey does not exist in the file, we append conf to the end of the file.
+func addYamlConf(filePath, confKey, conf string, regEx *regexp.Regexp) error {
+	logger.Infof("Adding configuration for %s to %s", confKey, filePath)
+	config, err := getYamlConf(filePath, confKey)
+	if err != nil {
+		return err
+	}
+
+	if config == nil {
+		if err = appendYaml(filePath, []byte("\n"+conf)); err != nil {
+			return err
+		}
+	} else if err = replaceYaml(filePath, []byte(conf), regEx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getYamlConf retrieves an interface mapped to a given conf
+// within the file at the given filePath.
+func getYamlConf(filePath, conf string) (interface{}, error) {
+	sourceData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	var result map[string]interface{}
+	if err = yaml.Unmarshal(sourceData, &result); err != nil {
+		return "", err
+	}
+
+	return result[conf], nil
+}
+
+// appendYaml appends the yaml to the end of the file at
+// the given filePath. The resulting data is written back to the file.
+func appendYaml(filePath string, yaml []byte) error {
+	sourceData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	sourceData = append(sourceData, yaml...)
+	if err = ioutil.WriteFile(filePath, sourceData, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// replaceYaml replaces all strings that match regEx in
+// the file at filePath with yaml, and logs a warning
+// if there are no matches. The resulting data is written back to the file.
+func replaceYaml(filePath string, yaml []byte, regEx *regexp.Regexp) error {
+	sourceData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	if ok := regEx.Match(sourceData); ok {
+		sourceData = regEx.ReplaceAll(sourceData, yaml)
+	} else {
+		logger.Warnf("Failed to add the following configuation to %s:\n%sAs it already exists with a different configuration in %s", filePath, yaml, filePath)
+	}
+
+	if err = ioutil.WriteFile(filePath, sourceData, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
