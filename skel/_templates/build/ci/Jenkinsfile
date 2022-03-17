@@ -23,6 +23,7 @@ def TRIGGER_URL = ''
 def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-group/com/cisco/vms/manifest'
 def FULL_VERSION = ''
 def SONARQUBE_ENABLED = false
+def GOPROXY = 'https://proxy.golang.org,direct'
 
 pipeline {
 
@@ -77,6 +78,11 @@ pipeline {
                         BUILD_FLAGS = "${BUILD_FLAGS} ${env.BUILD_FLAGS}"
                     }
 
+                    if (env.GOPROXY) {
+                        GOPROXY = env.GOPROXY
+                        BUILD_FLAGS = "${BUILD_FLAGS} --go.env.all.GOPROXY='$GOPROXY'"
+                    }
+
                     TOOLS = env.WORKSPACE + "/bin"
                     DEPS = env.WORKSPACE + "/deps"
                     sh "mkdir -p ${TOOLS}"
@@ -112,7 +118,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=$GOPROXY",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
                         "BUILD_FLAGS=$BUILD_FLAGS"
@@ -208,13 +214,14 @@ pipeline {
             }
         }
 
+//#if GENERATOR_APP
         stage('Install Dependencies') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=$GOPROXY",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$DEPS",
                         "BUILD_FLAGS=$BUILD_FLAGS"
@@ -239,7 +246,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=$GOPROXY",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
                         "BUILD_FLAGS=$BUILD_FLAGS"
@@ -250,14 +257,15 @@ pipeline {
                 }
             }
         }
-        
+
+//#endif GENERATOR_APP
         stage('Publish Artifacts') {
             steps {
                 sshagent([GIT_CREDENTIALS]) {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=$GOPROXY",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
                         "BUILD_FLAGS=$BUILD_FLAGS"
