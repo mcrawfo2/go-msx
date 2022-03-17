@@ -79,8 +79,14 @@ spec:
             httpGet:
               path: ${server.contextPath}/admin/health
               port: ${server.port}
-            initialDelaySeconds: 60
+            initialDelaySeconds: 0
             periodSeconds: 30
+          startupProbe:
+            httpGet:
+              path: ${server.contextPath}/admin/health
+              port: ${server.port}
+            failureThreshold: 45
+            periodSeconds: 5
           resources:
             requests:
               memory: "64Mi"
