@@ -552,7 +552,7 @@ func GenerateGit(_ []string) error {
 		exec.WithDir(targetDirectory,
 			pipe.Line(
 				exec.Info("- Initializing git repository"),
-				pipe.Exec("git", "init", "."))),
+				pipe.Exec("git", "init", "--initial-branch="+skeletonConfig.Trunk))),
 		exec.WithDir(targetDirectory,
 			pipe.Line(
 				exec.Info("- Staging changes"),
