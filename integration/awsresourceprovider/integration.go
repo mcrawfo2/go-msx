@@ -24,6 +24,7 @@ const (
 	endpointNameGetInstanceType                   = "getInstanceType"
 	endpointNameGetAmiInformation                 = "getAmiInformation"
 	endpointNameGetVpcRouteTable                  = "getRouteTableInfo"
+	endpointGetSecrets                            = "getSecrets"
 	serviceName                                   = integration.ResourceProviderNameAws
 )
 
@@ -44,6 +45,7 @@ var (
 		endpointNameGetInstanceType:                   {Method: "GET", Path: "/api/v1/ec2instance/instancetype/{{.instanceType}}"},
 		endpointNameGetAmiInformation:                 {Method: "GET", Path: "/api/v1/ami"},
 		endpointNameGetVpcRouteTable:                  {Method: "GET", Path: "/api/v1/vpc"},
+		endpointGetSecrets:                            {Method: "GET", Path: "/api/v1/secrets"},
 	}
 )
 
@@ -271,5 +273,18 @@ func (i *Integration) GetRouteTableInformation(controlPlaneId types.UUID, region
 		},
 		ExpectEnvelope: true,
 		Payload:        &[]VpcRouteTable{},
+	})
+}
+
+func (i *Integration) GetSecrets(controlPlaneId types.UUID, secretName string, region string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointGetSecrets,
+		QueryParameters: map[string][]string{
+			"controlPlaneId": {controlPlaneId.String()},
+			"secretName":     {secretName},
+			"region":         {region},
+		},
+		ExpectEnvelope: true,
+		Payload:        &Secrets{},
 	})
 }
