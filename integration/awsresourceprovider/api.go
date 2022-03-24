@@ -24,6 +24,7 @@ type Api interface {
 	GetInstanceType(controlPlaneId types.UUID, region string, availabilityZone string, instanceType string) (*integration.MsxResponse, error)
 	GetAmiInformation(controlPlaneId types.UUID, amiName string, region string) (*integration.MsxResponse, error)
 	GetRouteTableInformation(controlPlaneId types.UUID, region string, vpcId string) (*integration.MsxResponse, error)
+	GetSecrets(controlPlaneId types.UUID, secretName string, region string) (*integration.MsxResponse, error)
 }
 
 // Ensure mock is up-to-date

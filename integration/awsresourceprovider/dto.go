@@ -209,3 +209,8 @@ func (s StackOutputList) Map() map[string]string {
 	}
 	return result
 }
+
+type Secrets struct {
+	Name         string `json:"name"`
+	SecretString string `json:"secretString"`
+}
