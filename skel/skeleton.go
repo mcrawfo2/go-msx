@@ -62,7 +62,7 @@ func GenerateSkeleton(_ []string) error {
 func GenerateSkelJson(_ []string) error {
 	logger.Info("Generating skel config")
 
-	bytes, err := json.Marshal(skeletonConfig)
+	bytes, err := json.MarshalIndent(skeletonConfig, "", "    ")
 	if err != nil {
 		return err
 	}
