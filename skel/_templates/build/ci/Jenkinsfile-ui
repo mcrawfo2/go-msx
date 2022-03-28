@@ -12,14 +12,14 @@ def ARTIFACTORY_CREDENTIALS = 'f79d92f8-694b-4c29-b477-faeabcef86cb'
 def SOURCEGRAPH_ENDPOINT = 'https://sg.infra.ciscomsx.com'
 def SOURCEGRAPH_CREDENTIALS = 'sourcegraph-lsif-token'
 def BUILD_FLAGS = ""
-def TRUNK = 'develop'
+def TRUNK = '${trunk}'
 def TRUNK_MANIFEST_FOLDER = 'Build-Stable'
 def PUBLISH = false
 def TOOLS = ''
 def TRIGGER = ''
 def TRIGGER_URL = ''
 def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-group/com/cisco/vms/manifest'
-def MANIFEST_NAME = '{$app.name}-manifest'
+def MANIFEST_NAME = '${app.name}-manifest'
 def FULL_VERSION = ''
 def SONARQUBE_ENABLED = false
 

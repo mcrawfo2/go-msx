@@ -54,7 +54,7 @@
                 <hudson.model.StringParameterDefinition>
                     <name>BRANCH_NAME</name>
                     <description>Branch Name:
-                        &apos;develop&apos; - default branch</description>
+                        &apos;${trunk}&apos; - default branch</description>
                     <defaultValue></defaultValue>
                     <trim>false</trim>
                 </hudson.model.StringParameterDefinition>
@@ -153,7 +153,7 @@
             </userRemoteConfigs>
             <branches>
                 <hudson.plugins.git.BranchSpec>
-                    <name>*/develop</name>
+                    <name>*/${trunk}</name>
                 </hudson.plugins.git.BranchSpec>
             </branches>
             <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>

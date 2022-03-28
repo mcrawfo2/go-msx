@@ -1,11 +1,12 @@
 package skel
 
 import (
-	"github.com/AlecAivazis/survey/v2"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
 )
 
 type SkeletonConfig struct {
@@ -24,6 +25,7 @@ type SkeletonConfig struct {
 	DeploymentGroup   string `survey:"deploymentGroup" json:"deploymentGroup"`
 	KubernetesGroup   string `json:"kubernetesGroup"`
 	SlackChannel      string `survey:"slackChannel" json:"slackChannel"`
+	Trunk             string `survey:"trunk" json:"trunk"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -67,6 +69,7 @@ var skeletonConfig = &SkeletonConfig{
 	BeatProtocol:      "",
 	ServiceType:       "",
 	SlackChannel:      "go-msx-build",
+	Trunk:             "master",
 }
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
