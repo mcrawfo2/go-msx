@@ -25,7 +25,12 @@ func (p *NetworkProvider) Load(ctx context.Context) (results ProviderEntries, er
 	// Load the default gateway
 	var outboundGateway net.IP
 	if outboundGateway, err = gateway.DiscoverGateway(); err != nil {
-		return nil, err
+		switch err.Error() {
+		case "no gateway found":
+			logger.WithContext(ctx).Warn(err)
+		default:
+			return nil, err
+		}
 	}
 
 	// Load the hostname
