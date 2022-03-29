@@ -1,25 +1,30 @@
 # MSX Distributed Tracing
 
-MSX Distributed Tracing allows the collection of an operational flow graph.  Based on [OpenTracing](https://opentracing.io/docs/overview/), tracing helps pinpoint where failures occur and what causes poor performance.
+MSX Distributed Tracing allows the collection of an operational flow graph. Based
+on [OpenTracing](https://opentracing.io/docs/overview/), tracing helps pinpoint where failures occur and what causes
+poor performance.
 
 ## Model
 
 - **Span**
 
-  A span is a named, timed operation representing a piece of the operational flow.  Spans can have parents and children.
+  A span is a named, timed operation representing a piece of the operational flow. Spans can have parents and children.
 
 - **Trace**
 
-  A trace is the complete tree of spans from an entire operational flow.  A new trace (with a new root span) is created by input from an external system, such as a REST API client.  Traces extend across synchronous and asynchronous message flows (interal RPC and events).
+  A trace is the complete tree of spans from an entire operational flow. A new trace (with a new root span) is created
+  by input from an external system, such as a REST API client. Traces extend across synchronous and asynchronous message
+  flows (interal RPC and events).
 
 ## Usage
 
-The most common usage of tracing is to create a new child span within the current span, and execute an operation inside it.  To facilitate this, you can use the `trace.Operation()` function:
+The most common usage of tracing is to create a new child span within the current span, and execute an operation inside
+it. To facilitate this, you can use the `trace.Operation()` function:
 
 ```go
-err := trace.Operation(ctx, "myChildOperation", func(ctx context.Context) error { 
-    myLogger.WithContext(ctx).Info("Inside myChildOperation...")
-    return nil
+err := trace.Operation(ctx, "myChildOperation", func(ctx context.Context) error {
+myLogger.WithContext(ctx).Info("Inside myChildOperation...")
+return nil
 })
 ```
 
@@ -35,13 +40,14 @@ span.SetTag(trace.FieldOperation, operationName)
 
 // Execute the operation and record the result
 if err := myOperation(); err != nil {
-    span.LogFields(trace.Status("ERROR"), trace.Error(err))
+span.LogFields(trace.Status("ERROR"), trace.Error(err))
 } else {
-    span.LogFields(trace.Status("OK"))
+span.LogFields(trace.Status("OK"))
 }
 ```
 
 Common trace log tags include:
+
 - `trace.FieldOperation`: Generic operation name
 - `trace.FieldStatus`: Terminal status of the operation
 - `trace.FieldHttpCode`: Response status code
@@ -52,7 +58,8 @@ Other tags can be defined as needed using simple period-separated strings (e.g. 
 
 ## Advanced Usage
 
-When writing a new driver for external input (such as a new RPC transport listener), you can retrieve the untraced context:
+When writing a new driver for external input (such as a new RPC transport listener), you can retrieve the untraced
+context:
 
 ```go
 ctx = trace.UntracedContextFromContext(ctx)
@@ -70,12 +77,33 @@ By default, MSX tracing will send trace data to a Jaeger listener at `udp://loca
 
 The following configuration settings can be specified to override the default behaviour:
 
-| Key                   | Description | Default |
-|-----------------------|-------------|---------|
-| `trace.enabled`       | collect and forward distributed tracing data | `true` |
-| `trace.service-name`  | name of service to supply with the trace | `${info.app.name}` |
-| `trace.reporter.name` | which reporter to use, `jaeger` or `zipkin` | `jaeger` |
-| `trace.reporter.host` | jaeger host | `localhost` |
-| `trace.reporter.port` | jaeger udp port | `6831` |
-| `trace.reporter.url`  | zipkin url | `http://localhost:9411/api/v1/spans` |
+| Key                      | Description                                 | Default                              |
+|--------------------------|---------------------------------------------|--------------------------------------|
+| `trace.service-name`     | name of service to supply with the trace    | `${info.app.name}`                   |
+| `trace.service-version`  | version of service to supply with the trace | `${info.app.name}`                   |
+| `trace.collector`        | which collector to use, `jaeger`,`datadog`  | `jaeger`                             |
+| `trace.reporter.enabled` | report distributed tracing data             | `false`                              |
+| `trace.reporter.host`    | jaeger/datadog host                         | `localhost`                          |
+| `trace.reporter.port`    | jaeger/datadog port                         | `6831`                               |
+| `trace.reporter.url`     | zipkin url                                  | `http://localhost:9411/api/v1/spans` |
 
+### Datadog
+
+To configure for datadog, set the following values in consul:
+
+```yaml
+trace.collector: datadog
+trace.reporter.enabled: true
+trace.reporter.port: 8126
+```
+
+and in the kubernetes manifest:
+```yaml
+env:
+- name: TRACE_REPORTER_HOST
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+```
+
+That will send traces to the collector on the same host.
