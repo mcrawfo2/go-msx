@@ -96,6 +96,10 @@ func NewByteSlicePtr(value []byte) *[]byte {
 	return &value
 }
 
+func NewRuneSlicePtr(value []rune) *[]rune {
+	return &value
+}
+
 func NewStringPtr(value string) *string {
 	return &value
 }

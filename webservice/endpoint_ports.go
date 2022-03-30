@@ -547,8 +547,8 @@ func NewPortField(portType string, field reflect.StructField) (EndpointPortField
 		}
 
 		if schemaOrRef != nil {
-			allOfSchema := NewSchemaAllOf(*schemaOrRef, NewSchemaOrRef(tagSchema))
-			schemaOrRef = NewSchemaOrRefPtr(allOfSchema)
+			allOf := CombineSchemas(*schemaOrRef, NewSchemaOrRef(tagSchema))
+			schemaOrRef = &allOf
 		} else {
 			schemaOrRef = NewSchemaOrRefPtr(tagSchema)
 		}

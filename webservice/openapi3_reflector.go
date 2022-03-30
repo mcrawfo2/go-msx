@@ -290,24 +290,34 @@ func init() {
 			Pattern: types.NewStringPtr(`^(\d+(\.\d+)?h)?(\d+(\.\d+)m)?(\d+(\.\d+)?s)?(\d+(\.\d+)?ms)?(\d+(\.\d+)?us)?(\d+ns)?$`),
 		})
 
-	RegisterTypeSchema(
-		reflect.TypeOf([]byte{}),
-		jsonschema.Schema{
-			ID:     types.NewStringPtr("TypesBinary"),
-			Type:   NewType(jsonschema.String),
-			Title:  types.NewStringPtr("Binary"),
-			Format: types.NewStringPtr("binary"),
-		})
-	Reflector.AddTypeMapping([]byte{}, types.Binary{})
+	//RegisterTypeSchema(
+	//	reflect.TypeOf([]byte{}),
+	//	jsonschema.Schema{
+	//		ID:     types.NewStringPtr("TypesBinary"),
+	//		Type:   NewType(jsonschema.String),
+	//		Title:  types.NewStringPtr("Binary"),
+	//		Format: types.NewStringPtr("binary"),
+	//	})
+	//Reflector.AddTypeMapping([]byte{}, types.Binary{})
+	//
+	//RegisterTypeSchema(
+	//	reflect.TypeOf(types.Base64Bytes{}),
+	//	jsonschema.Schema{
+	//		ID:     types.NewStringPtr("TypesBytes"),
+	//		Type:   NewType(jsonschema.String),
+	//		Title:  types.NewStringPtr("Base64"),
+	//		Format: types.NewStringPtr("byte"),
+	//	})
 
 	RegisterTypeSchema(
-		reflect.TypeOf(types.Base64Bytes{}),
+		reflect.TypeOf([]rune{}),
 		jsonschema.Schema{
-			ID:     types.NewStringPtr("TypesBytes"),
+			ID:     types.NewStringPtr("TypesUnicode"),
 			Type:   NewType(jsonschema.String),
-			Title:  types.NewStringPtr("Base64"),
-			Format: types.NewStringPtr("byte"),
+			Title:  types.NewStringPtr("Unicode"),
+			Format: types.NewStringPtr("unicode"),
 		})
+	Reflector.AddTypeMapping([]rune{}, types.Unicode{})
 
 	RegisterTypeSchema(
 		multipartFileHeaderType,

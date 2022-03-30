@@ -282,7 +282,7 @@ func (p OpenApiRequestPopulator) populateScalar(param EndpointRequestParameter, 
 
 	// Scalars
 	switch fieldValue.Kind() {
-	case reflect.String, reflect.Slice, reflect.Array:
+	case reflect.String:
 		fieldValue.Set(reflect.ValueOf(value).Convert(fieldValue.Type()))
 		if param.PortField.Options["san"] == "true" {
 			if err = sanitize.Input(fieldValue.Addr().Interface(), param.PortField.SanitizeOptions); err != nil {
@@ -340,17 +340,6 @@ func (p OpenApiRequestPopulator) populateScalar(param EndpointRequestParameter, 
 	// Pointers to scalars
 	if fieldValue.Kind() == reflect.Ptr {
 		switch fieldValue.Elem().Kind() {
-		case reflect.Slice: // bytes
-			convertedValue := reflect.ValueOf(value).Convert(fieldValue.Elem().Type()).Interface().([]byte)
-			ptrValue := &convertedValue
-			fieldValue.Set(reflect.ValueOf(ptrValue))
-			if param.PortField.Options["san"] == "true" {
-				if err = sanitize.Input(fieldValue.Interface(), param.PortField.SanitizeOptions); err != nil {
-					return err
-				}
-			}
-			return nil
-
 		case reflect.String:
 			ptrValue := &value
 			fieldValue.Set(reflect.ValueOf(ptrValue).Convert(fieldValue.Type()))
@@ -512,6 +501,34 @@ func (p OpenApiRequestPopulator) populateScalar(param EndpointRequestParameter, 
 			} else {
 				return nil
 			}
+		}
+	}
+
+	if fieldValue.Kind() == reflect.Ptr && fieldValue.Type().Elem().Kind() == reflect.Slice {
+		// Pointers to slices
+		switch fieldValue.Type().Elem().Elem().Kind() {
+		case reflect.Int32: // *[]rune
+			convertedValue := reflect.ValueOf(value).Convert(fieldValue.Type().Elem()).Interface().([]rune)
+			runeArrayValue := &convertedValue
+			fieldValue.Set(reflect.ValueOf(runeArrayValue))
+			return nil
+		case reflect.Uint8: // *[]byte
+			convertedValue := reflect.ValueOf(value).Convert(fieldValue.Type().Elem()).Interface().([]byte)
+			runeArrayValue := &convertedValue
+			fieldValue.Set(reflect.ValueOf(runeArrayValue))
+			return nil
+		}
+	} else if fieldValue.Kind() == reflect.Slice {
+		// Slices
+		switch fieldValue.Type().Elem().Kind() {
+		case reflect.Int32, reflect.Uint8: // []rune, []byte
+			fieldValue.Set(reflect.ValueOf(value).Convert(fieldValue.Type()))
+			if param.PortField.Options["san"] == "true" {
+				if err = sanitize.Input(fieldValue.Addr().Interface(), param.PortField.SanitizeOptions); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 	}
 

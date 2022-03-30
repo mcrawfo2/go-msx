@@ -446,18 +446,40 @@ func (b EndpointRequestBody) WithFormField(field EndpointRequestBodyFormField) E
 	return b
 }
 
-func NewSchemaAllOf(first openapi3.SchemaOrRef, rest ...openapi3.SchemaOrRef) *openapi3.Schema {
+func CombineSchemas(first openapi3.SchemaOrRef, rest ...openapi3.SchemaOrRef) openapi3.SchemaOrRef {
+	if len(rest) > 0 {
+		var restNotEmpty []openapi3.SchemaOrRef
+		for _, rs := range rest {
+			if rs.Schema == nil || !IsSchemaEmpty(*rs.Schema) {
+				restNotEmpty = append(restNotEmpty, rs)
+			}
+		}
+		rest = restNotEmpty
+	}
+
+	if len(rest) == 0 {
+		return first
+	} else if first.Schema != nil {
+		if IsSchemaEmpty(*first.Schema) {
+			return CombineSchemas(rest[0], rest[1:]...)
+		}
+	}
+
 	if first.Schema != nil {
 		if first.Schema.Type == nil && first.Schema.AllOf != nil {
 			all := append([]openapi3.SchemaOrRef{}, first.Schema.AllOf...)
 			all = append(all, rest...)
-			return first.Schema.WithAllOf(all...)
+			return NewSchemaOrRef(first.Schema.WithAllOf(all...))
 		}
 	}
 
 	all := append([]openapi3.SchemaOrRef{}, first)
 	all = append(all, rest...)
-	return new(openapi3.Schema).WithAllOf(all...)
+	return NewSchemaOrRef(new(openapi3.Schema).WithAllOf(all...))
+}
+
+func IsSchemaEmpty(schema openapi3.Schema) bool {
+	return reflect.DeepEqual(schema, openapi3.Schema{})
 }
 
 type EndpointRequestParameter struct {
@@ -507,8 +529,7 @@ func (p EndpointRequestParameter) Merge(o EndpointRequestParameter) EndpointRequ
 		p.Schema = o.Schema
 	} else if p.Schema != nil && o.Schema != nil {
 		// Merge the two schemas
-		allOfSchema := NewSchemaAllOf(*p.Schema, *o.Schema)
-		allOf := NewSchemaOrRef(allOfSchema)
+		allOf := CombineSchemas(*p.Schema, *o.Schema)
 		p.Schema = &allOf
 	}
 	if p.Example == nil && o.Example != nil {
@@ -1092,8 +1113,7 @@ func (p EndpointResponseHeader) Merge(o EndpointResponseHeader) EndpointResponse
 		p.Schema = o.Schema
 	} else if p.Schema != nil && o.Schema != nil {
 		// Merge the two schemas
-		allOfSchema := NewSchemaAllOf(*p.Schema, *o.Schema)
-		allOf := NewSchemaOrRef(allOfSchema)
+		allOf := CombineSchemas(*p.Schema, *o.Schema)
 		p.Schema = &allOf
 	}
 	if p.Example == nil && o.Example != nil {

@@ -122,6 +122,10 @@ func NewUUID() (UUID, error) {
 	return uuid.GenerateRandomBytes(16)
 }
 
+func NewUUIDPtr(uuid UUID) *UUID {
+	return &uuid
+}
+
 func MustNewUUID() UUID {
 	result, err := NewUUID()
 	if err != nil {

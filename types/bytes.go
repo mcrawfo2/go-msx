@@ -18,3 +18,57 @@ func (b *Base64Bytes) MarshalText() (string, error) {
 }
 
 type Binary []byte
+
+func (b *Binary) UnmarshalText(data string) error {
+	*b = []byte(data)
+	return nil
+}
+
+func (b *Binary) MarshalText() (string, error) {
+	return string(*b), nil
+}
+
+func NewBinary(value []byte) Binary {
+	return value
+}
+
+func NewBinaryFromString(value string) Binary {
+	return []byte(value)
+}
+
+func NewBinaryPtr(value []byte) *Binary {
+	v := Binary(value)
+	return &v
+}
+
+func NewBinaryPtrFromString(value string) *Binary {
+	return NewBinaryPtr([]byte(value))
+}
+
+type Unicode []rune
+
+func (b *Unicode) UnmarshalText(data string) error {
+	*b = []rune(data)
+	return nil
+}
+
+func (b *Unicode) MarshalText() (string, error) {
+	return string(*b), nil
+}
+
+func NewUnicode(value []rune) Unicode {
+	return value
+}
+
+func NewUnicodeFromString(value string) Unicode {
+	return []rune(value)
+}
+
+func NewUnicodePtr(value []rune) *Unicode {
+	v := Unicode(value)
+	return &v
+}
+
+func NewUnicodePtrFromString(value string) *Unicode {
+	return NewUnicodePtr([]rune(value))
+}

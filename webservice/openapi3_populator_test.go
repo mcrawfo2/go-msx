@@ -33,22 +33,42 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Query(t *testing.T) {
 		D2    *types.Time    `req:"query,required"`
 		D3    *types.Time    `req:"query"`
 		D4    types.Time     `req:"query,optional"`
-		E1    []byte         `req:"query"`
-		E2    *[]byte        `req:"query,required"`
-		E3    *[]byte        `req:"query"`
-		E4    []byte         `req:"query,optional"`
-		F1    []string       `req:"query"`
-		F2    []string       `req:"query,required" explode:"true"`
-		F3    []string       `req:"query"`
-		F4    []string       `req:"query,optional"`
-		G1    []int          `req:"query"`
-		G2    []int          `req:"query,required" explode:"true"`
-		G3    []int          `req:"query"`
-		G4    []int          `req:"query,optional"`
-		H1    []types.Time   `req:"query"`
-		H2    []types.Time   `req:"query,required" explode:"true"`
-		H3    []types.Time   `req:"query"`
-		H4    []types.Time   `req:"query,optional"`
+		E1    types.UUID     `req:"query"`
+		E2    *types.UUID    `req:"query,required"`
+		E3    *types.UUID    `req:"query"`
+		E4    types.UUID     `req:"query,optional"`
+		F1    types.Binary   `req:"query"`
+		F2    *types.Binary  `req:"query,required"`
+		F3    *types.Binary  `req:"query"`
+		F4    types.Binary   `req:"query,optional"`
+		G1    []byte         `req:"query"`
+		G2    *[]byte        `req:"query,required" explode:"true"`
+		G3    *[]byte        `req:"query"`
+		G4    []byte         `req:"query,optional"`
+		H1    []rune         `req:"query"`
+		H2    *[]rune        `req:"query,required" explode:"true"`
+		H3    *[]rune        `req:"query"`
+		H4    []rune         `req:"query,optional"`
+		N1    []types.Binary `req:"query"`
+		N2    []types.Binary `req:"query,required" explode:"true"`
+		N3    []types.Binary `req:"query"`
+		N4    []types.Binary `req:"query,optional"`
+		O1    []string       `req:"query"`
+		O2    []string       `req:"query,required" explode:"true"`
+		O3    []string       `req:"query"`
+		O4    []string       `req:"query,optional"`
+		P1    []int          `req:"query"`
+		P2    []int          `req:"query,required" explode:"true"`
+		P3    []int          `req:"query"`
+		P4    []int          `req:"query,optional"`
+		Q1    []types.Time   `req:"query"`
+		Q2    []types.Time   `req:"query,required" explode:"true"`
+		Q3    []types.Time   `req:"query"`
+		Q4    []types.Time   `req:"query,optional"`
+		R1    []types.UUID   `req:"query"`
+		R2    []types.UUID   `req:"query,required" explode:"true"`
+		R3    []types.UUID   `req:"query"`
+		R4    []types.UUID   `req:"query,optional"`
 		RGB   map[string]int `req:"query=rgb" style:"deepObject" explode:"true"`
 		CMYK1 cmyk           `req:"query=cmyk" style:"deepObject" explode:"true"`
 		CMYK2 *cmyk          `req:"query=cmyk2,required" style:"deepObject" explode:"true"`
@@ -68,14 +88,24 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Query(t *testing.T) {
 					"c2":       {"110"},
 					"d1":       {"2019-10-12T07:20:50.520273482Z"},
 					"d2":       {"2019-11-12T07:20:50.520273482Z"},
-					"e1":       {"abc"},
-					"e2":       {"def"},
-					"f1":       {"red,green,yellow", "black", "brown"},
-					"f2":       {"blue", "black", "brown"},
-					"g1":       {"210,220,230,240"},
-					"g2":       {"250", "260", "270", "280"},
-					"h1":       {"2019-08-12T07:20:50.520273482Z,2019-09-12T07:20:50.520273482Z"},
-					"h2":       {"2019-07-12T07:20:50.520273482Z", "2019-06-12T07:20:50.520273482Z"},
+					"e1":       {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"},
+					"e2":       {"248b0dd5-e4e7-4b1e-9279-c500ba761942"},
+					"f1":       {"abc"},
+					"f2":       {"def"},
+					"g1":       {"abc"},
+					"g2":       {"def"},
+					"h1":       {"abc"},
+					"h2":       {"def"},
+					"n1":       {"abc,def"},
+					"n2":       {"abc", "def"},
+					"o1":       {"red,green,yellow", "black", "brown"},
+					"o2":       {"blue", "black", "brown"},
+					"p1":       {"210,220,230,240"},
+					"p2":       {"250", "260", "270", "280"},
+					"q1":       {"2019-08-12T07:20:50.520273482Z,2019-09-12T07:20:50.520273482Z"},
+					"q2":       {"2019-07-12T07:20:50.520273482Z", "2019-06-12T07:20:50.520273482Z"},
+					"r1":       {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839,248b0dd5-e4e7-4b1e-9279-c500ba761942"},
+					"r2":       {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839", "248b0dd5-e4e7-4b1e-9279-c500ba761942"},
 					"rgb[r]":   {"100"},
 					"rgb[g]":   {"200"},
 					"rgb[b]":   {"150"},
@@ -108,19 +138,35 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Query(t *testing.T) {
 		C4: "",
 		D1: mustParseTime("2019-10-12T07:20:50.520273482Z"),
 		D2: types.NewTimePtr(mustParseTime("2019-11-12T07:20:50.520273482Z")),
-		E1: []byte("abc"),
-		E2: types.NewByteSlicePtr([]byte("def")),
-		F1: []string{"red", "green", "yellow"},
-		F2: []string{"blue", "black", "brown"},
-		G1: []int{210, 220, 230, 240},
-		G2: []int{250, 260, 270, 280},
-		H1: []types.Time{
+		E1: types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+		E2: types.NewUUIDPtr(types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942")),
+		F1: types.NewBinary([]byte("abc")),
+		F2: types.NewBinaryPtr([]byte("def")),
+		G1: []byte("abc"),
+		G2: types.NewByteSlicePtr([]byte("def")),
+		H1: []rune("abc"),
+		H2: types.NewRuneSlicePtr([]rune("def")),
+		N1: []types.Binary{types.NewBinaryFromString("abc"), types.NewBinaryFromString("def")},
+		N2: []types.Binary{types.NewBinaryFromString("abc"), types.NewBinaryFromString("def")},
+		O1: []string{"red", "green", "yellow"},
+		O2: []string{"blue", "black", "brown"},
+		P1: []int{210, 220, 230, 240},
+		P2: []int{250, 260, 270, 280},
+		Q1: []types.Time{
 			mustParseTime("2019-08-12T07:20:50.520273482Z"),
 			mustParseTime("2019-09-12T07:20:50.520273482Z"),
 		},
-		H2: []types.Time{
+		Q2: []types.Time{
 			mustParseTime("2019-07-12T07:20:50.520273482Z"),
 			mustParseTime("2019-06-12T07:20:50.520273482Z"),
+		},
+		R1: []types.UUID{
+			types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+			types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942"),
+		},
+		R2: []types.UUID{
+			types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+			types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942"),
 		},
 		RGB: map[string]int{
 			"r": 100,
@@ -165,22 +211,42 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Form(t *testing.T) {
 		D2    *types.Time    `req:"form,required"`
 		D3    *types.Time    `req:"form"`
 		D4    types.Time     `req:"form,optional"`
-		E1    []byte         `req:"form"`
-		E2    *[]byte        `req:"form,required"`
-		E3    *[]byte        `req:"form"`
-		E4    []byte         `req:"form,optional"`
-		F1    []string       `req:"form"`
-		F2    []string       `req:"form,required"`
-		F3    []string       `req:"form"`
-		F4    []string       `req:"form,optional"`
-		G1    []int          `req:"form"`
-		G2    []int          `req:"form,required"`
-		G3    []int          `req:"form"`
-		G4    []int          `req:"form,optional"`
-		H1    []types.Time   `req:"form"`
-		H2    []types.Time   `req:"form,required"`
-		H3    []types.Time   `req:"form"`
-		H4    []types.Time   `req:"form,optional"`
+		E1    types.UUID     `req:"form"`
+		E2    *types.UUID    `req:"form,required"`
+		E3    *types.UUID    `req:"form"`
+		E4    types.UUID     `req:"form,optional"`
+		F1    types.Binary   `req:"form"`
+		F2    *types.Binary  `req:"form,required"`
+		F3    *types.Binary  `req:"form"`
+		F4    types.Binary   `req:"form,optional"`
+		G1    []byte         `req:"form"`
+		G2    *[]byte        `req:"form,required" explode:"true"`
+		G3    *[]byte        `req:"form"`
+		G4    []byte         `req:"form,optional"`
+		H1    []rune         `req:"form"`
+		H2    *[]rune        `req:"form,required" explode:"true"`
+		H3    *[]rune        `req:"form"`
+		H4    []rune         `req:"form,optional"`
+		N1    []types.Binary `req:"form"`
+		N2    []types.Binary `req:"form,required" explode:"true"`
+		N3    []types.Binary `req:"form"`
+		N4    []types.Binary `req:"form,optional"`
+		O1    []string       `req:"form"`
+		O2    []string       `req:"form,required" explode:"true"`
+		O3    []string       `req:"form"`
+		O4    []string       `req:"form,optional"`
+		P1    []int          `req:"form"`
+		P2    []int          `req:"form,required" explode:"true"`
+		P3    []int          `req:"form"`
+		P4    []int          `req:"form,optional"`
+		Q1    []types.Time   `req:"form"`
+		Q2    []types.Time   `req:"form,required" explode:"true"`
+		Q3    []types.Time   `req:"form"`
+		Q4    []types.Time   `req:"form,optional"`
+		R1    []types.UUID   `req:"form"`
+		R2    []types.UUID   `req:"form,required" explode:"true"`
+		R3    []types.UUID   `req:"form"`
+		R4    []types.UUID   `req:"form,optional"`
 		RGB   map[string]int `req:"form=rgb"`
 		CMYK  []cmyk         `req:"form"`
 		CMYK1 cmyk           `req:"form=cmyk1"`
@@ -202,14 +268,24 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Form(t *testing.T) {
 					"c2":    {"110"},
 					"d1":    {"2019-10-12T07:20:50.520273482Z"},
 					"d2":    {"2019-11-12T07:20:50.520273482Z"},
-					"e1":    {"abc"},
-					"e2":    {"def"},
-					"f1":    {"red,green,yellow,black,brown"},
-					"f2":    {"blue,black,brown"},
-					"g1":    {"210"},
-					"g2":    {"250,260,270,280"},
-					"h1":    {"2019-08-12T07:20:50.520273482Z,2019-09-12T07:20:50.520273482Z"},
-					"h2":    {"2019-07-12T07:20:50.520273482Z,2019-06-12T07:20:50.520273482Z"},
+					"e1":    {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"},
+					"e2":    {"248b0dd5-e4e7-4b1e-9279-c500ba761942"},
+					"f1":    {"abc"},
+					"f2":    {"def"},
+					"g1":    {"abc"},
+					"g2":    {"def"},
+					"h1":    {"abc"},
+					"h2":    {"def"},
+					"n1":    {"abc,def"},
+					"n2":    {"abc,def"},
+					"o1":    {"red,green,yellow,black,brown"},
+					"o2":    {"blue,black,brown"},
+					"p1":    {"210,220,230,240"},
+					"p2":    {"250,260,270,280"},
+					"q1":    {"2019-08-12T07:20:50.520273482Z,2019-09-12T07:20:50.520273482Z"},
+					"q2":    {"2019-07-12T07:20:50.520273482Z,2019-06-12T07:20:50.520273482Z"},
+					"r1":    {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839,248b0dd5-e4e7-4b1e-9279-c500ba761942"},
+					"r2":    {"24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839,248b0dd5-e4e7-4b1e-9279-c500ba761942"},
 					"rgb":   {`{"r": 100,"g": 200,"b": 150}`},
 					"cmyk1": {`{"c":75,"m":30,"y":77,"k":11}`},
 					"cmyk2": {`{"c":77,"m":32,"y":79,"k":13}`},
@@ -234,19 +310,35 @@ func TestOpenApiRequestPopulator_PopulatePortStruct_Form(t *testing.T) {
 		C4: "",
 		D1: mustParseTime("2019-10-12T07:20:50.520273482Z"),
 		D2: types.NewTimePtr(mustParseTime("2019-11-12T07:20:50.520273482Z")),
-		E1: []byte("abc"),
-		E2: types.NewByteSlicePtr([]byte("def")),
-		F1: []string{"red", "green", "yellow", "black", "brown"},
-		F2: []string{"blue", "black", "brown"},
-		G1: []int{210},
-		G2: []int{250, 260, 270, 280},
-		H1: []types.Time{
+		E1: types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+		E2: types.NewUUIDPtr(types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942")),
+		F1: types.NewBinary([]byte("abc")),
+		F2: types.NewBinaryPtr([]byte("def")),
+		G1: []byte("abc"),
+		G2: types.NewByteSlicePtr([]byte("def")),
+		H1: []rune("abc"),
+		H2: types.NewRuneSlicePtr([]rune("def")),
+		N1: []types.Binary{types.NewBinaryFromString("abc"), types.NewBinaryFromString("def")},
+		N2: []types.Binary{types.NewBinaryFromString("abc"), types.NewBinaryFromString("def")},
+		O1: []string{"red", "green", "yellow", "black", "brown"},
+		O2: []string{"blue", "black", "brown"},
+		P1: []int{210, 220, 230, 240},
+		P2: []int{250, 260, 270, 280},
+		Q1: []types.Time{
 			mustParseTime("2019-08-12T07:20:50.520273482Z"),
 			mustParseTime("2019-09-12T07:20:50.520273482Z"),
 		},
-		H2: []types.Time{
+		Q2: []types.Time{
 			mustParseTime("2019-07-12T07:20:50.520273482Z"),
 			mustParseTime("2019-06-12T07:20:50.520273482Z"),
+		},
+		R1: []types.UUID{
+			types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+			types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942"),
+		},
+		R2: []types.UUID{
+			types.MustParseUUID("24ba04f0-2f5b-4e1d-a7d0-ebc4f9e61839"),
+			types.MustParseUUID("248b0dd5-e4e7-4b1e-9279-c500ba761942"),
 		},
 		RGB: map[string]int{
 			"r": 100,
