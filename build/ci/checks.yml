@@ -8,6 +8,10 @@ checks:
     analyzers:
       - builtin: go-msx-version
 
+  - name: License
+    commands:
+      - make: license-check
+
   - name: Vet
     commands:
       - make: vet

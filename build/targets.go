@@ -1,6 +1,13 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package build
 
-import "cto-github.cisco.com/NFV-BU/go-msx/cli"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/cli"
+	"github.com/spf13/cobra"
+)
 
 type Target struct {
 	Name        string
@@ -8,7 +15,7 @@ type Target struct {
 	Fn          cli.CommandFunc
 }
 
-func AddTarget(name, description string, fn cli.CommandFunc) {
+func AddTarget(name, description string, fn cli.CommandFunc) *cobra.Command {
 	wrapper := func(args []string) error {
 		logger.Infof("Executing target '%s': %s", name, description)
 		err := fn(args)
@@ -24,5 +31,7 @@ func AddTarget(name, description string, fn cli.CommandFunc) {
 		panic(err.Error())
 	} else {
 		cmd.PreRunE = loadConfig
+		cmd.FParseErrWhitelist = cli.RootCmd().FParseErrWhitelist
+		return cmd
 	}
 }

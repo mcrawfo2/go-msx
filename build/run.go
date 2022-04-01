@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package build
 
 import (
@@ -22,7 +26,7 @@ func loadConfig(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err = LoadBuildConfig(context.Background(), configFiles); err != nil {
+	if err = LoadBuildConfig(context.Background(), cmd, configFiles); err != nil {
 		return err
 	}
 

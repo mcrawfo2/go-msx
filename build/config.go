@@ -1,8 +1,11 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package build
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
@@ -10,6 +13,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/base64"
 	"fmt"
+	"github.com/spf13/cobra"
 	"golang.org/x/mod/modfile"
 	"io/ioutil"
 	"path"
@@ -36,6 +40,7 @@ const (
 	configRootGenerate    = "generate"
 	configRootResources   = "resources"
 	configRootArtifactory = "artifactory"
+	configRootLicense     = "license"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -108,8 +113,8 @@ type Library struct {
 }
 
 type Tool struct {
-	Cmd  string
-	Name string
+	Cmd       string
+	Name      string
 	Resources Resources
 }
 
@@ -254,6 +259,10 @@ type Module struct {
 	MinGoVersion string
 }
 
+type License struct {
+	Excludes []string
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Library    Library
@@ -271,6 +280,7 @@ type Config struct {
 	Resources  Resources
 	Binaries   Binaries
 	Module     Module
+	License    License
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -399,7 +409,7 @@ func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []con
 	return cfg, nil
 }
 
-func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
+func LoadBuildConfig(ctx context.Context, cmd *cobra.Command, configFiles []string) (err error) {
 	var providers = []config.Provider{
 		defaultConfigCache,
 	}
@@ -415,7 +425,7 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	envProvider := config.NewEnvironmentProvider("Environment")
 	providers = append(providers, envProvider)
 
-	cliProvider := pflagprovider.NewProvider("CommandLine", cli.RootCmd().Flags(), "cli.flag")
+	cliProvider := pflagprovider.NewProvider("CommandLine", cmd.Flags(), "cli.flag")
 	providers = append(providers, cliProvider)
 
 	cfg := config.NewConfig(providers...)
@@ -446,6 +456,10 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	}
 
 	if err = cfg.Populate(&BuildConfig.Build, configRootBuild); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.License, configRootLicense); err != nil {
 		return
 	}
 

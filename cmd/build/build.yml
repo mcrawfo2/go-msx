@@ -33,3 +33,7 @@ generate:
         - "/test/**"
         - "/vendor/**"
         - "/local/**"
+
+license:
+  excludes:
+    - "./skel/templates/**"
