@@ -22,7 +22,7 @@ func loadConfig(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err = LoadBuildConfig(context.Background(), configFiles); err != nil {
+	if err = LoadBuildConfig(context.Background(), cmd, configFiles); err != nil {
 		return err
 	}
 

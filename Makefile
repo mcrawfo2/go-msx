@@ -3,10 +3,14 @@ SKEL_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/bui
 EXAMPLE_BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build-example.yml
 BUILD_NUMBER ?= 0
 
-.PHONY: test vet dist docker debug publish generate clean precommit
+.PHONY: all clean
+.PHONY: test vet vendor generate precommit
+.PHONY: license license-check
 .PHONY: skel publish-skel
+.PHONY: dist debug docker publish
 
 # Library
+all: clean vet license-check test
 
 test:
 	$(BUILDER) download-test-deps
@@ -27,6 +31,9 @@ precommit: generate license
 
 license:
 	$(BUILDER) license
+
+license-check:
+	$(BUILDER) license --check
 
 skel:
 	$(SKEL_BUILDER) build-tool

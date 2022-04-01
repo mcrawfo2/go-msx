@@ -2,7 +2,6 @@ package build
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/config/pflagprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
@@ -10,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/base64"
 	"fmt"
+	"github.com/spf13/cobra"
 	"golang.org/x/mod/modfile"
 	"io/ioutil"
 	"path"
@@ -109,8 +109,8 @@ type Library struct {
 }
 
 type Tool struct {
-	Cmd  string
-	Name string
+	Cmd       string
+	Name      string
 	Resources Resources
 }
 
@@ -405,7 +405,7 @@ func LoadAppBuildConfig(ctx context.Context, cfg *config.Config, providers []con
 	return cfg, nil
 }
 
-func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
+func LoadBuildConfig(ctx context.Context, cmd *cobra.Command, configFiles []string) (err error) {
 	var providers = []config.Provider{
 		defaultConfigCache,
 	}
@@ -421,7 +421,7 @@ func LoadBuildConfig(ctx context.Context, configFiles []string) (err error) {
 	envProvider := config.NewEnvironmentProvider("Environment")
 	providers = append(providers, envProvider)
 
-	cliProvider := pflagprovider.NewProvider("CommandLine", cli.RootCmd().Flags(), "cli.flag")
+	cliProvider := pflagprovider.NewProvider("CommandLine", cmd.Flags(), "cli.flag")
 	providers = append(providers, cliProvider)
 
 	cfg := config.NewConfig(providers...)

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bmatcuk/doublestar"
+	"github.com/spf13/cobra"
 	"gopkg.in/pipe.v2"
 	"io/ioutil"
 	"os"
@@ -20,7 +21,11 @@ import (
 func init() {
 	AddTarget("go-fmt", "Format all go source files", GoFmt)
 	AddTarget("go-vet", "Vet all go source files", GoVet)
-	AddTarget("license", "License all go source files", LicenseHeaders)
+
+	licenseCmd := AddTarget("license", "License all go source files", LicenseHeaders)
+	licenseCmd.Args = cobra.NoArgs
+	licenseCmd.Flags().Bool("check", false, "Verify license header has been applied")
+
 }
 
 func GoFmt(_ []string) error {
@@ -168,7 +173,16 @@ func findGoFileDirectories() []string {
 
 const thirdPartyLicenseHeaderFile = "HEADER"
 
+var licenseHeadersMissing bool = false
+
 func LicenseHeaders(_ []string) error {
+	check, _ := BuildConfig.Cfg.BoolOr("cli.flag.check", false)
+	if check {
+		logger.Infof("Validating license headers")
+	} else {
+		logger.Infof("Applying license headers")
+	}
+
 	for _, goFileDirectory := range findGoFileDirectories() {
 		skippedDir := isSkippedDir(goFileDirectory)
 		if skippedDir {
@@ -181,7 +195,7 @@ func LicenseHeaders(_ []string) error {
 			return err
 		}
 		if isThirdPartyLicense {
-			err = applyThirdPartyLicenseToDir(goFileDirectory)
+			err = applyThirdPartyLicenseToDir(goFileDirectory, check)
 			if err != nil {
 				return err
 			}
@@ -189,7 +203,7 @@ func LicenseHeaders(_ []string) error {
 		}
 
 		// Internal license header
-		err = applyCiscoLicenseToDir(goFileDirectory)
+		err = applyCiscoLicenseToDir(goFileDirectory, check)
 		if err != nil {
 			return err
 		}
@@ -198,14 +212,14 @@ func LicenseHeaders(_ []string) error {
 	return nil
 }
 
-func applyCiscoLicenseToDir(dir string) error {
+func applyCiscoLicenseToDir(dir string, check bool) error {
 	fileNames, err := doublestar.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		return err
 	}
 
 	for _, fileName := range fileNames {
-		err = applyCiscoLicenseToFile(fileName)
+		err = applyCiscoLicenseToFile(fileName, check)
 		if err != nil {
 			return err
 		}
@@ -214,13 +228,17 @@ func applyCiscoLicenseToDir(dir string) error {
 	return nil
 }
 
-func applyCiscoLicenseToFile(fileName string) error {
+func applyCiscoLicenseToFile(fileName string, check bool) error {
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
 	if hasCiscoLicense(b) || isGenerated(b) {
+		return nil
+	} else if check {
+		logger.Errorf("%q missing Cisco license header", fileName)
+		licenseHeadersMissing = true
 		return nil
 	}
 
@@ -272,7 +290,7 @@ func isSkippedDir(p string) bool {
 	return false
 }
 
-func applyThirdPartyLicenseToDir(dir string) error {
+func applyThirdPartyLicenseToDir(dir string, check bool) error {
 	licenseHeader, err := thirdPartyLicenseHeader(dir)
 	if err != nil {
 		return err
@@ -284,7 +302,7 @@ func applyThirdPartyLicenseToDir(dir string) error {
 	}
 
 	for _, fileName := range goFileNames {
-		err = applyThirdPartyLicenseToFile(fileName, licenseHeader)
+		err = applyThirdPartyLicenseToFile(fileName, licenseHeader, check)
 		if err != nil {
 			return err
 		}
@@ -292,13 +310,17 @@ func applyThirdPartyLicenseToDir(dir string) error {
 	return nil
 }
 
-func applyThirdPartyLicenseToFile(fileName string, headerBytes []byte) error {
+func applyThirdPartyLicenseToFile(fileName string, headerBytes []byte, check bool) error {
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
 	if hasThirdPartyLicense(b, headerBytes) || isGenerated(b) {
+		return nil
+	} else if check {
+		logger.Errorf("%q missing third-party license header", fileName)
+		licenseHeadersMissing = true
 		return nil
 	}
 
