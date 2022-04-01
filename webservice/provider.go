@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 //go:generate mockery --name AuthenticationProvider --structname MockAuthenticationProvider --filename mock_AuthenticationProvider.go --inpackage
 //go:generate mockery --name DocumentationProvider --structname MockDocumentationProvider --filename mock_DocumentationProvider.go --inpackage
 //go:generate mockery --name ServiceProvider --structname MockServiceProvider --filename mock_ServiceProvider.go --inpackage
