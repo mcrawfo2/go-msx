@@ -35,6 +35,7 @@ const (
 	statsApiCreateTransitKey         = "createTransitKey"
 	statsApiTransitEncrypt           = "transitEncrypt"
 	statsApiTransitDecrypt           = "transitDecrypt"
+	statsApiTransitKey               = "transitKey"
 	statsApiIssueCertificate         = "issueCertificate"
 	statsApiGenerateRandomBytes      = "generateRandomBytes"
 	statsApiReadCaCertificate        = "readCaCertificate"
@@ -181,6 +182,14 @@ func (s statsConnection) TransitDecrypt(ctx context.Context, keyName string, cip
 func (s statsConnection) TransitBulkDecrypt(ctx context.Context, keyName string, ciphertexts ...string) (plaintext []string, err error) {
 	err = s.Observe(statsApiTransitDecrypt, keyName, func() error {
 		plaintext, err = s.ConnectionApi.TransitBulkDecrypt(ctx, keyName, ciphertexts...)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) GetTransitKeys(ctx context.Context) (results []string, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitKey, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.GetTransitKeys(ctx)
 		return err
 	})
 	return

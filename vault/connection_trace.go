@@ -120,6 +120,14 @@ func (s traceConnection) TransitEncrypt(ctx context.Context, keyName string, pla
 	return
 }
 
+func (s traceConnection) GetTransitKeys(ctx context.Context) (results []string, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitKey, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.GetTransitKeys(ctx)
+		return err
+	})
+	return
+}
+
 func (s traceConnection) TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitDecrypt, func(ctx context.Context) error {
 		plaintext, err = s.ConnectionApi.TransitDecrypt(ctx, keyName, ciphertext)
