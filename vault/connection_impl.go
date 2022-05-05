@@ -363,6 +363,7 @@ func (c connectionImpl) GetTransitKeys(ctx context.Context) (results []string, e
 	secrets, err := c.read(ctx, p, params)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to get transit keys")
+		return
 	}
 
 	if secrets != nil {
