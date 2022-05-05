@@ -364,10 +364,16 @@ func (c connectionImpl) GetTransitKeys(ctx context.Context) (results []string, e
 	if err != nil {
 		err = errors.Wrap(err, "Failed to get transit keys")
 	}
-	keys := secrets.Data["keys"].([]interface{})
-	for _, key := range keys {
-		results = append(results, fmt.Sprintf("%v", key))
+
+	if secrets != nil {
+		keys, ok := secrets.Data["keys"].([]interface{})
+		if ok {
+			for _, key := range keys {
+				results = append(results, fmt.Sprintf("%v", key))
+			}
+		}
 	}
+
 	return results, err
 }
 
