@@ -37,7 +37,7 @@ type ConnectionApi interface {
 	TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error)
 	TransitDecrypt(ctx context.Context, keyName string, ciphertext string) (plaintext string, err error)
 	TransitBulkDecrypt(ctx context.Context, keyName string, ciphertext ...string) (plaintext []string, err error)
-	GetTransitKeys(ctx context.Context, keyName string) ([]string, error)
+	GetTransitKeys(ctx context.Context) ([]string, error)
 
 	// Certificate (Default Mount)
 	IssueCertificate(ctx context.Context, role string, request IssueCertificateRequest) (cert *tls.Certificate, err error)

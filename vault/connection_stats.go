@@ -8,9 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"time"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/stats"
 	"github.com/hashicorp/vault/api"
-	"time"
 )
 
 const (
@@ -187,9 +188,9 @@ func (s statsConnection) TransitBulkDecrypt(ctx context.Context, keyName string,
 	return
 }
 
-func (s statsConnection) GetTransitKeys(ctx context.Context, keyName string) (results []string, err error) {
-	err = s.Observe(statsApiTransitKey, keyName, func() error {
-		results, err = s.ConnectionApi.GetTransitKeys(ctx, keyName)
+func (s statsConnection) GetTransitKeys(ctx context.Context) (results []string, err error) {
+	err = s.Observe(statsApiTransitKey, "", func() error {
+		results, err = s.ConnectionApi.GetTransitKeys(ctx)
 		return err
 	})
 	return
