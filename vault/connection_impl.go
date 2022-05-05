@@ -8,13 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
-	"github.com/hashicorp/vault/api"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +19,11 @@ import (
 	"path"
 	"strconv"
 	"strings"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/hashicorp/vault/api"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 type connectionImpl struct {
@@ -352,6 +354,21 @@ func (c connectionImpl) CreateTransitKey(ctx context.Context, keyName string, re
 		err = errors.Wrap(err, "Failed to create transit key")
 	}
 	return
+}
+
+func (c connectionImpl) GetTransitKeys(ctx context.Context) (results []string, err error) {
+	p := "transit/keys"
+	params := url.Values{"list": []string{"true"}}
+
+	secrets, err := c.read(ctx, p, params)
+	if err != nil {
+		err = errors.Wrap(err, "Failed to get transit keys")
+	}
+	keys := secrets.Data["keys"].([]interface{})
+	for _, key := range keys {
+		results = append(results, fmt.Sprintf("%v", key))
+	}
+	return results, err
 }
 
 func (c connectionImpl) TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error) {

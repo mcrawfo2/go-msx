@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"github.com/hashicorp/vault/api"
 )
@@ -115,6 +116,14 @@ func (s traceConnection) CreateTransitKey(ctx context.Context, keyName string, r
 func (s traceConnection) TransitEncrypt(ctx context.Context, keyName string, plaintext string) (ciphertext string, err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitEncrypt, func(ctx context.Context) error {
 		ciphertext, err = s.ConnectionApi.TransitEncrypt(ctx, keyName, plaintext)
+		return err
+	})
+	return
+}
+
+func (s traceConnection) GetTransitKeys(ctx context.Context) (results []string, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiTransitKey, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.GetTransitKeys(ctx)
 		return err
 	})
 	return
