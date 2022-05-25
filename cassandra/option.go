@@ -8,4 +8,5 @@ type Option string
 
 const (
 	AllowFiltering Option = "AllowFiltering"
+	IfExists Option = "IfExists"
 )
