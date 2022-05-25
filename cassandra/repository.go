@@ -52,6 +52,7 @@ type CrudRepositoryApi interface {
 	SaveWithTtl(ctx context.Context, value interface{}, ttl time.Duration) (err error)
 	SaveAll(ctx context.Context, values []interface{}) (err error)
 	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
+	UpdateByWithOptions(ctx context.Context, where map[string]interface{}, values map[string]interface{}, options map[Option]interface{}) (err error)
 	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
 }
 
