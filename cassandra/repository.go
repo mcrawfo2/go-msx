@@ -52,6 +52,7 @@ type CrudRepositoryApi interface {
 	SaveWithTtl(ctx context.Context, value interface{}, ttl time.Duration) (err error)
 	SaveAll(ctx context.Context, values []interface{}) (err error)
 	UpdateBy(ctx context.Context, where map[string]interface{}, values map[string]interface{}) (err error)
+	UpdateByWithOptions(ctx context.Context, where map[string]interface{}, values map[string]interface{}, options map[Option]interface{}) (err error)
 	DeleteBy(ctx context.Context, where map[string]interface{}) (err error)
 }
 
@@ -556,6 +557,42 @@ func (r *CrudRepository) UpdateBy(ctx context.Context, where map[string]interfac
 	return
 }
 
+func (r *CrudRepository) UpdateByWithOptions(ctx context.Context, where map[string]interface{}, values map[string]interface{}, options map[Option]interface{}) (err error) {
+	pool, err := PoolFromContext(ctx)
+	if err != nil {
+		return
+	}
+
+	err = pool.WithSessionRetry(ctx, func(session *gocql.Session) error {
+		var bind = make(map[string]interface{})
+		var cmps []gocqlxqb.Cmp
+		for k, v := range where {
+			cmps = append(cmps, gocqlxqb.EqNamed(k, k+"Where"))
+			bind[k+"Where"] = v
+		}
+
+		var sets []string
+		for k, v := range values {
+			sets = append(sets, k)
+			bind[k] = v
+		}
+
+		updateBuilder := gocqlxqb.
+			Update(r.Table.Name).
+			Set(sets...).
+			Where(cmps...)
+
+		stmt, names := r.processUpdateOptions(updateBuilder, &options).ToCql()
+
+		return gocqlx.Query(session.Query(stmt), names).
+			WithContext(ctx).
+			BindMap(bind).
+			ExecRelease()
+	})
+
+	return
+}
+
 func (r *CrudRepository) DeleteBy(ctx context.Context, where map[string]interface{}) (err error) {
 	pool, err := PoolFromContext(ctx)
 	if err != nil {
@@ -590,6 +627,18 @@ func (r *CrudRepository) processOptions(builder *gocqlxqb.SelectBuilder, options
 
 	if v, ok := (*options)[AllowFiltering]; ok && v.(bool) {
 		builder.AllowFiltering()
+	}
+	return builder
+}
+
+// process query options
+func (r *CrudRepository) processUpdateOptions(builder *gocqlxqb.UpdateBuilder, options *map[Option]interface{}) *gocqlxqb.UpdateBuilder {
+	if builder == nil || options == nil {
+		return builder
+	}
+
+	if v, ok := (*options)[IfExists]; ok && v.(bool) {
+		builder.Existing()
 	}
 	return builder
 }
