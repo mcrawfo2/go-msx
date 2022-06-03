@@ -33,7 +33,7 @@ type ProviderConfig struct {
 	Backend          string        `config:"default=secret"`
 	ProfileSeparator string        `config:"default=/"`
 	DefaultContext   string        `config:"default=defaultapplication"`
-	Delay            time.Duration `config:"default=20s"`
+	Delay            time.Duration `config:"default=1h"`
 }
 
 type Provider struct {
