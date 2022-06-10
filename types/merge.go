@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -11,7 +10,6 @@ type Merge struct{}
 func (m Merge) RecursiveMerge(src map[string]interface{}, dest map[string]interface{}) map[string]interface{} {
 	for key, value := range src {
 		if dest[key] == nil {
-			fmt.Printf("Setting the dest key %s to: %+v", key, value)
 			dest[key] = value
 		} else if dest[key] != nil && reflect.TypeOf(value).Kind() == reflect.Map {
 			dest[key] = m.RecursiveMerge(src[key].(map[string]interface{}), dest[key].(map[string]interface{}))
