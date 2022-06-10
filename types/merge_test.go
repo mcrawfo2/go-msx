@@ -21,7 +21,7 @@ func TestRecursiveMerge_DestBaseSrcEmpty(t *testing.T) {
 	assert.Equal(t, expectedResult, result)
 }
 
-// 2. source is empty, dest is not - done
+// 2. source is empty, dest is not
 func TestRecursiveMerge_DestEmptySrcBase(t *testing.T) {
 	dest := make(map[string]interface{})
 	dest["key1"] = "key1val"
