@@ -27,6 +27,14 @@ func (s traceConnection) ListSecrets(ctx context.Context, path string) (results 
 	return
 }
 
+func (s traceConnection) ListV2Secrets(ctx context.Context, path string) (results []string, err error) {
+	err = trace.Operation(ctx, tracePrefixVault+statsApiListV2Secrets, func(ctx context.Context) error {
+		results, err = s.ConnectionApi.ListV2Secrets(ctx, path)
+		return err
+	})
+	return
+}
+
 func (s traceConnection) StoreSecrets(ctx context.Context, path string, secrets map[string]string) (err error) {
 	err = trace.Operation(ctx, tracePrefixVault+statsApiStoreSecrets, func(ctx context.Context) error {
 		return s.ConnectionApi.StoreSecrets(ctx, path, secrets)

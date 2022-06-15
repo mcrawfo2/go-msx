@@ -10,7 +10,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-
 	"github.com/hashicorp/vault/api"
 )
 
@@ -21,6 +20,7 @@ type ConnectionApi interface {
 	RemoveSecrets(ctx context.Context, path string) (err error)
 
 	// KV-V2
+	ListV2Secrets(ctx context.Context, path string) (keys []string, err error)
 	GetVersionedSecrets(ctx context.Context, path string, version *int) (results map[string]interface{}, err error)
 	StoreVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error)
 	PatchVersionedSecrets(ctx context.Context, path string, request VersionedWriteRequest) (err error)
