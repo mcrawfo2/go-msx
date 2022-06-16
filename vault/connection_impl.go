@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -69,7 +70,6 @@ func (c connectionImpl) Client() *api.Client {
 
 func (c connectionImpl) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
 	results = make(map[string]string)
-
 	if secrets, err := c.read(ctx, path, nil); err != nil {
 		return nil, errors.Wrap(err, "Failed to list vault secrets")
 	} else if secrets != nil {
@@ -79,6 +79,58 @@ func (c connectionImpl) ListSecrets(ctx context.Context, path string) (results m
 	}
 
 	return
+}
+
+func (c connectionImpl) ListV2Secrets(ctx context.Context, path string) (results []string, err error) {
+	if secret, err := c.list(ctx, "/v1/v2secret/metadata"+path, nil); err != nil {
+		return nil, err
+	} else if secret != nil {
+		tempData := secret["data"].(map[string]interface{})["keys"].([]interface{})
+		for _, v := range tempData {
+			results = append(results, v.(string))
+		}
+	}
+	return
+}
+
+func (c connectionImpl) callVaultAPI(ctx context.Context, method string, path string, query url.Values) (*api.Response, error) {
+	r := c.client.NewRequest(method, path)
+	r.Params = query
+	return c.client.RawRequestWithContext(ctx, r)
+}
+
+func (c connectionImpl) list(ctx context.Context, path string, query url.Values) (map[string]interface{}, error) {
+	resp, err := c.callVaultAPI(ctx, "LIST", path, query)
+	var secrets map[string]interface{}
+	if resp != nil && resp.StatusCode == 404 {
+		secret, parseErr := api.ParseSecret(resp.Body)
+		switch parseErr {
+		case nil:
+		case io.EOF:
+			return nil, nil
+		default:
+			return nil, err
+		}
+		if secret != nil && len(secret.Warnings) > 0 {
+			return nil, errors.New(strings.Join(secret.Warnings[:], ","))
+		}
+		return nil, nil
+	} else if err != nil {
+		logger.Errorf("An error occurred calling vault %+v", err)
+		return nil, err
+	} else {
+		bytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Errorf("An error occurred parsing the response from vault ")
+			return nil, err
+		}
+		parseErr := json.Unmarshal(bytes, &secrets)
+		if parseErr != nil {
+			logger.Errorf("Error occurred when unmarshalling list of keys ")
+			return nil, err
+		}
+	}
+	return secrets, err
 }
 
 // Copied from vault/logical to allow custom context

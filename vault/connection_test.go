@@ -7,7 +7,11 @@ package vault
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"encoding/json"
+	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -53,5 +57,90 @@ func Test_NewConnection(t *testing.T) {
 				assert.Nil(t, got)
 			}
 		})
+	}
+}
+
+func Test_ListV2Secrets_Success(t *testing.T) {
+	responseBody := map[string]interface{}{}
+	responseBody["data"] = map[string]interface{}{
+		"keys": []string{"key1/", "key2/"},
+	}
+	responseBody["auth"] = nil
+	responseBody["renewable"] = false
+	responseBody["request_id"] = "20ac948d-2b24-138e-76d5-c3e681d416e9"
+	responseBody["warnings"] = nil
+	responseBody["wrap_info"] = nil
+
+	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		bodyMarshalled, err := json.Marshal(responseBody)
+		if err != nil {
+			t.Errorf("Error happened during encoding %+v", err)
+		}
+		w.Write(bodyMarshalled)
+	}))
+	defer server.Close()
+	cfg := configtest.NewInMemoryConfig(map[string]string{
+		"spring.cloud.vault.enabled": "true",
+		"spring.cloud.vault.scheme":  "http",
+	})
+	vaultConfig, _ := newConnectionConfig(cfg)
+	newConf, err := vaultConfig.ClientConfig()
+	newConf.Address = server.URL
+	vaultClient, err := api.NewClient(newConf)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	vaultConnection := newConnectionImpl(vaultConfig, vaultClient)
+	allKeys, err := vaultConnection.ListV2Secrets(ctx, "/secure-choice")
+	expectedKeys := []string{"key1/", "key2/"}
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NotNil(t, vaultConnection)
+	assert.Equal(t, expectedKeys, allKeys)
+}
+
+func Test_ListV2Secrets_Empty(t *testing.T) {
+	responseBody := map[string]interface{}{}
+	responseBody["data"] = nil
+	responseBody["auth"] = nil
+	responseBody["renewable"] = false
+	responseBody["request_id"] = "20ac948d-2b24-138e-76d5-c3e681d416e9"
+	responseBody["warnings"] = []string{"No keys for that path found"}
+	responseBody["wrap_info"] = nil
+
+	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		bodyMarshalled, err := json.Marshal(responseBody)
+		if err != nil {
+			t.Errorf("Error happened during encoding %+v", err)
+		}
+		w.Write(bodyMarshalled)
+	}))
+	defer server.Close()
+	cfg := configtest.NewInMemoryConfig(map[string]string{
+		"spring.cloud.vault.enabled": "true",
+		"spring.cloud.vault.scheme":  "http",
+	})
+	vaultConfig, _ := newConnectionConfig(cfg)
+	newConf, err := vaultConfig.ClientConfig()
+	newConf.Address = server.URL
+	vaultClient, err := api.NewClient(newConf)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	vaultConnection := newConnectionImpl(vaultConfig, vaultClient)
+	_, err = vaultConnection.ListV2Secrets(ctx, "/secure-choice")
+	if err != nil {
+		assert.Equal(t, "No keys for that path found", err.Error())
+	} else {
+		assert.Fail(t, "Expected an error object")
 	}
 }

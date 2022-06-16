@@ -21,6 +21,7 @@ const (
 	statsCounterVaultCallErrors = "call_errors"
 
 	statsApiListSecrets              = "listSecrets"
+	statsApiListV2Secrets            = "listV2Secrets"
 	statsApiStoreSecrets             = "storeSecrets"
 	statsApiRemoveSecrets            = "removeSecrets"
 	statsApiGetVersionedSecrets      = "getVersionedSecrets"
@@ -73,6 +74,14 @@ func (s statsConnection) Observe(api, param string, fn queryFunc) (err error) {
 func (s statsConnection) ListSecrets(ctx context.Context, path string) (results map[string]string, err error) {
 	err = s.Observe(statsApiListSecrets, path, func() error {
 		results, err = s.ConnectionApi.ListSecrets(ctx, path)
+		return err
+	})
+	return
+}
+
+func (s statsConnection) ListV2Secrets(ctx context.Context, path string) (results []string, err error) {
+	err = s.Observe(statsApiListV2Secrets, path, func() error {
+		results, err = s.ConnectionApi.ListV2Secrets(ctx, path)
 		return err
 	})
 	return

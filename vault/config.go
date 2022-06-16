@@ -78,7 +78,6 @@ func (c ConnectionConfig) ClientConfig() (*api.Config, error) {
 			return nil, err
 		}
 	}
-
 	return clientConfig, nil
 }
 
