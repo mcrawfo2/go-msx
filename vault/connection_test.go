@@ -139,7 +139,7 @@ func Test_ListV2Secrets_Empty(t *testing.T) {
 	vaultConnection := newConnectionImpl(vaultConfig, vaultClient)
 	_, err = vaultConnection.ListV2Secrets(ctx, "/secure-choice")
 	if err != nil {
-		assert.Equal(t, "Failed to list vault secrets: No keys for that path found", err.Error())
+		assert.Equal(t, "No keys for that path found", err.Error())
 	} else {
 		assert.Fail(t, "Expected an error object")
 	}
