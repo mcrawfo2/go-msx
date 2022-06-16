@@ -83,7 +83,7 @@ func (c connectionImpl) ListSecrets(ctx context.Context, path string) (results m
 
 func (c connectionImpl) ListV2Secrets(ctx context.Context, path string) (results []string, err error) {
 	if secret, err := c.list(ctx, "/v1/v2secret/metadata"+path, nil); err != nil {
-		return nil, errors.Wrap(err, "Failed to list vault secrets")
+		return nil, err
 	} else if secret != nil {
 		tempData := secret["data"].(map[string]interface{})["keys"].([]interface{})
 		for _, v := range tempData {
