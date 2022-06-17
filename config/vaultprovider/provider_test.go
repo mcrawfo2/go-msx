@@ -6,17 +6,19 @@ package vaultprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"cto-github.cisco.com/NFV-BU/go-msx/vault"
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/thejerf/abtime"
-	"reflect"
-	"testing"
-	"time"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 )
 
 func TestNewProviderConfig(t *testing.T) {
@@ -37,7 +39,7 @@ func TestNewProviderConfig(t *testing.T) {
 				Backend:          "secret",
 				ProfileSeparator: "/",
 				DefaultContext:   "defaultapplication",
-				Delay:            20 * time.Second,
+				Delay:            3600 * time.Second,
 			},
 		},
 		{
@@ -135,7 +137,7 @@ func TestNewProvidersFromConfig(t *testing.T) {
 						Backend:          "secret",
 						ProfileSeparator: "/",
 						DefaultContext:   "defaultapplication",
-						Delay:            20 * time.Second,
+						Delay:            3600 * time.Second,
 					},
 					contextPath: "defaultapplication",
 					connection:  mockConnection,
@@ -147,7 +149,7 @@ func TestNewProvidersFromConfig(t *testing.T) {
 						Backend:          "secret",
 						ProfileSeparator: "/",
 						DefaultContext:   "defaultapplication",
-						Delay:            20 * time.Second,
+						Delay:            3600 * time.Second,
 					},
 					contextPath: "service",
 					connection:  mockConnection,
@@ -171,7 +173,7 @@ func TestNewProvidersFromConfig(t *testing.T) {
 						Backend:          "secret",
 						ProfileSeparator: "/",
 						DefaultContext:   "defaultapplication",
-						Delay:            20 * time.Second,
+						Delay:            3600 * time.Second,
 					},
 					contextPath: "defaultapplication",
 				},
@@ -182,7 +184,7 @@ func TestNewProvidersFromConfig(t *testing.T) {
 						Backend:          "secret",
 						ProfileSeparator: "/",
 						DefaultContext:   "defaultapplication",
-						Delay:            20 * time.Second,
+						Delay:            3600 * time.Second,
 					},
 					contextPath: "service",
 				},
