@@ -442,10 +442,22 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 		}
 
 	case "integer":
-		return NewBuiltinType(schemaRef, "int", required), nil
+		switch schemaRef.Value.Format {
+		case "int32":
+			return NewBuiltinType(schemaRef, "int32", required), nil
+		case "int64":
+			return NewBuiltinType(schemaRef, "int64", required), nil
+		default:
+			return NewBuiltinType(schemaRef, "int", required), nil
+		}
 
 	case "number":
-		return NewBuiltinType(schemaRef, "float64", required), nil
+		switch schemaRef.Value.Format {
+		case "float32":
+			return NewBuiltinType(schemaRef, "float32", required), nil
+		default:
+			return NewBuiltinType(schemaRef, "float64", required), nil
+		}
 
 	case "boolean":
 		return NewBuiltinType(schemaRef, "bool", required), nil
