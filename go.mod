@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.0.5
-	github.com/AlekSi/gocov-xml v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Shopify/sarama v1.26.1
 	github.com/ThreeDotsLabs/watermill v1.0.2
@@ -12,7 +11,6 @@ require (
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/axw/gocov v1.1.0 // indirect
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -45,7 +43,6 @@ require (
 	github.com/jackc/puddle v1.2.1
 	github.com/jackpal/gateway v1.0.7
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
@@ -71,7 +68,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.4
+	github.com/stretchr/testify v1.7.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.6.4
 	github.com/uber-go/atomic v1.4.0 // indirect
@@ -85,7 +82,6 @@ require (
 	gopkg.in/ini.v1 v1.41.0 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools/gotestsum v1.8.1 // indirect
 	moul.io/banner v1.0.1
 )
 
