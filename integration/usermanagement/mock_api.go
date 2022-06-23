@@ -902,11 +902,11 @@ func (_m *MockUserManagement) RemoveSystemSecrets(scope string) (*integration.Ms
 }
 
 // RemoveSystemSecretsPermanent provides a mock function with given fields: scope, permanent
-func (_m *MockUserManagement) RemoveSystemSecretsPermanent(scope string, permanent bool) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) RemoveSystemSecretsPermanent(scope string, permanent *bool) (*integration.MsxResponse, error) {
 	ret := _m.Called(scope, permanent)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, bool) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(string, *bool) *integration.MsxResponse); ok {
 		r0 = rf(scope, permanent)
 	} else {
 		if ret.Get(0) != nil {
@@ -915,7 +915,7 @@ func (_m *MockUserManagement) RemoveSystemSecretsPermanent(scope string, permane
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+	if rf, ok := ret.Get(1).(func(string, *bool) error); ok {
 		r1 = rf(scope, permanent)
 	} else {
 		r1 = ret.Error(1)

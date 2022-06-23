@@ -539,18 +539,15 @@ func (i *Integration) EncryptSystemSecrets(scope string, names []string, encrypt
 }
 
 func (i *Integration) RemoveSystemSecrets(scope string) (result *integration.MsxResponse, err error) {
-	return i.execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameRemoveSystemSecrets,
-		EndpointParameters: map[string]string{
-			"scope": scope,
-		},
-		ExpectEnvelope: true,
-	})
+	return i.RemoveSystemSecretsPermanent(scope, nil)
 }
 
-func (i *Integration) RemoveSystemSecretsPermanent(scope string, permanent bool) (result *integration.MsxResponse, err error) {
-	qp := make(url.Values)
-	qp.Set("permanent", strconv.FormatBool(permanent))
+func (i *Integration) RemoveSystemSecretsPermanent(scope string, permanent *bool) (result *integration.MsxResponse, err error) {
+	var qp url.Values
+	if permanent != nil {
+		qp = make(url.Values)
+		qp.Set("permanent", strconv.FormatBool(*permanent))
+	}
 
 	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameRemoveSystemSecrets,

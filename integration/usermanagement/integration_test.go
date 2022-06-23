@@ -540,7 +540,8 @@ func TestIntegration_RemoveSystemSecretsPermanent(t *testing.T) {
 
 	NewUserManagementIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.RemoveSystemSecretsPermanent(scope, true)
+			permanent := true
+			return api.RemoveSystemSecretsPermanent(scope, &permanent)
 		}).
 		WithResponseStatus(http.StatusOK).
 		WithResponseEnvelope().
