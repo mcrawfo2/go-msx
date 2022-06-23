@@ -548,6 +548,20 @@ func (i *Integration) RemoveSystemSecrets(scope string) (result *integration.Msx
 	})
 }
 
+func (i *Integration) RemoveSystemSecretsPermanent(scope string, permanent bool) (result *integration.MsxResponse, err error) {
+	qp := make(url.Values)
+	qp.Set("permanent", strconv.FormatBool(permanent))
+
+	return i.execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameRemoveSystemSecrets,
+		EndpointParameters: map[string]string{
+			"scope": scope,
+		},
+		QueryParameters: qp,
+		ExpectEnvelope:  true,
+	})
+}
+
 func (i *Integration) GenerateSystemSecrets(scope string, names []string, save bool) (result *integration.MsxResponse, err error) {
 	body := &GenerateSecretRequestDTO{
 		Names:   names,

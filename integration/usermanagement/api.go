@@ -44,6 +44,7 @@ type Api interface {
 	ReplaceSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error)
 	EncryptSystemSecrets(scope string, names []string, encrypt EncryptSecretsDTO) (*integration.MsxResponse, error)
 	RemoveSystemSecrets(scope string) (*integration.MsxResponse, error)
+	RemoveSystemSecretsPermanent(scope string, permanent bool) (*integration.MsxResponse, error)
 	GenerateSystemSecrets(scope string, names []string, save bool) (*integration.MsxResponse, error)
 
 	GetTenantSecrets(tenantId, scope string) (*integration.MsxResponse, error)
