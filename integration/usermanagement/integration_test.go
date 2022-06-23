@@ -535,6 +535,27 @@ func TestIntegration_RemoveSystemSecrets(t *testing.T) {
 		Test(t)
 }
 
+func TestIntegration_RemoveSystemSecretsPermanent(t *testing.T) {
+	const scope = "scope"
+
+	NewUserManagementIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.RemoveSystemSecretsPermanent(scope, true)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponseEnvelope().
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointNameRemoveSystemSecrets),
+			clienttest.EndpointRequestHasEndpointParameter("scope", scope),
+			clienttest.EndpointRequestHasQueryParam("permanent", "true"),
+			clienttest.EndpointRequestHasToken(true),
+			clienttest.EndpointRequestHasExpectEnvelope(true)).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodDelete),
+			clienttest.ServiceEndpointHasPath("/api/v2/secrets/scope/{{.scope}}")).
+		Test(t)
+}
+
 func TestIntegration_GenerateSystemSecrets(t *testing.T) {
 	const scope = "scope-key=scope-value"
 	const save = true
