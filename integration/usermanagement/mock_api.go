@@ -901,6 +901,29 @@ func (_m *MockUserManagement) RemoveSystemSecrets(scope string) (*integration.Ms
 	return r0, r1
 }
 
+// RemoveSystemSecretsPermanent provides a mock function with given fields: scope, permanent
+func (_m *MockUserManagement) RemoveSystemSecretsPermanent(scope string, permanent *bool) (*integration.MsxResponse, error) {
+	ret := _m.Called(scope, permanent)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(string, *bool) *integration.MsxResponse); ok {
+		r0 = rf(scope, permanent)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *bool) error); ok {
+		r1 = rf(scope, permanent)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemoveTenantSecrets provides a mock function with given fields: tenantId, scope
 func (_m *MockUserManagement) RemoveTenantSecrets(tenantId string, scope string) (*integration.MsxResponse, error) {
 	ret := _m.Called(tenantId, scope)
