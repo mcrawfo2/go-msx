@@ -53,8 +53,10 @@ func GenerateDomainOpenApi(args []string) error {
 		var err error
 		if schema.Enum() != nil {
 			err = generateEnums(schema)
-		} else {
+		} else if schema.IsTypeObject() {
 			err = generateSchema(schema)
+		} else {
+			err = generateTypeSchema(schema)
 		}
 		if err != nil {
 			return errors.Wrapf(err, "Failed to generate schema %q", schema.TypeName())

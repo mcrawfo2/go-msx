@@ -133,6 +133,10 @@ func (s Schema) IsObject() bool {
 	return s.object
 }
 
+func (s Schema) IsTypeObject() bool {
+	return s.schemaRef.Value.Type == "" || s.schemaRef.Value.Type == "object"
+}
+
 func (s Schema) IsAny() bool {
 	return s.schemaRef.Value.Type == "any"
 }
@@ -425,6 +429,17 @@ func NewDictType(schemaRef *openapi3.SchemaRef, required bool) Schema {
 	}
 }
 
+func NewAnyType(required bool) Schema {
+	return Schema{
+		schemaRef: &openapi3.SchemaRef{
+			Value: &openapi3.Schema{
+				Type: "any",
+			},
+		},
+		required: required,
+	}
+}
+
 func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error) {
 	if schemaRef.Ref != "" {
 		return NewExternalType(schemaRef, required), nil
@@ -469,6 +484,8 @@ func NewSchemaType(schemaRef *openapi3.SchemaRef, required bool) (Schema, error)
 		switch schemaRef.Value.Format {
 		case "json":
 			return NewFrameworkType(schemaRef, pkgJson, "api", "RawMessage", required), nil
+		case "any":
+			return NewAnyType(required), nil
 		default:
 			return NewDictType(schemaRef, required), nil
 		}
