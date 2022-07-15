@@ -50,7 +50,12 @@ func GenerateDomainOpenApi(args []string) error {
 
 	schemas, err := spec.Schemas()
 	for _, schema := range schemas {
-		err := generateSchema(schema)
+		var err error
+		if schema.Enum() != nil {
+			err = generateEnums(schema)
+		} else {
+			err = generateSchema(schema)
+		}
 		if err != nil {
 			return errors.Wrapf(err, "Failed to generate schema %q", schema.TypeName())
 		}
