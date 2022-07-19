@@ -7,7 +7,7 @@ package redis
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"strings"
 )
 

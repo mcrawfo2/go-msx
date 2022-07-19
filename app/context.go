@@ -37,7 +37,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbCrudRepositoryFactory)
-	OnEvent(EventConfigure, PhaseAfter, withConfig(configureRedisPool))
+	OnEvent(EventConfigure, PhaseAfter, configureRedisPool)
 	OnEvent(EventConfigure, PhaseAfter, configureKafkaPool)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(fs.ConfigureFileSystem))
 	OnEvent(EventConfigure, PhaseAfter, configureWebService)
@@ -134,8 +134,8 @@ func configureSqlDbPool(ctx context.Context) error {
 	return nil
 }
 
-func configureRedisPool(cfg *config.Config) error {
-	if err := redis.ConfigurePool(cfg); err != nil && err != redis.ErrDisabled {
+func configureRedisPool(ctx context.Context) error {
+	if err := redis.ConfigurePool(ctx); err != nil && err != redis.ErrDisabled {
 		return err
 	} else if err != redis.ErrDisabled {
 		RegisterContextInjector(redis.ContextWithPool)

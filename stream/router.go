@@ -122,7 +122,7 @@ func addListener(ctx context.Context, topic string, action ListenerAction) error
 		return err
 	}
 
-	bindingConfig, err := NewBindingConfigurationFromConfig(config.FromContext(ctx), topic)
+	bindingConfig, err := NewBindingConfiguration(ctx, topic)
 	if err != nil {
 		return err
 	}

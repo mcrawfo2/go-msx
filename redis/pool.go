@@ -6,7 +6,6 @@ package redis
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"sync"
 )
 
@@ -29,7 +28,7 @@ func Pool() *ConnectionPool {
 	return pool
 }
 
-func ConfigurePool(cfg *config.Config) error {
+func ConfigurePool(ctx context.Context) error {
 	poolMtx.Lock()
 	defer poolMtx.Unlock()
 
@@ -37,7 +36,7 @@ func ConfigurePool(cfg *config.Config) error {
 		return nil
 	}
 
-	if conn, err := NewConnectionFromConfig(cfg); err != nil {
+	if conn, err := NewConnection(ctx); err != nil {
 		return err
 	} else {
 		pool = &ConnectionPool{
