@@ -650,7 +650,7 @@ func (i *Integration) ListDeviceTemplates(serviceType string, tenantId *types.UU
 
 func (i *Integration) GetDeviceTemplate(templateId types.UUID) (*integration.MsxResponse, error) {
 	return i.Execute(&integration.MsxEndpointRequest{
-		EndpointName: endpointNameListDeviceTemplates,
+		EndpointName: endpointNameGetDeviceTemplate,
 		EndpointParameters: map[string]string{
 			"id": templateId.String(),
 		},
