@@ -19,7 +19,7 @@ const (
 	DelaySleepId    = iota
 )
 
-var logger = log.NewLogger("msx.retry")
+var logger = log.NewPackageLogger()
 
 type Retryable func() error
 

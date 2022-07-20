@@ -28,6 +28,7 @@ require (
 	github.com/go-openapi/spec v0.20.3
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v7 v7.4.1
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/google/uuid v1.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
