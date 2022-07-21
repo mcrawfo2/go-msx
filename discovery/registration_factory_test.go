@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package consulprovider
+package discovery
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
@@ -13,14 +13,16 @@ import (
 	"time"
 )
 
-func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
+const configRootRegistrationConfig = "spring.cloud.consul.discovery"
+
+func TestNewRegistrationConfigFromConfig(t *testing.T) {
 	type args struct {
 		cfg *config.Config
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *RegistrationProviderConfig
+		want    *RegistrationConfig
 		wantErr bool
 	}{
 		{
@@ -30,7 +32,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 					"info.app.name": "TestNewRegistrationProviderConfigFromConfig/Defaults",
 				}),
 			},
-			want: &RegistrationProviderConfig{
+			want: &RegistrationConfig{
 				Name:                "TestNewRegistrationProviderConfigFromConfig/Defaults",
 				Register:            true,
 				Scheme:              "http",
@@ -63,7 +65,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 					"spring.cloud.consul.discovery.hidden-api-listing":    "true",
 				}),
 			},
-			want: &RegistrationProviderConfig{
+			want: &RegistrationConfig{
 				Enabled:             true,
 				Name:                "custom",
 				Register:            false,
@@ -85,7 +87,7 @@ func TestNewRegistrationProviderConfigFromConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewRegistrationProviderConfigFromConfig(tt.args.cfg)
+			got, err := NewRegistrationConfigFromConfig(tt.args.cfg, configRootRegistrationConfig)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewRegistrationProviderConfigFromConfig() error = %v, wantErr %v", err, tt.wantErr)
