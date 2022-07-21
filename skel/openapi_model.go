@@ -395,7 +395,7 @@ func NewBuiltinType(schemaRef *openapi3.SchemaRef, name string, required bool) S
 	}
 }
 
-const pkgJson = "json"
+const pkgJson = "encoding/json"
 
 func NewFrameworkType(schemaRef *openapi3.SchemaRef, pkg, qual, name string, required bool) Schema {
 	return Schema{
