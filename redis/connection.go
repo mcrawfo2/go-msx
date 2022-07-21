@@ -9,7 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"fmt"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 	"strings"
 	"time"
@@ -25,7 +25,7 @@ var (
 	logger      = log.NewLogger("msx.redis")
 )
 
-// RedisConfig represents Redis config options
+// ConnectionConfig represents Redis config options
 type ConnectionConfig struct {
 	Enable      bool   `config:"default=false"`
 	Host        string `config:"default=localhost"`
@@ -39,6 +39,16 @@ type ConnectionConfig struct {
 
 func (c ConnectionConfig) Address() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
+
+// NewConnectionConfigFromConfig creates a new redis configuration using the specified configuration source.
+func NewConnectionConfigFromConfig(cfg *config.Config) (*ConnectionConfig, error) {
+	connectionConfig := &ConnectionConfig{}
+	if err := cfg.Populate(connectionConfig, configRootRedis); err != nil {
+		return nil, err
+	}
+
+	return connectionConfig, nil
 }
 
 type SentinelConfig struct {
@@ -91,27 +101,33 @@ func newStandaloneClient(cfg *ConnectionConfig) *redis.Client {
 	return redis.NewClient(&options)
 }
 
-func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
-	var client *redis.Client
+func NewConnection(ctx context.Context) (*Connection, error) {
+	configSource := config.FromContext(ctx)
+
+	cfg, err := NewConnectionConfigFromConfig(configSource)
+	if err != nil {
+		return nil, err
+	}
 
 	if !cfg.Enable {
 		return nil, ErrDisabled
 	}
 
+	var client *redis.Client
 	if cfg.Sentinel.Enable {
 		client = newSentinelClient(cfg)
 	} else {
 		client = newStandaloneClient(cfg)
 	}
 
-	if res, err := client.Ping().Result(); err != nil {
+	if res, err := client.Ping(ctx).Result(); err != nil {
 		return nil, errors.Wrap(err, "Redis ping returned error")
 	} else {
 		logger.Info("Redis ping returned: ", res)
 	}
 
 	var version string
-	if text, err := client.Info("server").Result(); err != nil {
+	if text, err := client.Info(ctx, "server").Result(); err != nil {
 		return nil, errors.Wrap(err, "Redis server info returned error")
 	} else {
 		var info = make(map[string]string)
@@ -143,22 +159,4 @@ func NewConnection(cfg *ConnectionConfig) (*Connection, error) {
 		client:  client,
 		version: version,
 	}, nil
-}
-
-func NewConnectionConfigFromConfig(cfg *config.Config) (*ConnectionConfig, error) {
-	connectionConfig := &ConnectionConfig{}
-	if err := cfg.Populate(connectionConfig, configRootRedis); err != nil {
-		return nil, err
-	}
-
-	return connectionConfig, nil
-}
-
-func NewConnectionFromConfig(cfg *config.Config) (*Connection, error) {
-	connectionConfig, err := NewConnectionConfigFromConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewConnection(connectionConfig)
 }

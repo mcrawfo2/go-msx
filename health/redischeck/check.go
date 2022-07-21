@@ -26,7 +26,7 @@ func Check(ctx context.Context) health.CheckResult {
 	var healthResult health.CheckResult
 	err := trace.Operation(ctx, "redis.healthCheck", func(ctx context.Context) error {
 		conn := redisPool.Connection()
-		pingCmd := conn.Client(ctx).Ping()
+		pingCmd := conn.Client(ctx).Ping(ctx)
 		pingResult, err := pingCmd.Result()
 		healthResult = health.CheckResult{
 			Status: health.StatusUp,

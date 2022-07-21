@@ -27,8 +27,8 @@ require (
 	github.com/go-ini/ini v1.48.0
 	github.com/go-openapi/spec v0.20.3
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/go-redis/redis/v7 v7.4.1
-	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-stack/stack v1.8.0
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
 	github.com/google/uuid v1.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
@@ -47,6 +47,7 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
 	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/minghsu0107/watermill-redistream v1.0.0
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/opentracing/opentracing-go v1.1.0
