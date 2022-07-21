@@ -7,6 +7,7 @@ package log
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/go-stack/stack"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -332,6 +333,29 @@ func NewLogger(name string, fields ...LogContext) *Logger {
 	loggers[name] = logger
 
 	return logger
+}
+
+func NewPackageLogger() *Logger {
+	// Find caller directory name
+	st := stack.Caller(1)
+	tf := st.Frame()
+	fp := strings.Split(tf.Function, "/")
+
+	// Strip root package from caller package (minus 1)
+	fp = fp[2:]
+	fp[0] = strings.TrimPrefix(fp[0], "go-")
+	fp[0] = strings.ReplaceAll(fp[0], "-", ".")
+	fp[0] = strings.TrimSuffix(fp[0], "service")
+
+	// Strip function name from caller function
+	lp := strings.SplitN(fp[len(fp)-1], ".", 2)
+	fp[len(fp)-1] = lp[0]
+
+	// Convert stripped path to dotted notation
+	pn := strings.Join(fp, ".")
+
+	// Return a logger
+	return NewLogger(pn)
 }
 
 func SetLoggerLevel(name string, level logrus.Level) {
