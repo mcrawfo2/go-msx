@@ -115,7 +115,7 @@ func generateVariables(schema Schema, file *File) {
 
 func generateMarshalJSONFunc(schema Schema, file *File) {
 	file.Func().Parens(
-		Id("v").Op("*").Id(schema.TypeName())).
+		Id("v").Id(schema.TypeName())).
 		Id("MarshalJSON").Params().Parens(Index().Byte().Op(",").Error()).
 		Block(
 			Return(Index().Byte().Parens(Id("v.String()")).Op(",").Id("nil")),
