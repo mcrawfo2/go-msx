@@ -12,7 +12,7 @@ metadata:
   namespace: {{ kubernetes_namespace }}
 spec:
   serviceName: ${app.name}
-  replicas: {{ deployment_mode_env[deployment_mode|lower]['replica_count']['${app.name}_count'] }}
+  replicas: {{ ${deployment.group}.replica_count[deployment_mode|lower] }}
   selector:
     matchLabels:
       name: ${app.name}
