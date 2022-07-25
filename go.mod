@@ -16,7 +16,6 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/dave/jennifer v1.4.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
 	github.com/emicklei/go-restful v2.14.3+incompatible
@@ -32,6 +31,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-stack/stack v1.8.0
 	github.com/gocql/gocql v0.0.0-20191013011951-93ce931da9e1
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/uuid v1.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/hashicorp/consul/api v1.13.1
