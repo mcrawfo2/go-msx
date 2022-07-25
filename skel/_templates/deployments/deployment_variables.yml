@@ -7,6 +7,10 @@ ${deployment.group}:
     "${deployment.group}": "{{ ${deployment.group}_build_version }}"
 #if GENERATOR_BEAT
   metric_type: ${beat.protocol}
+  replica_count:
+    lite: 1
+    demo: 1
+    production: 2
 #else GENERATOR_BEAT
   db_migration_required: yes
   nginx_routes_required: yes
