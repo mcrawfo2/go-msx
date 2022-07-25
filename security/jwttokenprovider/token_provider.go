@@ -15,7 +15,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"encoding/base64"
 	"encoding/pem"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/pavel-v-chernykh/keystore-go"
 	"github.com/pkg/errors"
 	"io/ioutil"
