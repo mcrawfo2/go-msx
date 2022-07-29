@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,11 +32,11 @@ type PopulatorSource interface {
 	ExpressionResolver
 }
 
-var populators = make(map[reflect.Type]Populator)
+var populators sync.Map
 
 func populator(t reflect.Type) (Populator, error) {
-	if u, ok := populators[t]; ok {
-		return u, nil
+	if u, ok := populators.Load(t); ok {
+		return u.(Populator), nil
 	}
 
 	u, err := newValuePopulator(t, nil)
@@ -49,7 +50,7 @@ func populator(t reflect.Type) (Populator, error) {
 		return u, err
 	}
 
-	populators[t] = u
+	populators.LoadOrStore(t, u)
 	return u, nil
 }
 
