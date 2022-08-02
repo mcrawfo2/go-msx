@@ -65,7 +65,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppName:           "someservice",
 	AppDisplayName:    "Some Microservice",
 	AppDescription:    "Does Something",
-	AppVersion:        "4.2.0",
+	AppVersion:        "5.0.0",
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
 	ServerContextPath: "/some",
@@ -155,6 +155,14 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			},
 			Validate: survey.Required,
 		},
+		{
+			Name: "trunk",
+			Prompt: &survey.Input{
+				Message: "Primary branch name:",
+				Default: skeletonConfig.Trunk,
+			},
+			Validate: survey.Required,
+		},
 	},
 	archetypeKeyBeat: {
 		{
@@ -186,6 +194,14 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Prompt: &survey.Input{
 				Message: "Build notifications slack channel:",
 				Default: skeletonConfig.SlackChannel,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "trunk",
+			Prompt: &survey.Input{
+				Message: "Primary branch name:",
+				Default: skeletonConfig.Trunk,
 			},
 			Validate: survey.Required,
 		},
@@ -281,6 +297,14 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Prompt: &survey.Input{
 				Message: "Build notifications slack channel:",
 				Default: skeletonConfig.SlackChannel,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "trunk",
+			Prompt: &survey.Input{
+				Message: "Primary branch name:",
+				Default: skeletonConfig.Trunk,
 			},
 			Validate: survey.Required,
 		},
