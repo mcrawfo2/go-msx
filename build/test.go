@@ -25,14 +25,13 @@ func init() {
 func InstallTestDependencies(args []string) error {
 	script := pipe.Script(
 		exec.Info("Downloading test dependencies"),
-		goGet("github.com/axw/gocov/gocov"),
-		goGet("github.com/AlekSi/gocov-xml"),
+		goInstall("github.com/axw/gocov/gocov@latest"),
+		goInstall("github.com/AlekSi/gocov-xml@latest"),
+		goInstall("gotest.tools/gotestsum@latest"),
+		goInstall("github.com/jstemmer/go-junit-report/v2@latest"),
 		goGet("github.com/stretchr/testify/assert"),
 		goGet("github.com/stretchr/testify/mock"),
 		goGet("github.com/stretchr/testify/http"),
-		goGet("github.com/pmezard/go-difflib/difflib"),
-		goGet("github.com/jstemmer/go-junit-report"),
-		goGet("gotest.tools/gotestsum"),
 	)
 
 	s := pipe.NewState(os.Stdout, os.Stdout)
@@ -124,5 +123,13 @@ func locateTestableDirectories() []string {
 }
 
 func goGet(packageName string) pipe.Pipe {
-	return pipe.Exec("go", "get", packageName)
+	return pipe.Line(
+		exec.Info("Downloading %q", packageName),
+		pipe.Exec("go", "get", packageName))
+}
+
+func goInstall(packageCommandName string) pipe.Pipe {
+	return pipe.Line(
+		exec.Info("Installing %q", packageCommandName),
+		pipe.Exec("go", "install", packageCommandName))
 }

@@ -1,3 +1,3 @@
 module cto-github.cisco.com/NFV-BU/${app.name}
 
-go 1.16
+go 1.18

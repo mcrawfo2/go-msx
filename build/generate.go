@@ -5,10 +5,8 @@
 package build
 
 import (
-	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
-	"fmt"
 	"github.com/shurcooL/vfsgen"
 	"gopkg.in/pipe.v2"
 	"net/http"
@@ -16,8 +14,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"runtime"
-	"strings"
 )
 
 var commandRegexp = regexp.MustCompile(`[^\s"']+|"([^"]*)"|'([^']*)'`)
@@ -28,65 +24,14 @@ func init() {
 }
 
 func InstallGenerateDependencies(args []string) error {
-	goPath, err := getGoPath()
-	if err != nil {
-		return err
-	}
-
-	goos := strings.Title(runtime.GOOS)
-
 	script := pipe.Script(
 		exec.Info("Downloading generator dependencies"),
-		pipe.ChDir(filepath.Join(goPath, "bin")),
-		tarInstall(fmt.Sprintf(
-			"https://github.com/vektra/mockery/releases/download/v2.9.4/mockery_2.9.4_%s_x86_64.tar.gz", goos),
-			"mockery"),
-		goInstall("bou.ke/staticfiles"),
+		goInstall("github.com/vektra/mockery/v2@v2.14.0"),
+		goInstall("bou.ke/staticfiles@dd04075"),
 		pipe.Write(os.Stdout),
 	)
 
 	return pipe.Run(script)
-}
-
-func getGoPath() (string, error) {
-	buf := bytes.NewBuffer(make([]byte, 0, 512))
-
-	goBinScript := pipe.Line(
-		pipe.Exec("go", "env", "GOBIN"),
-		pipe.Write(buf))
-
-	if err := pipe.Run(goBinScript); err != nil {
-		return "", err
-	}
-
-	goBinFolder := strings.TrimSpace(buf.String())
-	if goBinFolder != "" {
-		logger.Infof("%q", goBinFolder)
-		return goBinFolder, nil
-	}
-
-	buf.Truncate(0)
-
-	goPathScript := pipe.Line(
-		pipe.Exec("go", "env", "GOPATH"),
-		pipe.Write(buf))
-
-	if err := pipe.Run(goPathScript); err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(buf.String()), nil
-}
-
-func goInstall(packageName string) pipe.Pipe {
-	return pipe.Exec("go", "get", packageName)
-}
-
-func tarInstall(url, filename string) pipe.Pipe {
-	return pipe.Line(
-		pipe.Exec("curl", "-L", url),
-		pipe.Exec("tar", "-xz"),
-		pipe.WriteFile(filename, 0755))
 }
 
 func GenerateCode(args []string) error {
