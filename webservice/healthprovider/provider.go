@@ -10,6 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
+	"encoding/json"
 	"github.com/emicklei/go-restful"
 	"github.com/pkg/errors"
 	"net/http"
@@ -45,6 +46,39 @@ func (h HealthProvider) EndpointName() string {
 	return endpointName
 }
 
+func HealthAdminController(fn webservice.ControllerFunction) restful.RouteFunction {
+	return func(req *restful.Request, resp *restful.Response) {
+		body, err := fn(req)
+		if err != nil {
+			webservice.RawResponse(req, resp, nil, err)
+			return
+		}
+
+		resp.Header().Set("Expires", "0")
+		resp.Header().Set("Pragma", "no-cache")
+		resp.Header().Set("Content-Type", "application/vnd.spring-boot.actuator.v2+json")
+		resp.Header().Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
+
+		if body != nil {
+			var bodyBytes []byte
+			if report, ok := body.(*health.Report); ok {
+				if report.Status != health.StatusUp {
+					resp.WriteHeader(503)
+				} else {
+					resp.WriteHeader(200)
+				}
+			} else {
+				webservice.RawResponse(req, resp, body, errors.New("unable to assert to health report"))
+				return
+			}
+			bodyBytes, _ = json.Marshal(body)
+			_, _ = resp.Write(bodyBytes)
+		} else {
+			resp.WriteHeader(204)
+		}
+	}
+}
+
 func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 	healthService.Consumes(restful.MIME_JSON, restful.MIME_XML)
 	healthService.Produces(restful.MIME_JSON, restful.MIME_XML)
@@ -53,7 +87,7 @@ func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 
 	healthService.Route(healthService.GET("").
 		Operation("admin.health").
-		To(adminprovider.RawAdminController(h.healthReport)).
+		To(HealthAdminController(h.healthReport)).
 		Doc("Get System health").
 		Do(webservice.Returns200))
 
