@@ -1,0 +1,133 @@
+name: Checks
+on: [pull_request, pull_request_target]
+env:
+  CHECKS_ENTERPRISE_TOKEN: ${{ secrets.ENTERPRISE_TOKEN }}
+  CHECKS_PUBLIC_TOKEN: ${{ secrets.PUBLIC_TOKEN }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+jobs:
+  Modules:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Download Dependencies
+        run: go mod download
+      - name: Analyze go-msx library versions
+        id: analysis
+        uses: mcrawfo2/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: go-msx-version
+          manifest: go.mod
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  License:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Check License
+        run: make license-check
+  Vet:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Vet
+        run: make vet
+      - name: Analyze go-vet report
+        id: analysis
+        uses: mcrawfo2/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: vet
+          manifest: go.mod
+          report: dist/vet.json
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Lint:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Create report directory
+        run: mkdir -p test
+      - name: Lint
+        uses: gessnerfl/golangci-lint-action@master
+        with:
+          version: v1.47.3
+          args: --config build/ci/golangci.yml
+          skip-cache: true
+          only-new-issues: true
+          output-file: json:test/golangci-lint-report.json
+      - name: Analyze golangci-lint report
+        id: analysis
+        uses: mcrawfo2/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: golangci-lint
+          manifest: go.mod
+          report: test/golangci-lint-report.json
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Test:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Test
+        run: make test
+      - name: Analyze go-test report
+        id: analysis
+        uses: mcrawfo2/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: junit
+          manifest: go.mod
+          report: test/junit-report.xml
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Slack:
+    runs-on: self-hosted
+    if: ${{ always() }}
+    needs:
+      - Modules
+      - License
+      - Vet
+      - Lint
+      - Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Slack Summary
+        uses: mcrawfo2/actions-msx-checks@master
+        env:
+          GLANCE_MODULES: ${{ needs.Modules.outputs.glance }}
+          GLANCE_LICENSE: ${{ needs.License.outputs.glance }}
+          GLANCE_VET: ${{ needs.Vet.outputs.glance }}
+          GLANCE_LINT: ${{ needs.Lint.outputs.glance }}
+          GLANCE_TEST: ${{ needs.Test.outputs.glance }}
+        with:
+          check: slack
+          slack_channel: go-msx-build
+          manifest: go.mod
