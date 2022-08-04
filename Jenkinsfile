@@ -89,7 +89,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME"
                     ]) { dir ("$WORKSPACE") {
@@ -111,7 +111,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME"
                     ]) { dir ("$WORKSPACE") {
@@ -199,7 +199,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME"]) { dir("$WORKSPACE") { withCredentials([usernamePassword(
                     credentialsId: ARTIFACTORY_CREDENTIALS,
