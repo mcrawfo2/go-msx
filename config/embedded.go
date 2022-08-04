@@ -19,7 +19,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 	fs := vfsgen۰FS{
 		"/": &vfsgen۰DirInfo{
 			name:    "/",
-			modTime: time.Date(2022, 8, 12, 15, 19, 13, 680230105, time.UTC),
+			modTime: time.Date(2022, 8, 15, 13, 40, 11, 927566612, time.UTC),
 		},
 		"/app": &vfsgen۰DirInfo{
 			name:    "app",
@@ -52,7 +52,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/discovery": &vfsgen۰DirInfo{
 			name:    "discovery",
-			modTime: time.Date(2022, 8, 8, 15, 10, 49, 720062002, time.UTC),
+			modTime: time.Date(2022, 8, 12, 15, 57, 36, 457542116, time.UTC),
 		},
 		"/discovery/consulprovider": &vfsgen۰DirInfo{
 			name:    "consulprovider",
@@ -80,10 +80,10 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/integration/defaults-integration.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-integration.properties",
-			modTime:          time.Date(2022, 8, 8, 12, 33, 24, 150237805, time.UTC),
-			uncompressedSize: 180,
+			modTime:          time.Date(2022, 8, 15, 13, 40, 12, 42750862, time.UTC),
+			uncompressedSize: 173,
 
-			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2a\x4a\xcd\xcd\x2f\x49\x2d\x4e\x2d\x2a\xcb\x4c\x4e\xd5\x2b\x2d\x4e\x2d\xca\x4d\xcc\x4b\x4c\x4f\xcd\x4d\xcd\x2b\x81\x89\x42\x69\x5b\xac\xb2\x5c\xa8\x26\x24\x96\x96\x64\x90\xa3\xaf\x38\x35\xb9\x28\xb5\xa4\x98\x28\xad\x80\x00\x00\x00\xff\xff\xd0\x7b\x4a\x40\xb4\x00\x00\x00"),
+			compressedContent: []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2a\x4a\xcd\xcd\x2f\x49\x2d\x4e\x2d\x2a\xcb\x4c\x4e\xd5\x2b\x2d\x4e\x2d\xca\x4d\xcc\x4b\x4c\x4f\xcd\x4d\xcd\x2b\x81\x89\x42\x69\x5b\xac\xb2\x5c\xa8\x26\x24\x96\x96\x64\x90\xa3\xaf\x38\x35\xb9\x28\xb5\xa4\x18\x5d\x2b\xaa\x30\x20\x00\x00\xff\xff\x54\x59\x44\xfd\xad\x00\x00\x00"),
 		},
 		"/leader": &vfsgen۰DirInfo{
 			name:    "leader",
@@ -131,7 +131,7 @@ var EmbeddedDefaultsFileSystem = func() http.FileSystem {
 		},
 		"/sqldb": &vfsgen۰DirInfo{
 			name:    "sqldb",
-			modTime: time.Date(2022, 8, 4, 19, 2, 36, 736479517, time.UTC),
+			modTime: time.Date(2022, 8, 15, 13, 40, 12, 54173925, time.UTC),
 		},
 		"/sqldb/defaults-sqldb.properties": &vfsgen۰CompressedFileInfo{
 			name:             "defaults-sqldb.properties",
