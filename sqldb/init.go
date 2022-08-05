@@ -8,9 +8,11 @@ import (
 	"database/sql/driver"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/lib/pq"
+	"sync"
 )
 
 var drivers = make(map[string]driver.Driver)
+var driverMtx sync.Mutex
 
 func init() {
 	drivers["postgres"] = &pq.Driver{}
