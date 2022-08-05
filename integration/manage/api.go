@@ -99,4 +99,6 @@ type Api interface {
 	DeleteDeviceConnection(deviceConnectionId string) (*integration.MsxResponse, error)
 
 	GetEntityShard(entityId string) (*integration.MsxResponse, error)
+
+	GetLocationGeocode(location string) (*integration.MsxResponse, error)
 }
