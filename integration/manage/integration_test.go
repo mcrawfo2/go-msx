@@ -1265,3 +1265,23 @@ func TestIntegration_DeleteDeviceConnection(t *testing.T) {
 		).
 		Test(t)
 }
+
+func TestIntegration_GetLocationGeocode(t *testing.T) {
+	const address = "address"
+
+	NewManageIntegrationTest().
+		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
+			return api.GetLocationGeocode(address)
+		}).
+		WithResponseStatus(http.StatusOK).
+		WithResponseEnvelope().
+		WithRequestPredicates(
+			clienttest.EndpointRequestHasName(endpointNameGetLocationGeocode),
+			clienttest.EndpointRequestHasExpectEnvelope(true),
+		).
+		WithEndpointPredicates(
+			clienttest.ServiceEndpointHasMethod(http.MethodGet),
+			clienttest.ServiceEndpointHasPath("/api/v1/location/geocode"),
+		).
+		Test(t)
+}

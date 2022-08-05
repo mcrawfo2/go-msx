@@ -77,6 +77,8 @@ const (
 
 	endpointNameUpdateTemplateAccess = "updateAccessTemplate"
 
+	endpointNameGetLocationGeocode = "getLocationGeocode"
+
 	serviceName = integration.ServiceNameManage
 )
 
@@ -142,6 +144,7 @@ var (
 
 		endpointNameCreateDeviceConnection: {Method: "POST", Path: "/api/v2/devices/connections"},
 		endpointNameDeleteDeviceConnection: {Method: "DELETE", Path: "/api/v2/devices/connections/{{.deviceConnectionId}}"},
+		endpointNameGetLocationGeocode:     {Method: "GET", Path: "/api/v1/location/geocode"},
 	}
 )
 
@@ -898,6 +901,17 @@ func (i *Integration) DeleteDeviceConnection(deviceConnectionId string) (*integr
 			"deviceConnectionId": deviceConnectionId,
 		},
 		EndpointName:   endpointNameDeleteDeviceConnection,
+		ExpectEnvelope: true,
+	})
+}
+
+func (i *Integration) GetLocationGeocode(address string) (*integration.MsxResponse, error) {
+	return i.Execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameGetLocationGeocode,
+		QueryParameters: map[string][]string{
+			"address": {address},
+		},
+		Payload:        new(Pojo),
 		ExpectEnvelope: true,
 	})
 }
