@@ -4,6 +4,7 @@ env:
   CHECKS_ENTERPRISE_TOKEN: ${{ secrets.ENTERPRISE_TOKEN }}
   CHECKS_PUBLIC_TOKEN: ${{ secrets.PUBLIC_TOKEN }}
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  SONAR_URL: https://engci-sonar-gpk.cisco.com/sonar
 jobs:
   Modules:
     runs-on: self-hosted
@@ -97,6 +98,14 @@ jobs:
           go-version-file: 'go.mod'
       - name: Test
         run: make test
+      - name: Save reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            test/junit-report.xml
+            test/cobertura-coverage.xml
+            test/gocover.out
       - name: Analyze go-test report
         id: analysis
         uses: mcrawfo2/actions-msx-checks@master
@@ -107,6 +116,35 @@ jobs:
           report: test/junit-report.xml
     outputs:
       glance: ${{ steps.analysis.outputs.glance }}
+  Sonar:
+    runs-on: self-hosted
+    needs:
+      - Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup sonarqube
+        uses: warchant/setup-sonar-scanner@v3
+      - name: Create sonar cache directory
+        run: mkdir -p ${{ github.workspace }}/cache && chmod 777 ${{ github.workspace }}/cache
+      - name: Retrieve reports
+        uses: actions/download-artifact@v3
+        with:
+          name: test-reports
+          path: test
+      - name: Unshallow checkout
+        run: git fetch --unshallow
+      - name: Run sonarqube
+        run: sonar-scanner
+          -Dproject.settings=sonar-project.properties
+          -Dsonar.github.endpoint=${{ github.api_url }}
+          -Dsonar.github.repository=${{ github.repository }}
+          -Dsonar.github.oauth=${{ secrets.PUBLIC_TOKEN }}
+          -Dsonar.userHome=${{ github.workspace }}
+          -Dsonar.host.url=${{ env.SONAR_URL }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.linksCi=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          -Dsonar.qualitygate.timeout=600
   Slack:
     runs-on: self-hosted
     if: ${{ always() }}
@@ -116,6 +154,7 @@ jobs:
       - Vet
       - Lint
       - Test
+      - Sonar
     steps:
       - name: Checkout
         uses: actions/checkout@v3
