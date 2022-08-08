@@ -42,7 +42,6 @@ func (p *ConnectionPool) WithSqlxConnection(ctx context.Context, action SqlxActi
 		return err
 	}
 	db = db.Unsafe()
-	
 	defer func() {
 		err := db.Close()
 		if err != nil {
@@ -103,6 +102,9 @@ func observerDriverName(driverName string) (string, error) {
 		return driverName, nil
 	}
 
+	driverMtx.Lock()
+	defer driverMtx.Unlock()
+
 	baseDriver, ok := drivers[driverName]
 	if !ok {
 		return "", errors.Errorf("Uninitialized driver: %s", driverName)
@@ -113,7 +115,6 @@ func observerDriverName(driverName string) (string, error) {
 	if ok {
 		return observerDriverName, nil
 	}
-
 	observerDriver = sqldbobserver.NewObserverDriver(baseDriver)
 	drivers[observerDriverName] = observerDriver
 	sql.Register(observerDriverName, observerDriver)
