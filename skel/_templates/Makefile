@@ -91,6 +91,10 @@ update-go-msx:
 update-go-msx-build:
 	go get cto-github.cisco.com/NFV-BU/go-msx-build
 	go mod tidy
+
+update-go-msx-populator:
+	go get cto-github.cisco.com/NFV-BU/go-msx-populator
+	go mod tidy
 #if GENERATOR_BEAT
 
 update-go-msx-beats:

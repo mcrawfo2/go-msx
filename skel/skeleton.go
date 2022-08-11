@@ -273,6 +273,7 @@ func AddGoMsxDependency(_ []string) error {
 	pipes := []pipe.Pipe{
 		addDependency("go-msx"),
 		addDependency("go-msx-build"),
+		addDependency("go-msx-populator"),
 	}
 
 	if skeletonConfig.Archetype == archetypeKeyBeat {
