@@ -73,7 +73,7 @@ var skeletonConfig = &SkeletonConfig{
 	BeatProtocol:      "",
 	ServiceType:       "",
 	SlackChannel:      "go-msx-build",
-	Trunk:             "master",
+	Trunk:             "main",
 }
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
