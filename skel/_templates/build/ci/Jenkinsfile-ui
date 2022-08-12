@@ -121,7 +121,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
                         "BUILD_FLAGS=$BUILD_FLAGS"
@@ -257,7 +257,7 @@ pipeline {
                     withEnv([
                         "GOPATH=${env.WORKSPACE}/go",
                         "GOPRIVATE=cto-github.cisco.com/NFV-BU",
-                        "GOPROXY=https://engci-maven.cisco.com/artifactory/go/,https://proxy.golang.org,direct",
+                        "GOPROXY=https://proxy.golang.org,direct",
                         "PATH+GOBIN=${env.WORKSPACE}/go/bin",
                         "WORKSPACE=$WORKSPACE/$REPO_NAME",
                         "BUILD_FLAGS=$BUILD_FLAGS"
