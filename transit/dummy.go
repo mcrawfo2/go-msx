@@ -29,12 +29,11 @@ func (d dummyEncrypter) Decrypt(secureValue string) (value map[string]*string, e
 	return deserializePayload(secureValue)
 }
 
-
 func NewDummyEncrypter(ctx context.Context, keyId types.UUID) Encrypter {
 	return dummyEncrypter{keyId}
 }
 
-type dummyBulkEncrypter struct {}
+type dummyBulkEncrypter struct{}
 
 func (d dummyBulkEncrypter) DecryptSets(sets BulkSets) error {
 	for _, set := range sets.Sets() {

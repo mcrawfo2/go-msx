@@ -89,7 +89,7 @@ func (p Provider) DecryptBulk(ctx context.Context, secureValues []transit.Value)
 		}
 	}
 
-	for i,j := 0, 0; i < len(secureValues); i++ {
+	for i, j := 0, 0; i < len(secureValues); i++ {
 		secureValue := secureValues[i]
 		if secureValue.IsEmpty() || !secureValue.IsEncrypted() {
 			values = append(values, secureValue)

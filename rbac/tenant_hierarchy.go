@@ -250,8 +250,8 @@ func (t TenantHierarchyLoader) Root(ctx context.Context) (types.UUID, error) {
 }
 
 type TenantHierarchyPoolLoader struct {
-	pool   *types.WorkerPool 		// Loads tenant hierarchies in parallel
-	loader TenantHierarchyLoader	// Does the actual work
+	pool   *types.WorkerPool     // Loads tenant hierarchies in parallel
+	loader TenantHierarchyLoader // Does the actual work
 }
 
 func (l *TenantHierarchyPoolLoader) Root(ctx context.Context) (result types.UUID, err error) {

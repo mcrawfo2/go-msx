@@ -69,13 +69,13 @@ func Test_dummyEncrypter_Decrypt(t *testing.T) {
 		name        string
 		secureValue string
 		wantPayload map[string]*string
-		wantErr         bool
+		wantErr     bool
 	}{
 		{
-			name:          "Success",
-			secureValue:   `["java.util.HashMap",{"key1":"value1"}]`,
-			wantPayload:   map[string]*string{"key1": types.NewStringPtr("value1")},
-			wantErr:       false,
+			name:        "Success",
+			secureValue: `["java.util.HashMap",{"key1":"value1"}]`,
+			wantPayload: map[string]*string{"key1": types.NewStringPtr("value1")},
+			wantErr:     false,
 		},
 	}
 	for _, tt := range tests {

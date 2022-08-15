@@ -9,7 +9,7 @@ import "context"
 type contextKey string
 
 const (
-	contextKeyTenantHierarchy = contextKey("TenantHierarchy")
+	contextKeyTenantHierarchy       = contextKey("TenantHierarchy")
 	contextKeyTenantHierarchyLoader = contextKey("TenantHierarchyLoader")
 )
 

@@ -17,7 +17,7 @@ const (
 	MIME_XML              = restful.MIME_XML  // Accept or Content-Type used in Consumes() and/or Produces()
 	MIME_JSON             = restful.MIME_JSON // Accept or Content-Type used in Consumes() and/or Produces()
 	MIME_JSON_CHARSET     = "application/json;charset=utf-8"
-	MIME_TEXT_PLAIN       = "text/plain"      // Accept or Content-Type used in Consumes() and/or Produces()
+	MIME_TEXT_PLAIN       = "text/plain" // Accept or Content-Type used in Consumes() and/or Produces()
 	MIME_APPLICATION_FORM = "application/x-www-form-urlencoded"
 	MIME_MULTIPART_FORM   = "multipart/form-data"
 

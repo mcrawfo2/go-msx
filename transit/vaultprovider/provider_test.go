@@ -428,7 +428,7 @@ func TestProvider_DecryptBulk(t *testing.T) {
 					On("TransitBulkDecrypt",
 						mock.AnythingOfType("*context.valueCtx"),
 						keyName,
-					nonEmptyCiphertext).
+						nonEmptyCiphertext).
 					Return([]string{
 						nonEmptyPlaintext,
 					}, nil)

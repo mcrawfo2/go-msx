@@ -23,10 +23,10 @@ type EndpointCall func(t *testing.T, executor integration.MsxContextServiceExecu
 type MultiTenantEndpointCall func(t *testing.T, executor integration.MsxContextServiceExecutor) (*integration.MsxResponse, []types.UUID, error)
 
 type EndpointTest struct {
-	Call      EndpointCall
+	Call                  EndpointCall
 	MultiTenantResultCall MultiTenantEndpointCall
-	Injectors types.ContextInjectors
-	Checks    struct {
+	Injectors             types.ContextInjectors
+	Checks                struct {
 		Request  clienttest.EndpointRequestCheck
 		Endpoint clienttest.ServiceEndpointCheck
 	}
@@ -195,4 +195,3 @@ func (c *EndpointTest) TestMultiTenantResult(t *testing.T) {
 		t.Errorf(testhelpers.Diff(c.Tenants, tenants))
 	}
 }
-
