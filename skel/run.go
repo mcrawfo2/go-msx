@@ -56,9 +56,16 @@ func loadConfig(configFile string) error {
 		return err
 	}
 
+	skeletonConfig.Trunk = ""
+
 	err = json.Unmarshal(bytes, &skeletonConfig)
 	if err != nil {
 		return err
+	}
+
+	if skeletonConfig.Trunk == "" {
+		// default from before the field was added
+		skeletonConfig.Trunk = "master"
 	}
 
 	return nil
