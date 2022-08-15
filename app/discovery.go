@@ -25,7 +25,7 @@ func registerDiscoveryProviders(ctx context.Context) error {
 	}
 
 	logger.Info("Registering consul registration provider")
-	registrationProvider, err := consulprovider.NewRegistrationProviderFromConfig(cfg)
+	registrationProvider, err := consulprovider.NewRegistrationProvider(ctx)
 	if err == consulprovider.ErrDisabled {
 		logger.Error(err)
 	} else if err != nil {
