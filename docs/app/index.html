@@ -1,0 +1,372 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lifecycle - go-msx</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Cross-Cutting Concerns</li><li class="chapter-item expanded "><a href="../log/index.html"><strong aria-hidden="true">1.</strong> Logging</a></li><li class="chapter-item expanded "><a href="../config/index.html"><strong aria-hidden="true">2.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../app/index.html" class="active"><strong aria-hidden="true">3.</strong> Lifecycle</a></li><li class="chapter-item expanded "><a href="../app/context.html"><strong aria-hidden="true">4.</strong> Dependencies</a></li><li class="chapter-item expanded "><a href="../stats/index.html"><strong aria-hidden="true">5.</strong> Stats</a></li><li class="chapter-item expanded "><a href="../trace/index.html"><strong aria-hidden="true">6.</strong> Tracing</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Application Components</li><li class="chapter-item expanded "><a href="../webservice/controller.html"><strong aria-hidden="true">7.</strong> Controller</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Filter</div></li><li class="chapter-item expanded "><a href="../sqldb/repository.html"><strong aria-hidden="true">9.</strong> Repository</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> Migration</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">11.</strong> Integration</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">12.</strong> Streaming</div></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Utilities</li><li class="chapter-item expanded "><div><strong aria-hidden="true">13.</strong> Audit Events</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">14.</strong> Auditable Models</div></li><li class="chapter-item expanded "><a href="../cache/lru/index.html"><strong aria-hidden="true">15.</strong> Cache</a></li><li class="chapter-item expanded "><a href="../certificate/index.html"><strong aria-hidden="true">16.</strong> Certificates and TLS</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">17.</strong> Executing Commands</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">18.</strong> Health Checks</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">19.</strong> Http Client</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">20.</strong> Leader Election</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">21.</strong> Pagination</div></li><li class="chapter-item expanded "><a href="../resource/index.html"><strong aria-hidden="true">22.</strong> Resources</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">23.</strong> Retry</div></li><li class="chapter-item expanded "><a href="../sanitize/index.html"><strong aria-hidden="true">24.</strong> Sanitization</a></li><li class="chapter-item expanded "><a href="../scheduled/index.html"><strong aria-hidden="true">25.</strong> Scheduled Tasks</a></li><li class="chapter-item expanded "><a href="../transit/index.html"><strong aria-hidden="true">26.</strong> Transit Encryption</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">27.</strong> Validation</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">go-msx</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="msx-application-module"><a class="header" href="#msx-application-module">MSX Application Module</a></h1>
+<p>MSX Application is a simple state machine for managing application lifecycle.  It installs observers to configure and instantiate the standard components for use with MSX applications.  This includes listeners for external events to advance the state machine (e.g. POSIX signals, configuration changes).</p>
+<h2 id="lifecycle-events"><a class="header" href="#lifecycle-events">Lifecycle Events</a></h2>
+<p>MSX Application defines various lifecycle events:</p>
+<ul>
+<li><code>app.EventCommand</code> - mode selection based on CLI sub-commands</li>
+<li><code>app.EventInit</code> - pre-configure application </li>
+<li><code>app.EventConfigure</code> - application and component configuration </li>
+<li><code>app.EventStart</code> - start services for consumers</li>
+<li><code>app.EventReady</code> - application fully initialized and ready to service requests</li>
+<li><code>app.EventRefresh</code> - update configuration after change</li>
+<li><code>app.EventStop</code> - stop services for consumers</li>
+<li><code>app.EventFinalize</code> - pre-termination cleanup</li>
+</ul>
+<p>Each event (except <code>app.EventCommand</code>) proceeds with three phases:</p>
+<ul>
+<li><code>app.PhaseBefore</code> - early</li>
+<li><code>app.PhaseDuring</code> - normal</li>
+<li><code>app.PhaseAfter</code> - late</li>
+</ul>
+<p>The <code>app.EventCommand</code> event will be execute with the <code>phase</code> containing the command being executed.  The following commands are pre-defined:</p>
+<ul>
+<li><code>app.CommandRoot</code> - Root (default)</li>
+<li><code>app.CommandMigrate</code> - Migrate</li>
+<li><code>app.CommandPopulate</code> - Populate</li>
+</ul>
+<h3 id="event-observers"><a class="header" href="#event-observers">Event Observers</a></h3>
+<p>When a lifecycle event phase is occurring, the MSX Application will call each of the <code>Observer</code>s registered for the event phase.  These callbacks can be registered during any previous lifecycle event callback or during your module <code>init()</code>.</p>
+<p>For example, to call the <code>addWebService</code> observer during <code>start.before</code> for all commands:</p>
+<pre><code class="language-go">func init() {
+    app.OnEvent(app.EventStart, app.PhaseBefore, addWebService)
+}
+</code></pre>
+<p>To see an example showing command-specific event observers, see <a href="#Commanding">Commanding</a>, below.</p>
+<h3 id="short-circuiting"><a class="header" href="#short-circuiting">Short-Circuiting</a></h3>
+<p>Sometimes an application is not able to correctly execute a lifecycle phase, or receives an external interruption.  This will result in a short-circuit of the lifecycle.  If an error is returned from one of the observers in the following phases, the lifecycle will move to the specified phase:</p>
+<ul>
+<li><code>app.EventInit</code> =&gt; <code>app.EventFinalize</code></li>
+<li><code>app.EventConfigure</code> =&gt; <code>app.EventFinalize</code></li>
+<li><code>app.EventStart</code> =&gt; <code>app.EventStop</code></li>
+<li><code>app.EventReady</code> =&gt; <code>app.EventStop</code></li>
+</ul>
+<h2 id="application-observers"><a class="header" href="#application-observers">Application Observers</a></h2>
+<h3 id="command"><a class="header" href="#command">Command</a></h3>
+<p>The <code>app.EventCommand</code> events are the first events fired during startup.  They provide the opportunity to execute custom logic and register event observers specific to the command.</p>
+<p>As above, the <code>app.EventCommand</code> event will be executed with the phase containing the command being executed.  For example the phase could be one of the default commands:</p>
+<ul>
+<li>Root (<code>app.CommandRoot</code>)</li>
+<li>Migrate (<code>app.CommandMigrate</code>)</li>
+<li>Populate (<code>app.CommandPopulate</code>)</li>
+</ul>
+<p>To add a new command:</p>
+<pre><code class="language-go">func main() {
+    if _, err := app.AddCommand(&quot;token&quot;, &quot;Create OAuth2 token&quot;, renew, app.Noop); err != nil {
+        cli.Fatal(err)
+    }
+}
+</code></pre>
+<p>To configure event observers in response to a specific command being executed:</p>
+<pre><code class="language-go">func init() {
+    app.OnEvent(app.EventCommand, app.CommandRoot, func(ctx context.Context) error {
+        app.OnEvent(app.EventStart, app.PhaseBefore, addWebService)
+        return nil
+    })
+}
+</code></pre>
+<h3 id="init"><a class="header" href="#init">Init</a></h3>
+<p>The <code>app.EventInit</code> events are fired second, after the <code>app.EventCommand</code> events.</p>
+<p>Observers attached to the <code>app.EventInit</code> events should be restricted to modifying the application environment.  This includes registering custom config providers or custom context injectors.</p>
+<h3 id="configure"><a class="header" href="#configure">Configure</a></h3>
+<p>The <code>app.EventConfigure</code> events are fired third during startup, after the <code>app.EventInit</code> events.</p>
+<p>By default, the application is configured:</p>
+<ul>
+<li><code>app.PhaseBefore</code>
+<ul>
+<li>Register remote config providers</li>
+</ul>
+</li>
+<li><code>app.PhaseDuring</code>
+<ul>
+<li><a href="#configuration-loading">Load configuration</a></li>
+</ul>
+</li>
+<li><code>app.PhaseAfter</code>
+<ul>
+<li>HTTP Client</li>
+<li>Consul connection pool</li>
+<li>Vault connection pool</li>
+<li>Cassandra connection pool</li>
+<li>Redis connection pool</li>
+<li>Kafka connection pool</li>
+<li>Web server</li>
+<li>Create Cassandra Keyspace</li>
+</ul>
+</li>
+</ul>
+<p>Typically, user applications will not register new event handlers for the <code>app.EventConfigure</code> events.</p>
+<h3 id="start"><a class="header" href="#start">Start</a></h3>
+<p>The <code>app.EventStart</code> events are fired fourth during startup, after the <code>app.EventConfigure</code> events.</p>
+<p>By default, application infrastructure is connected:</p>
+<ul>
+<li><code>app.PhaseBefore</code>:
+<ul>
+<li>Authentication Providers</li>
+<li>Spring Actuators</li>
+<li>Swagger</li>
+<li>Prometheus Actuator</li>
+<li>Stats Pusher</li>
+</ul>
+</li>
+<li><code>app.PhaseAfter</code>:
+<ul>
+<li>Health logging</li>
+<li>Stream Router</li>
+<li>Web Server</li>
+<li>Config Watcher</li>
+</ul>
+</li>
+</ul>
+<p>Custom application startup code is expected to run inside the <code>app.PhaseDuring</code> phase.  This would include starting any long-running services or scheduling background tasks.</p>
+<h3 id="ready"><a class="header" href="#ready">Ready</a></h3>
+<p>The <code>app.EventReady</code> events are fired fifth during startup, after the <code>app.EventStart</code> events.</p>
+<p>By default, application ready observers are executed:</p>
+<ul>
+<li><code>app.PhaseBefore</code>:
+<ul>
+<li>Service Registration (consul)</li>
+</ul>
+</li>
+<li><code>app.PhaseAfter</code>:
+<ul>
+<li>Command Execution (sub-commands)</li>
+</ul>
+</li>
+</ul>
+<h3 id="refresh"><a class="header" href="#refresh">Refresh</a></h3>
+<p><em>TBD</em></p>
+<h3 id="stop"><a class="header" href="#stop">Stop</a></h3>
+<p>The <code>app.EventStop</code> events are fired first during shutdown.</p>
+<p>By default, application services are stopped and infrastructure and disconnected:</p>
+<ul>
+<li><code>app.PhaseBefore</code>:
+<ul>
+<li>Service De-Registration (consul)</li>
+<li>Health logging</li>
+<li>Stream router</li>
+<li>Web Server</li>
+<li>Stats Pusher</li>
+</ul>
+</li>
+</ul>
+<p>Any custom application code running in the background should be shutdown during <code>app.PhaseDuring</code>.</p>
+<h3 id="finalize"><a class="header" href="#finalize">Finalize</a></h3>
+<p>The <code>app.EventFinal</code> events are fired last during shutdown.</p>
+<p>By default, tracing is stopped during <code>app.PhaseAfter</code> to allow trace collection to include <code>app.EventStop</code>.</p>
+<h2 id="configuration-loading"><a class="header" href="#configuration-loading">Configuration Loading</a></h2>
+<p>In response to the <code>app.EventConfigure</code> event, MSX Application combines all registered sources of configuration.  This occurs in three phases:</p>
+<ul>
+<li><strong>Phase 1</strong> - In-Memory
+<ul>
+<li>Application Static Defaults</li>
+<li>Environment Variables</li>
+<li>Application Runtime Overrides</li>
+<li>Command Line</li>
+</ul>
+</li>
+<li><strong>Phase 2</strong> - Filesystem
+<ul>
+<li>Defaults Files</li>
+<li>Bootstrap Files</li>
+<li>Application Files</li>
+<li>Profile Files </li>
+<li>Build Files</li>
+</ul>
+</li>
+<li><strong>Phase 3</strong> - Remote
+<ul>
+<li>Consul</li>
+<li>Vault</li>
+</ul>
+</li>
+</ul>
+<p>Note that this loading order is not the same as the order of precendence for calculating values:</p>
+<ul>
+<li>Application Static Defaults</li>
+<li>Defaults Files</li>
+<li>Bootstrap Files</li>
+<li>Application Files</li>
+<li>Build Files</li>
+<li>Consul</li>
+<li>Vault</li>
+<li>Profile Files</li>
+<li>Environment Variables</li>
+<li>Command Line</li>
+<li>Application Runtime Overrides</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../config/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../app/context.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../config/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../app/context.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>

@@ -7,6 +7,8 @@ package exec
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"gopkg.in/pipe.v2"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -103,4 +105,18 @@ func Run(p pipe.Pipe) error {
 		return err
 	}
 	return s.RunTasks()
+}
+
+// ReadUrl reads data from url and writes it to the pipe's stdout.
+func ReadUrl(url string) pipe.Pipe {
+	return pipe.TaskFunc(func(s *pipe.State) error {
+		response, err := http.DefaultClient.Get(url)
+		if err != nil {
+			return err
+		}
+		defer response.Body.Close()
+
+		_, err = io.Copy(s.Stdout, response.Body)
+		return err
+	})
 }
