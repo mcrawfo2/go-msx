@@ -1,0 +1,201 @@
+name: Checks
+on: [pull_request, pull_request_target]
+concurrency:
+  group: checks-${{ github.ref }}-1
+  cancel-in-progress: true
+env:
+  CHECKS_ENTERPRISE_TOKEN: ${{ secrets.ENTERPRISE_TOKEN }}
+  CHECKS_ENTERPRISE_KEY: ${{ secrets.ENTERPRISE_KEY }}
+  CHECKS_PUBLIC_TOKEN: ${{ secrets.PUBLIC_TOKEN }}
+  GOPRIVATE: cto-github.cisco.com/NFV-BU,github.com/cpx-saas
+  GOPROXY: proxy.golang.org,direct
+jobs:
+  Modules:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Download Dependencies
+        run: go mod download
+      - name: Analyze go-msx library versions
+        id: analysis
+        uses: cpx-saas/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: go-msx-version
+          manifest: go.mod
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  License:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Check License
+        run: make license-check
+  Vet:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Vet
+        run: make vet
+      - name: Analyze go-vet report
+        id: analysis
+        uses: cpx-saas/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: vet
+          manifest: go.mod
+          report: dist/vet.json
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Lint:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Create report directory
+        run: mkdir -p test
+      - name: Lint
+        uses: gessnerfl/golangci-lint-action@master
+        with:
+          version: v1.47.3
+          args: --config build/ci/golangci.yml
+          skip-cache: true
+          only-new-issues: true
+          output-file: json:test/golangci-lint-report.json
+      - name: Analyze golangci-lint report
+        id: analysis
+        uses: cpx-saas/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: golangci-lint
+          manifest: go.mod
+          report: test/golangci-lint-report.json
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Test:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Test
+        run: make test
+      - name: Save reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            test/junit-report.xml
+            test/cobertura-coverage.xml
+            test/gocover.out
+      - name: Analyze go-test report
+        id: analysis
+        uses: cpx-saas/actions-msx-checks@master
+        if: success() || failure()
+        with:
+          check: junit
+          manifest: go.mod
+          report: test/junit-report.xml
+    outputs:
+      glance: ${{ steps.analysis.outputs.glance }}
+  Sonar:
+    runs-on: self-hosted
+    env:
+      SONAR_URL: https://engci-sonar-gpk.cisco.com/sonar
+    needs:
+      - Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup sonarqube
+        uses: warchant/setup-sonar-scanner@v3
+      - name: Create sonar cache directory
+        run: mkdir -p ${{ github.workspace }}/cache && chmod 777 ${{ github.workspace }}/cache
+      - name: Retrieve reports
+        uses: actions/download-artifact@v3
+        with:
+          name: test-reports
+          path: test
+      - name: Unshallow checkout
+        run: git fetch --unshallow
+      - name: Run sonarqube
+        run: sonar-scanner
+          -Dproject.settings=sonar-project.properties
+          -Dsonar.github.endpoint=${{ github.api_url }}
+          -Dsonar.github.repository=${{ github.repository }}
+          -Dsonar.github.oauth=${{ secrets.PUBLIC_TOKEN }}
+          -Dsonar.userHome=${{ github.workspace }}
+          -Dsonar.host.url=${{ env.SONAR_URL }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.linksCi=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          -Dsonar.qualitygate.timeout=600
+  Slack:
+    runs-on: self-hosted
+    env:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+    if: ${{ always() }}
+    needs:
+      - Modules
+      - License
+      - Vet
+      - Lint
+      - Test
+      - Sonar
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Slack Summary
+        uses: cpx-saas/actions-msx-checks@master
+        env:
+          GLANCE_MODULES: ${{ needs.Modules.outputs.glance }}
+          GLANCE_LICENSE: ${{ needs.License.outputs.glance }}
+          GLANCE_VET: ${{ needs.Vet.outputs.glance }}
+          GLANCE_LINT: ${{ needs.Lint.outputs.glance }}
+          GLANCE_TEST: ${{ needs.Test.outputs.glance }}
+          GLANCE_SONAR: ${{ needs.Sonar.outputs.glance }}
+        with:
+          check: slack
+          slack_channel: go-msx-build
+          manifest: go.mod
