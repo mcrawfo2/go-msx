@@ -32,6 +32,8 @@ generate:
         - "/test/**"
         - "/vendor/**"
         - "/local/**"
+  - path: .
+    command: make generate-book
 
 license:
   excludes:
