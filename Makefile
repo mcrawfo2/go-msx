@@ -8,6 +8,7 @@ BUILD_NUMBER ?= 0
 .PHONY: license license-check
 .PHONY: skel publish-skel
 .PHONY: dist debug docker publish
+.PHONY: book
 
 # Library
 all: clean vet license-check test
@@ -43,6 +44,11 @@ publish-skel:
 
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
+
+book:
+	$(BUILDER) download-generate-deps
+	$(BUILDER) copy-book-chapters
+	mdbook build
 
 # Example Microservice
 dist:

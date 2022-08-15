@@ -1,0 +1,13 @@
+[book]
+authors = ["Michael Crawford"]
+language = "en"
+multilingual = false
+src = "book"
+title = "go-msx"
+
+[build]
+build-dir = "docs"
+create-missing = false
+
+[output.html]
+preferred-dark-theme = "coal"
