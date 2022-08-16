@@ -84,10 +84,12 @@ func TestNewTokenProviderConfig(t *testing.T) {
 				cfg: configtest.NewInMemoryConfig(map[string]string{}),
 			},
 			want: &TokenProviderConfig{
-				KeySource:   "vault",
-				KeyPath:     "secret/phi_pnp",
-				KeyName:     "key",
-				KeyPassword: "",
+				KeySource:    "jwks",
+				KeyPath:      "/v2/jwks",
+				KeyScheme:    "http",
+				KeyAuthority: "authservice",
+				KeyName:      "key",
+				KeyPassword:  "",
 			},
 		},
 		{
@@ -101,10 +103,12 @@ func TestNewTokenProviderConfig(t *testing.T) {
 				}),
 			},
 			want: &TokenProviderConfig{
-				KeySource:   "pem",
-				KeyPath:     "testdata/jwt-pubkey.pem",
-				KeyName:     "ignored1",
-				KeyPassword: "ignored2",
+				KeySource:    "pem",
+				KeyPath:      "testdata/jwt-pubkey.pem",
+				KeyScheme:    "http",
+				KeyAuthority: "authservice",
+				KeyName:      "ignored1",
+				KeyPassword:  "ignored2",
 			},
 		},
 	}
