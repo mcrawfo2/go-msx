@@ -13,10 +13,10 @@ import (
 	"testing"
 )
 
-func NewMockFileWatcher(filename string) *MockFileWatcher {
+func NewMockFileWatcherForProvider(t *testing.T) *MockFileWatcher {
 	closedChan := make(chan struct{})
 
-	mockFileWatcher := new(MockFileWatcher)
+	mockFileWatcher := NewMockFileWatcher(t)
 	mockFileWatcher.On("Closed").Return((<-chan struct{})(closedChan))
 	mockFileWatcher.On("Close").Run(func(args mock.Arguments) {
 		closedChan <- struct{}{}
@@ -91,7 +91,7 @@ func TestFileNotifier_Run(t *testing.T) {
 				watcherFactory: func(filename string) (FileWatcher, error) {
 					events := make(chan watcher.Event)
 					errs := make(chan error)
-					mockFileWatcher := NewMockFileWatcher(filename)
+					mockFileWatcher := NewMockFileWatcherForProvider(t)
 					mockFileWatcher.On("Event").Return((<-chan watcher.Event)(events))
 					mockFileWatcher.On("Error").Return((<-chan error)(errs))
 					mockFileWatcher.On("Start", mock.AnythingOfType("time.Duration")).Run(func(args mock.Arguments) {
