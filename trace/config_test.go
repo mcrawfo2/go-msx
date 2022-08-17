@@ -31,7 +31,7 @@ func TestNewTracingConfig(t *testing.T) {
 			want: &TracingConfig{
 				Enabled:     true,
 				ServiceName: "TestNewTracingConfig",
-				Collector: "jaeger",
+				Collector:   "jaeger",
 				Reporter: TracingReporterConfig{
 					Enabled: false,
 					Name:    "jaeger",
@@ -56,7 +56,7 @@ func TestNewTracingConfig(t *testing.T) {
 			want: &TracingConfig{
 				Enabled:     true,
 				ServiceName: "TestNewTracingConfig",
-				Collector: "jaeger",
+				Collector:   "jaeger",
 				Reporter: TracingReporterConfig{
 					Name: "zipkin",
 					Host: "localhost",

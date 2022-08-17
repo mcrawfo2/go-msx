@@ -134,7 +134,7 @@ func (n MockSpanContext) SpanId() trace.SpanId {
 }
 
 func (n MockSpanContext) TraceId() trace.TraceId {
-	return trace.TraceId{Low:uint64(n.MockSpanContext.SpanID)}
+	return trace.TraceId{Low: uint64(n.MockSpanContext.SpanID)}
 }
 
 func (n MockSpanContext) ForeachBaggageItem(fn func(k string, v string) bool) {

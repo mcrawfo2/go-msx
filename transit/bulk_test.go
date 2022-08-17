@@ -117,7 +117,7 @@ func Test_encrypter_DecryptSet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := bulkEncrypter{
-				ctx:   ctx,
+				ctx: ctx,
 			}
 			err := e.DecryptSet(tt.set)
 			if (err != nil) != tt.wantErr {
@@ -130,4 +130,3 @@ func Test_encrypter_DecryptSet(t *testing.T) {
 		})
 	}
 }
-

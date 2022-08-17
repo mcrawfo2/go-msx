@@ -42,9 +42,9 @@ func convertId(id string) string {
 func (t *tracer) LogContext(span trace.Span) map[string]interface{} {
 	results := log.LogContext{
 		"dd.trace_id": convertId(span.Context().SpanId().String()),
-		"dd.span_id": convertId(span.Context().TraceId().String()),
-		"dd.service": t.cfg.ServiceName,
-		"dd.version": t.cfg.ServiceVersion,
+		"dd.span_id":  convertId(span.Context().TraceId().String()),
+		"dd.service":  t.cfg.ServiceName,
+		"dd.version":  t.cfg.ServiceVersion,
 	}
 
 	return results
@@ -147,6 +147,7 @@ type loggerAdapter struct {
 }
 
 var logMessageRegexp = regexp.MustCompile(`(.*) (DEBUG|WARN|INFO|ERROR): (.*)`)
+
 func (l loggerAdapter) Log(msg string) {
 	parts := logMessageRegexp.FindStringSubmatch(msg)
 	if parts == nil {

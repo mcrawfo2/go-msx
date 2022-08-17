@@ -19,7 +19,7 @@ type Options struct {
 	Path     bool
 	Secret   bool
 
-	Inherit  bool
+	Inherit bool
 }
 
 func NewOptionsInherit() Options {
@@ -48,7 +48,6 @@ func NewOptions(tag string) Options {
 	}
 	return result
 }
-
 
 // String sanitizes a string value and returns the sanitized result.
 func String(originalValue string, options Options) string {
@@ -96,7 +95,7 @@ func (s *optionsStack) Pop() {
 
 func (s *optionsStack) Active() Options {
 	t := *s
-	for i := len(t)-1; i >= 0; i-- {
+	for i := len(t) - 1; i >= 0; i-- {
 		if t[i].Inherit {
 			continue
 		}

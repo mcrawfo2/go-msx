@@ -67,7 +67,7 @@ func TestInput(t *testing.T) {
 			want: &inputDeepStruct{
 				A: "dcb",
 				B: inputStringsStruct{
-					A:"acd",
+					A: "acd",
 					B: types.NewStringPtr("acd"),
 				},
 			},
@@ -90,7 +90,7 @@ func TestInput(t *testing.T) {
 			want: map[string]interface{}{
 				"A": "dcb",
 				"B": map[string]interface{}{
-					"A":"acd",
+					"A": "acd",
 					"B": types.NewStringPtr("dca"),
 					"C": inputStringsStruct{
 						A: "acd",
@@ -116,7 +116,7 @@ func TestInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			options := Options{Xss:true}
+			options := Options{Xss: true}
 			if err := Input(tt.args.value, options); (err != nil) != tt.wantErr {
 				t.Errorf("Input() error = %v, wantErr %v", err, tt.wantErr)
 			}

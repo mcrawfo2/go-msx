@@ -249,10 +249,10 @@ func Test_encrypter_Encrypt(t *testing.T) {
 			wantErr:           false,
 		},
 		{
-			name:              "ProviderFailure",
-			keyId:             types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
-			value:             map[string]*string{"key2": types.NewStringPtr("value2")},
-			wantErr:           true,
+			name:    "ProviderFailure",
+			keyId:   types.MustParseUUID(`22a342bf-3278-4126-9a02-f1ac0c9cf05f`),
+			value:   map[string]*string{"key2": types.NewStringPtr("value2")},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

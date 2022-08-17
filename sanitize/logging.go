@@ -69,9 +69,9 @@ func LogField(i interface{}) (result interface{}) {
 
 	// Check for self-rendering
 	if err, ok := i.(error); ok {
-		return ErrorSanitizer{err:err}
+		return ErrorSanitizer{err: err}
 	} else if stringer, ok := i.(fmt.Stringer); ok {
-		return StringerSanitizer{value:stringer}
+		return StringerSanitizer{value: stringer}
 	}
 
 	v := reflect.ValueOf(i)

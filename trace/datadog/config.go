@@ -12,9 +12,9 @@ import (
 const configRootDatadog = "datadog"
 
 type Config struct {
-	ServiceName string `config:"default=${app.info.name}"`
+	ServiceName    string `config:"default=${app.info.name}"`
 	ServiceVersion string `config:"default=${app.build.version}"`
-	ServiceEnv string `config:"default="`
+	ServiceEnv     string `config:"default="`
 }
 
 func NewConfig(ctx context.Context) (*Config, error) {

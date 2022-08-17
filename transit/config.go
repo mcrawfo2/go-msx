@@ -12,7 +12,7 @@ import (
 const configRootEncryptionConfig = "per-tenant-encryption"
 
 type Config struct {
-	Enabled          bool `config:"default=false"`
+	Enabled bool `config:"default=false"`
 }
 
 func NewConfig(ctx context.Context) (*Config, error) {

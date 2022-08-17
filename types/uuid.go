@@ -114,7 +114,6 @@ func MustParseUUID(value string) UUID {
 	return result
 }
 
-
 func EmptyUUID() UUID {
 	return UUID([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 }

@@ -42,7 +42,6 @@ type bulkEncrypter struct {
 	cfg *Config
 }
 
-
 func (e bulkEncrypter) DecryptSets(sets BulkSets) error {
 	for _, set := range sets.Sets() {
 		if err := e.DecryptSet(set); err != nil {
@@ -104,7 +103,7 @@ func SetBulkEncrypterFactory(factory BulkEncrypterFactory) {
 
 func NewProductionBulkEncrypter(ctx context.Context) BulkEncrypter {
 	return &bulkEncrypter{
-		ctx:   ctx,
+		ctx: ctx,
 	}
 }
 
