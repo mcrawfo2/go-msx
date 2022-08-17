@@ -90,10 +90,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     
 - Make your code changes
 
-- Run `make precommit` to regenerate and reformat.  You will likely need to
-  install the `staticfiles` package the first time:
-  
-    `go get bou.ke/staticfiles`
+- Run `make precommit` to regenerate and reformat.
 
 - Commit your code to your topic branch
 

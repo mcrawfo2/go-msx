@@ -5,14 +5,15 @@
 package skel
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/cli"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"cto-github.cisco.com/NFV-BU/go-msx/cli"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"golang.org/x/text/language"
 )
 
 const appName = "skel"
@@ -21,7 +22,17 @@ const generateConfigFileName = "generate.json"
 
 var logger = log.NewLogger("msx.skel")
 
+var TitlingLanguage = language.English
+
+// templates, loaded by provideStaticFiles
+var staticFiles map[string]*staticFilesFile
+
 func init() {
+	var err error
+	staticFiles, err = provideStaticFiles() // load the templates
+	if err != nil {
+		panic(err.Error())
+	}
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return GenerateSkeleton(args)
@@ -51,7 +62,7 @@ func configure(cmd *cobra.Command, args []string) error {
 }
 
 func loadConfig(configFile string) error {
-	bytes, err := ioutil.ReadFile(configFile)
+	bytes, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}

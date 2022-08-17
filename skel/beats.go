@@ -5,9 +5,10 @@
 package skel
 
 import (
-	"github.com/iancoleman/strcase"
 	"path"
-	"strings"
+
+	"github.com/iancoleman/strcase"
+	"golang.org/x/text/cases"
 )
 
 const (
@@ -22,8 +23,9 @@ func init() {
 }
 
 func GenerateBeatsDomain(args []string) error {
+	caser := cases.Title(TitlingLanguage)
 	inflections := map[string]string{
-		inflectionAppTitle:           strings.Title(skeletonConfig.AppName),
+		inflectionAppTitle:           caser.String(skeletonConfig.AppName),
 		inflectionProtocolUpperCamel: strcase.ToCamel(skeletonConfig.BeatProtocol),
 		inflectionProtocolLowerCamel: strcase.ToLowerCamel(skeletonConfig.BeatProtocol),
 	}

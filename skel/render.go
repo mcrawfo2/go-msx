@@ -15,7 +15,6 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -138,7 +137,7 @@ func (t Template) source(options RenderOptions) (string, error) {
 		reader = strings.NewReader(f.data)
 	}
 
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +195,7 @@ func (t Template) Render(options RenderOptions) error {
 	}
 
 	// Write the rendered contents to the destination file
-	err = ioutil.WriteFile(targetFileName, []byte(contents), 0644)
+	err = os.WriteFile(targetFileName, []byte(contents), 0644)
 	if err != nil {
 		return err
 	}
@@ -318,9 +317,9 @@ func initializePackageFromFile(fileName, packageUrl string) error {
 	for i := 0; i < len(f.Decls); i++ {
 		d := f.Decls[i]
 
-		switch d.(type) {
+		switch dd := d.(type) {
 		case *ast.GenDecl:
-			dd := d.(*ast.GenDecl)
+			//dd := d.(*ast.GenDecl)
 
 			// IMPORT Declarations
 			if dd.Tok == token.IMPORT {
@@ -344,7 +343,7 @@ func initializePackageFromFile(fileName, packageUrl string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(fileName, buffer.Bytes(), 0644)
+	return os.WriteFile(fileName, buffer.Bytes(), 0644)
 }
 
 func hasUI() bool {
@@ -388,7 +387,7 @@ func addYamlConf(filePath, confKey, conf string, regEx *regexp.Regexp) error {
 // getYamlConf retrieves an interface mapped to a given conf
 // within the file at the given filePath.
 func getYamlConf(filePath, conf string) (interface{}, error) {
-	sourceData, err := ioutil.ReadFile(filePath)
+	sourceData, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -404,13 +403,13 @@ func getYamlConf(filePath, conf string) (interface{}, error) {
 // appendYaml appends the yaml to the end of the file at
 // the given filePath. The resulting data is written back to the file.
 func appendYaml(filePath string, yaml []byte) error {
-	sourceData, err := ioutil.ReadFile(filePath)
+	sourceData, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
 	sourceData = append(sourceData, yaml...)
-	if err = ioutil.WriteFile(filePath, sourceData, 0644); err != nil {
+	if err = os.WriteFile(filePath, sourceData, 0644); err != nil {
 		return err
 	}
 
@@ -421,7 +420,7 @@ func appendYaml(filePath string, yaml []byte) error {
 // the file at filePath with yaml, and logs a warning
 // if there are no matches. The resulting data is written back to the file.
 func replaceYaml(filePath string, yaml []byte, regEx *regexp.Regexp) error {
-	sourceData, err := ioutil.ReadFile(filePath)
+	sourceData, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -432,7 +431,7 @@ func replaceYaml(filePath string, yaml []byte, regEx *regexp.Regexp) error {
 		logger.Warnf("Failed to add the following configuation to %s:\n%sAs it already exists with a different configuration in %s", filePath, yaml, filePath)
 	}
 
-	if err = ioutil.WriteFile(filePath, sourceData, 0644); err != nil {
+	if err = os.WriteFile(filePath, sourceData, 0644); err != nil {
 		return err
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/gedex/inflector"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
 )
 
 const (
@@ -244,8 +245,9 @@ func GenerateTimer(args []string) error {
 }
 
 func inflect(title string) map[string]string {
-	titleSingular := strings.Title(inflector.Singularize(title))
-	titlePlural := strings.Title(inflector.Pluralize(titleSingular))
+	caser := cases.Title(TitlingLanguage)
+	titleSingular := caser.String((inflector.Singularize(title)))
+	titlePlural := caser.String(inflector.Pluralize(titleSingular))
 	upperCamelSingular := strcase.ToCamel(titleSingular)
 	upperCamelPlural := strcase.ToCamel(titlePlural)
 	lowerCamelSingular := strcase.ToLowerCamel(titleSingular)

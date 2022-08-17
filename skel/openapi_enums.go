@@ -6,19 +6,20 @@ package skel
 
 import (
 	"fmt"
-	. "github.com/dave/jennifer/jen"
-	"github.com/iancoleman/strcase"
 	"path"
+
+	"github.com/dave/jennifer/jen"
+	"github.com/iancoleman/strcase"
 )
 
 func generateScreamingSnakeName(s1 string, s2 string) string {
 	return strcase.ToScreamingSnake(fmt.Sprintf("%s_%s", s1, s2))
 }
 
-func generateEnumConstants(schema Schema, file *File) {
-	var constCode []Code
+func generateEnumConstants(schema Schema, file *jen.File) {
+	var constCode []jen.Code
 	idName := generateScreamingSnakeName(schema.TypeName(), "INVALID")
-	ident := Id(strcase.ToScreamingSnake(idName)).
+	ident := jen.Id(strcase.ToScreamingSnake(idName)).
 		Id(schema.TypeName()).
 		Op("=").
 		Id("-1")
@@ -35,11 +36,11 @@ func generateEnumConstants(schema Schema, file *File) {
 
 		idName = generateScreamingSnakeName(schema.TypeName(), name)
 		if i == 0 {
-			ident = Id(idName).
+			ident = jen.Id(idName).
 				Op("=").
 				Iota()
 		} else {
-			ident = Id(idName)
+			ident = jen.Id(idName)
 		}
 		constCode = append(constCode, ident)
 	}
@@ -47,17 +48,17 @@ func generateEnumConstants(schema Schema, file *File) {
 	file.Const().Defs(constCode...)
 }
 
-func generateStringFunc(schema Schema, file *File) {
+func generateStringFunc(schema Schema, file *jen.File) {
 	lowerCamel := strcase.ToLowerCamel(schema.TypeName())
 	ident := fmt.Sprintf("%sNames[v]", lowerCamel)
-	file.Func().Parens(Id("v").Id(schema.TypeName())).Id("String").Params().Id("string").
+	file.Func().Parens(jen.Id("v").Id(schema.TypeName())).Id("String").Params().Id("string").
 		Block(
-			Return(Id(ident)),
+			jen.Return(jen.Id(ident)),
 		)
 }
 
-func generateIDFunc(schema Schema, file *File) {
-	var blockCode []Code
+func generateIDFunc(schema Schema, file *jen.File) {
+	var blockCode []jen.Code
 	lowerCamel := strcase.ToLowerCamel(schema.TypeName())
 	camelCase := strcase.ToCamel(schema.TypeName())
 	funcName := fmt.Sprintf("New%s", camelCase)
@@ -66,27 +67,27 @@ func generateIDFunc(schema Schema, file *File) {
 	errInvalid := fmt.Sprintf("ErrInvalid%s", camelCase)
 
 	if schema.schemaRef.Value.Nullable {
-		blockCode = append(blockCode, If(
-			Id("result").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
-				Return(Id("result").Op(",").Id("nil")))),
-			If(Id("val").Op("==").Lit("null").Op("||").Id("val").Op("==").Lit("").Block(
-				Return(Id(generateScreamingSnakeName(schema.TypeName(), "NULL")).Op(",").Id("nil"))),
+		blockCode = append(blockCode, jen.If(
+			jen.Id("result").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
+				jen.Return(jen.Id("result").Op(",").Id("nil")))),
+			jen.If(jen.Id("val").Op("==").Lit("null").Op("||").Id("val").Op("==").Lit("").Block(
+				jen.Return(jen.Id(generateScreamingSnakeName(schema.TypeName(), "NULL")).Op(",").Id("nil"))),
 			),
-			Return(Id(invalidName).Op(",").Id(errInvalid)),
+			jen.Return(jen.Id(invalidName).Op(",").Id(errInvalid)),
 		)
 	} else {
-		blockCode = append(blockCode, If(
-			Id("result").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
-				Return(Id("result").Op(",").Id("nil")))),
-			Return(Id(invalidName).Op(",").Id(errInvalid)),
+		blockCode = append(blockCode, jen.If(
+			jen.Id("result").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
+				jen.Return(jen.Id("result").Op(",").Id("nil")))),
+			jen.Return(jen.Id(invalidName).Op(",").Id(errInvalid)),
 		)
 	}
-	file.Func().Id(funcName).Parens(Id("val").String()).Parens(Id(schema.TypeName()).Op(",").Error()).
+	file.Func().Id(funcName).Parens(jen.Id("val").String()).Parens(jen.Id(schema.TypeName()).Op(",").Error()).
 		Block(blockCode...)
 }
 
-func generateVariables(schema Schema, file *File) {
-	var EnumNamesCode []Code
+func generateVariables(schema Schema, file *jen.File) {
+	var EnumNamesCode []jen.Code
 	lowerCamel := strcase.ToLowerCamel(schema.TypeName())
 	ident := fmt.Sprintf("%sNames", lowerCamel)
 
@@ -96,11 +97,11 @@ func generateVariables(schema Schema, file *File) {
 			litValue = v.(string)
 		}
 		screamingSnake := generateScreamingSnakeName(schema.TypeName(), litValue)
-		EnumNamesCode = append(EnumNamesCode, Id(screamingSnake).Op(":").Lit(litValue))
+		EnumNamesCode = append(EnumNamesCode, jen.Id(screamingSnake).Op(":").Lit(litValue))
 	}
-	file.Var().Id(ident).Op("=").Index(Op("...")).Id("string").Values(EnumNamesCode...).Line()
+	file.Var().Id(ident).Op("=").Index(jen.Op("...")).Id("string").Values(EnumNamesCode...).Line()
 
-	var EnumIdsCode []Code
+	var EnumIdsCode []jen.Code
 	ident = fmt.Sprintf("%sIds", lowerCamel)
 	for _, v := range schema.Enum() {
 		litValue := "null"
@@ -108,64 +109,64 @@ func generateVariables(schema Schema, file *File) {
 			litValue = v.(string)
 		}
 		screamingSnake := generateScreamingSnakeName(schema.TypeName(), litValue)
-		EnumIdsCode = append(EnumIdsCode, Lit(litValue).Op(":").Id(screamingSnake))
+		EnumIdsCode = append(EnumIdsCode, jen.Lit(litValue).Op(":").Id(screamingSnake))
 	}
-	file.Var().Id(ident).Op("=").Map(String()).Id(schema.TypeName()).Values(EnumIdsCode...).Line()
+	file.Var().Id(ident).Op("=").Map(jen.String()).Id(schema.TypeName()).Values(EnumIdsCode...).Line()
 }
 
-func generateMarshalJSONFunc(schema Schema, file *File) {
+func generateMarshalJSONFunc(schema Schema, file *jen.File) {
 	file.Func().Parens(
-		Id("v").Id(schema.TypeName())).
-		Id("MarshalJSON").Params().Parens(Index().Byte().Op(",").Error()).
+		jen.Id("v").Id(schema.TypeName())).
+		Id("MarshalJSON").Params().Parens(jen.Index().Byte().Op(",").Error()).
 		Block(
-			Return(Index().Byte().Parens(Id("v.String()")).Op(",").Id("nil")),
+			jen.Return(jen.Index().Byte().Parens(jen.Id("v.String()")).Op(",").Id("nil")),
 		)
 }
 
-func generateUnmarshalJSONFunc(schema Schema, file *File) {
+func generateUnmarshalJSONFunc(schema Schema, file *jen.File) {
 	lowerCamel := strcase.ToLowerCamel(schema.TypeName())
 	ident := fmt.Sprintf("%sIds[strVal]", lowerCamel)
-	var blockCode []Code
+	var blockCode []jen.Code
 
 	if schema.schemaRef.Value.Nullable {
-		blockCode = append(blockCode, Id("strVal").Op(":=").Id("strings").Dot("ReplaceAll").
-			Parens(String().Parens(Id("val")).Op(",").Lit("\"").Op(",").Lit("")),
-			If(
-				Id("idVal").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
-					Op("*").Id("v").Op("=").Id("idVal"),
-					Return(Id("nil")),
+		blockCode = append(blockCode, jen.Id("strVal").Op(":=").Id("strings").Dot("ReplaceAll").
+			Parens(jen.String().Parens(jen.Id("val")).Op(",").Lit("\"").Op(",").Lit("")),
+			jen.If(
+				jen.Id("idVal").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
+					jen.Op("*").Id("v").Op("=").Id("idVal"),
+					jen.Return(jen.Id("nil")),
 				)),
-			If(Id("strVal").Op("==").Lit("null").Block(
-				Op("*").Id("v").Op("=").Id(generateScreamingSnakeName(schema.TypeName(), "NULL")),
-				Return(Id("nil")),
+			jen.If(jen.Id("strVal").Op("==").Lit("null").Block(
+				jen.Op("*").Id("v").Op("=").Id(generateScreamingSnakeName(schema.TypeName(), "NULL")),
+				jen.Return(jen.Id("nil")),
 			)),
-			Return(Id("ErrInvalid"+strcase.ToCamel(schema.TypeName()))))
+			jen.Return(jen.Id("ErrInvalid"+strcase.ToCamel(schema.TypeName()))))
 	} else {
-		blockCode = append(blockCode, Id("strVal").Op(":=").Id("strings").Dot("ReplaceAll").
-			Parens(String().Parens(Id("val")).Op(",").Lit("\"").Op(",").Lit("")),
-			If(
-				Id("idVal").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
-					Op("*").Id("v").Op("=").Id("idVal"),
-					Return(Id("nil")),
+		blockCode = append(blockCode, jen.Id("strVal").Op(":=").Id("strings").Dot("ReplaceAll").
+			Parens(jen.String().Parens(jen.Id("val")).Op(",").Lit("\"").Op(",").Lit("")),
+			jen.If(
+				jen.Id("idVal").Op(",").Id("ok").Op(":=").Id(ident).Op(";").Id("ok").Block(
+					jen.Op("*").Id("v").Op("=").Id("idVal"),
+					jen.Return(jen.Id("nil")),
 				)),
-			Return(Id("ErrInvalid"+strcase.ToCamel(schema.TypeName()))))
+			jen.Return(jen.Id("ErrInvalid"+strcase.ToCamel(schema.TypeName()))))
 	}
-	file.Func().Parens(Id("v").Op("*").Id(schema.TypeName())).Id("UnmarshalJSON").
-		Params(Id("val").Index().Byte()).Error().
+	file.Func().Parens(jen.Id("v").Op("*").Id(schema.TypeName())).Id("UnmarshalJSON").
+		Params(jen.Id("val").Index().Byte()).Error().
 		Block(blockCode...)
 }
 
 func generateEnums(schema Schema) error {
-	f := NewFile("api")
+	f := jen.NewFile("api")
 
-	f.Id("import").Parens(Lit("errors").Line().Lit("strings"))
+	f.Id("import").Parens(jen.Lit("errors").Line().Lit("strings"))
 
 	f.Type().Id(schema.TypeName()).Int().Line()
 
 	f.Var().Id("ErrInvalid" + strcase.ToCamel(schema.TypeName())).
 		Op("=").Id("errors").Op(".").Id("New").
 		Parens(
-			Lit("invalid " + schema.TypeName() + " value")).
+			jen.Lit("invalid " + schema.TypeName() + " value")).
 		Line()
 
 	generateEnumConstants(schema, f)

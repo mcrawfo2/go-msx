@@ -12,11 +12,12 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"github.com/pkg/errors"
 	"math/big"
 	"os"
 	"path"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -89,7 +90,7 @@ func GenerateCertificate(args []string) error {
 		return errors.Wrap(err, "Failed to encode private key")
 	}
 	targetFileName = path.Join(skeletonConfig.TargetDirectory(), "local", "server.key")
-	err = writeFileBytes(targetFileName, out.Bytes())
+	_ = writeFileBytes(targetFileName, out.Bytes())
 
 	return nil
 }

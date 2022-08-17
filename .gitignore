@@ -24,11 +24,13 @@ _testmain.go
 *.prof
 
 \.idea/
+\.vscode/
 dist
 test/
 local/
 vendor/
 bin/
+cmd/example/example
 
 book/*
 !book/SUMMARY.md

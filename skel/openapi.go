@@ -6,14 +6,14 @@ package skel
 
 import (
 	"fmt"
-	. "github.com/dave/jennifer/jen"
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/dave/jennifer/jen"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -25,7 +25,7 @@ func GenerateDomainOpenApi(args []string) error {
 		return errors.New("No OpenAPI spec provided.")
 	}
 
-	bytes, err := ioutil.ReadFile(args[0])
+	bytes, err := os.ReadFile(args[0])
 	if err != nil {
 		return errors.Wrap(err, "Failed to read OpenAPI spec")
 	}
@@ -48,7 +48,7 @@ func GenerateDomainOpenApi(args []string) error {
 
 	logger.Infof("Parsed controllers %+v", controllers)
 
-	schemas, err := spec.Schemas()
+	schemas, _ := spec.Schemas()
 	for _, schema := range schemas {
 		var err error
 		if schema.Enum() != nil {
@@ -78,21 +78,12 @@ func loadSwaggerFromUri(loader *openapi3.SwaggerLoader, url *url.URL) (*openapi3
 	documentParts := strings.SplitN(resourcePath, "/", 2)
 
 	documentFilePath := fmt.Sprintf("openapi/%s.v%s.yaml", documentParts[0], documentParts[1])
-	doc, err := Open(documentFilePath)
-	if err != nil {
-		return nil, err
-	}
-	defer doc.Close()
 
-	bytes, err := ioutil.ReadAll(doc)
-	if err != nil {
-		return nil, err
-	}
-
+	bytes := []byte(staticFiles[documentFilePath].data)
 	return loader.LoadSwaggerFromData(bytes)
 }
 
-func generateTypeWithImport(f *File, ns string, s *Statement, schemaType Schema) error {
+func generateTypeWithImport(f *jen.File, ns string, s *jen.Statement, schemaType Schema) error {
 	imports, err := generateType(s, ns, schemaType)
 	if err != nil {
 		return err
@@ -102,7 +93,7 @@ func generateTypeWithImport(f *File, ns string, s *Statement, schemaType Schema)
 	return nil
 }
 
-func generateType(s *Statement, ns string, schema Schema) (map[string]string, error) {
+func generateType(s *jen.Statement, ns string, schema Schema) (map[string]string, error) {
 	if schema.IsArray() {
 		// slice
 		s = s.Index()
@@ -112,64 +103,60 @@ func generateType(s *Statement, ns string, schema Schema) (map[string]string, er
 
 	if schema.IsDict() {
 		// map
-		s = s.Map(String())
+		s = s.Map(jen.String())
 		schema = schema.ItemType()
 		return generateType(s, ns, schema)
 	}
 
 	if schema.IsAny() {
-		s = s.Interface()
 		return nil, nil
 	}
 
 	if schema.IsBuiltIn() {
 		// No imports or qualifier
-		s = s.Id(schema.TypeName())
 		return nil, nil
 	}
 
 	sns := schema.Namespace(skeletonConfig.AppPackageUrl())
 	var imports map[string]string
 	if sns == ns {
-		s = s.Id(schema.TypeName())
 	} else {
-		s = s.Qual(sns, schema.TypeName())
 		imports = schema.Imports(skeletonConfig.AppPackageUrl())
 	}
 
 	return imports, nil
 }
 
-func generateValidators(f *File, schema Schema) ([]Code, error) {
+func generateValidators(f *jen.File, schema Schema) ([]jen.Code, error) {
 	requiredValidators, err := generateRequiredValidators(f, schema)
 	if err != nil {
 		return nil, err
 	}
 
-	var validators []Code
+	var validators []jen.Code
 	if schema.Required() {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "Required"))
+		validators = append(validators, jen.Qual(pkgValidation, "Required"))
 		validators = append(validators, requiredValidators...)
 	} else {
 		if len(requiredValidators) == 0 {
-			return []Code{}, nil
+			return []jen.Code{}, nil
 		}
 
 		f.ImportName(pkgValidate, "validate")
-		ifNotNilValidator := Qual(pkgValidate, "IfNotNil").Call(requiredValidators...)
+		ifNotNilValidator := jen.Qual(pkgValidate, "IfNotNil").Call(requiredValidators...)
 		validators = append(validators, ifNotNilValidator)
 	}
 
 	return validators, nil
 }
 
-func generateRequiredValidators(f *File, schema Schema) ([]Code, error) {
+func generateRequiredValidators(f *jen.File, schema Schema) ([]jen.Code, error) {
 	if schema.IsObject() || schema.IsUuid() {
 		f.ImportName(pkgValidate, "validate")
 
-		return []Code{
-			Qual(pkgValidate, "Self"),
+		return []jen.Code{
+			jen.Qual(pkgValidate, "Self"),
 		}, nil
 	}
 
@@ -182,75 +169,75 @@ func generateRequiredValidators(f *File, schema Schema) ([]Code, error) {
 			return nil, err
 		}
 
-		return []Code{
-			Qual(pkgValidation, "Each").Call(itemValidators...),
+		return []jen.Code{
+			jen.Qual(pkgValidation, "Each").Call(itemValidators...),
 		}, nil
 	}
 
-	var validators []Code
+	var validators []jen.Code
 
 	if min := schema.Min(); min != nil {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "Min").Call(Lit(*min)))
+		validators = append(validators, jen.Qual(pkgValidation, "Min").Call(jen.Lit(*min)))
 	}
 
 	if max := schema.Max(); max != nil {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "Max").Call(Lit(*max)))
+		validators = append(validators, jen.Qual(pkgValidation, "Max").Call(jen.Lit(*max)))
 	}
 
 	if factor := schema.MultipleOf(); factor != nil {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "MultipleOf").Call(Lit(*factor)))
+		validators = append(validators, jen.Qual(pkgValidation, "MultipleOf").Call(jen.Lit(*factor)))
 	}
 
 	if min, max := schema.Length(); min != 0 || max != 0 {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "Length").Call(Lit(min), Lit(max)))
+		validators = append(validators, jen.Qual(pkgValidation, "Length").Call(jen.Lit(min), jen.Lit(max)))
 	}
 
 	if min, max := schema.ArrayLength(); min != 0 || max != 0 {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "Length").Call(Lit(min), Lit(max)))
+		validators = append(validators, jen.Qual(pkgValidation, "Length").Call(jen.Lit(min), jen.Lit(max)))
 	}
 
 	if pattern := schema.Pattern(); pattern != "" {
 		f.ImportName(pkgValidation, "validation")
 		f.ImportName(pkgRegexp, "regexp")
 
-		validators = append(validators, Qual(pkgValidation, "Match").Call(
-			Qual(pkgRegexp, "MustCompile").Params(Lit(pattern))))
+		validators = append(validators, jen.Qual(pkgValidation, "Match").Call(
+			jen.Qual(pkgRegexp, "MustCompile").Params(jen.Lit(pattern))))
 	}
 
 	if enum := schema.Enum(); enum != nil {
 		f.ImportName(pkgValidation, "validation")
-		validators = append(validators, Qual(pkgValidation, "In").Call(anyLiterals(enum)...))
+		validators = append(validators, jen.Qual(pkgValidation, "In").Call(anyLiterals(enum)...))
 	}
 
 	return validators, nil
 }
 
-func stringLiterals(values []string) []Code {
-	var literals []Code
+func stringLiterals(values []string) []jen.Code {
+	var literals []jen.Code
 	for _, value := range values {
-		literals = append(literals, Lit(value))
+		literals = append(literals, jen.Lit(value))
 	}
 	return literals
 }
 
-func anyLiterals(values []interface{}) []Code {
-	var literals []Code
+func anyLiterals(values []interface{}) []jen.Code {
+	var literals []jen.Code
 	for _, value := range values {
 		if value != nil {
-			literals = append(literals, Lit(value))
+			literals = append(literals, jen.Lit(value))
 		} else {
-			literals = append(literals, Null())
+			literals = append(literals, jen.Null())
 		}
 	}
 	return literals
 }
 
-func writeFile(targetFileName string, f *File) (err error) {
+func writeFile(targetFileName string, f *jen.File) (err error) {
 	err = os.MkdirAll(path.Dir(targetFileName), 0755)
 	if err != nil {
 		return errors.Wrap(err, "Failed to create directory")

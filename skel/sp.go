@@ -6,7 +6,8 @@ package skel
 
 import (
 	"path"
-	"strings"
+
+	"golang.org/x/text/cases"
 )
 
 func init() {
@@ -14,8 +15,9 @@ func init() {
 }
 
 func GenerateServicePack(args []string) error {
+	caser := cases.Title(TitlingLanguage)
 	inflections := map[string]string{
-		inflectionAppTitle: strings.Title(skeletonConfig.AppName),
+		inflectionAppTitle: caser.String(skeletonConfig.AppName),
 	}
 
 	apiPackageSource := path.Join("code", "sp", "api")
