@@ -5,9 +5,10 @@
 package skel
 
 import (
-	. "github.com/dave/jennifer/jen"
-	"github.com/iancoleman/strcase"
 	"path"
+
+	"github.com/dave/jennifer/jen"
+	"github.com/iancoleman/strcase"
 )
 
 func stringFormat(schema Schema) string {
@@ -50,7 +51,7 @@ func arrayFormat(schema Schema) (Schema, error) {
 }
 
 func generateTypeSchema(schema Schema) error {
-	f := NewFile("api")
+	f := jen.NewFile("api")
 	ns := schema.Namespace(skeletonConfig.AppPackageUrl())
 	statement := f.Type().Id(schema.TypeName())
 

@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	. "github.com/dave/jennifer/jen"
+	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 )
@@ -18,7 +18,7 @@ func generateController(c Controller) (err error) {
 	var ns = c.Package()
 	var name = c.Name()
 
-	f := NewFile(c.Package())
+	f := jen.NewFile(c.Package())
 	f.ImportNames(map[string]string{
 		"github.com/emicklei/go-restful":                "restful",
 		"cto-github.cisco.com/NFV-BU/go-msx/webservice": "",
@@ -43,15 +43,14 @@ func generateController(c Controller) (err error) {
 
 const pkgWebservice = "cto-github.cisco.com/NFV-BU/go-msx/webservice"
 const pkgRestful = "github.com/emicklei/go-restful"
-const pkgLog = "cto-github.cisco.com/NFV-BU/go-msx/log"
 const pkgValidation = "github.com/go-ozzo/ozzo-validation"
 const pkgValidate = "cto-github.cisco.com/NFV-BU/go-msx/validate"
 const pkgTypes = "cto-github.cisco.com/NFV-BU/go-msx/types"
 const pkgRegexp = "regexp"
 
-func generateParameterField(f *File, c Controller, p Parameter) (Code, error) {
+func generateParameterField(f *jen.File, c Controller, p Parameter) (*jen.Statement, error) {
 	// params struct field
-	parameterField := Id(p.Name())
+	parameterField := jen.Id(p.Name())
 
 	if !p.SchemaType.Required() {
 		parameterField = parameterField.Op("*")
@@ -67,8 +66,8 @@ func generateParameterField(f *File, c Controller, p Parameter) (Code, error) {
 	return parameterField, nil
 }
 
-func generateBodyField(f *File, c Controller, b Body) (Code, error) {
-	parameterField := Id("Body")
+func generateBodyField(f *jen.File, c Controller, b Body) (*jen.Statement, error) {
+	parameterField := jen.Id("Body")
 	if !b.Schema.Required() {
 		parameterField = parameterField.Op("*")
 	}
@@ -83,29 +82,29 @@ func generateBodyField(f *File, c Controller, b Body) (Code, error) {
 	return parameterField, nil
 }
 
-func generateParameterVariable(p Parameter) Code {
+func generateParameterVariable(p Parameter) jen.Code {
 	parameterVarName := strcase.ToLowerCamel(fmt.Sprintf("param %s %s", p.In(), p.Name()))
 	parameterTypeName := strcase.ToCamel(p.In() + "Parameter")
 
-	parameterVariable := Var().Id(parameterVarName).Op("=").
+	parameterVariable := jen.Var().Id(parameterVarName).Op("=").
 		Qual(pkgRestful, parameterTypeName).
-		Call(Lit(p.JsonName()), Lit(p.Description()))
+		Call(jen.Lit(p.JsonName()), jen.Lit(p.Description()))
 
 	if p.SchemaType.Required() {
-		parameterVariable.Dot("Required").Call(True())
+		parameterVariable.Dot("Required").Call(jen.True())
 	}
 
 	return parameterVariable
 }
 
-func generateEndpointValidation(f *File, e Endpoint) (Dict, error) {
-	result := make(Dict)
+func generateEndpointValidation(f *jen.File, e Endpoint) (jen.Dict, error) {
+	result := make(jen.Dict)
 
 	f.ImportName(pkgValidation, "validation")
 
 	for _, p := range e.Parameters {
-		result[Lit(p.JsonName())] = Qual(pkgValidation, "Validate").Call(
-			Op("&").Id("p").Dot(p.Name()),
+		result[jen.Lit(p.JsonName())] = jen.Qual(pkgValidation, "Validate").Call(
+			jen.Op("&").Id("p").Dot(p.Name()),
 		)
 	}
 
@@ -117,27 +116,26 @@ func generateEndpointValidation(f *File, e Endpoint) (Dict, error) {
 			return nil, err
 		}
 
-		args := append([]Code{
-			Op("&").Id("p").Dot("Body"),
+		args := append([]jen.Code{
+			jen.Op("&").Id("p").Dot("Body"),
 		}, validators...)
 
-		result[Lit("body")] = Qual(pkgValidation, "Validate").Call(args...)
+		result[jen.Lit("body")] = jen.Qual(pkgValidation, "Validate").Call(args...)
 	}
 
 	return result, nil
 }
 
-func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
+func generateEndpoint(f *jen.File, c Controller, e Endpoint) (err error) {
 	f.Line()
 
-	var bodyStatements []Code
-	var parameterFields []Code
-	var controllerDefinition *Statement
+	var bodyStatements []jen.Code
+	var parameterFields []jen.Code
 
-	controllerDefinition = Id("svc").
-		Dot(strings.ToUpper(e.Method)).Call(Lit(e.Path)).
-		DotWrap("Operation").Call(Lit(e.OperationId())).
-		DotWrap("Doc").Call(Lit(e.Summary()))
+	controllerDefinition := jen.Id("svc").
+		Dot(strings.ToUpper(e.Method)).Call(jen.Lit(e.Path)).
+		DotWrap("Operation").Call(jen.Lit(e.OperationId())).
+		DotWrap("Doc").Call(jen.Lit(e.Summary()))
 
 	// Parameter declarations
 	for _, p := range e.Parameters {
@@ -153,7 +151,7 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 		bodyStatements = append(bodyStatements, parameterVariable)
 
 		// controller param
-		controllerDefinition.DotWrap("Param").Call(Id(p.VarName()))
+		controllerDefinition.DotWrap("Param").Call(jen.Id(p.VarName()))
 	}
 
 	if e.RequestBody.Exists {
@@ -165,7 +163,7 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 		parameterFields = append(parameterFields, parameterField)
 
 		// controller reads
-		typeExpr := new(Statement)
+		typeExpr := new(jen.Statement)
 		err = generateTypeWithImport(f, c.Package(), typeExpr, e.RequestBody.Schema)
 		if err != nil {
 			return errors.Wrapf(err, "Failed to generate body field")
@@ -174,19 +172,19 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 	}
 
 	if len(bodyStatements) > 0 {
-		bodyStatements = append(bodyStatements, Line())
+		bodyStatements = append(bodyStatements, jen.Line())
 	}
 
 	// params
 	if len(parameterFields) > 0 {
 		// params struct
-		paramsTypeStatement := Type().Id("params").Struct(parameterFields...)
-		bodyStatements = append(bodyStatements, paramsTypeStatement, Line())
+		paramsTypeStatement := jen.Type().Id("params").Struct(parameterFields...)
+		bodyStatements = append(bodyStatements, paramsTypeStatement, jen.Line())
 
 		// populate params
 		controllerDefinition.DotWrap("Do").Call(
-			Qual(pkgWebservice, "PopulateParams").Call(
-				New(Id("params")),
+			jen.Qual(pkgWebservice, "PopulateParams").Call(
+				jen.New(jen.Id("params")),
 			))
 
 		// validate params
@@ -195,22 +193,22 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 			return err
 		}
 
-		paramsValidatorStatement := Id("paramsValidator").Op(":=").Func().
+		paramsValidatorStatement := jen.Id("paramsValidator").Op(":=").Func().
 			Params(
-				Id("req").Op("*").Qual(pkgRestful, "Request")).
-			Parens(List(
-				Id("err").Id("error"))).
+				jen.Id("req").Op("*").Qual(pkgRestful, "Request")).
+			Parens(jen.List(
+				jen.Id("err").Id("error"))).
 			Block(
 				// params := webservice.Params(req).(*params)
-				Id("p").Op(":=").Qual(pkgWebservice, "Params").Call(
-					Id("req")).Op(".").Parens(Op("*").Id("params")),
+				jen.Id("p").Op(":=").Qual(pkgWebservice, "Params").Call(
+					jen.Id("req")).Op(".").Parens(jen.Op("*").Id("params")),
 
-				Return(Qual(pkgTypes, "ErrorMap").Values(validation)))
+				jen.Return(jen.Qual(pkgTypes, "ErrorMap").Values(validation)))
 
-		bodyStatements = append(bodyStatements, paramsValidatorStatement, Line())
+		bodyStatements = append(bodyStatements, paramsValidatorStatement, jen.Line())
 
 		controllerDefinition.DotWrap("Do").Call(
-			Qual(pkgWebservice, "ValidateParams").Call(Id("paramsValidator")))
+			jen.Qual(pkgWebservice, "ValidateParams").Call(jen.Id("paramsValidator")))
 	}
 
 	// consumes
@@ -220,56 +218,56 @@ func generateEndpoint(f *File, c Controller, e Endpoint) (err error) {
 	}
 
 	// returns
-	for _, code := range e.ReturnCodes() {
+	for _, Code := range e.ReturnCodes() {
 		controllerDefinition.DotWrap("Do").
-			Call(Qual(pkgWebservice, fmt.Sprintf("Returns%s", code)))
+			Call(jen.Qual(pkgWebservice, fmt.Sprintf("Returns%s", Code)))
 	}
 
 	// response
 	if e.ResponseBody.Exists {
 		// payload
-		typeExpr := new(Statement)
+		typeExpr := new(jen.Statement)
 		err = generateTypeWithImport(f, c.Package(), typeExpr, e.ResponseBody.Schema)
 		if err != nil {
 			return errors.Wrapf(err, "Failed to generate response body type")
 		}
 
 		controllerDefinition.DotWrap("Do").Call(
-			Qual(pkgWebservice, "ResponseRawPayload").
+			jen.Qual(pkgWebservice, "ResponseRawPayload").
 				Call(typeExpr.Values()))
 
 		// produces
 		controllerDefinition.DotWrap("Produces").Call(stringLiterals(e.ResponseBody.ContentTypes)...)
 	} else {
-		controllerDefinition.DotWrap("Produces").Call(Lit("application/json"))
+		controllerDefinition.DotWrap("Produces").Call(jen.Lit("application/json"))
 	}
 
 	permissions := e.Permissions()
 	if len(permissions) > 0 {
 		expressions := stringLiterals(permissions)
-		permissionsCall := Qual(pkgWebservice, "Permissions").Call(expressions...)
+		permissionsCall := jen.Qual(pkgWebservice, "Permissions").Call(expressions...)
 		controllerDefinition.DotWrap("Do").Call(permissionsCall)
 	}
 
 	// controller
-	controllerFunction := Func().
+	controllerFunction := jen.Func().
 		Params(
-			Id("req").Op("*").Qual(pkgRestful, "Request")).
-		Parens(List(
-			Id("body").Interface(),
-			Id("err").Id("error"))).
+			jen.Id("req").Op("*").Qual(pkgRestful, "Request")).
+		Parens(jen.List(
+			jen.Id("body").Interface(),
+			jen.Id("err").Id("error"))).
 		Block( // TODO: Generate body based on archetype
-			Return(List(Nil(), Nil())))
+			jen.Return(jen.List(jen.Nil(), jen.Nil())))
 
-	controllerDefinition.DotWrap("To").Call(Qual(pkgWebservice, "RawController").Call(controllerFunction))
+	controllerDefinition.DotWrap("To").Call(jen.Qual(pkgWebservice, "RawController").Call(controllerFunction))
 
-	bodyStatements = append(bodyStatements, Return(controllerDefinition))
+	bodyStatements = append(bodyStatements, jen.Return(controllerDefinition))
 
 	// endpoint generator func
-	funcStatement := Func().
-		Params(Id("c").Op("*").Id(c.Name())).
+	funcStatement := jen.Func().
+		Params(jen.Id("c").Op("*").Id(c.Name())).
 		Id(e.OperationId()).
-		Params(Id("svc").Op("*").Qual(pkgRestful, "WebService")).
+		Params(jen.Id("svc").Op("*").Qual(pkgRestful, "WebService")).
 		Op("*").Qual(pkgRestful, "RouteBuilder").
 		Block(bodyStatements...)
 

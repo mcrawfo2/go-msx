@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"golang.org/x/text/cases"
 )
 
 type SkeletonConfig struct {
@@ -338,6 +339,7 @@ func ConfigureInteractive(args []string) error {
 	}
 
 	// Post-Process answers
+	caser := cases.Title(TitlingLanguage)
 	switch skeletonConfig.Archetype {
 	case archetypeKeyApp:
 		skeletonConfig.KubernetesGroup = "platformms"
@@ -347,7 +349,7 @@ func ConfigureInteractive(args []string) error {
 		skeletonConfig.BeatProtocol = strings.ToLower(skeletonConfig.BeatProtocol)
 		skeletonConfig.AppName = skeletonConfig.BeatProtocol + "beat"
 		skeletonConfig.AppDescription = "Probes " + skeletonConfig.BeatProtocol
-		skeletonConfig.AppDisplayName = strings.Title(skeletonConfig.AppName)
+		skeletonConfig.AppDisplayName = caser.String(skeletonConfig.AppName)
 		skeletonConfig.ServerPort = 8080
 		skeletonConfig.ServerContextPath = ""
 		skeletonConfig.Repository = ""

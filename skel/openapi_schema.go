@@ -7,13 +7,13 @@ package skel
 import (
 	"path"
 
-	. "github.com/dave/jennifer/jen"
+	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 )
 
 func generateSchema(schema Schema) error {
-	f := NewFile("api")
+	f := jen.NewFile("api")
 
 	properties, imports, err := generateSchemaProperties(f, schema)
 	if err != nil {
@@ -29,10 +29,10 @@ func generateSchema(schema Schema) error {
 	}
 
 	f.Func().
-		Parens(Id("v").Op("*").Id(schema.TypeName())).
+		Parens(jen.Id("v").Op("*").Id(schema.TypeName())).
 		Id("Validate").Params().Id("error").
-		Block(Return(
-			Qual(pkgTypes, "ErrorMap").Values(validation)))
+		Block(jen.Return(
+			jen.Qual(pkgTypes, "ErrorMap").Values(validation)))
 
 	targetFileName := path.Join(
 		skeletonConfig.TargetDirectory(),
@@ -43,7 +43,7 @@ func generateSchema(schema Schema) error {
 	return writeFile(targetFileName, f)
 }
 
-func generateSchemaValidation(f *File, schema Schema) (Code, error) {
+func generateSchemaValidation(f *jen.File, schema Schema) (jen.Code, error) {
 	properties, err := schema.Properties()
 	if err != nil {
 		return nil, err
@@ -51,26 +51,26 @@ func generateSchemaValidation(f *File, schema Schema) (Code, error) {
 
 	f.ImportName(pkgValidation, "validation")
 
-	var result = make(Dict)
+	var result = make(jen.Dict)
 	for _, p := range properties {
 		validators, err := generateValidators(f, p.Schema)
 		if err != nil {
 			return nil, err
 		}
 
-		args := append([]Code{
-			Op("&").Id("v").Dot(p.StructFieldName()),
+		args := append([]jen.Code{
+			jen.Op("&").Id("v").Dot(p.StructFieldName()),
 		}, validators...)
 
-		result[Lit(p.JsonName())] = Qual(pkgValidation, "Validate").Call(args...)
+		result[jen.Lit(p.JsonName())] = jen.Qual(pkgValidation, "Validate").Call(args...)
 	}
 
 	return result, nil
 }
 
-func generateSchemaProperties(f *File, schema Schema) ([]Code, map[string]string, error) {
+func generateSchemaProperties(f *jen.File, schema Schema) ([]jen.Code, map[string]string, error) {
 	var (
-		properties = make([]Code, 0)
+		properties = make([]jen.Code, 0)
 		imports    = make(map[string]string)
 		ns         = schema.Namespace(skeletonConfig.AppPackageUrl())
 
@@ -85,7 +85,7 @@ func generateSchemaProperties(f *File, schema Schema) ([]Code, map[string]string
 	for _, prop := range schemaProps {
 		var (
 			fieldName = prop.StructFieldName()
-			statement = Id(fieldName)
+			statement = jen.Id(fieldName)
 
 			jsonName  = strcase.ToLowerCamel(prop.JsonName())
 			fieldTags = map[string]string{"json": jsonName}

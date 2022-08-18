@@ -45,7 +45,6 @@ func InstallGenerateDependencies(_ []string) error {
 		pipe.Script(
 			pipe.ChDir(targetPath),
 			goInstall("github.com/vektra/mockery/v2@v2.14.0"),
-			goInstall("bou.ke/staticfiles@dd04075"),
 		),
 		tarInstall(
 			mdBookUrl,
