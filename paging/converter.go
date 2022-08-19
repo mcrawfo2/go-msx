@@ -47,7 +47,7 @@ func (c Converter) SortOrderFromSortOrderRequest(request SortOrderRequest) SortO
 }
 
 func (c Converter) ResponseToPaginatedResponse(response Response, dataResponse interface{}) PaginatedResponse {
-	response.Content = types.NewOptional(dataResponse).OrElse(response.Content)
+	response.Content = types.OptionalOf(dataResponse).OrElse(response.Content)
 	orders := c.SortOrderListToSortOrderResponseList(response.Sort)
 	return PaginatedResponse{
 		Content:          response.Content,
@@ -108,4 +108,18 @@ func (c Converter) SortOrderListToSortOrderResponseList(orders []SortOrder) []So
 		results = append(results, c.SortOrderToSortOrderResponse(order))
 	}
 	return results
+}
+
+func ToApiSingleSortBy(orders []SortOrder) string {
+	if len(orders) != 1 {
+		return ""
+	}
+	return orders[0].Property
+}
+
+func ToApiSingleSortOrder(orders []SortOrder) string {
+	if len(orders) != 1 {
+		return ""
+	}
+	return string(orders[0].Direction)
 }

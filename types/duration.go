@@ -46,6 +46,24 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 }
 
+func (d Duration) MarshalText() (string, error) {
+	return time.Duration(d).String(), nil
+}
+
+func (d *Duration) UnmarshalText(value string) error {
+	dur, err := time.ParseDuration(value)
+	if err != nil {
+		return err
+	}
+	*d = Duration(dur)
+	return nil
+}
+
 func NewDuration(duration time.Duration) Duration {
 	return Duration(duration)
+}
+
+func ParseDuration(v string) (d Duration, err error) {
+	err = d.UnmarshalText(v)
+	return
 }

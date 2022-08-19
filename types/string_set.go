@@ -29,6 +29,16 @@ func (s StringSet) Values() []string {
 	return result
 }
 
+func (s StringSet) Intersect(other StringSet) []string {
+	var results []string
+	for k := range s {
+		if other.Contains(k) {
+			results = append(results, k)
+		}
+	}
+	return results
+}
+
 func (s StringSet) Sub(other StringSet) []string {
 	var results []string
 	for k := range s {
@@ -37,4 +47,10 @@ func (s StringSet) Sub(other StringSet) []string {
 		}
 	}
 	return results
+}
+
+func NewStringSet(values ...string) StringSet {
+	s := make(StringSet, len(values))
+	s.AddAll(values...)
+	return s
 }

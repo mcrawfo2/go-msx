@@ -101,3 +101,11 @@ func MaxTime() Time {
 	return Time(time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC))
 	// return Time(time.Unix(1<<63-62135596801, 999999999)) // actual golang max, cassandra doesn't like so much
 }
+
+func MustParseTime(ts string) Time {
+	result, err := ParseTime(ts)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
