@@ -31,6 +31,7 @@ dist:
 	$(BUILDER) install-resources
 	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
+	$(BUILDER) install-asyncapi-ui
 	$(BUILDER) build-executable
 	$(BUILDER) download-seccomp-dependencies
 	$(BUILDER) generate-seccomp-profile

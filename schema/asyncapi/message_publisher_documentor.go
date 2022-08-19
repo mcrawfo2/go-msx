@@ -48,6 +48,10 @@ func (d MessagePublisherDocumentor) Document(publisher *streamops.MessagePublish
 		message = new(Message)
 	}
 
+	if message.ID == nil {
+		message.WithID(publisher.Name())
+	}
+
 	if message.ContentType == nil {
 		if publisher.ContentType() != "" {
 			message.WithContentType(publisher.ContentType())

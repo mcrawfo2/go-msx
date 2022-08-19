@@ -82,6 +82,10 @@
         "contentType": {
           "type": "string"
         },
+        "messageId": {
+          "type": "string",
+          "description": "Unique string used to identify the message."
+        },
         "headers": {
           "allOf": [
             {

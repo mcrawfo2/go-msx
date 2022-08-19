@@ -14,6 +14,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/repository/migrate"
 	_ "cto-github.cisco.com/NFV-BU/go-msx/stats/logstats"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/asyncapiprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 	"github.com/spf13/cobra"
 	"os"
@@ -37,6 +38,7 @@ const (
 	CommandPopulate = "populate"
 	CommandVersion  = "version"
 	CommandOpenApi  = "openapi"
+	CommandAsyncApi = "asyncapi"
 
 	configValueFalse = "false"
 	configValueTrue  = "true"
@@ -90,6 +92,12 @@ func init() {
 
 	if _, err := AddCommand(CommandVersion, "Show version", version.Version, commandVersionInit); err != nil {
 		cli.Fatal(err)
+	}
+
+	if asyncApiCommand, err := AddCommand(CommandAsyncApi, "Generate AsyncApi specification", asyncapiprovider.GenerateAsyncApiSpecCommand, commandAsyncApiInit); err != nil {
+		cli.Fatal(err)
+	} else {
+		asyncapiprovider.CustomizeAsyncApiSpecCommand(asyncApiCommand)
 	}
 }
 
@@ -169,5 +177,9 @@ func specificationInit(_ context.Context) error {
 }
 
 func commandOpenApiInit(ctx context.Context) error {
+	return specificationInit(ctx)
+}
+
+func commandAsyncApiInit(ctx context.Context) error {
 	return specificationInit(ctx)
 }

@@ -10,9 +10,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"net/http"
+	"time"
 )
 
 func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	now := time.Now()
 	ctx := req.Request.Context()
 	operationName := RouteOperationFromContext(ctx)
 
@@ -42,6 +44,7 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 		"method":    req.Request.Method,
 		"path":      req.Request.URL.Path,
 		"code":      resp.StatusCode(),
+		"period":    time.Now().Sub(now).String(),
 	}
 
 	traceContext, _ := log.LogContextFromContext(req.Request.Context())

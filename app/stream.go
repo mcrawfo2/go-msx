@@ -7,6 +7,7 @@ package app
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream/gochannel"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream/kafka"
@@ -19,6 +20,7 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, registerGoChannelStreamProvider)
 	OnEvent(EventConfigure, PhaseAfter, registerRedisStreamProvider)
 	OnEvent(EventConfigure, PhaseAfter, registerSqlStreamProvider)
+	OnEvent(EventStart, PhaseDuring, asyncapi.DocumentStreams)
 	OnEvent(EventStart, PhaseAfter, stream.StartRouter)
 	OnEvent(EventStop, PhaseBefore, stream.StopRouter)
 }

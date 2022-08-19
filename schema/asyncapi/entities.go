@@ -2337,6 +2337,7 @@ func (m *MessageOptions) UnmarshalJSON(data []byte) error {
 type Message struct {
 	SchemaFormat  *string                `json:"schemaFormat,omitempty"`
 	ContentType   *string                `json:"contentType,omitempty"`
+	ID            *string                `json:"messageId,omitempty"`     // Unique string used to identify the message.
 	Headers       *MessageHeaders        `json:"headers,omitempty"`
 	Payload       *interface{}           `json:"payload,omitempty"`
 	CorrelationID *MessageCorrelationID  `json:"correlationId,omitempty"`
@@ -2361,6 +2362,12 @@ func (m *Message) WithSchemaFormat(val string) *Message {
 // WithContentType sets ContentType value.
 func (m *Message) WithContentType(val string) *Message {
 	m.ContentType = &val
+	return m
+}
+
+// WithID sets ID value.
+func (m *Message) WithID(val string) *Message {
+	m.ID = &val
 	return m
 }
 
@@ -2494,6 +2501,7 @@ type marshalMessage Message
 var knownKeysMessage = []string{
 	"schemaFormat",
 	"contentType",
+	"messageId",
 	"headers",
 	"payload",
 	"correlationId",
