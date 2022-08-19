@@ -167,6 +167,9 @@ func ConfigurePool(ctx context.Context) error {
 	}
 
 	if !connConfig.Enabled {
+		pool = &ConnectionPool{
+			connConfig: connConfig,
+		}
 		return ErrDisabled
 	}
 
@@ -176,6 +179,9 @@ func ConfigurePool(ctx context.Context) error {
 	}
 
 	if !poolConfig.Enabled {
+		pool = &ConnectionPool{
+			connConfig: connConfig,
+		}
 		return ErrDisabled
 	}
 

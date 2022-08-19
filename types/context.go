@@ -28,3 +28,31 @@ func NewContextKeyAccessor[T any](key interface{}) ContextKeyAccessor[T] {
 		key: key,
 	}
 }
+
+type ContextKeyGetter[T any] struct {
+	accessor ContextKeyAccessor[T]
+}
+
+func (a ContextKeyGetter[T]) Get(ctx context.Context) T {
+	return a.accessor.Get(ctx)
+}
+
+func NewContextKeyGetter[T any](key interface{}) ContextKeyGetter[T] {
+	return ContextKeyGetter[T]{
+		accessor: NewContextKeyAccessor[T](key),
+	}
+}
+
+type ContextKeySetter[T any] struct {
+	accessor ContextKeyAccessor[T]
+}
+
+func (a ContextKeySetter[T]) Set(ctx context.Context, value T) context.Context {
+	return a.accessor.Set(ctx, value)
+}
+
+func NewContextKeySetter[T any](key interface{}) ContextKeySetter[T] {
+	return ContextKeySetter[T]{
+		accessor: NewContextKeyAccessor[T](key),
+	}
+}

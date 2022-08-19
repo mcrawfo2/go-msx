@@ -72,6 +72,10 @@ func (c *Connection) Version() string {
 	return c.version
 }
 
+func (c *Connection) Config() *ConnectionConfig {
+	return c.config
+}
+
 func newSentinelClient(cfg *ConnectionConfig) *redis.Client {
 	logger.Infof("Connecting to redis sentinel address: %v", cfg.Sentinel.Nodes)
 

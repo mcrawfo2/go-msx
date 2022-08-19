@@ -18,14 +18,15 @@ const (
 )
 
 type BindingConfiguration struct {
-	Destination string `config:"default="`                 // Topic if different from binding key
-	Group       string `config:"default="`                 // Consumer group id
-	ContentType string `config:"default=application/json"` // Content-Type Header
-	Binder      string `config:"default=kafka"`            // Stream Provider
-	BindingId   string `config:"default=${spring.application.instance}"`
-	LogMessages bool   `config:"default=true"`
-	Retry       retry.RetryConfig
-	Consumer    ConsumerConfiguration
+	Destination     string `config:"default="`                 // Topic if different from binding key
+	Group           string `config:"default="`                 // Consumer group id
+	ContentType     string `config:"default=application/json"` // Content-Type Header
+	ContentEncoding string `config:"default="`                 // Content-Encoding Header
+	Binder          string `config:"default=kafka"`            // Stream Provider
+	BindingId       string `config:"default=${spring.application.instance}"`
+	LogMessages     bool   `config:"default=true"`
+	Retry           retry.RetryConfig
+	Consumer        ConsumerConfiguration
 }
 
 type ConsumerConfiguration struct {
