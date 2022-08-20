@@ -19,7 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:embed _templates/*
+//go:embed all:_templates/*
 var statics embed.FS
 
 const (
