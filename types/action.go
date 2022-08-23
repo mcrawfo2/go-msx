@@ -89,7 +89,15 @@ func (o Operation) WithDecorator(deco ActionFuncDecorator) Operation {
 }
 
 func (o Operation) WithFilter(filter ActionFilter) Operation {
-	o.filters = append(o.filters[:], filter)
+	filters := append(ActionFilters{}, o.filters...)
+	o.filters = append(filters, filter)
+	sort.Sort(o.filters)
+	return o
+}
+
+func (o Operation) WithFilters(filters ActionFilters) Operation {
+	result := append(ActionFilters{}, o.filters...)
+	o.filters = append(result, filters...)
 	sort.Sort(o.filters)
 	return o
 }
@@ -126,3 +134,9 @@ func RecoverErrorDecorator(action ActionFunc) ActionFunc {
 		return err
 	}
 }
+
+type OperationFactory interface {
+	New(fn ActionFunc) Operation
+}
+
+type OperationFactoryFunc func(fn ActionFunc) Operation

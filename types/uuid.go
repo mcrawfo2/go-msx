@@ -122,6 +122,10 @@ func NewUUID() (UUID, error) {
 	return uuid.GenerateRandomBytes(16)
 }
 
+func NewUUIDPtr(uuid UUID) *UUID {
+	return &uuid
+}
+
 func MustNewUUID() UUID {
 	result, err := NewUUID()
 	if err != nil {
@@ -154,3 +158,5 @@ func (s UUIDSet) Contains(u UUID) bool {
 }
 
 type UUIDSlice []UUID
+
+var ExampleUUID = MustParseUUID("3fa85f64-5717-4562-b3fc-2c963f66afa6")

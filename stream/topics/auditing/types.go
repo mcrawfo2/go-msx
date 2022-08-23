@@ -103,12 +103,12 @@ func NewMessage(ctx context.Context) (Message, error) {
 		tenantId = userContext.TenantId
 
 		securityAudit.ClientId = types.NewOptionalString(userContext.ClientId).OrEmpty()
-		securityAudit.UserId = types.NewOptional(userContext.UserId).OrElse(types.EmptyUUID()).(types.UUID).String()
+		securityAudit.UserId = types.OptionalOf(userContext.UserId).OrElse(types.EmptyUUID()).String()
 		securityAudit.Username = types.NewOptionalString(userContext.Username).OrEmpty()
 		securityAudit.TenantId = tenantId.String()
 		securityAudit.TenantName = types.NewOptionalString(userContext.TenantName).OrEmpty()
 		securityAudit.OriginalUsername = types.NewOptionalString(userContext.Username).OrEmpty()
-		securityAudit.ProviderId = types.NewOptional(userContext.ProviderId).OrElse(types.EmptyUUID()).(types.UUID).String()
+		securityAudit.ProviderId = types.OptionalOf(userContext.ProviderId).OrElse(types.EmptyUUID()).String()
 	}
 
 	logContext, exists := log.LogContextFromContext(ctx)
