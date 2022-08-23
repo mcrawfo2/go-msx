@@ -109,18 +109,22 @@ func generateType(s *jen.Statement, ns string, schema Schema) (map[string]string
 	}
 
 	if schema.IsAny() {
+		s = s.Interface()
 		return nil, nil
 	}
 
 	if schema.IsBuiltIn() {
 		// No imports or qualifier
+		s = s.Id(schema.TypeName())
 		return nil, nil
 	}
 
 	sns := schema.Namespace(skeletonConfig.AppPackageUrl())
 	var imports map[string]string
 	if sns == ns {
+		s = s.Id(schema.TypeName())
 	} else {
+		s = s.Qual(sns, schema.TypeName())
 		imports = schema.Imports(skeletonConfig.AppPackageUrl())
 	}
 
