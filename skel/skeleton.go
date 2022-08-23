@@ -7,12 +7,15 @@ package skel
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"path"
 
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"gopkg.in/pipe.v2"
 )
+
+var ErrNoTemplates = errors.Errorf("no templates")
 
 func init() {
 	AddTarget("generate-skel-json", "Create the skel configuration file", GenerateSkelJson)
@@ -457,58 +460,61 @@ func GenerateDockerfile(_ []string) error {
 }
 
 func GenerateKubernetes(_ []string) error {
-	logger.Info("Generating kubernetes manifest templates")
-	templates := TemplateSet{
-		{
-			Name:       "Creating deployment template",
-			SourceFile: "deployments/kubernetes-rc.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-		{
-			Name:       "Creating migrate template",
-			SourceFile: "deployments/kubernetes-pod.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-		{
-			Name:       "Creating populate template",
-			SourceFile: "deployments/kubernetes-meta.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-meta.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-		{
-			Name:       "Creating pdb template",
-			SourceFile: "deployments/kubernetes-pdb.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-	}
+	logger.Infof("Generating kubernetes %s manifest templates", skeletonConfig.Archetype)
+	var templates TemplateSet
+	if skeletonConfig.Archetype == archetypeKeyApp {
+		templates = TemplateSet{
+			{
+				Name:       "Creating deployment template",
+				SourceFile: "deployments/kubernetes-rc.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-rc.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating migrate template",
+				SourceFile: "deployments/kubernetes-pod.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-pod.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating populate template",
+				SourceFile: "deployments/kubernetes-meta.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-meta.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating pdb template",
+				SourceFile: "deployments/kubernetes-pdb.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+		}
+	} else if skeletonConfig.Archetype == archetypeKeyBeat {
+		templates = TemplateSet{
+			{
+				Name:       "Creating deployment template",
+				SourceFile: "deployments/beats/kubernetes-ps.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-ps.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating config map template",
+				SourceFile: "deployments/beats/kubernetes-cm.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-cm.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating pdb template",
+				SourceFile: "deployments/beats/kubernetes-pdb.yml.tpl",
+				DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
+				Format:     FileFormatYaml,
+			},
+		}
 
-	return templates.Render(NewRenderOptions())
-}
-
-func GenerateKubernetesForBeats(_ []string) error {
-	logger.Info("Generating kubernetes manifest templates for beats")
-	templates := TemplateSet{
-		{
-			Name:       "Creating deployment template",
-			SourceFile: "deployments/beats/kubernetes-ps.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-ps.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-		{
-			Name:       "Creating config map template",
-			SourceFile: "deployments/beats/kubernetes-cm.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-cm.yml.tpl",
-			Format:     FileFormatYaml,
-		},
-		{
-			Name:       "Creating pdb template",
-			SourceFile: "deployments/beats/kubernetes-pdb.yml.tpl",
-			DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
-			Format:     FileFormatYaml,
-		},
+	} else {
+		err := fmt.Errorf("kubernetes %s: %w", skeletonConfig.Archetype, ErrNoTemplates)
+		logger.Errorf("%s", err)
+		return err
 	}
 
 	return templates.Render(NewRenderOptions())
