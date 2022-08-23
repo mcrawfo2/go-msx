@@ -53,7 +53,7 @@ var archetypes = Archetypes{
 		DisplayName: "Beat",
 		Generators: []string{
 			"generate-domain-beats",
-			"generate-kubernetes-beats",
+			"generate-kubernetes",
 		},
 	},
 	{
