@@ -16,6 +16,7 @@ type Api interface {
 	GetAdminHealth() (*integration.MsxResponse, error)
 
 	Login(user, password string) (*integration.MsxResponse, error)
+	SwitchContext(accessToken, userId string) (*integration.MsxResponse, error)
 	Logout() (*integration.MsxResponse, error)
 
 	IsTokenActive() (*integration.MsxResponse, error)

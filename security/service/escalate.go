@@ -41,9 +41,27 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 	return action(newCtx)
 }
 
+func WithUserContext(ctx context.Context, userId string, action types.ActionFunc) (err error) {
+	newUserContext, err := LoginWithUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	newCtx := security.ContextWithUserContext(ctx, newUserContext)
+	return action(newCtx)
+}
+
 func DefaultServiceAccountDecorator(action types.ActionFunc) types.ActionFunc {
 	return func(ctx context.Context) error {
 		return WithDefaultServiceAccount(ctx, action)
+	}
+}
+
+func SwitchUserAccountDecorator(userId string) types.ActionFuncDecorator {
+	return func(action types.ActionFunc) types.ActionFunc {
+		return func(ctx context.Context) error {
+			return WithUserContext(ctx, userId, action)
+		}
 	}
 }
 
@@ -59,6 +77,37 @@ func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, err
 	}
 
 	msxResponse, err := api.Login(cfg.Username, cfg.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	loginResponse, ok := msxResponse.Payload.(*usermanagement.LoginResponse)
+	if !ok {
+		return nil, errors.New("Invalid login response object")
+	}
+
+	return security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
+}
+
+func LoginWithUser(ctx context.Context, userId string) (*security.UserContext, error) {
+	api, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := NewSecurityAccountsDefaultSettings(config.FromContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+
+	msxResponseSystemToken, err := api.Login(cfg.Username, cfg.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	systemToken, ok := msxResponseSystemToken.Payload.(*usermanagement.LoginResponse)
+
+	msxResponse, err := api.SwitchContext(systemToken.AccessToken, userId)
 	if err != nil {
 		return nil, err
 	}
