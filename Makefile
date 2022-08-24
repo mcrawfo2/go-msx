@@ -46,6 +46,7 @@ install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
 
 generate-book:
+	$(BUILDER) download-generate-deps
 	$(BUILDER) copy-book-chapters
 	mdbook build
 

@@ -1,0 +1,41 @@
+name: Pages
+on:
+  push:
+    branches: [$default-branch]
+concurrency:
+  group: pages
+  cancel-in-progress: true
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build:
+    if: github.repository == 'cpx-saas/go-msx'
+    runs-on: [ ubuntu-latest ]
+    environment:
+      name: github-pages
+    steps:
+      # Check out the code
+      - uses: actions/checkout@v1
+      # Install go
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      # Build the docs
+      - name: Build Documentation
+        run: make generate-book
+      # Archive the docs
+      - name: Archive Documentation
+        run: tar --directory docs -cvf ${{ runner.temp }}/artifact.tar .
+      # Upload the pages artifact
+      - name: Upload Pages Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+      # Deploy the artifact to GitHub pages
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v1
