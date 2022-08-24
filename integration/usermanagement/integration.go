@@ -329,6 +329,29 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 	})
 }
 
+func (i *Integration) SwitchContext(accessToken string, userId string) (result *integration.MsxResponse, err error) {
+	securityClientSettings, err := integration.NewSecurityClientSettings(i.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.execute(&integration.MsxEndpointRequest{
+		EndpointName: endpointNameLogin,
+		Headers: http.Header(map[string][]string{
+			"Authorization": {securityClientSettings.Authorization()},
+			"Content-Type":  {httpclient.MimeTypeApplicationWwwFormUrlencoded},
+		}),
+		Body: []byte(url.Values(map[string][]string{
+			"grant_type":      {"urn:cisco:nfv:oauth:grant-type:switch-user"},
+			"switch_username": {userId},
+			"access_token":    {accessToken},
+		}).Encode()),
+		Payload:      new(LoginResponse),
+		ErrorPayload: new(integration.OAuthErrorDTO),
+		NoToken:      true,
+	})
+}
+
 func (i *Integration) Logout() (result *integration.MsxResponse, err error) {
 	return i.execute(&integration.MsxEndpointRequest{
 		EndpointName: endpointNameLogout,

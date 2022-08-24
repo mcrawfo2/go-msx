@@ -1016,6 +1016,29 @@ func (_m *MockUserManagement) StoreSecretPolicy(name string, policy SecretPolicy
 	return r0, r1
 }
 
+// SwitchContext provides a mock function with given fields: accessToken, userId
+func (_m *MockUserManagement) SwitchContext(accessToken string, userId string) (*integration.MsxResponse, error) {
+	ret := _m.Called(accessToken, userId)
+
+	var r0 *integration.MsxResponse
+	if rf, ok := ret.Get(0).(func(string, string) *integration.MsxResponse); ok {
+		r0 = rf(accessToken, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*integration.MsxResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(accessToken, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateRole provides a mock function with given fields: dbinstaller, body
 func (_m *MockUserManagement) UpdateRole(dbinstaller bool, body RoleUpdateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(dbinstaller, body)
