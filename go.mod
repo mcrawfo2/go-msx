@@ -17,6 +17,7 @@ require (
 	github.com/emicklei/go-restful v2.14.3+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
 	github.com/fatih/color v1.10.0 // indirect
+	github.com/fatih/structtag v1.2.0
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
@@ -56,9 +57,12 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
+	github.com/swaggest/jsonschema-go v0.3.37
+	github.com/swaggest/refl v1.1.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.9.3
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
@@ -66,6 +70,7 @@ require (
 	go.uber.org/atomic v1.6.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.5.1
+	golang.org/x/text v0.3.7
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
@@ -125,7 +130,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -151,9 +156,8 @@ require (
 	go.opentelemetry.io/otel v1.6.1 // indirect
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 // indirect
-	golang.org/x/net v0.0.0-20220325170049-de3da57026de // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
+	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
