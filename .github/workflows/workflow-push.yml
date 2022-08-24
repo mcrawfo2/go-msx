@@ -1,16 +1,31 @@
 name: Index
 on: push
+env:
+  CHECKS_ENTERPRISE_TOKEN: ${{ secrets.ENTERPRISE_TOKEN }}
+  CHECKS_ENTERPRISE_KEY: ${{ secrets.ENTERPRISE_KEY }}
+  CHECKS_PUBLIC_TOKEN: ${{ secrets.PUBLIC_TOKEN }}
+  GOPRIVATE: cto-github.cisco.com/NFV-BU,github.com/cpx-saas
+  GOPROXY: proxy.golang.org,direct
 jobs:
   Index:
     if: github.repository == 'cpx-saas/go-msx'
     runs-on: [ self-hosted, Linux ]
-    container: sourcegraph/lsif-go:latest
+    container: dockerhub.cisco.com/docker.io/sourcegraph/lsif-go:latest
     env:
       SRC_ENDPOINT: https://sg.infra.ciscomsx.com
       SRC_ACCESS_TOKEN: ${{ secrets.SRC_ACCESS_TOKEN }}
       INDEX_REPO: cto-github.cisco.com/NFV-BU/go-msx
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure git
+        uses: cpx-saas/actions-msx-checks@master
+        with:
+          check: git-config
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
       - name: Generate index
         run: lsif-go --no-animation
           --repository-remote="$INDEX_REPO"
