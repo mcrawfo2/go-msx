@@ -54,6 +54,7 @@ func TestNewSecurityAccountsDefaultSettings(t *testing.T) {
 		})
 	}
 }
+
 func createSampleToken(payloadType string) mocks.HttpRouteBuilder {
 	if payloadType == "401" {
 		return mocks.HttpRouteBuilder{
@@ -74,6 +75,7 @@ func createSampleToken(payloadType string) mocks.HttpRouteBuilder {
 		Headers:    nil,
 	}
 }
+
 func setup(getToken mocks.HttpRouteBuilder) (context.Context, *security.MockTokenProvider) {
 	ctx := context.Background()
 	cfg := configtest.NewInMemoryConfig(map[string]string{
@@ -93,8 +95,9 @@ func setup(getToken mocks.HttpRouteBuilder) (context.Context, *security.MockToke
 	security.SetTokenProvider(mockTokenProvider)
 	return ctx, mockTokenProvider
 }
+
 func TestLoginWithUser(t *testing.T) {
-	var userId = "test123"
+	var userId = types.MustNewUUID()
 
 	mockSystemUserContext := security.UserContext{
 		UserName:    "system",
@@ -115,7 +118,7 @@ func TestLoginWithUser(t *testing.T) {
 		ClientId:    "nfv-client-id",
 	}
 	mockUserContext := security.UserContext{
-		UserName:    userId,
+		UserName:    "username",
 		Roles:       []string{"API_ADMIN"},
 		TenantId:    types.UUID("534e159b-6c58-4901-a862-8363a25da0f2"),
 		Scopes:      []string{"phone", "token_details", "openid"},
@@ -138,26 +141,23 @@ func TestLoginWithUser(t *testing.T) {
 		Return(&mockSystemUserContext, nil).Return(&mockUserContext, nil)
 
 	userContextDetails, err := LoginWithUser(ctx, userId)
-	if err != nil {
-		t.Errorf("Failed to login with user, error: %s", err)
-	}
-	assert.Equal(t, userContextDetails.UserName, userId)
+	assert.NoError(t, err)
+	assert.Equal(t, userContextDetails.UserName, "username")
 }
 
 func TestLoginWithUser_Error(t *testing.T) {
-	var userId = "test123"
+	var userId = types.MustNewUUID()
 	ctx, mockTokenProvider := setup(createSampleToken("success"))
 	mockTokenProvider.
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(nil, errors.New("Connection refused"))
 
 	_, err := LoginWithUser(ctx, userId)
-	if err != nil {
-		assert.Equal(t, "Connection refused", err.Error())
-	}
+	assert.ErrorContains(t, err, "Connection refused")
 }
+
 func TestWithUserContext(t *testing.T) {
-	var userId = "test123"
+	var userId = types.MustNewUUID()
 
 	mockSystemUserContext := security.UserContext{
 		UserName:    "system",
@@ -178,7 +178,7 @@ func TestWithUserContext(t *testing.T) {
 		ClientId:    "nfv-client-id",
 	}
 	mockUserContext := security.UserContext{
-		UserName:    userId,
+		UserName:    "username",
 		Roles:       []string{"API_ADMIN"},
 		TenantId:    types.UUID("534e159b-6c58-4901-a862-8363a25da0f2"),
 		Scopes:      []string{"phone", "token_details", "openid"},
@@ -200,39 +200,30 @@ func TestWithUserContext(t *testing.T) {
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(&mockSystemUserContext, nil).Return(&mockUserContext, nil)
 	err := WithUserContext(ctx, userId, func(executeContext context.Context) error {
-		assert.Equal(t, security.UserNameFromContext(executeContext), userId)
+		assert.Equal(t, security.UserNameFromContext(executeContext), "username")
 		return nil
 	})
-
-	if err != nil {
-		t.Errorf("Failed to execute with user context: %s", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestWithUserContext_Error(t *testing.T) {
-	var userId = "test123"
+	var userId = types.MustNewUUID()
 	ctx, mockTokenProvider := setup(createSampleToken("success"))
 	mockTokenProvider.
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(nil, errors.New("Connection refused"))
 
-	err := WithUserContext(ctx, userId, func(executeContext context.Context) error {
-		assert.Equal(t, security.UserNameFromContext(executeContext), userId)
+	err := WithUserContext(ctx, userId, func(ctx context.Context) error {
 		return nil
 	})
-	if err != nil {
-		assert.Equal(t, "Connection refused", err.Error())
-	}
+
+	assert.ErrorContains(t, err, "Connection refused")
 }
 
 func TestFailSystemLogin_TokenCallFail(t *testing.T) {
-	var userId = "test123"
+	var userId = types.MustNewUUID()
 	ctx, _ := setup(createSampleToken("401"))
 
 	_, err := LoginWithUser(ctx, userId)
-	if err != nil {
-		assert.Equal(t, "Unauthorized", err.Error())
-	} else {
-		t.Errorf("Expected error from a 401 response in get token")
-	}
+	assert.ErrorContains(t, err, "Unauthorized")
 }

@@ -329,7 +329,7 @@ func (i *Integration) Login(user, password string) (result *integration.MsxRespo
 	})
 }
 
-func (i *Integration) SwitchContext(accessToken string, userId string) (result *integration.MsxResponse, err error) {
+func (i *Integration) SwitchContext(accessToken string, userId types.UUID) (result *integration.MsxResponse, err error) {
 	securityClientSettings, err := integration.NewSecurityClientSettings(i.ctx)
 	if err != nil {
 		return nil, err
@@ -342,9 +342,9 @@ func (i *Integration) SwitchContext(accessToken string, userId string) (result *
 			"Content-Type":  {httpclient.MimeTypeApplicationWwwFormUrlencoded},
 		}),
 		Body: []byte(url.Values(map[string][]string{
-			"grant_type":      {"urn:cisco:nfv:oauth:grant-type:switch-user"},
-			"switch_username": {userId},
-			"access_token":    {accessToken},
+			"grant_type":     {"urn:cisco:nfv:oauth:grant-type:switch-user"},
+			"switch_user_id": {userId.String()},
+			"access_token":   {accessToken},
 		}).Encode()),
 		Payload:      new(LoginResponse),
 		ErrorPayload: new(integration.OAuthErrorDTO),

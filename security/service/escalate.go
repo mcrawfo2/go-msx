@@ -41,7 +41,7 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 	return action(newCtx)
 }
 
-func WithUserContext(ctx context.Context, userId string, action types.ActionFunc) (err error) {
+func WithUserContext(ctx context.Context, userId types.UUID, action types.ActionFunc) (err error) {
 	newUserContext, err := LoginWithUser(ctx, userId)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func DefaultServiceAccountDecorator(action types.ActionFunc) types.ActionFunc {
 	}
 }
 
-func SwitchUserAccountDecorator(userId string) types.ActionFuncDecorator {
+func SwitchUserAccountDecorator(userId types.UUID) types.ActionFuncDecorator {
 	return func(action types.ActionFunc) types.ActionFunc {
 		return func(ctx context.Context) error {
 			return WithUserContext(ctx, userId, action)
@@ -89,7 +89,7 @@ func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, err
 	return security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
 }
 
-func LoginWithUser(ctx context.Context, userId string) (*security.UserContext, error) {
+func LoginWithUser(ctx context.Context, userId types.UUID) (*security.UserContext, error) {
 	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
