@@ -1017,11 +1017,11 @@ func (_m *MockUserManagement) StoreSecretPolicy(name string, policy SecretPolicy
 }
 
 // SwitchContext provides a mock function with given fields: accessToken, userId
-func (_m *MockUserManagement) SwitchContext(accessToken string, userId string) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) SwitchContext(accessToken string, userId types.UUID) (*integration.MsxResponse, error) {
 	ret := _m.Called(accessToken, userId)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, string) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(string, types.UUID) *integration.MsxResponse); ok {
 		r0 = rf(accessToken, userId)
 	} else {
 		if ret.Get(0) != nil {
@@ -1030,7 +1030,7 @@ func (_m *MockUserManagement) SwitchContext(accessToken string, userId string) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(string, types.UUID) error); ok {
 		r1 = rf(accessToken, userId)
 	} else {
 		r1 = ret.Error(1)

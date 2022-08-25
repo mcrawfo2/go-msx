@@ -201,10 +201,12 @@ func TestIntegration_Login(t *testing.T) {
 func TestIntegration_SwitchContext(t *testing.T) {
 	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), nil)
 	securityClientSettings, _ := integration.NewSecurityClientSettings(ctx)
+	userId := types.MustNewUUID()
+	token := "user-token"
 
 	NewUserManagementIntegrationTest().
 		WithCall(func(t *testing.T, api Api) (*integration.MsxResponse, error) {
-			return api.SwitchContext("username", "sampleUserId")
+			return api.SwitchContext(token, userId)
 		}).
 		WithInjector(func(ctx context.Context) context.Context {
 			return configtest.ContextWithNewInMemoryConfig(ctx, nil)
@@ -216,7 +218,8 @@ func TestIntegration_SwitchContext(t *testing.T) {
 		WithRequestPredicate(clienttest.EndpointRequestHasName(endpointNameLogin)).
 		WithRequestPredicate(clienttest.EndpointRequestHasToken(false)).
 		WithRequestPredicate(clienttest.EndpointRequestHasBodySubstring("grant_type=urn%3Acisco%3Anfv%3Aoauth%3Agrant-type%3Aswitch-user")).
-		WithRequestPredicate(clienttest.EndpointRequestHasBodySubstring("switch_username=sampleUserId")).
+		WithRequestPredicate(clienttest.EndpointRequestHasBodySubstring("switch_user_id=" + userId.String())).
+		WithRequestPredicate(clienttest.EndpointRequestHasBodySubstring("access_token=" + token)).
 		WithEndpointPredicate(clienttest.ServiceEndpointHasMethod(http.MethodPost)).
 		WithEndpointPredicate(clienttest.ServiceEndpointHasPath("/v2/token")).
 		Test(t)
