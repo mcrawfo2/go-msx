@@ -31,6 +31,7 @@ func NewSecurityAccountsDefaultSettings(cfg *config.Config) (*SecurityAccountsDe
 	return securityAccountsConfig, nil
 }
 
+// WithDefaultServiceAccount is an Action wrapper to escalate to the system account
 func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (err error) {
 	newUserContext, err := LoginDefaultServiceAccount(ctx)
 	if err != nil {
@@ -41,30 +42,14 @@ func WithDefaultServiceAccount(ctx context.Context, action types.ActionFunc) (er
 	return action(newCtx)
 }
 
-func WithUserContext(ctx context.Context, userId types.UUID, action types.ActionFunc) (err error) {
-	newUserContext, err := LoginWithUser(ctx, userId)
-	if err != nil {
-		return err
-	}
-
-	newCtx := security.ContextWithUserContext(ctx, newUserContext)
-	return action(newCtx)
-}
-
-func DefaultServiceAccountDecorator(action types.ActionFunc) types.ActionFunc {
+// DefaultServiceAccount is an Action decorator to escalate to the system account
+func DefaultServiceAccount(action types.ActionFunc) types.ActionFunc {
 	return func(ctx context.Context) error {
 		return WithDefaultServiceAccount(ctx, action)
 	}
 }
 
-func SwitchUserAccountDecorator(userId types.UUID) types.ActionFuncDecorator {
-	return func(action types.ActionFunc) types.ActionFunc {
-		return func(ctx context.Context) error {
-			return WithUserContext(ctx, userId, action)
-		}
-	}
-}
-
+// LoginDefaultServiceAccount returns a new security.UserContext by escalating to the system account
 func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, error) {
 	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
@@ -89,7 +74,28 @@ func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, err
 	return security.NewUserContextFromToken(ctx, loginResponse.AccessToken)
 }
 
-func LoginWithUser(ctx context.Context, userId types.UUID) (*security.UserContext, error) {
+// WithUserAccount is an Action wrapper to switch user to the specified user
+func WithUserAccount(ctx context.Context, userId types.UUID, action types.ActionFunc) (err error) {
+	newUserContext, err := LoginUserAccount(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	newCtx := security.ContextWithUserContext(ctx, newUserContext)
+	return action(newCtx)
+}
+
+// SwitchUserAccountDecorator is an Action decorator factory to switch user to the specified user
+func SwitchUserAccountDecorator(userId types.UUID) types.ActionFuncDecorator {
+	return func(action types.ActionFunc) types.ActionFunc {
+		return func(ctx context.Context) error {
+			return WithUserAccount(ctx, userId, action)
+		}
+	}
+}
+
+// LoginUserAccount returns a new security.UserContext by switching to the specified user
+func LoginUserAccount(ctx context.Context, userId types.UUID) (*security.UserContext, error) {
 	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
