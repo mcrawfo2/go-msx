@@ -140,7 +140,7 @@ func TestLoginWithUser(t *testing.T) {
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(&mockSystemUserContext, nil).Return(&mockUserContext, nil)
 
-	userContextDetails, err := LoginWithUser(ctx, userId)
+	userContextDetails, err := LoginUserAccount(ctx, userId)
 	assert.NoError(t, err)
 	assert.Equal(t, userContextDetails.UserName, "username")
 }
@@ -152,7 +152,7 @@ func TestLoginWithUser_Error(t *testing.T) {
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(nil, errors.New("Connection refused"))
 
-	_, err := LoginWithUser(ctx, userId)
+	_, err := LoginUserAccount(ctx, userId)
 	assert.ErrorContains(t, err, "Connection refused")
 }
 
@@ -199,7 +199,7 @@ func TestWithUserContext(t *testing.T) {
 	mockTokenProvider.
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(&mockSystemUserContext, nil).Return(&mockUserContext, nil)
-	err := WithUserContext(ctx, userId, func(executeContext context.Context) error {
+	err := WithUserAccount(ctx, userId, func(executeContext context.Context) error {
 		assert.Equal(t, security.UserNameFromContext(executeContext), "username")
 		return nil
 	})
@@ -213,7 +213,7 @@ func TestWithUserContext_Error(t *testing.T) {
 		On("UserContextFromToken", ctx, mock.Anything).
 		Return(nil, errors.New("Connection refused"))
 
-	err := WithUserContext(ctx, userId, func(ctx context.Context) error {
+	err := WithUserAccount(ctx, userId, func(ctx context.Context) error {
 		return nil
 	})
 
@@ -224,6 +224,6 @@ func TestFailSystemLogin_TokenCallFail(t *testing.T) {
 	var userId = types.MustNewUUID()
 	ctx, _ := setup(createSampleToken("401"))
 
-	_, err := LoginWithUser(ctx, userId)
+	_, err := LoginUserAccount(ctx, userId)
 	assert.ErrorContains(t, err, "Unauthorized")
 }

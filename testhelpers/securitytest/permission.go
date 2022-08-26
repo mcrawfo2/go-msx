@@ -8,6 +8,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"time"
 )
 
 var DefaultUserId = types.MustParseUUID("67f9b089-532e-4b54-9a06-8e4eade2114e")
@@ -141,6 +142,27 @@ func (m *MockTokenDetailsProvider) TokenDetails(_ context.Context) (*security.Us
 		ProviderId:   m.ProviderId,
 		ProviderName: &m.ProviderName,
 	}, nil
+}
+
+func (m *MockTokenDetailsProvider) UserContext() *security.UserContext {
+	return &security.UserContext{
+		UserName:    m.UserName,
+		Roles:       m.Roles,
+		TenantId:    m.TenantId,
+		Scopes:      []string{"read", "write"},
+		Authorities: []string{"ROLE_CLIENT"},
+		FirstName:   "first-name",
+		LastName:    "last-name",
+		Issuer:      "",
+		Subject:     m.UserName,
+		Exp:         int(time.Now().UTC().Add(1 * time.Hour).Unix()),
+		IssuedAt:    int(time.Now().UTC().Add(-1 * time.Hour).Unix()),
+		Jti:         types.MustNewUUID().String(),
+		Email:       "user@ciscomsx.com",
+		Token:       "token",
+		Certificate: nil,
+		ClientId:    "client-id",
+	}
 }
 
 func (m *MockTokenDetailsProvider) IsTokenActive(_ context.Context) (bool, error) {
