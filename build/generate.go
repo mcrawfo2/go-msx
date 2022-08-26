@@ -12,7 +12,6 @@ import (
 	"github.com/shurcooL/vfsgen"
 	"gopkg.in/pipe.v2"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -228,7 +227,7 @@ func downloadTemp(url string, tempName string) (string, error) {
 	var response *http.Response
 	var err error
 
-	if writer, err = ioutil.TempFile("", tempName); err != nil {
+	if writer, err = os.CreateTemp("", tempName); err != nil {
 		return "", err
 	} else if response, err = http.DefaultClient.Get(url); err != nil {
 		return "", err

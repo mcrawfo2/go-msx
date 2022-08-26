@@ -14,6 +14,8 @@ MSX Configuration has three main components: **providers**, **settings**, and th
 * **Settings** represent the configuration options for your application. Settings are represented as key/value pairs. 
 * **Config** holds all of the providers and loaded settings. This object allows you to load, watch, retrieve, apply and convert your settings.
 
+Each provider combines its contents together into a single keyspace; these are then superposed (like a "1000-layer lasagna") in order to produce a final combined keyspace and key/value mapping.
+
 ## Quick Start
 
 ### Instantiation
@@ -84,8 +86,8 @@ One of the primary goals for MSX Configuration is close compatibility with Sprin
 Several known incompatibilities and limitations currently exist:
   1. Key Normalization
      - Configuration keys in MSX Configuration are simply normalized to be lowercase, no hyphens, period-separated. As of Spring 2.0, configuration keys are expected to be snake-case, period-separated. MSX Configuration cannot distinguish between the `app.some-data` and `app.somedata` keys, and normalizes them both to `app.somedata`.
-  1. Arbitrary Population
-     - MSX Configuration currently supports `@ConfigurationProperties` style structure population.  As a consequence, all data used to populate a structure must be direct descendants of the key used to populate the structure.  We intend to support arbitrary key specification for structures in the future.
+  2. Arbitrary Population
+       - MSX Configuration currently supports `@ConfigurationProperties` style structure population.  As a consequence, all data used to populate a structure must be direct descendants of the key used to populate the structure.  We intend to support arbitrary key specification for structures in the future.
 
 ## Built-In Providers 
 

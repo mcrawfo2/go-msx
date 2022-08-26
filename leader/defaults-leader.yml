@@ -1,5 +1,1 @@
-consul.leader.election:
-  enabled: false
-  defaultMasterKey: service/${spring.application.name}/leader
-  leaderProperties:
-    - key: ${consul.leader.election.defaultMasterKey}
+../config/embed/defaults-leader.yml

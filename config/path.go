@@ -12,6 +12,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 const configRootConfig = "config"
@@ -28,23 +30,35 @@ func NewHttpFileProvider(name string, fs http.FileSystem, fileName string) Provi
 	return newFileProvider(name, fileName, HttpFileContentReader(fs, fileName), nil)
 }
 
-func NewHttpFileProvidersFromGlob(name string, fs http.FileSystem, glob string) []Provider {
+func NewHttpFileProvidersFromGlob(name string, fsys http.FileSystem, glob string) []Provider {
 	var configFiles = make(types.StringSet)
-	_ = vfsutil.Walk(fs, "/", func(path string, info os.FileInfo, err error) error {
-		for _, ext := range configFileExtensions {
-			fileGlob := glob + ext
-			if inc, err2 := doublestar.Match(fileGlob, path); err2 != nil {
-				continue
-			} else if inc {
-				configFiles.Add(path)
-			}
+	reg := `.*\.(` +
+		strings.ReplaceAll(strings.Join(configFileExtensions, "|"), ".", "") +
+		`)$`
+	exts, err := regexp.Compile(reg)
+	if err != nil {
+		logger.Warnf("File extension list caused a regex compile fail %s", reg)
+		return nil
+	}
+
+	err = vfsutil.Walk(fsys, "/", func(path string, info os.FileInfo, err error) error {
+		inc, err2 := doublestar.Match(glob, path)
+		if err2 != nil {
+			logger.Warnf("Malformed glob (eww) %s", glob)
+			return err2
+		}
+		if inc && exts.MatchString(path) {
+			configFiles.Add(path)
 		}
 		return nil
 	})
+	if err != nil {
+		return nil
+	}
 
 	var providers []Provider
 	for fileName := range configFiles {
-		provider := NewCacheProvider(NewHttpFileProvider(name, fs, fileName))
+		provider := NewCacheProvider(NewHttpFileProvider(name, fsys, fileName))
 		providers = append(providers, provider)
 	}
 
@@ -63,25 +77,25 @@ type fsConfig struct {
 }
 
 func AddConfigFoldersFromFsConfig(cfg *Config) {
-	var fs fsConfig
-	if err := cfg.Populate(&fs, "fs"); err != nil {
+	var fsys fsConfig
+	if err := cfg.Populate(&fsys, "fs"); err != nil {
 		return
 	}
 
-	if fs.Roots.Sources != "" {
-		if fs.Roots.Command != "" {
+	if fsys.Roots.Sources != "" {
+		if fsys.Roots.Command != "" {
 			AddConfigFolders(
-				fs.Roots.Command)
+				fsys.Roots.Command)
 		}
 
 		AddConfigFolders(
-			filepath.Join(fs.Roots.Sources, fs.Local),
-			filepath.Join(fs.Roots.Staging, fs.Configs))
+			filepath.Join(fsys.Roots.Sources, fsys.Local),
+			filepath.Join(fsys.Roots.Staging, fsys.Configs))
 	}
 
-	if fs.Roots.Release != "" {
+	if fsys.Roots.Release != "" {
 		AddConfigFolders(
-			filepath.Join(fs.Roots.Release, fs.Configs))
+			filepath.Join(fsys.Roots.Release, fsys.Configs))
 	}
 }
 
