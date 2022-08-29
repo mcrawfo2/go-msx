@@ -15,8 +15,9 @@ import (
 	"github.com/magiconair/properties"
 	"github.com/pkg/errors"
 	"github.com/radovskyb/watcher"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -42,7 +43,7 @@ type ContentReader func() ([]byte, error)
 
 func FileContentReader(fileName string) ContentReader {
 	return func() (bytes []byte, err error) {
-		bytes, err = ioutil.ReadFile(fileName)
+		bytes, err = os.ReadFile(fileName)
 		if err != nil {
 			err = errors.Wrapf(err, "Failed to read %s", fileName)
 		}
@@ -56,7 +57,7 @@ func HttpFileContentReader(fs http.FileSystem, fileName string) ContentReader {
 		if err != nil {
 			return nil, err
 		}
-		return ioutil.ReadAll(file)
+		return io.ReadAll(file)
 	}
 }
 
