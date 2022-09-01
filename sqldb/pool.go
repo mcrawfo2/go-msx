@@ -131,6 +131,11 @@ func CreateDatabaseForPool(ctx context.Context) error {
 
 	cfg := pool.Config()
 
+	if cfg.Disconnected {
+		logger.WithContext(ctx).Warn("Sqldb running in disconnected mode - skipping database creation")
+		return nil
+	}
+
 	if cfg.Driver != "postgres" {
 		logger.WithContext(ctx).Warn("Sqldb is not using postgres driver - skipping database creation")
 		return nil

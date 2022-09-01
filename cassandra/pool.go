@@ -75,6 +75,11 @@ func CreateKeyspaceForPool(ctx context.Context) error {
 		return nil
 	}
 
+	if pool.cfg.Disconnected {
+		// Running in disconnected mode
+		return nil
+	}
+
 	systemClusterConfig := pool.ClusterConfig()
 	targetKeyspaceName := systemClusterConfig.KeyspaceName
 	systemClusterConfig.KeyspaceName = keyspaceSystem

@@ -68,6 +68,13 @@ func NewCluster(clusterConfig *ClusterConfig) (*Cluster, error) {
 		return nil, ErrDisabled
 	}
 
+	if clusterConfig.Disconnected {
+		logger.Warn("Disconnected mode active.  Not connecting to Cassandra.")
+		return &Cluster{
+			config: clusterConfig,
+		}, nil
+	}
+
 	cluster := gocql.NewCluster(clusterConfig.Hosts()...)
 	cluster.Timeout = clusterConfig.Timeout
 	cluster.ConnectTimeout = clusterConfig.ConnectTimeout

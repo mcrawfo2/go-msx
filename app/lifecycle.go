@@ -312,9 +312,22 @@ func OnEvent(event string, phase string, observer Observer) {
 	application.On(event, phase, observer)
 }
 
-func OnRootEvent(event string, phase string, observer Observer) {
-	OnEvent(EventCommand, CommandRoot, func(ctx context.Context) error {
+func OnCommandEvent(command string, event string, phase string, observer Observer) {
+	OnEvent(EventCommand, command, func(ctx context.Context) error {
 		OnEvent(event, phase, observer)
 		return nil
 	})
+}
+
+func OnCommandsEvent(commands []string, event string, phase string, observer Observer) {
+	for _, command := range commands {
+		OnEvent(EventCommand, command, func(ctx context.Context) error {
+			OnEvent(event, phase, observer)
+			return nil
+		})
+	}
+}
+
+func OnRootEvent(event string, phase string, observer Observer) {
+	OnCommandEvent(CommandRoot, event, phase, observer)
 }

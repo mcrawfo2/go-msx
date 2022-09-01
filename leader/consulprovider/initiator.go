@@ -93,6 +93,7 @@ func (l *LeadershipInitiator) cancelRenewContext() {
 }
 
 func (l *LeadershipInitiator) loop() {
+	// Do not delay the first attempt to acquire the leadership for our key
 	ticker := time.NewTicker(1 * time.Nanosecond)
 	defer ticker.Stop()
 
@@ -105,6 +106,7 @@ func (l *LeadershipInitiator) loop() {
 				Warnf("Leader election loop stopped for key %q", l.properties.Key)
 			return
 		case <-ticker.C:
+			// Subsequent tries delay BusyWait between acquisition attempts
 			ticker.Reset(time.Duration(l.properties.BusyWaitMillis) * time.Millisecond)
 			l.acquire(l.acquireCtx)
 		}

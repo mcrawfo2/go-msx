@@ -49,6 +49,12 @@ func NewConnection(ctx context.Context) (*Connection, error) {
 		return nil, errors.Wrap(err, "Failed to create Client")
 	}
 
+	if connectionConfig.Disconnected {
+		return &Connection{
+			ConnectionApi: new(DisConnection),
+		}, nil
+	}
+
 	var conn = &Connection{
 		ConnectionApi: newTraceConnection(newStatsConnection(newConnectionImpl(connectionConfig, client))),
 	}

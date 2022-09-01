@@ -15,6 +15,7 @@ type Config struct {
 	Driver         string `config:"default=${sql.driver}"`
 	DataSourceName string `config:"default=${sql.data-source-name}"`
 	Enabled        bool   `config:"default=false"`
+	Disconnected   bool   `config:"default=${cli.flag.disconnected:false}"`
 }
 
 func NewSqlConfigFromConfig(cfg *config.Config) (*Config, error) {

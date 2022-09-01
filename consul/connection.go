@@ -29,11 +29,12 @@ var (
 )
 
 type ConnectionConfig struct {
-	Enabled bool   `config:"default=true"`
-	Host    string `config:"default=localhost"`
-	Port    int    `config:"default=8500"`
-	Scheme  string `config:"default=http"`
-	Config  struct {
+	Enabled      bool   `config:"default=true"`
+	Disconnected bool   `config:"default=${cli.flag.disconnected:false}"`
+	Host         string `config:"default=localhost"`
+	Port         int    `config:"default=8500"`
+	Scheme       string `config:"default=http"`
+	Config       struct {
 		AclToken string `config:"default="`
 	}
 	Watch struct {
@@ -61,6 +62,10 @@ func (c *Connection) Host() string {
 }
 
 func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (results map[string]string, err error) {
+	if c.config.Disconnected {
+		return map[string]string{}, nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiListKeyValuePairs,
 		trace.StartWithTag(trace.FieldSpanType, "db"))
 	defer span.Finish()
@@ -93,6 +98,17 @@ func (c *Connection) ListKeyValuePairs(ctx context.Context, path string) (result
 }
 
 func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIndex *uint64, waitTime *time.Duration) (resultIndex uint64, results map[string]string, err error) {
+	if c.config.Disconnected {
+		if waitTime != nil {
+			time.Sleep(*waitTime)
+		}
+		var index uint64 = 1
+		if waitIndex != nil {
+			index = *waitIndex
+		}
+		return index, map[string]string{}, nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiWatchKeyValuePairs,
 		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
@@ -135,6 +151,10 @@ func (c *Connection) WatchKeyValuePairs(ctx context.Context, path string, waitIn
 }
 
 func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte, err error) {
+	if c.config.Disconnected {
+		return nil, nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetKeyValue,
 		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
@@ -163,6 +183,10 @@ func (c *Connection) GetKeyValue(ctx context.Context, path string) (value []byte
 }
 
 func (c *Connection) SetKeyValue(ctx context.Context, path string, value []byte) (err error) {
+	if c.config.Disconnected {
+		return nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiSetKeyValue,
 		trace.StartWithTag(trace.FieldSpanType, "config"))
 	defer span.Finish()
@@ -185,6 +209,10 @@ func (c *Connection) SetKeyValue(ctx context.Context, path string, value []byte)
 }
 
 func (c *Connection) GetServiceInstances(ctx context.Context, service string, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
+	if c.config.Disconnected {
+		return nil, nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetServiceInstances,
 		trace.StartWithTag(trace.FieldSpanType, "discovery"))
 	defer span.Finish()
@@ -215,6 +243,10 @@ func (c *Connection) GetServiceInstances(ctx context.Context, service string, pa
 }
 
 func (c *Connection) GetAllServiceInstances(ctx context.Context, passingOnly bool, tags ...string) (serviceEntries []*api.ServiceEntry, err error) {
+	if c.config.Disconnected {
+		return nil, nil
+	}
+
 	ctx, span := trace.NewSpan(ctx, "consul."+statsApiGetAllServiceInstances,
 		trace.StartWithTag(trace.FieldSpanType, "discovery"))
 	defer span.Finish()
@@ -259,6 +291,10 @@ func (c *Connection) GetAllServiceInstances(ctx context.Context, passingOnly boo
 }
 
 func (c *Connection) RegisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	if c.config.Disconnected {
+		return nil
+	}
+
 	return trace.Operation(ctx, "consul."+statsApiRegisterService, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiRegisterService, "", func() error {
 			return c.client.Agent().ServiceRegister(registration)
@@ -267,6 +303,10 @@ func (c *Connection) RegisterService(ctx context.Context, registration *api.Agen
 }
 
 func (c *Connection) DeregisterService(ctx context.Context, registration *api.AgentServiceRegistration) error {
+	if c.config.Disconnected {
+		return nil
+	}
+
 	return trace.Operation(ctx, "consul."+statsApiDeregisterService, func(ctx context.Context) error {
 		return c.stats.Observe(statsApiDeregisterService, "", func() error {
 			return c.client.Agent().ServiceDeregister(registration.ID)
@@ -275,6 +315,10 @@ func (c *Connection) DeregisterService(ctx context.Context, registration *api.Ag
 }
 
 func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChecks, err error) {
+	if c.config.Disconnected {
+		return nil, nil
+	}
+
 	err = trace.Operation(ctx, "consul."+statsApiNodeHealth, func(ctx context.Context) error {
 		err = c.stats.Observe(statsApiNodeHealth, "", func() error {
 			var nodeName string
@@ -303,6 +347,12 @@ func (c *Connection) NodeHealth(ctx context.Context) (healthChecks api.HealthChe
 func NewConnection(connectionConfig *ConnectionConfig) (*Connection, error) {
 	if !connectionConfig.Enabled {
 		return nil, ErrDisabled
+	}
+
+	if connectionConfig.Disconnected {
+		return &Connection{
+			config: connectionConfig,
+		}, nil
 	}
 
 	clientConfig := api.DefaultConfig()
