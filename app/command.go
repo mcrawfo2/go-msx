@@ -14,6 +14,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/repository/migrate"
 	_ "cto-github.cisco.com/NFV-BU/go-msx/stats/logstats"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -29,18 +30,23 @@ const (
 	configKeyLeaderEnable          = "consul.leader.election.enabled"
 	configKeyCassandraEnable       = "spring.data.cassandra.enable"
 	configKeySqlDbEnable           = "spring.datasource.enabled"
+	configKeyDisconnected          = "cli.flag.disconnected"
 
 	CommandRoot     = ""
 	CommandMigrate  = "migrate"
 	CommandPopulate = "populate"
 	CommandVersion  = "version"
+	CommandOpenApi  = "openapi"
 
 	configValueFalse = "false"
+	configValueTrue  = "true"
 )
 
 func init() {
 	// Configure the root command
 	cmd := cli.RootCmd()
+
+	cmd.PersistentFlags().Bool("disconnected", false, "Disable network communication")
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		RegisterProviderFactory(SourceCommandLine, func(name string, cfg *config.Config) ([]config.Provider, error) {
@@ -76,6 +82,12 @@ func init() {
 		populate.CustomizeCommand(populateCommand)
 	}
 
+	if openApiCommand, err := AddCommand(CommandOpenApi, "Save API specification", swaggerprovider.SaveSpec, commandOpenApiInit); err != nil {
+		cli.Fatal(err)
+	} else {
+		swaggerprovider.CustomizeCommand(openApiCommand)
+	}
+
 	if _, err := AddCommand(CommandVersion, "Show version", version.Version, commandVersionInit); err != nil {
 		cli.Fatal(err)
 	}
@@ -106,11 +118,11 @@ func Run(appName string) {
 	cli.Run(appName)
 }
 
-func Noop(context.Context) error {
+func Noop(_ context.Context) error {
 	return nil
 }
 
-func commandMigrateInit(context.Context) error {
+func commandMigrateInit(_ context.Context) error {
 	OverrideConfig(map[string]string{
 		configKeyRedisEnable:           configValueFalse,
 		configKeyKafkaEnable:           configValueFalse,
@@ -122,7 +134,7 @@ func commandMigrateInit(context.Context) error {
 	return nil
 }
 
-func commandPopulateInit(context.Context) error {
+func commandPopulateInit(_ context.Context) error {
 	OverrideConfig(map[string]string{
 		configKeyConsulDiscoveryEnable: configValueFalse,
 		configKeyServerEnable:          configValueFalse,
@@ -132,7 +144,7 @@ func commandPopulateInit(context.Context) error {
 	return nil
 }
 
-func commandVersionInit(context.Context) error {
+func commandVersionInit(_ context.Context) error {
 	OverrideConfig(map[string]string{
 		configKeyRedisEnable:           configValueFalse,
 		configKeyKafkaEnable:           configValueFalse,
@@ -146,4 +158,16 @@ func commandVersionInit(context.Context) error {
 	})
 
 	return nil
+}
+
+func specificationInit(_ context.Context) error {
+	OverrideConfig(map[string]string{
+		configKeyDisconnected: configValueTrue,
+	})
+
+	return nil
+}
+
+func commandOpenApiInit(ctx context.Context) error {
+	return specificationInit(ctx)
 }

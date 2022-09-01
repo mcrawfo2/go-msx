@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	configRootKafka  = "spring.cloud.stream.kafka.binder"
-	configKeyAppName = "spring.application.name"
+	configRootKafka = "spring.cloud.stream.kafka.binder"
 )
 
 type ConnectionConfig struct {
@@ -37,6 +36,7 @@ type ConnectionConfig struct {
 	ClientIdSuffix         string   `config:"default=${spring.application.instance}"`
 	Enabled                bool     `config:"default=false"`
 	Partitioner            string   `config:"default=hash"`
+	Disconnected           bool     `config:"default=${cli.flag.disconnected:false}"`
 	Tls                    certificate.TLSConfig
 }
 

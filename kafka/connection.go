@@ -52,6 +52,10 @@ func NewConnection(ctx context.Context, cfg *ConnectionConfig) (*Connection, err
 		cfg: cfg,
 	}
 
+	if cfg.Disconnected {
+		return conn, nil
+	}
+
 	saramaClient, err := sarama.NewClient(cfg.BrokerAddresses(), saramaConfig)
 	if err != nil {
 		return nil, err

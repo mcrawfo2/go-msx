@@ -10,7 +10,7 @@ info.build:
   artifact: ${info.app.name}
   buildDateTime: "2021-02-17T00:00:00.000000Z"
   buildNumber: SNAPSHOT
-  release: 3.11.0
+  release: 5.0.0
   group: com.cisco.msx
   name: ${info.app.description}
   version: ${info.build.release}-${info.build.buildNumber}
@@ -41,10 +41,10 @@ spring.cloud.vault:
     enabled: true
 
 spring.cloud.stream.kafka.binder:
-  enabled: false
+  enabled: true
 
 spring.redis:
-  enable: false
+  enable: true
 
 stats:
   enabled: true
@@ -56,3 +56,8 @@ trace:
   enabled: true
   reporter:
     name: zipkin
+
+consul:
+  leader:
+    election:
+      enabled: true
