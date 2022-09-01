@@ -28,6 +28,7 @@ var (
 
 type ProviderConfig struct {
 	Enabled        bool     `config:"default=false"`
+	Disconnected   bool     `config:"default=${cli.flag.disconnected:false}"`
 	Prefix         string   `config:"default=userviceconfiguration"`
 	DefaultContext string   `config:"default=defaultapplication"`
 	Pool           bool     `config:"default=false"`
@@ -76,7 +77,7 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string, err error) {
 	var waitTime = new(time.Duration)
 	*waitTime = time.Nanosecond
-	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath())
+	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath()) && !p.cfg.Disconnected
 
 	err = retry.NewRetry(ctx, retry.RetryConfig{
 		Attempts: 10,
@@ -109,7 +110,7 @@ func (p *Provider) loadSettings(ctx context.Context) (settings map[string]string
 func (p *Provider) Run(ctx context.Context) {
 	logger.WithContext(ctx).Infof("Starting config watcher for %s", p.Description())
 	var lastIndex *uint64
-	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath())
+	required := types.StringStack(p.cfg.Required).Contains(p.ContextPath()) && !p.cfg.Disconnected
 
 	for {
 		foundIndex, settings, err := p.connection.WatchKeyValuePairs(ctx, p.ContextPath(), lastIndex, nil)
