@@ -8,6 +8,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"runtime/debug"
 )
 
 var logger = log.NewLogger("msx.app.version")
@@ -36,5 +37,16 @@ func Version(ctx context.Context, args []string) (err error) {
 	logger.WithContext(ctx).Infof("Build Timestamp: %s", i.Build.BuildDateTime)
 	logger.WithContext(ctx).Infof("Commit Hash: %s", i.Build.CommitHash)
 	logger.WithContext(ctx).Infof("Diff Hash: %s", i.Build.DiffHash)
+
+	bi, ok := debug.ReadBuildInfo()
+	if ok {
+		logger.WithContext(ctx).Infof("Go Version: %s", bi.GoVersion)
+		logger.WithContext(ctx).Info("Build Settings:")
+		for _, setting := range bi.Settings {
+			logger.WithContext(ctx).Infof("    %s: %s", setting.Key, setting.Value)
+		}
+	} else {
+		logger.WithContext(ctx).Warn("No embedded go BuildInfo found.")
+	}
 	return nil
 }

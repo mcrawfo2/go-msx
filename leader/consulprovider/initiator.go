@@ -93,7 +93,8 @@ func (l *LeadershipInitiator) cancelRenewContext() {
 }
 
 func (l *LeadershipInitiator) loop() {
-	ticker := time.NewTicker(time.Duration(l.properties.BusyWaitMillis) * time.Millisecond)
+	// Do not delay the first attempt to acquire the leadership for our key
+	ticker := time.NewTicker(1 * time.Nanosecond)
 	defer ticker.Stop()
 
 	for {
@@ -105,6 +106,8 @@ func (l *LeadershipInitiator) loop() {
 				Warnf("Leader election loop stopped for key %q", l.properties.Key)
 			return
 		case <-ticker.C:
+			// Subsequent tries delay BusyWait between acquisition attempts
+			ticker.Reset(time.Duration(l.properties.BusyWaitMillis) * time.Millisecond)
 			l.acquire(l.acquireCtx)
 		}
 	}
@@ -112,33 +115,38 @@ func (l *LeadershipInitiator) loop() {
 
 func (l *LeadershipInitiator) acquire(ctx context.Context) {
 	var acquired bool
-	err := consul.PoolFromContext(ctx).WithConnection(func(connection *consul.Connection) (err error) {
-		l.sessionId, _, err = connection.Client().Session().Create(&api.SessionEntry{
-			Name:     l.properties.Key,
-			Behavior: "release",
-			TTL:      (5 * time.Duration(l.properties.HeartBeatMillis) * time.Millisecond).String(),
-		}, nil)
+	if l.properties.Disconnected {
+		logger.WithContext(ctx).Infof("Disconnected mode active.  Leadership lock assumed.")
+		acquired = true
+	} else {
+		err := consul.PoolFromContext(ctx).WithConnection(func(connection *consul.Connection) (err error) {
+			l.sessionId, _, err = connection.Client().Session().Create(&api.SessionEntry{
+				Name:     l.properties.Key,
+				Behavior: "release",
+				TTL:      (5 * time.Duration(l.properties.HeartBeatMillis) * time.Millisecond).String(),
+			}, nil)
+
+			if err != nil {
+				return err
+			}
+
+			acquired, _, err = connection.Client().KV().Acquire(&api.KVPair{
+				Key:     l.properties.Key, // distributed lock
+				Value:   []byte(l.sessionId),
+				Session: l.sessionId,
+			}, nil)
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 
 		if err != nil {
-			return err
+			logger.WithContext(ctx).WithError(err).Errorf("Failed to acquire leadership")
+			return
 		}
-
-		acquired, _, err = connection.Client().KV().Acquire(&api.KVPair{
-			Key:     l.properties.Key, // distributed lock
-			Value:   []byte(l.sessionId),
-			Session: l.sessionId,
-		}, nil)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		logger.WithContext(ctx).WithError(err).Errorf("Failed to acquire leadership")
-		return
 	}
 
 	if !acquired {
@@ -178,6 +186,10 @@ func (l *LeadershipInitiator) heartbeat() {
 }
 
 func (l *LeadershipInitiator) renew(ctx context.Context) error {
+	if l.properties.Disconnected {
+		return nil
+	}
+
 	return consul.PoolFromContext(ctx).WithConnection(func(connection *consul.Connection) (err error) {
 		sessionEntry, _, err := connection.Client().Session().Renew(l.sessionId, nil)
 		if err == nil && sessionEntry == nil {

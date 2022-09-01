@@ -286,6 +286,10 @@ func (s *WebServer) Serve(ctx context.Context) error {
 
 	restful.EnableTracing(s.cfg.TraceEnabled)
 
+	if s.cfg.Disconnected {
+		return nil
+	}
+
 	// Start the server
 	go func() {
 		var err error

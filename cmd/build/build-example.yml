@@ -4,12 +4,12 @@ executable:
     - bootstrap.yml
 
 msx:
-  release: 3.11.0
+  release: 5.0.0
   platform:
     parentArtifacts:
       - com.cisco.vms:vms-service-starter
       - com.cisco.vms:vms-service-starter-core
       - com.cisco.vms:vms-service-starter-kafka
       - com.cisco.nfv:nfv-integration-consul-leader
-    version: 3.11.0-EDGE
+    version: 5.0.0-EDGE
     includeGroups: "com.cisco.**"

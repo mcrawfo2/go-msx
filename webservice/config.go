@@ -21,6 +21,7 @@ type WebServerConfig struct {
 	StaticEnabled bool   `config:"default=true"`
 	TraceEnabled  bool   `config:"default=false"`
 	DebugEnabled  bool   `config:"default=false"`
+	Disconnected  bool   `config:"default=${cli.flag.disconnected:false}"`
 }
 
 type CorsConfig struct {

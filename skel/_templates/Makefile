@@ -3,6 +3,7 @@ BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.ym
 .PHONY: all deps vet test dist debug assemblies manifest package package-publish package-deploy
 .PHONY: docker docker-publish publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build update-go-msx-beats
+.PHONY: verify-contract openapi-generate openapi-compare
 
 #if GENERATOR_APP
 all: clean deps vet test docker assemblies deployment manifest
@@ -130,3 +131,10 @@ ui:
 
 verify-contract:
 	ls ccv.yml && ccv check || echo "WARNING! No ccv.yml found"
+
+openapi-generate:
+	$(BUILDER) generate-openapi-spec
+
+openapi-compare:
+	$(BUILDER) download-generate-deps
+	$(BUILDER) compare-openapi-spec

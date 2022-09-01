@@ -36,11 +36,11 @@ type SwaggerProvider struct {
 	customizer SwaggerCustomizer
 }
 
-func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
+func (p *SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, err error) {
 	return struct{}{}, nil
 }
 
-func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
+func (p *SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
 	return []struct {
 		Name           string `json:"name"`
 		Location       string `json:"location"`
@@ -56,7 +56,7 @@ func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interfa
 	}, nil
 }
 
-func (p SwaggerProvider) GetUi(req *restful.Request) (body interface{}, err error) {
+func (p *SwaggerProvider) GetUi(req *restful.Request) (body interface{}, err error) {
 	return struct {
 		ApisSorter               string   `json:"apisSorter"`
 		DeepLinking              bool     `json:"deepLinking"`
@@ -94,7 +94,7 @@ func (p SwaggerProvider) GetUi(req *restful.Request) (body interface{}, err erro
 	}, nil
 }
 
-func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{}, err error) {
+func (p *SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{}, err error) {
 	sso := p.cfg.Security.Sso
 	return struct {
 		AuthorizeUrl string `json:"authorizeUrl"`
@@ -109,11 +109,15 @@ func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{},
 	}, nil
 }
 
-func (p SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err error) {
+func (p *SwaggerProvider) GetSpec(req *restful.Request) (body interface{}, err error) {
 	return p.spec, nil
 }
 
-func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
+func (p *SwaggerProvider) GetSpecDocument() *spec.Swagger {
+	return p.spec
+}
+
+func (p *SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restful.WebService, contextPath string) func(spec *spec.Swagger) {
 	return func(swagger *spec.Swagger) {
 		c := SwaggerCustomizer{}
 		c.CustomizeInfo(swagger, p.appInfo)
@@ -124,7 +128,7 @@ func (p SwaggerProvider) PostBuildSpec(container *restful.Container, svc *restfu
 	}
 }
 
-func (p SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
+func (p *SwaggerProvider) Actuate(container *restful.Container, swaggerService *restful.WebService) error {
 	contextPath := swaggerService.RootPath()
 	swaggerService.Path(swaggerService.RootPath() + p.cfg.SwaggerPath)
 
@@ -261,6 +265,8 @@ func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
 	}
 }
 
+var provider *SwaggerProvider
+
 func RegisterSwaggerProvider(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	if server == nil {
@@ -281,10 +287,12 @@ func RegisterSwaggerProvider(ctx context.Context) error {
 		return err
 	}
 
-	server.AddDocumentationProvider(&SwaggerProvider{
+	provider = &SwaggerProvider{
 		ctx:     ctx,
 		cfg:     cfg,
 		appInfo: appInfo,
-	})
+	}
+
+	server.AddDocumentationProvider(provider)
 	return nil
 }

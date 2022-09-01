@@ -46,17 +46,18 @@ type ConnectionAppRoleConfig struct {
 }
 
 type ConnectionConfig struct {
-	Enabled     bool   `config:"default=true"`
-	Host        string `config:"default=localhost"`
-	Port        int    `config:"default=8200"`
-	Scheme      string `config:"default=http"`
-	TokenSource ConnectionTokenSourceConfig
-	Ssl         ConnectionSslConfig
-	Issuer      ConnectionIssuerConfig
-	Kubernetes  ConnectionKubernetesConfig
-	AppRole     ConnectionAppRoleConfig
-	KV          ConnectionKvConfig
-	KV2         ConnectionKv2Config
+	Enabled      bool   `config:"default=true"`
+	Disconnected bool   `config:"default=${cli.flag.disconnected:false}"`
+	Host         string `config:"default=localhost"`
+	Port         int    `config:"default=8200"`
+	Scheme       string `config:"default=http"`
+	TokenSource  ConnectionTokenSourceConfig
+	Ssl          ConnectionSslConfig
+	Issuer       ConnectionIssuerConfig
+	Kubernetes   ConnectionKubernetesConfig
+	AppRole      ConnectionAppRoleConfig
+	KV           ConnectionKvConfig
+	KV2          ConnectionKv2Config
 }
 
 func (c ConnectionConfig) Address() string {
