@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
+	"github.com/mcrawfo2/jennifer/jen"
 )
 
 func generateScreamingSnakeName(s1 string, s2 string) string {

@@ -5,7 +5,7 @@
 package skel
 
 import (
-	. "github.com/dave/jennifer/jen"
+	"github.com/mcrawfo2/jennifer/jen"
 	"reflect"
 	"testing"
 )
@@ -26,7 +26,7 @@ func Test_anyLiterals(t *testing.T) {
 					nil,
 				},
 			},
-			want: Null().GoString(),
+			want: jen.Null().GoString(),
 		},
 		{
 			name: "Handle literal",
@@ -40,7 +40,7 @@ func Test_anyLiterals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Statement(anyLiterals(tt.args.values)); !reflect.DeepEqual(got.GoString(), tt.want) {
+			if got := jen.Statement(anyLiterals(tt.args.values)); !reflect.DeepEqual(got.GoString(), tt.want) {
 				t.Errorf("anyLiterals = %v, want %v", got.GoString(), tt.want)
 			}
 		})

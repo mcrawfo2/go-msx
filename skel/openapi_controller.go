@@ -9,8 +9,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
+	"github.com/mcrawfo2/jennifer/jen"
 	"github.com/pkg/errors"
 )
 

@@ -7,8 +7,8 @@ package skel
 import (
 	"path"
 
-	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
+	"github.com/mcrawfo2/jennifer/jen"
 )
 
 func stringFormat(schema Schema) string {

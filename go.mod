@@ -10,7 +10,6 @@ require (
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
-	github.com/dave/jennifer v1.4.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/doug-martin/goqu/v9 v9.9.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
@@ -36,10 +35,12 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/jackc/puddle v1.2.1
 	github.com/jackpal/gateway v1.0.7
+	github.com/jarcoal/httpmock v1.2.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
+	github.com/mcrawfo2/jennifer v1.5.2
 	github.com/minghsu0107/watermill-redistream v1.0.0
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
@@ -118,7 +119,6 @@ require (
 	github.com/hashicorp/serf v0.9.7 // indirect
 	github.com/hashicorp/vault/sdk v0.1.14-0.20200519221838-e0cfd64bc267 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jarcoal/httpmock v1.2.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
@@ -160,7 +160,7 @@ require (
 	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
 	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/tools v0.1.8 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
@@ -168,9 +168,4 @@ require (
 	gopkg.in/ini.v1 v1.41.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-replace (
-	github.com/dave/jennifer => github.com/mcrawfo2/jennifer v1.4.2
-	github.com/rcrowley/go-metrics => github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 )
