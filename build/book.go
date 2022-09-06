@@ -5,6 +5,7 @@
 package build
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"github.com/bmatcuk/doublestar"
 	"io/ioutil"
 	"os"
@@ -13,6 +14,13 @@ import (
 
 func init() {
 	AddTarget("copy-book-chapters", "Copy markdown files into book folder", CopyBookChapters)
+	AddTarget("generate-book", "Convert book folder into HTML", GenerateBook)
+}
+
+func GenerateBook(_ []string) error {
+	return exec.ExecutePipes(
+		exec.ExecSimple("mdbook", "build"),
+	)
 }
 
 func CopyBookChapters(_ []string) error {

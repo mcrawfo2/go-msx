@@ -9,13 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Target struct {
-	Name        string
-	Description string
-	Fn          cli.CommandFunc
+var targets = make(map[string]*cobra.Command)
+
+func Target(name string) *cobra.Command {
+	return targets[name]
 }
 
-func AddTarget(name, description string, fn cli.CommandFunc) *cobra.Command {
+func AddTarget(name, description string, fn cli.CommandFunc) (cmd *cobra.Command) {
 	wrapper := func(args []string) error {
 		logger.Infof("Executing target '%s': %s", name, description)
 		err := fn(args)
@@ -27,11 +27,13 @@ func AddTarget(name, description string, fn cli.CommandFunc) *cobra.Command {
 		return err
 	}
 
-	if cmd, err := cli.AddCommand(name, description, wrapper); err != nil {
+	var err error
+	if cmd, err = cli.AddCommand(name, description, wrapper); err != nil {
 		panic(err.Error())
-	} else {
-		cmd.PreRunE = loadConfig
-		cmd.FParseErrWhitelist = cli.RootCmd().FParseErrWhitelist
-		return cmd
 	}
+
+	cmd.PreRunE = loadConfig
+	cmd.FParseErrWhitelist = cli.RootCmd().FParseErrWhitelist
+	targets[name] = cmd
+	return cmd
 }

@@ -16,12 +16,18 @@ generate:
   - path: integration/serviceconfigmanager
   - path: integration/usermanagement
   - path: populate
+#  - path: schema
+#    builtin:
+#      - generate-asyncapi-schema
+#      - generate-asyncapi-entities
   - path: skel
   - path: sqldb
   - path: stream
   - path: vault
   - path: .
-    command: make generate-book
+    builtin:
+      - copy-book-chapters
+      - generate-book
 
 license:
   excludes:
