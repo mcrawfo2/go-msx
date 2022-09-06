@@ -11,8 +11,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/dave/jennifer/jen"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/mcrawfo2/jennifer/jen"
 	"github.com/pkg/errors"
 )
 
