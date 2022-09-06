@@ -154,6 +154,13 @@ func (o Optional[I]) Value() I {
 	return def
 }
 
+func (o Optional[I]) ValuePtrInterface() interface{} {
+	if !o.valid {
+		return nil
+	}
+	return &o.value
+}
+
 func (o Optional[I]) IfPresent(fn func(v I)) {
 	if o.valid {
 		fn(o.value)

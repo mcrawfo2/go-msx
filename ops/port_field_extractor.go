@@ -21,17 +21,7 @@ func (i PortFieldExtractor) ExtractRawValue() reflect.Value {
 	return i.outputsValue.FieldByIndex(i.portField.Indices)
 }
 
-func (i PortFieldExtractor) ExtractValue() (fv reflect.Value, err error) {
-	fv = i.ExtractRawValue()
-
-	for fv.Kind() == reflect.Ptr {
-		if fv.IsNil() {
-			fv = reflect.Value{}
-			break
-		}
-		fv = fv.Elem()
-	}
-
+func (i PortFieldExtractor) extractBelow(fv reflect.Value) reflect.Value {
 	// Const
 	if fv.Kind() == reflect.Invalid {
 		c := i.portField.Const()
@@ -47,6 +37,22 @@ func (i PortFieldExtractor) ExtractValue() (fv reflect.Value, err error) {
 			fv = reflect.ValueOf(d)
 		}
 	}
+
+	return fv
+}
+
+func (i PortFieldExtractor) ExtractValue() (fv reflect.Value, err error) {
+	fv = i.ExtractRawValue()
+
+	for fv.Kind() == reflect.Ptr {
+		if fv.IsNil() {
+			fv = reflect.Value{}
+			break
+		}
+		fv = fv.Elem()
+	}
+
+	fv = i.extractBelow(fv)
 
 	// No value found
 	if fv.Kind() == reflect.Invalid && !i.portField.Optional {
@@ -66,8 +72,18 @@ func (i PortFieldExtractor) ExtractPrimitive() (value types.Optional[string], er
 		return
 	}
 
-	if value, err = i.extractPrimitiveIndirect(fv); err != nil || value.IsPresent() {
-		return
+	var done bool
+	if done, value, err = i.extractPrimitiveIndirect(fv); err != nil || done {
+		if value.IsPresent() || err != nil {
+			return
+		}
+
+		// if the optional value is not present, check for default/const
+		fv = i.extractBelow(reflect.Value{})
+
+		if !fv.IsValid() {
+			return types.OptionalEmpty[string](), nil
+		}
 	}
 
 	result, err := cast.ToStringE(fv.Interface())
@@ -79,16 +95,23 @@ func (i PortFieldExtractor) ExtractPrimitive() (value types.Optional[string], er
 	return
 }
 
+type optionalValue interface {
+	ValuePtrInterface() interface{}
+}
+
 // extractPrimitiveIndirect converts some types that the cast module does not
-func (i PortFieldExtractor) extractPrimitiveIndirect(fv reflect.Value) (types.Optional[string], error) {
+func (i PortFieldExtractor) extractPrimitiveIndirect(fv reflect.Value) (bool, types.Optional[string], error) {
 	fvi := fv.Interface()
-	switch fvi.(type) {
+	switch fvit := fvi.(type) {
 	case types.TextMarshaler:
-		value, err := fvi.(types.TextMarshaler).MarshalText()
+		value, err := fvit.MarshalText()
 		if err != nil {
-			return types.OptionalEmpty[string](), err
+			return false, types.OptionalEmpty[string](), err
 		}
-		return types.OptionalOf(value), nil
+		return true, types.OptionalOf(value), nil
+	case types.Optional[string]:
+		return true, fvit, nil
+		// TODO: Other optional types
 	}
 
 	if fv.Kind() == reflect.Ptr {
@@ -101,11 +124,11 @@ func (i PortFieldExtractor) extractPrimitiveIndirect(fv reflect.Value) (types.Op
 		result, ok := fvi.([]rune)
 		if ok {
 			value := string(result)
-			return types.OptionalOf(value), nil
+			return true, types.OptionalOf(value), nil
 		}
 	}
 
-	return types.OptionalEmpty[string](), nil
+	return false, types.OptionalEmpty[string](), nil
 }
 
 func NewPortFieldExtractor(f *PortField, outputs interface{}) PortFieldExtractor {

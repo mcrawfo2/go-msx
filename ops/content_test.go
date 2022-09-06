@@ -7,6 +7,7 @@ package ops
 import (
 	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -15,6 +16,10 @@ import (
 
 type TestWriter struct {
 	w io.Writer
+}
+
+func (t TestWriter) Close() error {
+	return nil
 }
 
 func (t TestWriter) Write(p []byte) (n int, err error) {
@@ -70,7 +75,7 @@ func (e TestEncoder) Reader(r io.ReadCloser) (io.ReadCloser, error) {
 	return TestReader{r: r}, nil
 }
 
-func (e TestEncoder) Writer(w io.Writer) (io.Writer, error) {
+func (e TestEncoder) Writer(w io.Writer) (io.WriteCloser, error) {
 	if w == nil {
 		return nil, errors.New("no writer")
 	}
@@ -137,7 +142,7 @@ func TestEncoding_Writer(t *testing.T) {
 			c:          Encoding{},
 			source:     "ABC",
 			wantTarget: "ABC",
-			wantWriter: &bytes.Buffer{},
+			wantWriter: types.CloseableByteBuffer{Buffer: &bytes.Buffer{}},
 			wantErr:    false,
 		},
 		{
@@ -145,7 +150,7 @@ func TestEncoding_Writer(t *testing.T) {
 			c:          Encoding{"test"},
 			source:     "ABC",
 			wantTarget: "CBA",
-			wantWriter: TestWriter{w: &bytes.Buffer{}},
+			wantWriter: TestWriter{w: types.CloseableByteBuffer{Buffer: &bytes.Buffer{}}},
 			wantErr:    false,
 		},
 		{
@@ -153,7 +158,7 @@ func TestEncoding_Writer(t *testing.T) {
 			c:          Encoding{"test", "test"},
 			source:     "ABC",
 			wantTarget: "ABC",
-			wantWriter: TestWriter{w: TestWriter{w: &bytes.Buffer{}}},
+			wantWriter: TestWriter{w: TestWriter{w: types.CloseableByteBuffer{Buffer: &bytes.Buffer{}}}},
 			wantErr:    false,
 		},
 		{
@@ -171,10 +176,10 @@ func TestEncoding_Writer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var target io.Writer
+			var target io.WriteCloser
 			var buffer = new(bytes.Buffer)
 			if !tt.noTarget {
-				target = buffer
+				target = types.CloseableByteBuffer{Buffer: buffer}
 			}
 
 			gotWriter, err := tt.c.Writer(target)

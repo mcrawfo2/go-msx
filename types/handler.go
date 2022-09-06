@@ -45,7 +45,7 @@ type Handler struct {
 	out []HandlerValueType
 }
 
-func (h Handler) reflectIn(inr HandlerValueTypeReflector) (err error) {
+func (h *Handler) reflectIn(inr HandlerValueTypeReflector) (err error) {
 	if inr == nil {
 		// Use the default argument type reflector when unspecified
 		inr = NewHandlerValueTypeReflector(
@@ -74,7 +74,7 @@ func (h Handler) reflectIn(inr HandlerValueTypeReflector) (err error) {
 	return
 }
 
-func (h Handler) reflectOut(outr HandlerValueTypeReflector) (err error) {
+func (h *Handler) reflectOut(outr HandlerValueTypeReflector) (err error) {
 	if outr == nil {
 		// Use the default result type reflector when unspecified
 		outr = NewHandlerValueTypeReflector(
@@ -114,7 +114,7 @@ func (h Handler) args(ctx context.Context) (results []reflect.Value, err error) 
 	results = make([]reflect.Value, len(h.in))
 	for i, inValueType := range h.in {
 		var v reflect.Value
-		v, err = in.GenerateArgument(nil, inValueType)
+		v, err = in.GenerateArgument(ctx, inValueType)
 		if err != nil {
 			return nil, err
 		}

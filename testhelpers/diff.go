@@ -33,7 +33,7 @@ func Diff(expected interface{}, actual interface{}) string {
 	at, _ := typeAndKind(actual)
 
 	if et != at {
-		return ""
+		return fmt.Sprintf("Types do not match: expected %q, actual %q", et.String(), at.String())
 	}
 
 	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array {

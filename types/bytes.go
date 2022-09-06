@@ -4,7 +4,10 @@
 
 package types
 
-import "encoding/base64"
+import (
+	"bytes"
+	"encoding/base64"
+)
 
 type Base64Bytes []byte
 
@@ -75,4 +78,12 @@ func NewUnicodePtr(value []rune) *Unicode {
 
 func NewUnicodePtrFromString(value string) *Unicode {
 	return NewUnicodePtr([]rune(value))
+}
+
+type CloseableByteBuffer struct {
+	*bytes.Buffer
+}
+
+func (c CloseableByteBuffer) Close() error {
+	return nil
 }

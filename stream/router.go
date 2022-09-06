@@ -22,6 +22,14 @@ import (
 
 type ListenerAction func(msg *message.Message) error
 
+func (l ListenerAction) OnMessage(msg *message.Message) error {
+	return l(msg)
+}
+
+type MessageListener interface {
+	OnMessage(msg *message.Message) error
+}
+
 var (
 	logger                = log.NewLogger("msx.stream")
 	listenerMux           sync.Mutex
@@ -156,6 +164,10 @@ func AddListener(topic string, action ListenerAction) error {
 	listeners[topic] = append(listeners[topic], action)
 
 	return nil
+}
+
+func AddMessageListener(topic string, listener MessageListener) error {
+	return AddListener(topic, listener.OnMessage)
 }
 
 func listenerHandler(topic string, action ListenerAction, cfg *BindingConfiguration) message.NoPublishHandlerFunc {

@@ -19,8 +19,8 @@ type DocumentorPredicate[I any] func(doc Documentor[I]) bool
 
 type Documentors[I any] []Documentor[I]
 
-func (o Documentors[I]) WithDocumentor(doc Documentor[I]) Documentors[I] {
-	return append(o, doc)
+func (o Documentors[I]) WithDocumentor(doc ...Documentor[I]) Documentors[I] {
+	return append(o, doc...)
 }
 
 func (o Documentors[I]) Documentor(pred DocumentorPredicate[I]) Documentor[I] {

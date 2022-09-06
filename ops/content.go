@@ -16,7 +16,7 @@ import (
 
 type Encoding []string
 
-func (c Encoding) Writer(target io.Writer) (writer io.Writer, err error) {
+func (c Encoding) Writer(target io.WriteCloser) (writer io.WriteCloser, err error) {
 	writer = target
 	for _, encoding := range c {
 		var encoder Encoder
@@ -48,7 +48,7 @@ var ErrUnknownEncoder = errors.New("Unknown encoder")
 
 type Encoder interface {
 	Reader(io.ReadCloser) (io.ReadCloser, error)
-	Writer(io.Writer) (io.Writer, error)
+	Writer(io.Writer) (io.WriteCloser, error)
 }
 
 type GzipEncoder struct{}
@@ -57,8 +57,8 @@ func (g GzipEncoder) Reader(r io.ReadCloser) (io.ReadCloser, error) {
 	return gzip.NewReader(r)
 }
 
-func (g GzipEncoder) Writer(w io.Writer) (io.Writer, error) {
-	return gzip.NewWriter(w), nil
+func (g GzipEncoder) Writer(w io.Writer) (io.WriteCloser, error) {
+	return gzip.NewWriterLevel(w, gzip.BestCompression)
 }
 
 const (
@@ -190,11 +190,14 @@ func (c *ContentOptions) WithEncoding(encodings ...string) *ContentOptions {
 	return c
 }
 
-func (c ContentOptions) WriteEntity(w io.Writer, value interface{}) (err error) {
+func (c ContentOptions) WriteEntity(w io.WriteCloser, value interface{}) (err error) {
 	w, err = c.Encoding.Writer(w)
 	if err != nil {
 		return
 	}
+	defer func() {
+		err = w.Close()
+	}()
 
 	m, err := NewMarshaler(c.MimeType)
 	if err != nil {

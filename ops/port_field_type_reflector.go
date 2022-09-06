@@ -39,6 +39,8 @@ var ContentInstance Content
 var ContentType = reflect.TypeOf(&ContentInstance).Elem()
 var JsonRawMessageInstance json.RawMessage
 var JsonRawMessageType = reflect.TypeOf(&JsonRawMessageInstance).Elem()
+var OptionalOfStringInstance types.Optional[string]
+var OptionalOfStringType = reflect.TypeOf(&OptionalOfStringInstance).Elem()
 
 type PortFieldTypeReflector interface {
 	ReflectPortFieldType(reflect.Type) (PortFieldType, bool)
@@ -80,6 +82,8 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 		portFieldType.WithHandlerType(ByteSliceType)
 		return portFieldType, false
 	case RuneSliceType:
+		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+	case OptionalOfStringType:
 		return PortFieldTypeFromType(t, FieldShapePrimitive), false
 	case ContentType:
 		return PortFieldTypeFromType(t, FieldShapeContent), false
