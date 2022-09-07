@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package streamops
 
 import (
@@ -141,11 +145,11 @@ func TestMessageSubscriberBuilder_Build(t *testing.T) {
 	deps := NewTestMessageSubscriberBuilderDependencies(t)
 
 	type inputs struct {
-		EventType string `inp:"header"`
+		EventType string `in:"header"`
 		Request   struct {
 			Id   types.UUID `json:"id"`
 			Name string     `json:"name"`
-		} `inp:"body"`
+		} `in:"body"`
 	}
 
 	builder, err := NewMessageSubscriberBuilder(deps.Ctx, deps.ChannelSubscriber, deps.Name)
@@ -213,7 +217,9 @@ func TestMessageSubscriber_InputPort(t *testing.T) {
 
 	ms, err := builder.
 		WithHandler(deps.Handler).
-		WithInputs(struct{}{}).
+		WithInputs(struct {
+			Body []byte `in:"body"`
+		}{}).
 		Build()
 	assert.NoError(t, err)
 	assert.NotNil(t, ms.InputPort())
@@ -262,6 +268,7 @@ func TestMessageSubscriber_MetadataFilterValues(t *testing.T) {
 			name: "InputPortConstFilter",
 			inputs: struct {
 				Colour string `in:"header,const=blue"`
+				Body   []byte `in:"body"`
 			}{},
 			want: []string{"blue"},
 		},
@@ -269,6 +276,7 @@ func TestMessageSubscriber_MetadataFilterValues(t *testing.T) {
 			name: "InputPortEnumFilter",
 			inputs: struct {
 				Colour string `in:"header" enum:"red,orange,green"`
+				Body   []byte `in:"body"`
 			}{},
 			want: []string{"red", "orange", "green"},
 		},
@@ -276,6 +284,7 @@ func TestMessageSubscriber_MetadataFilterValues(t *testing.T) {
 			name: "InputPortFailure",
 			inputs: struct {
 				Colour string `in:"header"`
+				Body   []byte `in:"body"`
 			}{},
 			wantErr: true,
 		},

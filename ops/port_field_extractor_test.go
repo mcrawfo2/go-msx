@@ -36,7 +36,8 @@ func TestPortFieldExtractor_ExtractPrimitive_Text(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -241,7 +242,8 @@ func TestPortFieldExtractor_ExtractPrimitive_Int(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -463,7 +465,8 @@ func TestPortFieldExtractor_ExtractPrimitive_Uint(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -677,7 +680,8 @@ func TestPortFieldExtractor_ExtractPrimitive_Float(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -789,7 +793,8 @@ func TestPortFieldExtractor_ExtractPrimitive_Bool(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -850,67 +855,15 @@ func TestPortFieldExtractor_ExtractPrimitive_Error(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
 	}
 
-	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
-
-	tests := []struct {
-		name    string
-		field   *PortField
-		value   primitives
-		want    string
-		wantErr bool
-	}{
-		{
-			name:  "IncorrectShape",
-			field: port.Fields.First(PortFieldHasName("A")),
-			value: primitives{
-				A: make(chan struct{}),
-			},
-			wantErr: true,
-		},
-		{
-			name: "UnknownHandler",
-			field: &PortField{
-				Name:     "A",
-				Indices:  []int{0},
-				Peer:     "a",
-				Group:    FieldGroupInjector,
-				Optional: false,
-				Type: PortFieldType{
-					Shape:        FieldShapePrimitive,
-					Type:         reflect.TypeOf(make(chan struct{})),
-					Indirections: 0,
-					HandlerType:  reflect.TypeOf(make(chan struct{})),
-				},
-			},
-			value: primitives{
-				A: make(chan struct{}),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := NewPortFieldExtractor(tt.field, &tt.value)
-
-			gotValue, err := i.ExtractPrimitive()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ExtractPrimitive() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr {
-				want := types.OptionalOf(tt.want)
-				if !reflect.DeepEqual(want, gotValue) {
-					t.Errorf("ExtractPrimitive() diff\n%s",
-						testhelpers.Diff(want, gotValue))
-				}
-			}
-		})
-	}
+	_, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
+	assert.Error(t, err)
 }
 
 func TestPortFieldExtractor_ExtractRawValue(t *testing.T) {

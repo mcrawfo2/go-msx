@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package streamops
 
 import (
@@ -46,7 +50,7 @@ func NewTestMessagePublisherBuilderDependencies(t *testing.T) TestMessagePublish
 		SomeHeader string `out:"header"`
 		Body       struct {
 			Key string `json:"key"`
-		}
+		} `out:"body"`
 	}{}
 
 	return TestMessagePublisherBuilderDependencies{
@@ -116,7 +120,7 @@ func TestMessagePublisherBuilder_Build(t *testing.T) {
 		Request   struct {
 			Id   types.UUID `json:"id"`
 			Name string     `json:"name"`
-		} `inp:"body"`
+		} `out:"body"`
 	}
 
 	builder, err := NewMessagePublisherBuilder(deps.Ctx, deps.ChannelPublisher, deps.Name, outputs{})

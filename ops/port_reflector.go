@@ -14,6 +14,9 @@ import (
 	"strings"
 )
 
+var ErrInvalidCardinality = errors.New("Field group occurs an invalid number of times in port struct")
+var ErrInvalidShape = errors.New("Field group does not allow field of specified shape in port struct")
+
 type FieldGroup struct {
 	Cardinality   types.CardinalityRange
 	AllowedShapes types.StringSet
@@ -40,7 +43,76 @@ func (r PortReflector) ReflectPortStruct(typ string, st reflect.Type) (*Port, er
 		return nil, err
 	}
 
+	if err = r.validateFieldGroups(p); err != nil {
+		return nil, err
+	}
+
 	return p, nil
+}
+
+func (r PortReflector) validateFieldGroups(p *Port) error {
+	for name, fieldGroup := range r.FieldGroups {
+		fields := p.Fields.All(PortFieldHasGroup(name))
+		if err := r.validateFieldGroupCardinality(name, fieldGroup, len(fields)); err != nil {
+			return err
+		}
+		if err := r.validateFieldGroupShapes(name, fieldGroup, fields); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r PortReflector) validateFieldGroupShapes(fieldGroupName string, fieldGroup FieldGroup, fields PortFields) error {
+	for _, field := range fields {
+		if !fieldGroup.AllowedShapes.Contains(field.Type.Shape) {
+			return r.invalidShape(fieldGroupName, fieldGroup, field)
+		}
+	}
+	return nil
+}
+
+func (r PortReflector) validateFieldGroupCardinality(name string, fieldGroup FieldGroup, count int) error {
+	switch fieldGroup.Cardinality.Min {
+	case types.CardinalityZero:
+	case types.CardinalityOne:
+		if count < 1 {
+			return r.invalidCardinality(name, fieldGroup, count)
+		}
+	}
+
+	switch fieldGroup.Cardinality.Max {
+	case types.CardinalityZero:
+		if count > 0 {
+			return r.invalidCardinality(name, fieldGroup, count)
+		}
+	case types.CardinalityOne:
+		if count > 1 {
+			return r.invalidCardinality(name, fieldGroup, count)
+		}
+	}
+
+	return nil
+}
+
+func (r PortReflector) invalidCardinality(name string, fieldGroup FieldGroup, count int) error {
+	return errors.Wrapf(
+		ErrInvalidCardinality,
+		"Group %q Min %d Max %d Found %d",
+		name,
+		fieldGroup.Cardinality.Min,
+		fieldGroup.Cardinality.Max,
+		count)
+}
+
+func (r PortReflector) invalidShape(name string, group FieldGroup, field *PortField) error {
+	return errors.Wrapf(
+		ErrInvalidShape,
+		"Group %q Allowed %q Found %q in field %q",
+		name,
+		strings.Join(group.AllowedShapes.Values(), ","),
+		field.Type.Shape,
+		field.Name)
 }
 
 func (r PortReflector) fieldGroupNames() string {

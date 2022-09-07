@@ -87,6 +87,8 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 		return PortFieldTypeFromType(t, FieldShapePrimitive), false
 	case ContentType:
 		return PortFieldTypeFromType(t, FieldShapeContent), false
+	case IoReadCloserType:
+		return PortFieldTypeFromType(t, FieldShapeContent), false
 	}
 
 	// Interfaces

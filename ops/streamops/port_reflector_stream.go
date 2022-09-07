@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package streamops
 
 import (
@@ -18,10 +22,22 @@ type PortReflector struct{}
 func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 	reflector := ops.PortReflector{
 		FieldGroups: map[string]ops.FieldGroup{
-			FieldGroupStreamChannel:   {Cardinality: types.CardinalityZeroToOne()},
-			FieldGroupStreamMessageId: {Cardinality: types.CardinalityZeroToOne()},
-			FieldGroupStreamHeader:    {Cardinality: types.CardinalityZeroToMany()},
-			FieldGroupStreamBody:      {Cardinality: types.CardinalityOneToOne()},
+			FieldGroupStreamChannel: {
+				Cardinality:   types.CardinalityZeroToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamMessageId: {
+				Cardinality:   types.CardinalityZeroToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamHeader: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamBody: {
+				Cardinality:   types.CardinalityOneToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapeContent),
+			},
 		},
 		FieldPostProcessor: r.PostProcessField,
 	}
@@ -32,10 +48,22 @@ func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
 	reflector := ops.PortReflector{
 		FieldGroups: map[string]ops.FieldGroup{
-			FieldGroupStreamChannel:   {Cardinality: types.CardinalityZeroToOne()},
-			FieldGroupStreamMessageId: {Cardinality: types.CardinalityZeroToOne()},
-			FieldGroupStreamHeader:    {Cardinality: types.CardinalityZeroToMany()},
-			FieldGroupStreamBody:      {Cardinality: types.CardinalityOneToOne()},
+			FieldGroupStreamChannel: {
+				Cardinality:   types.CardinalityZeroToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamMessageId: {
+				Cardinality:   types.CardinalityZeroToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamHeader: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapePrimitive),
+			},
+			FieldGroupStreamBody: {
+				Cardinality:   types.CardinalityOneToOne(),
+				AllowedShapes: types.NewStringSet(ops.FieldShapeContent),
+			},
 		},
 		FieldPostProcessor: r.PostProcessField,
 	}

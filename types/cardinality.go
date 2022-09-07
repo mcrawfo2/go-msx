@@ -51,10 +51,3 @@ func CardinalityOneToMany() CardinalityRange {
 		Max: CardinalityMany,
 	}
 }
-
-func CardinalityManyToMany() CardinalityRange {
-	return CardinalityRange{
-		Min: CardinalityMany,
-		Max: CardinalityMany,
-	}
-}

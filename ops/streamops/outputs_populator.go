@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package streamops
 
 import (
@@ -121,10 +125,6 @@ func (p *OutputsPopulator) populateOutputMetadata() error {
 func (p *OutputsPopulator) populateOutputPayload() (err error) {
 	bodyPortField := p.OutputPort.Fields.First(
 		ops.PortFieldHasGroup(FieldGroupStreamBody))
-
-	if bodyPortField == nil {
-		return errors.New("No body port field found")
-	}
 
 	bodyValue, err := p.extractor(bodyPortField).ExtractValue()
 	if err != nil {
