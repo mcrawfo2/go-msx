@@ -33,7 +33,8 @@ func TestPortReflector_ReflectPortStruct_Type(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -71,7 +72,8 @@ func TestPortReflector_ReflectPortStruct_Type(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -210,7 +212,8 @@ func TestPortReflector_ReflectPortStruct_Name(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -246,7 +249,8 @@ func TestPortReflector_ReflectPortStruct_Name(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -325,7 +329,8 @@ func TestPortReflector_ReflectPortStruct_PrimaryTag(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -363,7 +368,8 @@ func TestPortReflector_ReflectPortStruct_PrimaryTag(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -444,7 +450,8 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -480,7 +487,8 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -518,7 +526,8 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -556,7 +565,8 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -594,7 +604,8 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -678,7 +689,8 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -729,7 +741,8 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive, FieldShapeObject),
 					},
 				},
 			},
@@ -780,7 +793,8 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive, FieldShapeObject),
 					},
 				},
 			},
@@ -832,7 +846,8 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},
@@ -883,7 +898,8 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 			fields: fields{
 				FieldGroups: map[string]FieldGroup{
 					FieldGroupTest: {
-						Cardinality: types.CardinalityZeroToMany(),
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 					},
 				},
 			},

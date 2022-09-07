@@ -10,6 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"reflect"
 	"testing"
@@ -67,7 +68,8 @@ func TestPortFieldInjector_InjectPrimitive_Text(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -243,7 +245,8 @@ func TestPortFieldInjector_InjectPrimitive_Int(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -494,7 +497,8 @@ func TestPortFieldInjector_InjectPrimitive_Uint(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -736,7 +740,8 @@ func TestPortFieldInjector_InjectPrimitive_Float(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -859,7 +864,8 @@ func TestPortFieldInjector_InjectPrimitive_Bool(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -928,62 +934,15 @@ func TestPortFieldInjector_InjectPrimitive_Error(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
 	}
 
-	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
-
-	tests := []struct {
-		name    string
-		field   *PortField
-		value   string
-		want    primitives
-		wantErr bool
-	}{
-		{
-			name:    "IncorrectShape",
-			field:   port.Fields.First(PortFieldHasName("A")),
-			value:   "true",
-			wantErr: true,
-		},
-		{
-			name: "UnknownHandler",
-			field: &PortField{
-				Name:     "A",
-				Indices:  []int{0},
-				Peer:     "a",
-				Group:    FieldGroupInjector,
-				Optional: false,
-				Type: PortFieldType{
-					Shape:        FieldShapePrimitive,
-					Type:         reflect.TypeOf(make(chan struct{})),
-					Indirections: 0,
-					HandlerType:  reflect.TypeOf(make(chan struct{})),
-				},
-			},
-			value:   "true",
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var inputs primitives
-			i := NewPortFieldInjector(tt.field, &inputs)
-
-			if err := i.InjectPrimitive(tt.value); (err != nil) != tt.wantErr {
-				t.Errorf("InjectPrimitive() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr {
-				if !reflect.DeepEqual(tt.want, inputs) {
-					t.Errorf("InjectPrimitive() diff\n%s",
-						testhelpers.Diff(tt.want, &inputs))
-				}
-			}
-		})
-	}
+	_, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
+	assert.Error(t, err)
 }
 
 func TestPortFieldInjector_InjectContent_Bytes(t *testing.T) {
@@ -999,7 +958,8 @@ func TestPortFieldInjector_InjectContent_Bytes(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -1096,7 +1056,8 @@ func TestPortFieldInjector_InjectContent_Runes(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -1193,7 +1154,8 @@ func TestPortFieldInjector_InjectContent_Content(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeContent),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
@@ -1282,13 +1244,15 @@ func TestPortFieldInjector_InjectContent_Reader(t *testing.T) {
 	pr := PortReflector{
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
-				Cardinality: types.CardinalityZeroToMany(),
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeContent),
 			},
 		},
 		FieldTypeReflector: DefaultPortFieldTypeReflector{},
 	}
 
-	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
+	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
+	assert.NoError(t, err)
 
 	testContent := Content{
 		present: true,

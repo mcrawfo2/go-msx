@@ -1,3 +1,7 @@
+// Copyright © 2022, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package streamops
 
 import (
@@ -143,20 +147,4 @@ func TestOutputsPopulator_PopulateOutputs(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestOutputsPopulator_PopulateOutputs_NoBody(t *testing.T) {
-	type outputs struct{}
-	port, err := PortReflector{}.ReflectOutputPort(reflect.TypeOf(outputs{}))
-	assert.NoError(t, err)
-	var iface interface{} = outputs{}
-	var sink = new(MessageDataSink)
-	p := OutputsPopulator{
-		Outputs:    &iface,
-		OutputPort: port,
-		Encoder:    NewWatermillMessageEncoder(sink),
-	}
-
-	err = p.PopulateOutputs()
-	assert.Error(t, err)
 }
