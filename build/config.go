@@ -220,7 +220,8 @@ type Kubernetes struct {
 
 type Generate struct {
 	Path    string
-	Command string `config:"default="`
+	Command string   `config:"default="`
+	BuiltIn []string `config:"default="`
 	VfsGen  *GenerateVfs
 }
 

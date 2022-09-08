@@ -139,10 +139,22 @@ func GenerateCode(args []string) error {
 		logger.Infof("Generating path '%s'", p.Path)
 		if p.VfsGen != nil {
 			err = generateCodePathVfs(p)
+		} else if len(p.BuiltIn) != 0 {
+			err = generateBuiltin(p)
 		} else {
 			err = generateCodePathCommand(p)
 		}
 		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateBuiltin(p Generate) error {
+	for _, name := range p.BuiltIn {
+		target := Target(name)
+		if err := target.RunE(target, nil); err != nil {
 			return err
 		}
 	}
