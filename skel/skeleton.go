@@ -462,7 +462,7 @@ func GenerateDockerfile(_ []string) error {
 func GenerateKubernetes(_ []string) error {
 	logger.Infof("Generating kubernetes %s manifest templates", skeletonConfig.Archetype)
 	var templates TemplateSet
-	if skeletonConfig.Archetype == archetypeKeyApp {
+	if skeletonConfig.Archetype == archetypeKeyApp || skeletonConfig.Archetype == archetypeKeyServicePack {
 		templates = TemplateSet{
 			{
 				Name:       "Creating deployment template",
