@@ -50,6 +50,10 @@ generate-book:
 	$(BUILDER) copy-book-chapters
 	mdbook build
 
+generate-asyncapi:
+	$(BUILDER) generate-asyncapi-schema
+	$(BUILDER) generate-asyncapi-entities
+
 # Example Microservice
 dist:
 	$(EXAMPLE_BUILDER) generate-build-info
