@@ -28,21 +28,19 @@ func newFileSystem() (http.FileSystem, error) {
 	fsConfigBytes, _ := json.Marshal(fs.Config())
 	logger.Info("Filesystem Config: %s", string(fsConfigBytes))
 
-	if fs.Sources() == "" {
-		logger.Info("Using release filesystem")
-		return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources())), nil
-	}
-
 	sourceFileSystem, err := newSourceFileSystem()
 	if err == ErrFilesystemUnavailable {
-		logger.Info("Using release filesystem")
-		return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources())), nil
+		return newReleaseOnlyFileSystem(), nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	stagingFileSystem, err := newStagingFileSystem()
 	if err == ErrFilesystemUnavailable {
 		logger.Info("Using source filesystem")
 		return sourceFileSystem, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	logger.Info("Using source and staging overlay filesystem")
@@ -52,6 +50,11 @@ func newFileSystem() (http.FileSystem, error) {
 	}, nil
 }
 
+func newReleaseOnlyFileSystem() http.FileSystem {
+	logger.Info("Using release filesystem")
+	return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources()))
+}
+
 func newSourceFileSystem() (http.FileSystem, error) {
 	if fs.Sources() == "" {
 		return nil, ErrFilesystemUnavailable
@@ -59,6 +62,8 @@ func newSourceFileSystem() (http.FileSystem, error) {
 	_, err := os.Stat(fs.Sources())
 	if os.IsNotExist(err) {
 		return nil, ErrFilesystemUnavailable
+	} else if err != nil {
+		return nil, err
 	}
 	logger.Info("Located source filesystem: %s", fs.Sources())
 	return newReleaseFileSystem("source", fs.Sources()), nil
@@ -71,6 +76,8 @@ func newStagingFileSystem() (http.FileSystem, error) {
 	_, err := os.Stat(fs.Sources())
 	if os.IsNotExist(err) {
 		return nil, ErrFilesystemUnavailable
+	} else if err != nil {
+		return nil, err
 	}
 	parentFileSystem := newReleaseFileSystem("source", fs.Sources())
 	stagingFileSystem, err := fs.NewPrefixFileSystem(parentFileSystem, path.Join("/dist/root", fs.Resources()))
