@@ -445,8 +445,13 @@ func GenerateDockerfile(_ []string) error {
 	logger.Info("Generating Dockerfile")
 	templates := TemplateSet{
 		{
-			Name:       "Creating Dockerfile",
+			Name:       "Creating Release Dockerfile",
 			SourceFile: "build/package/Dockerfile",
+			Format:     FileFormatDocker,
+		},
+		{
+			Name:       "Creating Debug Dockerfile",
+			SourceFile: "build/package/Dockerfile.debug",
 			Format:     FileFormatDocker,
 		},
 		{

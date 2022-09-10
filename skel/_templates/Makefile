@@ -1,7 +1,7 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
 .PHONY: all deps vet test dist debug assemblies manifest package package-publish package-deploy
-.PHONY: docker docker-publish publish clean generate precommit tag
+.PHONY: docker docker-debug docker-publish publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build update-go-msx-beats
 .PHONY: verify-contract openapi-generate openapi-compare
 
@@ -36,7 +36,7 @@ dist:
 	$(BUILDER) download-seccomp-dependencies
 	$(BUILDER) generate-seccomp-profile
 
-debug:
+debug: dist
 	$(BUILDER) build-debug-executable
 
 deployment:
@@ -63,6 +63,10 @@ package-deploy:
 docker:
 	go mod vendor
 	$(BUILDER) docker-build
+
+docker-debug:
+	go mod vendor
+	$(BUILDER) docker-build-debug
 
 docker-publish: docker
 	$(BUILDER) docker-push
