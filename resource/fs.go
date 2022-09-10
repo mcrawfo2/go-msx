@@ -6,6 +6,7 @@ package resource
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
+	"encoding/json"
 	"github.com/pkg/errors"
 	"net/http"
 	"os"
@@ -24,6 +25,9 @@ func FileSystem() (result http.FileSystem, err error) {
 }
 
 func newFileSystem() (http.FileSystem, error) {
+	fsConfigBytes, _ := json.Marshal(fs.Config())
+	logger.Info("Filesystem Config: %s", string(fsConfigBytes))
+
 	if fs.Sources() == "" {
 		logger.Info("Using release filesystem")
 		return newReleaseFileSystem("resources", filepath.Join(fs.Root(), fs.Resources())), nil
@@ -56,6 +60,7 @@ func newSourceFileSystem() (http.FileSystem, error) {
 	if os.IsNotExist(err) {
 		return nil, ErrFilesystemUnavailable
 	}
+	logger.Info("Located source filesystem: %s", fs.Sources())
 	return newReleaseFileSystem("source", fs.Sources()), nil
 }
 
