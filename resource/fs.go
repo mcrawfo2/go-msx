@@ -26,7 +26,7 @@ func FileSystem() (result http.FileSystem, err error) {
 
 func newFileSystem() (http.FileSystem, error) {
 	fsConfigBytes, _ := json.Marshal(fs.Config())
-	logger.Info("Filesystem Config: %s", string(fsConfigBytes))
+	logger.Infof("Filesystem Config: %s", string(fsConfigBytes))
 
 	sourceFileSystem, err := newSourceFileSystem()
 	if err == ErrFilesystemUnavailable {
@@ -65,7 +65,7 @@ func newSourceFileSystem() (http.FileSystem, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	logger.Info("Located source filesystem: %s", fs.Sources())
+	logger.Infof("Located source filesystem: %s", fs.Sources())
 	return newReleaseFileSystem("source", fs.Sources()), nil
 }
 
