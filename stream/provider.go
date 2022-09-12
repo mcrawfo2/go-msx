@@ -19,6 +19,7 @@ var (
 	providers             = make(map[string]Provider)
 	ErrBinderNotEnabled   = errors.New("Binder not enabled")
 	ErrConsumerNotEnabled = errors.New("Consumer not enabled")
+	ErrDisconnected       = errors.New("Disconnected mode")
 )
 
 func RegisterProvider(name string, provider Provider) {
@@ -50,6 +51,9 @@ func NewSubscriber(ctx context.Context, name string) (message.Subscriber, error)
 	bindingConfig, err := NewBindingConfiguration(ctx, name)
 	if err != nil {
 		return nil, err
+	}
+	if bindingConfig.Disconnected {
+		return nil, ErrDisconnected
 	}
 
 	if bindingConfig.Consumer.AutoStartup == false {

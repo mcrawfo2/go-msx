@@ -14,6 +14,7 @@ const (
 	configKeyAppName        = "info.app.name"
 	configKeyAppDescription = "info.app.description"
 	configKeyBuildVersion   = "info.build.version"
+	configKeyDisplayName    = "info.app.attributes.display-name"
 )
 
 type DocumentationSecuritySsoConfig struct {
@@ -61,6 +62,7 @@ func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, er
 
 type AppInfo struct {
 	Name        string
+	DisplayName string
 	Description string
 	Version     string
 }
@@ -75,6 +77,9 @@ func AppInfoFromConfig(cfg *config.Config) (*AppInfo, error) {
 		return nil, err
 	}
 	if appInfo.Version, err = cfg.String(configKeyBuildVersion); err != nil {
+		return nil, err
+	}
+	if appInfo.DisplayName, err = cfg.String(configKeyDisplayName); err != nil {
 		return nil, err
 	}
 	return &appInfo, nil

@@ -27,6 +27,7 @@ type BindingConfiguration struct {
 	LogMessages     bool   `config:"default=true"`
 	Retry           retry.RetryConfig
 	Consumer        ConsumerConfiguration
+	Disconnected    bool `config:"default=${cli.flag.disconnected:false}"`
 }
 
 type ConsumerConfiguration struct {

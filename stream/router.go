@@ -67,7 +67,7 @@ func StartRouter(ctx context.Context) error {
 		for _, topicListener := range topicListeners {
 			err = addListener(ctx, topic, topicListener)
 			switch err {
-			case ErrBinderNotEnabled, ErrConsumerNotEnabled:
+			case ErrBinderNotEnabled, ErrConsumerNotEnabled, ErrDisconnected:
 				// Ignore
 			case nil:
 				registered++
