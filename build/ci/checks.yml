@@ -29,6 +29,13 @@ checks:
     analyzers:
       - builtin: generate-test-report 'Framework Tests'
 
+  - name: Vulnerability
+    commands:
+      - make: vulnerability
+        fail: delay
+    analyzers:
+      - builtin: generate-vulnerability-report
+
 slack:
   channel: go-msx-build
 

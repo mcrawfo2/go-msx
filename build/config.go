@@ -41,6 +41,7 @@ const (
 	configRootResources   = "resources"
 	configRootArtifactory = "artifactory"
 	configRootLicense     = "license"
+	configRootSonatype    = "ossi"
 
 	// bootstrap.yml
 	configRootAppInfo = "info.app"
@@ -81,6 +82,8 @@ var (
 		"artifactory.repository":       "",
 		"artifactory.username":         "",
 		"artifactory.password":         "",
+		"ossi.username":                "",
+		"ossi.token":                   "",
 	}
 	defaultConfigProvider = config.NewInMemoryProvider("defaults", defaultConfigs)
 	defaultConfigCache    = config.NewCacheProvider(defaultConfigProvider)
@@ -264,6 +267,11 @@ type License struct {
 	Excludes []string
 }
 
+type Sonatype struct {
+	Username string
+	Token    string
+}
+
 type Config struct {
 	Timestamp  time.Time
 	Library    Library
@@ -282,6 +290,7 @@ type Config struct {
 	Binaries   Binaries
 	Module     Module
 	License    License
+	Ossi       Sonatype
 	Fs         *fs.FileSystemConfig
 	Cfg        *config.Config
 }
@@ -461,6 +470,10 @@ func LoadBuildConfig(ctx context.Context, cmd *cobra.Command, configFiles []stri
 	}
 
 	if err = cfg.Populate(&BuildConfig.License, configRootLicense); err != nil {
+		return
+	}
+
+	if err = cfg.Populate(&BuildConfig.Ossi, configRootSonatype); err != nil {
 		return
 	}
 
