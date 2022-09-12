@@ -11,6 +11,9 @@ checks:
   - name: License
     commands:
       - make: license-check
+        fail: ignore
+    analyzers:
+      - builtin: generate-license-report
 
   - name: Vet
     commands:

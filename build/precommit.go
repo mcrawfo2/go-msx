@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bmatcuk/doublestar"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/pipe.v2"
 	"io/ioutil"
@@ -45,13 +46,14 @@ func GoVet(_ []string) (err error) {
 	sourceDirectories := findGoFileDirectories()
 
 	var vetResults = new(bytes.Buffer)
-	s := pipe.NewState(ioutil.Discard, vetResults)
+	s := pipe.NewState(os.Stdout, vetResults)
 	p := exec.Exec("go", vetOptions, sourceDirectories)
 
 	if err = p(s); err == nil {
 		err = s.RunTasks()
 	}
 	if err != nil {
+		_, _ = os.Stderr.Write(vetResults.Bytes())
 		return err
 	}
 
@@ -176,8 +178,10 @@ func findGoFileDirectories() []string {
 }
 
 const thirdPartyLicenseHeaderFile = "HEADER"
+const licenseHeaderCisco = "Cisco"
+const licenseHeaderThirdParty = "Third-Party"
 
-var licenseHeadersMissing bool = false
+var licenseHeadersMissing = map[string]string{}
 
 func LicenseHeaders(_ []string) error {
 	check, _ := BuildConfig.Cfg.BoolOr("cli.flag.check", false)
@@ -213,7 +217,35 @@ func LicenseHeaders(_ []string) error {
 		}
 	}
 
+	if len(licenseHeadersMissing) != 0 {
+		if check {
+			if err := outputLicenseResults(); err != nil {
+				return err
+			}
+			return errors.Errorf("License check failed for %d files.", len(licenseHeadersMissing))
+		} else {
+			logger.Warnf("License check failed for %d files.", len(licenseHeadersMissing))
+		}
+	} else {
+		logger.Info("License check succeeded for all files.")
+	}
+
 	return nil
+}
+
+func outputLicenseResults() error {
+	reportFile := filepath.Join(BuildConfig.DistPath(), "license.json")
+	logger.Infof("Writing license check results to %q", reportFile)
+
+	reportBytes, err := json.MarshalIndent(licenseHeadersMissing, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if err = os.MkdirAll(filepath.Dir(reportFile), 0755); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(reportFile, reportBytes, 0644)
 }
 
 func applyCiscoLicenseToDir(dir string, check bool) error {
@@ -242,7 +274,7 @@ func applyCiscoLicenseToFile(fileName string, check bool) error {
 		return nil
 	} else if check {
 		logger.Errorf("%q missing Cisco license header", fileName)
-		licenseHeadersMissing = true
+		licenseHeadersMissing[fileName] = licenseHeaderCisco
 		return nil
 	}
 
@@ -324,7 +356,7 @@ func applyThirdPartyLicenseToFile(fileName string, headerBytes []byte, check boo
 		return nil
 	} else if check {
 		logger.Errorf("%q missing third-party license header", fileName)
-		licenseHeadersMissing = true
+		licenseHeadersMissing[fileName] = licenseHeaderThirdParty
 		return nil
 	}
 
