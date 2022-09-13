@@ -6,6 +6,7 @@ BUILD_NUMBER ?= 0
 .PHONY: all clean
 .PHONY: test vet vendor generate precommit
 .PHONY: license license-check
+.PHONY: vulnerability
 .PHONY: skel publish-skel
 .PHONY: dist debug docker publish
 .PHONY: generate-book
@@ -35,6 +36,10 @@ license:
 
 license-check:
 	$(BUILDER) license --check
+
+vulnerability:
+	$(BUILDER) install-vulnerability-deps
+	$(BUILDER) check-vulnerability
 
 skel:
 	$(SKEL_BUILDER) build-tool
