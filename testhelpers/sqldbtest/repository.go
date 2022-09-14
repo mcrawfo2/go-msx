@@ -151,23 +151,7 @@ func (r *RepositoryTest) checkWant() (results []error) {
 }
 
 func (r *RepositoryTest) checkWantErr() error {
-	if r.WantErr {
-		if len(r.Got) == 0 {
-			return errors.Errorf("Wanted Error, No values returned")
-		} else if !r.HasErr {
-			return errors.Errorf("Wanted Error, Method not flagged as returning error")
-		} else if err, ok := r.Got[len(r.Got)-1].(error); ok && err == nil {
-			return errors.Errorf("Wanted Error, No error returned")
-		}
-	} else if r.HasErr {
-		if len(r.Got) == 0 {
-			return errors.Errorf("Method flagged as returning error, No values returned")
-		} else if err, ok := r.Got[len(r.Got)-1].(error); ok && err != nil {
-			return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
-		}
-	}
-
-	return nil
+	return testhelpers.CheckErr(r.Got, r.HasErr, r.WantErr)
 }
 
 func (r *RepositoryTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Context)) {

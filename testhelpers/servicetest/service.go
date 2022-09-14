@@ -128,23 +128,7 @@ func (s *ServiceTest) checkWant() (results []error) {
 }
 
 func (s *ServiceTest) checkWantErr() error {
-	if s.WantErr {
-		if len(s.Got) == 0 {
-			return errors.Errorf("Wanted Error, No values returned")
-		} else if !s.HasErr {
-			return errors.Errorf("Wanted Error, Method not flagged as returning error")
-		} else if err, ok := s.Got[len(s.Got)-1].(error); ok && err == nil {
-			return errors.Errorf("Wanted Error, No error returned")
-		}
-	} else if s.HasErr {
-		if len(s.Got) == 0 {
-			return errors.Errorf("Method flagged as returning error, No values returned")
-		} else if err, ok := s.Got[len(s.Got)-1].(error); ok && err != nil {
-			return errors.Errorf("Unwanted Error, Error returned:\n%s", testhelpers.Dump(err))
-		}
-	}
-
-	return nil
+	return testhelpers.CheckErr(s.Got, s.HasErr, s.WantErr)
 }
 
 func (s *ServiceTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Context)) {
