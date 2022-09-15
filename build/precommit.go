@@ -217,11 +217,14 @@ func LicenseHeaders(_ []string) error {
 		}
 	}
 
+	if check {
+		if err := outputLicenseResults(); err != nil {
+			return err
+		}
+	}
+
 	if len(licenseHeadersMissing) != 0 {
 		if check {
-			if err := outputLicenseResults(); err != nil {
-				return err
-			}
 			return errors.Errorf("License check failed for %d files.", len(licenseHeadersMissing))
 		} else {
 			logger.Warnf("License check failed for %d files.", len(licenseHeadersMissing))
