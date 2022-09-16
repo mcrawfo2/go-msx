@@ -18,17 +18,17 @@ import (
 type Spec struct {
 	// A unique id representing the application.
 	// Format: uri.
-	ID                 *string                `json:"id,omitempty"`
+	ID *string `json:"id,omitempty"`
 	// General information about the API.
 	// Required.
 	Info               Info                   `json:"info"`
 	Servers            map[string]Server      `json:"servers,omitempty"`
 	DefaultContentType *string                `json:"defaultContentType,omitempty"`
-	Channels           map[string]ChannelItem `json:"channels"`                     // Required.
-	Components         *Components            `json:"components,omitempty"`         // An object to hold a set of reusable objects for different aspects of the AsyncAPI Specification.
+	Channels           map[string]ChannelItem `json:"channels"`             // Required.
+	Components         *Components            `json:"components,omitempty"` // An object to hold a set of reusable objects for different aspects of the AsyncAPI Specification.
 	Tags               []Tag                  `json:"tags,omitempty"`
-	ExternalDocs       *ExternalDocs          `json:"externalDocs,omitempty"`       // Information about external documentation.
-	MapOfAnything      map[string]interface{} `json:"-"`                            // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	ExternalDocs       *ExternalDocs          `json:"externalDocs,omitempty"` // Information about external documentation.
+	MapOfAnything      map[string]interface{} `json:"-"`                      // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithID sets ID value.
@@ -234,17 +234,17 @@ func (s Spec) MarshalJSON() ([]byte, error) {
 type Info struct {
 	// A unique and precise title of the API.
 	// Required.
-	Title          string                 `json:"title"`
+	Title string `json:"title"`
 	// A semantic version number of the API.
 	// Required.
-	Version        string                 `json:"version"`
-	Description    *string                `json:"description,omitempty"`    // A longer description of the API. Should be different from the title. CommonMark is allowed.
+	Version     string  `json:"version"`
+	Description *string `json:"description,omitempty"` // A longer description of the API. Should be different from the title. CommonMark is allowed.
 	// A URL to the Terms of Service for the API. MUST be in the format of a URL.
 	// Format: uri.
 	TermsOfService *string                `json:"termsOfService,omitempty"`
-	Contact        *Contact               `json:"contact,omitempty"`        // Contact information for the owners of the API.
+	Contact        *Contact               `json:"contact,omitempty"` // Contact information for the owners of the API.
 	License        *License               `json:"license,omitempty"`
-	MapOfAnything  map[string]interface{} `json:"-"`                        // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything  map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithTitle sets Title value.
@@ -400,14 +400,14 @@ func (i Info) MarshalJSON() ([]byte, error) {
 //
 // Contact information for the owners of the API.
 type Contact struct {
-	Name          *string                `json:"name,omitempty"`  // The identifying name of the contact person/organization.
+	Name *string `json:"name,omitempty"` // The identifying name of the contact person/organization.
 	// The URL pointing to the contact information.
 	// Format: uri.
-	URL           *string                `json:"url,omitempty"`
+	URL *string `json:"url,omitempty"`
 	// The email address of the contact person/organization.
 	// Format: email.
 	Email         *string                `json:"email,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`               // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithName sets Name value.
@@ -524,11 +524,11 @@ func (c Contact) MarshalJSON() ([]byte, error) {
 type License struct {
 	// The name of the license type. It's encouraged to use an OSI compatible license.
 	// Required.
-	Name          string                 `json:"name"`
+	Name string `json:"name"`
 	// The URL pointing to the license.
 	// Format: uri.
 	URL           *string                `json:"url,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`             // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithName sets Name value.
@@ -638,15 +638,15 @@ func (l License) MarshalJSON() ([]byte, error) {
 //
 // An object representing a Server.
 type Server struct {
-	Ref             *string                   `json:"$ref,omitempty"`            // Format: uri-reference.
+	Ref             *string                   `json:"$ref,omitempty"` // Format: uri-reference.
 	URL             *string                   `json:"url,omitempty"`
 	Description     *string                   `json:"description,omitempty"`
-	Protocol        *string                   `json:"protocol,omitempty"`        // The transfer protocol.
+	Protocol        *string                   `json:"protocol,omitempty"` // The transfer protocol.
 	ProtocolVersion *string                   `json:"protocolVersion,omitempty"`
 	Variables       map[string]ServerVariable `json:"variables,omitempty"`
 	Security        []map[string][]string     `json:"security,omitempty"`
 	Bindings        *BindingsObject           `json:"bindings,omitempty"`
-	MapOfAnything   map[string]interface{}    `json:"-"`                         // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything   map[string]interface{}    `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithRef sets Ref value.
@@ -822,7 +822,7 @@ type ServerVariable struct {
 	Default       *string                `json:"default,omitempty"`
 	Description   *string                `json:"description,omitempty"`
 	Examples      []string               `json:"examples,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithEnum sets Enum value.
@@ -960,7 +960,7 @@ type BindingsObject struct {
 	Redis                *interface{}           `json:"redis,omitempty"`
 	Ibmmq                *interface{}           `json:"ibmmq,omitempty"`
 	Solace               *interface{}           `json:"solace,omitempty"`
-	AdditionalProperties map[string]interface{} `json:"-"`                    // All unmatched properties.
+	AdditionalProperties map[string]interface{} `json:"-"` // All unmatched properties.
 }
 
 // WithHTTP sets HTTP value.
@@ -1262,14 +1262,14 @@ func (b BindingsObject) MarshalJSON() ([]byte, error) {
 
 // ChannelItem structure is generated from "#/definitions/channelItem".
 type ChannelItem struct {
-	Ref           *string                `json:"$ref,omitempty"`        // Format: uri-reference.
+	Ref           *string                `json:"$ref,omitempty"` // Format: uri-reference.
 	Parameters    map[string]Parameter   `json:"parameters,omitempty"`
 	Description   *string                `json:"description,omitempty"` // A description of the channel.
 	Servers       []string               `json:"servers,omitempty"`     // The names of the servers on which this channel is available. If absent or empty then this channel must be available on all servers.
 	Publish       *Operation             `json:"publish,omitempty"`
 	Subscribe     *Operation             `json:"subscribe,omitempty"`
 	Bindings      *BindingsObject        `json:"bindings,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithRef sets Ref value.
@@ -1451,13 +1451,13 @@ func (c ChannelItem) MarshalJSON() ([]byte, error) {
 
 // Parameter structure is generated from "#/definitions/parameter".
 type Parameter struct {
-	Description   *string                `json:"description,omitempty"` // A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.
-	Schema        jsonschema.Schema      `json:"schema,omitempty"`
+	Description *string           `json:"description,omitempty"` // A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.
+	Schema      jsonschema.Schema `json:"schema,omitempty"`
 	// A runtime expression that specifies the location of the parameter value.
 	// Value must match pattern: `^\$message\.(header|payload)#(\/(([^\/~])|(~[01]))*)*`.
 	Location      *string                `json:"location,omitempty"`
-	Ref           *string                `json:"$ref,omitempty"`        // Format: uri-reference.
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	Ref           *string                `json:"$ref,omitempty"` // Format: uri-reference.
+	MapOfAnything map[string]interface{} `json:"-"`              // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -1588,7 +1588,7 @@ type Operation struct {
 	Security      []map[string][]string  `json:"security,omitempty"`
 	Bindings      *BindingsObject        `json:"bindings,omitempty"`
 	Message       *MessageChoices        `json:"message,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                      // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithTraits sets Traits value.
@@ -1792,7 +1792,7 @@ type OperationTrait struct {
 	ExternalDocs  *ExternalDocs          `json:"externalDocs,omitempty"` // Information about external documentation.
 	OperationID   *string                `json:"operationId,omitempty"`
 	Bindings      *BindingsObject        `json:"bindings,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                      // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithSummary sets Summary value.
@@ -1953,7 +1953,7 @@ func (o OperationTrait) MarshalJSON() ([]byte, error) {
 
 // Tag structure is generated from "#/definitions/tag".
 type Tag struct {
-	Name          string                 `json:"name"`                   // Required.
+	Name          string                 `json:"name"` // Required.
 	Description   *string                `json:"description,omitempty"`
 	ExternalDocs  *ExternalDocs          `json:"externalDocs,omitempty"` // Information about external documentation.
 	MapOfAnything map[string]interface{} `json:"-"`                      // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
@@ -2082,11 +2082,11 @@ func (t Tag) MarshalJSON() ([]byte, error) {
 //
 // information about external documentation.
 type ExternalDocs struct {
-	Description   *string                `json:"description,omitempty"`
+	Description *string `json:"description,omitempty"`
 	// Format: uri.
 	// Required.
 	URL           string                 `json:"url"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -2332,25 +2332,24 @@ func (m *MessageOptions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-
 // Message structure is generated from "#/definitions/Message".
 type Message struct {
 	SchemaFormat  *string                `json:"schemaFormat,omitempty"`
 	ContentType   *string                `json:"contentType,omitempty"`
-	ID            *string                `json:"messageId,omitempty"`     // Unique string used to identify the message.
+	ID            *string                `json:"messageId,omitempty"` // Unique string used to identify the message.
 	Headers       *MessageHeaders        `json:"headers,omitempty"`
 	Payload       *interface{}           `json:"payload,omitempty"`
 	CorrelationID *MessageCorrelationID  `json:"correlationId,omitempty"`
 	Tags          []Tag                  `json:"tags,omitempty"`
-	Summary       *string                `json:"summary,omitempty"`       // A brief summary of the message.
-	Name          *string                `json:"name,omitempty"`          // Name of the message.
-	Title         *string                `json:"title,omitempty"`         // A human-friendly title for the message.
-	Description   *string                `json:"description,omitempty"`   // A longer description of the message. CommonMark is allowed.
-	ExternalDocs  *ExternalDocs          `json:"externalDocs,omitempty"`  // Information about external documentation.
+	Summary       *string                `json:"summary,omitempty"`      // A brief summary of the message.
+	Name          *string                `json:"name,omitempty"`         // Name of the message.
+	Title         *string                `json:"title,omitempty"`        // A human-friendly title for the message.
+	Description   *string                `json:"description,omitempty"`  // A longer description of the message. CommonMark is allowed.
+	ExternalDocs  *ExternalDocs          `json:"externalDocs,omitempty"` // Information about external documentation.
 	Examples      []MessageExamplesItems `json:"examples,omitempty"`
 	Bindings      *BindingsObject        `json:"bindings,omitempty"`
 	Traits        []MessageTraitsItems   `json:"traits,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                       // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithSchemaFormat sets SchemaFormat value.
@@ -2593,7 +2592,6 @@ func (m Message) MarshalJSON() ([]byte, error) {
 
 // MessageHeadersAllOf1 structure is generated from "#/definitions/Message->headers/allOf/1".
 type MessageHeadersAllOf1 struct {
-
 }
 
 // UnmarshalJSON decodes JSON.
@@ -2677,12 +2675,12 @@ func (m MessageHeaders) MarshalJSON() ([]byte, error) {
 
 // CorrelationID structure is generated from "#/definitions/correlationId".
 type CorrelationID struct {
-	Description   *string                `json:"description,omitempty"` // A optional description of the correlation ID. GitHub Flavored Markdown is allowed.
+	Description *string `json:"description,omitempty"` // A optional description of the correlation ID. GitHub Flavored Markdown is allowed.
 	// A runtime expression that specifies the location of the correlation ID.
 	// Value must match pattern: `^\$message\.(header|payload)#(\/(([^\/~])|(~[01]))*)*`.
 	// Required.
 	Location      string                 `json:"location"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -2955,7 +2953,6 @@ func (m *MessageExamplesItems) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-
 // MessageTrait structure is generated from "#/definitions/messageTrait".
 type MessageTrait struct {
 	SchemaFormat  *string                    `json:"schemaFormat,omitempty"`
@@ -2964,14 +2961,14 @@ type MessageTrait struct {
 	MessageID     *string                    `json:"messageId,omitempty"`
 	CorrelationID *MessageTraitCorrelationID `json:"correlationId,omitempty"`
 	Tags          []Tag                      `json:"tags,omitempty"`
-	Summary       *string                    `json:"summary,omitempty"`       // A brief summary of the message.
-	Name          *string                    `json:"name,omitempty"`          // Name of the message.
-	Title         *string                    `json:"title,omitempty"`         // A human-friendly title for the message.
-	Description   *string                    `json:"description,omitempty"`   // A longer description of the message. CommonMark is allowed.
-	ExternalDocs  *ExternalDocs              `json:"externalDocs,omitempty"`  // Information about external documentation.
+	Summary       *string                    `json:"summary,omitempty"`      // A brief summary of the message.
+	Name          *string                    `json:"name,omitempty"`         // Name of the message.
+	Title         *string                    `json:"title,omitempty"`        // A human-friendly title for the message.
+	Description   *string                    `json:"description,omitempty"`  // A longer description of the message. CommonMark is allowed.
+	ExternalDocs  *ExternalDocs              `json:"externalDocs,omitempty"` // Information about external documentation.
 	Examples      []map[string]interface{}   `json:"examples,omitempty"`
 	Bindings      *BindingsObject            `json:"bindings,omitempty"`
-	MapOfAnything map[string]interface{}     `json:"-"`                       // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{}     `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithSchemaFormat sets SchemaFormat value.
@@ -3193,7 +3190,6 @@ func (m MessageTrait) MarshalJSON() ([]byte, error) {
 
 // MessageTraitHeadersAllOf1 structure is generated from "#/definitions/messageTrait->headers/allOf/1".
 type MessageTraitHeadersAllOf1 struct {
-
 }
 
 // UnmarshalJSON decodes JSON.
@@ -3531,13 +3527,13 @@ func (m MessageChoices) MarshalJSON() ([]byte, error) {
 //
 // An object to hold a set of reusable objects for different aspects of the AsyncAPI Specification.
 type Components struct {
-	Schemas           map[string]jsonschema.Schema `json:"schemas,omitempty"`           // JSON objects describing schemas the API uses.
+	Schemas           map[string]jsonschema.Schema `json:"schemas,omitempty"` // JSON objects describing schemas the API uses.
 	Servers           map[string]Server            `json:"servers,omitempty"`
 	ServerVariables   map[string]ServerVariable    `json:"serverVariables,omitempty"`
 	Channels          map[string]ChannelItem       `json:"channels,omitempty"`
-	Messages          map[string]MessageChoices    `json:"messages,omitempty"`          // JSON objects describing the messages being consumed and produced by the API.
+	Messages          map[string]MessageChoices    `json:"messages,omitempty"` // JSON objects describing the messages being consumed and produced by the API.
 	SecuritySchemes   *ComponentsSecuritySchemes   `json:"securitySchemes,omitempty"`
-	Parameters        map[string]Parameter         `json:"parameters,omitempty"`        // JSON objects describing re-usable channel parameters.
+	Parameters        map[string]Parameter         `json:"parameters,omitempty"` // JSON objects describing re-usable channel parameters.
 	CorrelationIds    *ComponentsCorrelationIds    `json:"correlationIds,omitempty"`
 	OperationTraits   map[string]OperationTrait    `json:"operationTraits,omitempty"`
 	MessageTraits     map[string]MessageTrait      `json:"messageTraits,omitempty"`
@@ -3545,7 +3541,7 @@ type Components struct {
 	ChannelBindings   map[string]BindingsObject    `json:"channelBindings,omitempty"`
 	OperationBindings map[string]BindingsObject    `json:"operationBindings,omitempty"`
 	MessageBindings   map[string]BindingsObject    `json:"messageBindings,omitempty"`
-	MapOfAnything     map[string]interface{}       `json:"-"`                           // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything     map[string]interface{}       `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithSchemas sets Schemas value.
@@ -3888,7 +3884,7 @@ func (c Components) MarshalJSON() ([]byte, error) {
 // UserPassword structure is generated from "#/definitions/userPassword".
 type UserPassword struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -4001,9 +3997,9 @@ func (u UserPassword) MarshalJSON() ([]byte, error) {
 
 // APIKey structure is generated from "#/definitions/apiKey".
 type APIKey struct {
-	In            APIKeyIn               `json:"in"`                    // Required.
+	In            APIKeyIn               `json:"in"` // Required.
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithIn sets In value.
@@ -4124,7 +4120,7 @@ func (a APIKey) MarshalJSON() ([]byte, error) {
 // X509 structure is generated from "#/definitions/X509".
 type X509 struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -4238,7 +4234,7 @@ func (x X509) MarshalJSON() ([]byte, error) {
 // SymmetricEncryption structure is generated from "#/definitions/symmetricEncryption".
 type SymmetricEncryption struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -4352,7 +4348,7 @@ func (s SymmetricEncryption) MarshalJSON() ([]byte, error) {
 // AsymmetricEncryption structure is generated from "#/definitions/asymmetricEncryption".
 type AsymmetricEncryption struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -4465,9 +4461,9 @@ func (a AsymmetricEncryption) MarshalJSON() ([]byte, error) {
 
 // NonBearerHTTPSecurityScheme structure is generated from "#/definitions/NonBearerHTTPSecurityScheme".
 type NonBearerHTTPSecurityScheme struct {
-	Scheme        string                 `json:"scheme"`                // Required.
+	Scheme        string                 `json:"scheme"` // Required.
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithScheme sets Scheme value.
@@ -4593,7 +4589,6 @@ func (n NonBearerHTTPSecurityScheme) MarshalJSON() ([]byte, error) {
 
 // NonBearerHTTPSecuritySchemeNot structure is generated from "#/definitions/NonBearerHTTPSecurityScheme->not".
 type NonBearerHTTPSecuritySchemeNot struct {
-
 }
 
 // UnmarshalJSON decodes JSON.
@@ -4630,7 +4625,7 @@ func (n NonBearerHTTPSecuritySchemeNot) MarshalJSON() ([]byte, error) {
 type BearerHTTPSecurityScheme struct {
 	BearerFormat  *string                `json:"bearerFormat,omitempty"`
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                      // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithBearerFormat sets BearerFormat value.
@@ -4757,10 +4752,10 @@ func (b BearerHTTPSecurityScheme) MarshalJSON() ([]byte, error) {
 
 // APIKeyHTTPSecurityScheme structure is generated from "#/definitions/APIKeyHTTPSecurityScheme".
 type APIKeyHTTPSecurityScheme struct {
-	Name          string                     `json:"name"`                  // Required.
-	In            APIKeyHTTPSecuritySchemeIn `json:"in"`                    // Required.
+	Name          string                     `json:"name"` // Required.
+	In            APIKeyHTTPSecuritySchemeIn `json:"in"`   // Required.
 	Description   *string                    `json:"description,omitempty"`
-	MapOfAnything map[string]interface{}     `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{}     `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithName sets Name value.
@@ -4983,8 +4978,8 @@ func (h HTTPSecurityScheme) MarshalJSON() ([]byte, error) {
 // Oauth2Flows structure is generated from "#/definitions/oauth2Flows".
 type Oauth2Flows struct {
 	Description   *string                `json:"description,omitempty"`
-	Flows         Oauth2FlowsFlows       `json:"flows"`                 // Required.
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	Flows         Oauth2FlowsFlows       `json:"flows"` // Required.
+	MapOfAnything map[string]interface{} `json:"-"`     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -5206,14 +5201,13 @@ func (o *Oauth2FlowsFlows) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-
 // Oauth2Flow structure is generated from "#/definitions/oauth2Flow".
 type Oauth2Flow struct {
 	AuthorizationURL *string                `json:"authorizationUrl,omitempty"` // Format: uri.
 	TokenURL         *string                `json:"tokenUrl,omitempty"`         // Format: uri.
 	RefreshURL       *string                `json:"refreshUrl,omitempty"`       // Format: uri.
 	Scopes           map[string]string      `json:"scopes,omitempty"`
-	MapOfAnything    map[string]interface{} `json:"-"`                          // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything    map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithAuthorizationURL sets AuthorizationURL value.
@@ -5346,11 +5340,11 @@ func (o Oauth2Flow) MarshalJSON() ([]byte, error) {
 
 // OpenIDConnect structure is generated from "#/definitions/openIdConnect".
 type OpenIDConnect struct {
-	Description   *string                `json:"description,omitempty"`
+	Description *string `json:"description,omitempty"`
 	// Format: uri.
 	// Required.
 	URL           string                 `json:"openIdConnectUrl"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -5471,7 +5465,7 @@ func (o OpenIDConnect) MarshalJSON() ([]byte, error) {
 // SaslPlainSecurityScheme structure is generated from "#/definitions/SaslPlainSecurityScheme".
 type SaslPlainSecurityScheme struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -5584,9 +5578,9 @@ func (s SaslPlainSecurityScheme) MarshalJSON() ([]byte, error) {
 
 // SaslScramSecurityScheme structure is generated from "#/definitions/SaslScramSecurityScheme".
 type SaslScramSecurityScheme struct {
-	Type          SaslScramSecuritySchemeType `json:"type"`                  // Required.
+	Type          SaslScramSecuritySchemeType `json:"type"` // Required.
 	Description   *string                     `json:"description,omitempty"`
-	MapOfAnything map[string]interface{}      `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{}      `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithType sets Type value.
@@ -5695,7 +5689,7 @@ func (s SaslScramSecurityScheme) MarshalJSON() ([]byte, error) {
 // SaslGssapiSecurityScheme structure is generated from "#/definitions/SaslGssapiSecurityScheme".
 type SaslGssapiSecurityScheme struct {
 	Description   *string                `json:"description,omitempty"`
-	MapOfAnything map[string]interface{} `json:"-"`                     // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
+	MapOfAnything map[string]interface{} `json:"-"` // Key must match pattern: `^x-[\w\d\.\x2d_]+$`.
 }
 
 // WithDescription sets Description value.
@@ -6419,7 +6413,7 @@ type APIKeyIn string
 
 // APIKeyIn values enumeration.
 const (
-	APIKeyInUser = APIKeyIn("user")
+	APIKeyInUser     = APIKeyIn("user")
 	APIKeyInPassword = APIKeyIn("password")
 )
 
@@ -6466,7 +6460,7 @@ type APIKeyHTTPSecuritySchemeIn string
 // APIKeyHTTPSecuritySchemeIn values enumeration.
 const (
 	APIKeyHTTPSecuritySchemeInHeader = APIKeyHTTPSecuritySchemeIn("header")
-	APIKeyHTTPSecuritySchemeInQuery = APIKeyHTTPSecuritySchemeIn("query")
+	APIKeyHTTPSecuritySchemeInQuery  = APIKeyHTTPSecuritySchemeIn("query")
 	APIKeyHTTPSecuritySchemeInCookie = APIKeyHTTPSecuritySchemeIn("cookie")
 )
 
@@ -6602,8 +6596,9 @@ func marshalUnion(maps ...interface{}) ([]byte, error) {
 
 	return result, nil
 }
+
 // Regular expressions for pattern properties.
 var (
 	regexXWDX2D = regexp.MustCompile(`^x-[\w\d\.\x2d_]+$`)
-	regexWD = regexp.MustCompile(`^[\w\d\.\-_]+$`)
+	regexWD     = regexp.MustCompile(`^[\w\d\.\-_]+$`)
 )

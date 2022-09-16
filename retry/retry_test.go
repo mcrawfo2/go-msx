@@ -10,6 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -34,6 +35,7 @@ func TestNewRetry(t *testing.T) {
 					Delay:    250,
 					BackOff:  1.0,
 					Linear:   true,
+					Jitter:   0,
 				},
 			},
 			want: Retry{
@@ -43,6 +45,7 @@ func TestNewRetry(t *testing.T) {
 				Linear:   true,
 				Context:  context.Background(),
 				clock:    types.NewClock(context.Background()),
+				Jitter:   0,
 			},
 		},
 	}
@@ -61,6 +64,7 @@ func TestNewRetryFromConfig(t *testing.T) {
 		"spring.retry.delay":    "500",
 		"spring.retry.backoff":  "2.0",
 		"spring.retry.linear":   "true",
+		"spring.retry.jitter":   "10000",
 	})
 
 	tests := []struct {
@@ -77,6 +81,7 @@ func TestNewRetryFromConfig(t *testing.T) {
 				Linear:   true,
 				Context:  context.Background(),
 				clock:    types.NewClock(context.Background()),
+				Jitter:   10000 * time.Millisecond,
 			},
 		},
 	}
@@ -102,6 +107,7 @@ func TestNewRetryFromContext(t *testing.T) {
 			"spring.retry.delay":    "500",
 			"spring.retry.backoff":  "2.0",
 			"spring.retry.linear":   "true",
+			"spring.retry.jitter":   "4000",
 		})
 
 	tests := []struct {
@@ -118,6 +124,7 @@ func TestNewRetryFromContext(t *testing.T) {
 				Linear:   true,
 				Context:  ctx,
 				clock:    types.NewClock(context.Background()),
+				Jitter:   4000 * time.Millisecond,
 			},
 		},
 	}
@@ -156,6 +163,22 @@ func TestRetry_Retry(t *testing.T) {
 					Delay:    500,
 					BackOff:  1.0,
 					Linear:   true,
+				},
+				retryable: func() error {
+					return nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "OnceJitter",
+			args: args{
+				config: RetryConfig{
+					Attempts: 1,
+					Delay:    500,
+					BackOff:  1.0,
+					Linear:   true,
+					Jitter:   2000,
 				},
 				retryable: func() error {
 					return nil
@@ -255,6 +278,7 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 				Delay:    500,
 				BackOff:  0.0,
 				Linear:   true,
+				Jitter:   0,
 			},
 		},
 		{
@@ -265,6 +289,7 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 					"some.random.spot.delay":    "2",
 					"some.random.spot.backoff":  "3.0",
 					"some.random.spot.linear":   "false",
+					"some.random.spot.jitter":   "5000",
 				}),
 				root: "some.random.spot",
 			},
@@ -273,6 +298,7 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 				Delay:    2,
 				BackOff:  3.0,
 				Linear:   false,
+				Jitter:   5000,
 			},
 		},
 	}
@@ -288,5 +314,205 @@ func TestNewRetryConfigFromConfig(t *testing.T) {
 				t.Errorf("NewRetryConfigFromConfig() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestRetry_GetCurrentDelay_NoDelay(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	// retries without delays
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 2,
+		Delay:    0,
+		BackOff:  0.0,
+		Linear:   true,
+	})
+
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		want := int64(0)
+
+		if got != want {
+			t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+		}
+	}
+}
+
+func TestRetry_GetCurrentDelay_FixedDelay(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 2,
+		Delay:    1000,
+		BackOff:  1.0,
+		Linear:   true,
+	})
+
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		want := r.Delay.Nanoseconds()
+		if got != want {
+			t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+		}
+	}
+}
+
+func TestRetry_GetCurrentDelay_LinearDelay(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  1.0,
+		Linear:   true,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		want := currentDelay + configDelay*int64(r.BackOff) // should be equal to next line but based on previous value
+		// want := configDelay + int64(i -1) * int64(float64(r.Delay.Nanoseconds()) * r.BackOff)
+		if i == 1 {
+			want = configDelay
+		}
+		if got != want {
+			t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
+	}
+}
+
+func TestRetry_GetCurrentDelay_LinearDelayPlusBackOffFactor(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  1.5,
+		Linear:   true,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		want := currentDelay + int64(float64(configDelay)*r.BackOff)
+		if i == 1 {
+			want = configDelay
+		}
+		if got != want {
+			t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
+	}
+}
+
+func TestRetry_GetCurrentDelay_ExponentialDelay(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  2.0,
+		Linear:   false,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		want := int64(float64(r.Delay.Nanoseconds()) * math.Pow(r.BackOff, float64(i-1)))
+		if i == 1 {
+			want = configDelay
+		}
+		if got != want {
+			t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
+	}
+}
+
+func TestRetry_GetCurrentDelay_LinearJitter(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  1.0,
+		Linear:   true,
+		Jitter:   20000,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	jitter := r.Jitter.Nanoseconds()
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		if i != 1 {
+			min := configDelay + int64(i-1)*int64(float64(r.Delay.Nanoseconds())*r.BackOff)
+			max := min + jitter
+			if got < min || got > max {
+				t.Errorf("GetCurrentDelay() got = %v, want between %v - %v", got, min, max)
+			}
+
+		} else {
+			want := configDelay
+			if got != want {
+				t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+			}
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
+	}
+}
+
+func TestRetry_GetCurrentDelay_ExponentialJitter(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  2.0,
+		Linear:   false,
+		Jitter:   1,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	jitter := r.Jitter.Nanoseconds()
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+
+		if i != 1 {
+			min := int64(float64(r.Delay.Nanoseconds()) * math.Pow(r.BackOff, float64(i-1)))
+			max := min + jitter
+			if got < min || got > max {
+				t.Errorf("GetCurrentDelay() got = %v, want between %v - %v", got, min, max)
+			}
+
+		} else {
+			want := configDelay
+			if got != want {
+				t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+			}
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
 	}
 }
