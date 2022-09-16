@@ -35,6 +35,7 @@ func (c *CrudPreparedRepository) CountAll(ctx context.Context, dest *int64) erro
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
@@ -51,6 +52,7 @@ func (c *CrudPreparedRepository) CountAllBy(ctx context.Context, where map[strin
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
@@ -70,6 +72,7 @@ func (c *CrudPreparedRepository) CountAllByExpression(ctx context.Context, where
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
@@ -90,6 +93,7 @@ func (c *CrudPreparedRepository) FindAll(ctx context.Context, dest interface{}) 
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -123,6 +127,7 @@ func (c *CrudPreparedRepository) FindAllPagedBy(ctx context.Context, where map[s
 		}
 
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		err = conn.SelectContext(ctx, dest, stmt, args...)
 		if err != nil {
 			return err
@@ -152,6 +157,7 @@ func (c *CrudPreparedRepository) FindAllBy(ctx context.Context, where map[string
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -171,6 +177,7 @@ func (c *CrudPreparedRepository) FindAllByExpression(ctx context.Context, where 
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -207,6 +214,7 @@ func (c *CrudPreparedRepository) FindAllPagedByExpression(ctx context.Context, w
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		err = conn.SelectContext(ctx, dest, stmt, args...)
 		if err != nil {
 			return err
@@ -237,6 +245,7 @@ func (c *CrudPreparedRepository) FindAllDistinctBy(ctx context.Context, distinct
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -253,6 +262,7 @@ func (c *CrudPreparedRepository) FindAllSortedBy(ctx context.Context, where map[
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -272,6 +282,7 @@ func (c *CrudPreparedRepository) FindAllSortedByExpression(ctx context.Context, 
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
 }
@@ -288,6 +299,7 @@ func (c *CrudPreparedRepository) FindOneBy(ctx context.Context, where map[string
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
@@ -304,6 +316,7 @@ func (c *CrudPreparedRepository) FindOneSortedBy(ctx context.Context, where map[
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
 }
@@ -356,6 +369,7 @@ func (c *CrudPreparedRepository) Insert(ctx context.Context, value interface{}) 
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
@@ -373,6 +387,7 @@ func (c *CrudPreparedRepository) Update(ctx context.Context, where map[string]in
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
@@ -397,6 +412,7 @@ func (c *CrudPreparedRepository) Save(ctx context.Context, value interface{}) (e
 
 		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
@@ -421,6 +437,7 @@ func (c *CrudPreparedRepository) SaveAll(ctx context.Context, values []interface
 
 		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
@@ -438,6 +455,7 @@ func (c *CrudPreparedRepository) DeleteBy(ctx context.Context, where map[string]
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
@@ -455,6 +473,7 @@ func (c *CrudPreparedRepository) Truncate(ctx context.Context) (err error) {
 			return err
 		}
 		stmt = c.Rebind(conn, stmt)
+		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
 		return err
 	})
