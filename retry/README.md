@@ -59,3 +59,20 @@ r := NewRetry(ctx, RetryConfig{
     Jitter: 1,
 })
 ```
+
+
+Using retry with decorator
+```go
+	types.
+		NewOperation(func(ctx context.Context) error {
+			return errors.New("a transient error")
+		}).
+		WithDecorator(Decorator(RetryConfig{
+			Attempts: 1,
+			Delay:    10,
+			BackOff:  2.0,
+			Linear:   false,
+			Jitter:   1,
+		})).
+		Run(ctx)
+```
