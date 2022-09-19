@@ -246,6 +246,10 @@ func (s Content) IsPresent() bool {
 	return s.present
 }
 
+func (s Content) MimeType() string {
+	return s.options.MimeType
+}
+
 func (s Content) ReadEntity(target interface{}) (err error) {
 	return s.options.ReadEntity(s.source, target)
 }

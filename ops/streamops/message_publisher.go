@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 	"github.com/swaggest/refl"
 	"reflect"
@@ -112,6 +113,12 @@ func (o MessagePublisher) Publish(ctx context.Context, outputs interface{}) erro
 		return errors.Wrap(err, "Failed to populate stream message")
 	}
 
+	// Validate output message matches schema
+	err := o.ValidateMessage(sink.Message(ctx))
+	if err != nil {
+		return err
+	}
+
 	// Publish the message
 	return trace.NewOperation(
 		o.name,
@@ -122,6 +129,20 @@ func (o MessagePublisher) Publish(ctx context.Context, outputs interface{}) erro
 		}).
 		WithFilters(o.filters).
 		Run(ctx)
+}
+
+func (o MessagePublisher) ValidateMessage(channelName types.Optional[string], msg *message.Message) error {
+	messageDataSource := NewMessageDataSource(
+		channelName.OrElse(o.Channel().Name()),
+		msg)
+
+	messageDecoder := NewMessageDecoder(messageDataSource,
+		o.Channel().binding.ContentType,
+		o.Channel().binding.ContentEncoding)
+
+	messageValidator := NewMessageValidator(o.outputPort, messageDecoder)
+
+	return messageValidator.ValidateMessage()
 }
 
 func (o MessagePublisher) Documentor(pred ops.DocumentorPredicate[MessagePublisher]) ops.Documentor[MessagePublisher] {

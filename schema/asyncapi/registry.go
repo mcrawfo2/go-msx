@@ -51,25 +51,25 @@ func operationBindingsEns(operation *Operation, binder string) {
 }
 
 func addPublisherOperation(topic string, operation Operation) {
-	channelItem := Reflector.SpecEns().Channels[topic]
+	channelItem := documentationReflector.SpecEns().Channels[topic]
 	channelItem.WithSubscribe(operation) // Opposite action in spec
-	Reflector.SpecEns().WithChannelsItem(topic, channelItem)
+	documentationReflector.SpecEns().WithChannelsItem(topic, channelItem)
 }
 
 func addPublisherOperationMessageChoice(topic string, messageRef Reference) {
-	channelItem := Reflector.SpecEns().Channels[topic]
+	channelItem := documentationReflector.SpecEns().Channels[topic]
 	operation := channelItem.SubscribeEns() // Opposite action in spec
 	addOperationMessage(operation, messageRef)
 }
 
 func addSubscriberOperation(topic string, operation Operation) {
-	channelItem := Reflector.SpecEns().Channels[topic]
+	channelItem := documentationReflector.SpecEns().Channels[topic]
 	channelItem.WithPublish(operation) // Opposite action in spec
-	Reflector.Spec.Channels[topic] = channelItem
+	documentationReflector.Spec.Channels[topic] = channelItem
 }
 
 func addSubscriberOperationMessageChoice(topic string, messageRef Reference) {
-	channelItem := Reflector.SpecEns().Channels[topic]
+	channelItem := documentationReflector.SpecEns().Channels[topic]
 	operation := channelItem.PublishEns() // Opposite action in spec
 	addOperationMessage(operation, messageRef)
 }
@@ -86,7 +86,7 @@ func addOperationMessage(operation *Operation, messageRef Reference) {
 }
 
 func createMessageReference(name string, message Message) Reference {
-	Reflector.SpecEns().ComponentsEns().WithMessagesItem(name, MessageChoices{
+	documentationReflector.SpecEns().ComponentsEns().WithMessagesItem(name, MessageChoices{
 		Message: &message,
 	})
 

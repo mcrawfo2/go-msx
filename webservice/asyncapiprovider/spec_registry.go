@@ -76,19 +76,19 @@ func (p RegistrySpecProvider) Info() asyncapi.Info {
 }
 
 func (p RegistrySpecProvider) Servers() map[string]asyncapi.Server {
-	return asyncapi.Reflector.SpecEns().Servers
+	return asyncapi.RegistrySpec().Servers
 }
 
 func (p RegistrySpecProvider) Channels() map[string]asyncapi.ChannelItem {
-	return asyncapi.Reflector.SpecEns().Channels
+	return asyncapi.RegistrySpec().Channels
 }
 
 func (p RegistrySpecProvider) Messages() map[string]asyncapi.MessageChoices {
-	return asyncapi.Reflector.SpecEns().ComponentsEns().Messages
+	return asyncapi.RegistrySpec().ComponentsEns().Messages
 }
 
 func (p RegistrySpecProvider) Schemas() map[string]jsonschema.Schema {
-	return asyncapi.Reflector.SpecEns().ComponentsEns().Schemas
+	return asyncapi.RegistrySpec().ComponentsEns().Schemas
 }
 
 func (p RegistrySpecProvider) Binding() asyncapi.BindingsObject {
