@@ -12,7 +12,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/hex"
-	"fmt"
 	"github.com/pkg/errors"
 	jsv "github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/swaggest/jsonschema-go"
@@ -211,9 +210,8 @@ func jsonValidatorSchemaFromPortField(portField *ops.PortField) *jsv.Schema {
 func GetJsonValidationSchema(field *ops.PortField) (schema js.ValidationSchema, err error) {
 	jsvSchema := jsonValidatorSchemaFromPortField(field)
 	if jsvSchema == nil {
-		panic(fmt.Sprintf("JSON Validation Schema not found for field %s", field.Name))
+		return js.ValidationSchema{}, nil
 	}
-	logger.Infof("JSON Validation Schema for field %s: %s", field.Name, jsvSchema.String())
 	return js.NewValidationSchema(jsvSchema), nil
 }
 

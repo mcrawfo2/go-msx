@@ -21,7 +21,9 @@ func (i PortFieldExtractor) ExtractRawValue() reflect.Value {
 	return i.outputsValue.FieldByIndex(i.portField.Indices)
 }
 
-func (i PortFieldExtractor) extractBelow(fv reflect.Value) reflect.Value {
+func (i PortFieldExtractor) extractBelow() reflect.Value {
+	fv := reflect.Value{}
+
 	// Const
 	if fv.Kind() == reflect.Invalid {
 		c := i.portField.Const()
@@ -75,7 +77,7 @@ func (i PortFieldExtractor) ExtractPrimitive() (value types.Optional[string], er
 	}
 
 	if !fv.IsValid() || fv.IsZero() {
-		if nfv := i.extractBelow(fv); nfv.IsValid() {
+		if nfv := i.extractBelow(); nfv.IsValid() {
 			fv = nfv
 		}
 	}
