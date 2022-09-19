@@ -95,7 +95,7 @@ func (d MessagePublisherDocumentor) headersSchema(publisher *streamops.MessagePu
 	for _, header := range headerPortFields {
 		headersSchema.WithPropertiesItem(
 			header.Peer,
-			schemaFromPortField(header).ToSchemaOrBool())
+			jsonSchemaFromPortField(header).ToSchemaOrBool())
 	}
 
 	return headersSchema
@@ -106,5 +106,5 @@ func (d MessagePublisherDocumentor) bodySchema(publisher *streamops.MessagePubli
 		ops.PortFieldHasGroup(streamops.FieldGroupStreamBody),
 	)
 
-	return schemaFromPortField(bodyPortField)
+	return jsonSchemaFromPortField(bodyPortField)
 }

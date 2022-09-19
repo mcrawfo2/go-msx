@@ -216,9 +216,9 @@ func (o *MessageSubscriber) MetadataFilterValues(headerName string) ([]string, e
 		o.name)
 }
 
-func (o MessageSubscriber) inputs(msg *message.Message) (interface{}, error) {
+func (o MessageSubscriber) inputs(msg *message.Message) (result interface{}, err error) {
 	if o.inputPort == nil {
-		return nil, nil
+		return
 	}
 
 	source := NewMessageDataSource(
@@ -231,12 +231,18 @@ func (o MessageSubscriber) inputs(msg *message.Message) (interface{}, error) {
 
 	populator := ops.NewInputsPopulator(o.inputPort, decoder)
 
-	inputs, err := populator.PopulateInputs()
+	result, err = populator.PopulateInputs()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return inputs, nil
+	messageValidator := NewMessageValidator(o.inputPort, decoder)
+	err = messageValidator.ValidateMessage()
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (o MessageSubscriber) requestActionDecorator(msg *message.Message) types.ActionFuncDecorator {

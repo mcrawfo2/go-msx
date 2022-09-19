@@ -7,6 +7,7 @@ package streamops
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"cto-github.cisco.com/NFV-BU/go-msx/stream"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
@@ -31,6 +32,10 @@ type TestMessagePublisherBuilderDependencies struct {
 }
 
 func NewTestMessagePublisherBuilderDependencies(t *testing.T) TestMessagePublisherBuilderDependencies {
+	RegisterPortFieldValidationSchemaFunc(func(field *ops.PortField) (schema js.ValidationSchema, err error) {
+		return js.ValidationSchema{}, nil
+	})
+
 	ctx := configtest.ContextWithNewInMemoryConfig(context.Background(), map[string]string{
 		"spring.application.name": "TestMessagePublisherBuilder",
 	})

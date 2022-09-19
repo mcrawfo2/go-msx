@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
-type WatermillMessageInputDecoder struct {
+type MessageDecoder struct {
 	defaultContentType string
 	defaultEncoding    string
 	source             MessageDataSource
 }
 
-func (w WatermillMessageInputDecoder) getBodyContentOptions() ops.ContentOptions {
+func (w MessageDecoder) getBodyContentOptions() ops.ContentOptions {
 	contentType := w.source.MetadataItem(PeerNameContentType).OrElse(w.defaultContentType)
 
 	content := ops.NewContentOptions(contentType)
@@ -29,7 +29,7 @@ func (w WatermillMessageInputDecoder) getBodyContentOptions() ops.ContentOptions
 	return content
 }
 
-func (w WatermillMessageInputDecoder) DecodeContent(pf *ops.PortField) (result ops.Content, err error) {
+func (w MessageDecoder) DecodeContent(pf *ops.PortField) (result ops.Content, err error) {
 	switch pf.Group {
 	case FieldGroupStreamBody:
 		bodyContentOptions := w.getBodyContentOptions()
@@ -43,7 +43,7 @@ func (w WatermillMessageInputDecoder) DecodeContent(pf *ops.PortField) (result o
 	return
 }
 
-func (w WatermillMessageInputDecoder) decodePrimitiveDefault(pf *ops.PortField) (result types.Optional[string]) {
+func (w MessageDecoder) decodePrimitiveDefault(pf *ops.PortField) (result types.Optional[string]) {
 	defaultValue := pf.Default()
 	if defaultValue != nil {
 		return types.OptionalOf(defaultValue.(string))
@@ -52,7 +52,7 @@ func (w WatermillMessageInputDecoder) decodePrimitiveDefault(pf *ops.PortField) 
 	return types.OptionalEmpty[string]()
 }
 
-func (w WatermillMessageInputDecoder) DecodePrimitive(pf *ops.PortField) (result types.Optional[string], err error) {
+func (w MessageDecoder) DecodePrimitive(pf *ops.PortField) (result types.Optional[string], err error) {
 	switch pf.Group {
 	case FieldGroupStreamHeader:
 		value := w.source.MetadataItem(pf.Peer)
@@ -74,8 +74,8 @@ func (w WatermillMessageInputDecoder) DecodePrimitive(pf *ops.PortField) (result
 	return
 }
 
-func NewMessageDecoder(source MessageDataSource, defaultContentType, defaultEncoding string) WatermillMessageInputDecoder {
-	return WatermillMessageInputDecoder{
+func NewMessageDecoder(source MessageDataSource, defaultContentType, defaultEncoding string) MessageDecoder {
+	return MessageDecoder{
 		defaultContentType: defaultContentType,
 		defaultEncoding:    defaultEncoding,
 		source:             source,

@@ -56,7 +56,7 @@ func (d *ServerDocumentor) Document(binder string) (err error) {
 	}
 
 	// Publish
-	Reflector.SpecEns().WithServersItem(binder, *server)
+	documentationReflector.SpecEns().WithServersItem(binder, *server)
 
 	return nil
 }

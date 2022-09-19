@@ -67,7 +67,7 @@ func (d ChannelDocumentor) Document(c *streamops.Channel) error {
 	}
 
 	// Publish
-	Reflector.SpecEns().WithChannelsItem(c.Name(), *channelItem)
+	documentationReflector.SpecEns().WithChannelsItem(c.Name(), *channelItem)
 
 	// Children
 	if publisher := streamops.RegisteredChannelPublisher(c.Name()); publisher != nil {

@@ -77,6 +77,8 @@ require (
 	moul.io/banner v1.0.1
 )
 
+require github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
+
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
 	github.com/DataDog/sketches-go v1.0.0 // indirect

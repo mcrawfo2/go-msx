@@ -23,7 +23,7 @@ func TestNewMessageDecoder(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want WatermillMessageInputDecoder
+		want MessageDecoder
 	}{
 		// TODO: Add test cases.
 	}
@@ -34,7 +34,7 @@ func TestNewMessageDecoder(t *testing.T) {
 	}
 }
 
-func TestWatermillMessageInputDecoder_DecodeContent(t *testing.T) {
+func TestMessageDecoder_DecodeContent(t *testing.T) {
 	type fields struct {
 		defaultContentType string
 		defaultEncoding    string
@@ -170,7 +170,7 @@ func TestWatermillMessageInputDecoder_DecodeContent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := WatermillMessageInputDecoder{
+			w := MessageDecoder{
 				defaultContentType: tt.fields.defaultContentType,
 				defaultEncoding:    tt.fields.defaultEncoding,
 				source:             tt.fields.source,
@@ -186,7 +186,7 @@ func TestWatermillMessageInputDecoder_DecodeContent(t *testing.T) {
 	}
 }
 
-func TestWatermillMessageInputDecoder_DecodePrimitive(t *testing.T) {
+func TestMessageDecoder_DecodePrimitive(t *testing.T) {
 	msg := message.NewMessage(types.MustNewUUID().String(), []byte("data"))
 	msg.Metadata["key"] = "value"
 
@@ -394,7 +394,7 @@ func TestWatermillMessageInputDecoder_DecodePrimitive(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := WatermillMessageInputDecoder{
+			w := MessageDecoder{
 				defaultContentType: tt.fields.defaultContentType,
 				defaultEncoding:    tt.fields.defaultEncoding,
 				source:             tt.fields.source,

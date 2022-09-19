@@ -84,7 +84,7 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 	case RuneSliceType:
 		return PortFieldTypeFromType(t, FieldShapePrimitive), false
 	case OptionalOfStringType:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		return PortFieldTypeFromType(t, FieldShapePrimitive), true
 	case ContentType:
 		return PortFieldTypeFromType(t, FieldShapeContent), false
 	case IoReadCloserType:

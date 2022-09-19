@@ -52,13 +52,6 @@ func (i PortFieldExtractor) ExtractValue() (fv reflect.Value, err error) {
 		fv = fv.Elem()
 	}
 
-	fv = i.extractBelow(fv)
-
-	// No value found
-	if fv.Kind() == reflect.Invalid && !i.portField.Optional {
-		err = errors.Errorf("Missing required value for field %q", i.portField.Name)
-	}
-
 	return
 }
 
@@ -68,22 +61,33 @@ func (i PortFieldExtractor) ExtractPrimitive() (value types.Optional[string], er
 		return
 	}
 
-	if fv.Kind() == reflect.Invalid {
+	// Pre-cast to string for types `cast` doesn't handle
+	var converted bool
+	converted, value, err = i.extractPrimitiveIndirect(fv)
+	if err != nil {
 		return
+	} else if converted {
+		if value.IsPresent() {
+			fv = reflect.ValueOf(value.Value())
+		} else {
+			fv = reflect.Value{}
+		}
 	}
 
-	var done bool
-	if done, value, err = i.extractPrimitiveIndirect(fv); err != nil || done {
-		if value.IsPresent() || err != nil {
-			return
+	if !fv.IsValid() || fv.IsZero() {
+		if nfv := i.extractBelow(fv); nfv.IsValid() {
+			fv = nfv
 		}
+	}
 
-		// if the optional value is not present, check for default/const
-		fv = i.extractBelow(reflect.Value{})
-
-		if !fv.IsValid() {
-			return types.OptionalEmpty[string](), nil
+	if !fv.IsValid() {
+		if !i.portField.Optional {
+			// No value returned, field not optional
+			err = errors.Wrap(ErrMissingRequiredValue, i.portField.Name)
+		} else {
+			value = types.OptionalEmpty[string]()
 		}
+		return
 	}
 
 	result, err := cast.ToStringE(fv.Interface())
@@ -101,6 +105,10 @@ type optionalValue interface {
 
 // extractPrimitiveIndirect converts some types that the cast module does not
 func (i PortFieldExtractor) extractPrimitiveIndirect(fv reflect.Value) (bool, types.Optional[string], error) {
+	if !fv.IsValid() {
+		return false, types.OptionalEmpty[string](), nil
+	}
+
 	fvi := fv.Interface()
 	switch fvit := fvi.(type) {
 	case types.TextMarshaler:

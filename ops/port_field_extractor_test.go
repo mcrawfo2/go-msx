@@ -15,22 +15,26 @@ import (
 
 func TestPortFieldExtractor_ExtractPrimitive_Text(t *testing.T) {
 	type primitives struct {
-		A string       `test:"extractor"`
-		B *string      `test:"extractor"`
-		C **string     `test:"extractor"`
-		G []byte       `test:"extractor"`
-		H *[]byte      `test:"extractor"`
-		D **[]byte     `test:"extractor"`
-		I []rune       `test:"extractor"`
-		J *[]rune      `test:"extractor"`
-		E **[]rune     `test:"extractor"`
-		K MyTextType   `test:"extractor"`
-		L *MyTextType  `test:"extractor"`
-		F **MyTextType `test:"extractor"`
-		M *string      `test:"extractor,optional"`
-		N *string      `test:"extractor,default=abc"`
-		O *string      `test:"extractor,const=abc"`
-		P *string      `test:"extractor,required"`
+		A string                 `test:"extractor"`
+		B *string                `test:"extractor"`
+		C **string               `test:"extractor"`
+		G []byte                 `test:"extractor"`
+		H *[]byte                `test:"extractor"`
+		D **[]byte               `test:"extractor"`
+		I []rune                 `test:"extractor"`
+		J *[]rune                `test:"extractor"`
+		E **[]rune               `test:"extractor"`
+		K MyTextType             `test:"extractor"`
+		L *MyTextType            `test:"extractor"`
+		F **MyTextType           `test:"extractor"`
+		M *string                `test:"extractor,optional"`
+		N *string                `test:"extractor,default=abc"`
+		O *string                `test:"extractor,const=abc"`
+		P *string                `test:"extractor,required"`
+		Q types.Optional[string] `test:"extractor"`
+		R types.Optional[string] `test:"extractor,default=abc"`
+		S types.Optional[string] `test:"extractor,const=abc"`
+		T types.Optional[string] `test:"extractor,required"`
 	}
 
 	pr := PortReflector{
@@ -194,6 +198,29 @@ func TestPortFieldExtractor_ExtractPrimitive_Text(t *testing.T) {
 		{
 			name:    "StringRequiredError",
 			field:   port.Fields.First(PortFieldHasName("P")),
+			value:   primitives{},
+			wantErr: true,
+		},
+		{
+			name:    "OptionalString",
+			field:   port.Fields.First(PortFieldHasName("Q")),
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringDefault",
+			field:   port.Fields.First(PortFieldHasName("R")),
+			want:    "abc",
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringConst",
+			field:   port.Fields.First(PortFieldHasName("S")),
+			want:    "abc",
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringRequiredError",
+			field:   port.Fields.First(PortFieldHasName("T")),
 			value:   primitives{},
 			wantErr: true,
 		},
