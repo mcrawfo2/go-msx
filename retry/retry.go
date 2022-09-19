@@ -165,3 +165,12 @@ func (r Retry) GetCurrentDelay(n int) (currentDelay int64) {
 
 	return currentDelay
 }
+
+func Decorator(cfg RetryConfig) types.ActionFuncDecorator {
+	return func(action types.ActionFunc) types.ActionFunc {
+		return func(ctx context.Context) error {
+			retry := NewRetry(ctx, cfg)
+			return retry.Retry(func() error { return action(ctx) })
+		}
+	}
+}
