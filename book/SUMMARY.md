@@ -32,8 +32,12 @@
     - [Validation](ops/streamops/validation.md)
     - [Publishers](ops/streamops/publishers.md)
     - [Subscribers](ops/streamops/subscribers.md)
-    - [AsyncApi]()
+    - [AsyncApi](schema/asyncapi/README.md)
   - [Stream Providers]()
+    - [Kafka]()
+    - [SQL]()
+    - [GoChannel]()
+    - [Redis]()
 ---
 
 # Utilities
