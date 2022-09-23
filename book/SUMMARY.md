@@ -15,16 +15,29 @@
 ---
 
 # Application Components
+
 ## Web Service 
 - [Controller](webservice/controller.md)
 - [Filter]()
+
 ## Persistence
 - [Repository](sqldb/repository.md)
 - [Migration]()
+
 ## Communication
 - [Integration]()
 - [Streaming]()
-
+  - [Stream Operations 🎉](ops/streamops/README.md)
+    - [Ports](ops/streamops/ports.md)
+    - [Validation](ops/streamops/validation.md)
+    - [Publishers](ops/streamops/publishers.md)
+    - [Subscribers](ops/streamops/subscribers.md)
+    - [AsyncApi](schema/asyncapi/README.md)
+  - [Stream Providers]()
+    - [Kafka]()
+    - [SQL]()
+    - [GoChannel]()
+    - [Redis]()
 ---
 
 # Utilities
