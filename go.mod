@@ -32,7 +32,7 @@ require (
 	github.com/hashicorp/consul/api v1.13.1
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/vault/api v1.0.5-0.20200717191844-f687267c8086
-	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/puddle v1.2.1
 	github.com/jackpal/gateway v1.0.7
 	github.com/jarcoal/httpmock v1.2.0
@@ -40,6 +40,7 @@ require (
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
+	github.com/mcrawfo2/go-jsonschema v1.0.2
 	github.com/mcrawfo2/jennifer v1.5.2
 	github.com/minghsu0107/watermill-redistream v1.0.0
 	github.com/mitchellh/mapstructure v1.4.2
@@ -53,13 +54,14 @@ require (
 	github.com/radovskyb/watcher v1.0.7
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 	github.com/scylladb/go-reflectx v1.0.1
 	github.com/scylladb/gocqlx v1.3.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cast v1.3.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cast v1.5.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggest/jsonschema-go v0.3.37
@@ -76,8 +78,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	moul.io/banner v1.0.1
 )
-
-require github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
@@ -136,6 +136,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -146,6 +147,7 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/renstrom/shortuuid v3.0.0+incompatible // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
+	github.com/sanity-io/litter v1.5.5 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190116191733-b6c0e53d7304 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect

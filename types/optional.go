@@ -195,6 +195,16 @@ func OptionalEmpty[I any]() Optional[I] {
 	return Optional[I]{}
 }
 
+func OptionalOfPtr[I any](v *I) Optional[I] {
+	if v == nil {
+		return Optional[I]{}
+	}
+	return Optional[I]{
+		valid: true,
+		value: *v,
+	}
+}
+
 func InvalidateZero[I comparable](v I) Optional[I] {
 	var zero I
 	if v == zero {
