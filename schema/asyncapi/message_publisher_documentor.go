@@ -92,11 +92,16 @@ func (d MessagePublisherDocumentor) headersSchema(publisher *streamops.MessagePu
 	}
 
 	headersSchema := js.ObjectSchema()
+	headersRequired := []string{}
 	for _, header := range headerPortFields {
 		headersSchema.WithPropertiesItem(
 			header.Peer,
 			jsonSchemaFromPortField(header).ToSchemaOrBool())
+		if !header.Optional {
+			headersRequired = append(headersRequired, header.Peer)
+		}
 	}
+	headersSchema.Required = headersRequired
 
 	return headersSchema
 }

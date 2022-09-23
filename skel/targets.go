@@ -7,11 +7,12 @@ package skel
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var allTargets = make(map[string]cli.CommandFunc)
 
-func AddTarget(name, description string, fn cli.CommandFunc) {
+func AddTarget(name, description string, fn cli.CommandFunc) *cobra.Command {
 	wrapper := func(args []string) error {
 		logger.Infof("Executing target '%s': %s", name, description)
 		err := fn(args)
@@ -25,10 +26,12 @@ func AddTarget(name, description string, fn cli.CommandFunc) {
 
 	allTargets[name] = fn
 
-	_, err := cli.AddCommand(name, description, wrapper)
+	cmd, err := cli.AddCommand(name, description, wrapper)
 	if err != nil {
 		panic(err.Error())
 	}
+
+	return cmd
 }
 
 func ExecTargets(targets ...string) error {
