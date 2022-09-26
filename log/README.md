@@ -26,6 +26,12 @@ To use a logger with a custom name:
 var logger = log.NewLogger("alert.api")
 ```
 
+To create a logger named after the current module:
+
+```go
+var logger = log.NewPackageLogger()
+```
+
 To create a levelled logger, which outputs print at the defined log level:
 
 ```go
