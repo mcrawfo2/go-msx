@@ -52,6 +52,13 @@ func (c SkeletonConfig) ApiPackageUrl() string {
 	return path.Join(c.AppPackageUrl(), "pkg", "api")
 }
 
+func (c SkeletonConfig) AppShortName() string {
+	noService := strings.TrimSuffix(c.AppName, "service")
+	noBeat := strings.TrimSuffix(noService, "beat")
+	noUi := strings.TrimSuffix(noBeat, "-ui")
+	return noUi
+}
+
 func (c SkeletonConfig) RepositoryQueryFileExtension() string {
 	queryFileExtension := "cql"
 	if skeletonConfig.Repository == "cockroach" {
@@ -75,6 +82,10 @@ var skeletonConfig = &SkeletonConfig{
 	ServiceType:       "",
 	SlackChannel:      "go-msx-build",
 	Trunk:             "main",
+}
+
+func Config() *SkeletonConfig {
+	return skeletonConfig
 }
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
@@ -323,7 +334,8 @@ var archetypeQuestions = []*survey.Question{
 	},
 }
 
-func ConfigureInteractive(args []string) error {
+// ConfigureInteractive is the only entry point to the menu UI
+func ConfigureInteractive() error {
 	var archetypeIndex int
 	err := survey.Ask(archetypeQuestions, &archetypeIndex)
 	if err != nil {

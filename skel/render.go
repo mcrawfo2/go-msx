@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -42,6 +43,11 @@ const (
 	FileFormatBash
 )
 
+var (
+	ErrFileExistsAlready = errors.New("file exists already, it should not")
+	ErrFileDoesNotExist  = errors.New("file does not exist, it should")
+)
+
 type RenderOptions struct {
 	Variables  map[string]string
 	Conditions map[string]bool
@@ -55,6 +61,16 @@ func (r RenderOptions) AddString(source, dest string) {
 func (r RenderOptions) AddStrings(strings map[string]string) {
 	for k, v := range strings {
 		r.Strings[k] = v
+	}
+}
+
+func (r RenderOptions) AddVariable(source, dest string) {
+	r.Variables[source] = dest
+}
+
+func (r RenderOptions) AddVariables(variables map[string]string) {
+	for k, v := range variables {
+		r.Variables[k] = v
 	}
 }
 
@@ -107,21 +123,33 @@ func NewRenderOptions() RenderOptions {
 type Template struct {
 	Name       string
 	DestFile   string
+	Operation  TemplateOperation
 	SourceFile string
 	SourceData []byte
 	Format     FileFormat
 }
+
+type TemplateOperation int
+
+const (
+	OpAdd            TemplateOperation = iota // add or replace
+	OpNew                                     // must not exist before being added
+	OpAddNoOverwrite                          // add if not exists
+	OpReplace                                 // must already exist
+	OpDelete                                  // must exist before removal
+	OpGone                                    // might not exist before removal
+)
 
 func (t Template) source(options RenderOptions) (string, error) {
 	if t.SourceData != nil {
 		return string(t.SourceData), nil
 	}
 
-	sourceFile := substituteVariables(t.SourceFile, options.Variables)
+	sourceFile := SubstituteVariables(t.SourceFile, options.Variables)
 
 	f, ok := staticFiles[sourceFile]
 	if !ok {
-		return "", errors.Errorf("Template file not found: %s", sourceFile)
+		return "", errors.Wrapf(ErrFileDoesNotExist, "template file not found: %s", sourceFile)
 	}
 
 	var reader io.Reader
@@ -148,25 +176,116 @@ func (t Template) destinationFile(options RenderOptions) (string, error) {
 		if t.SourceFile == "" {
 			return "", errors.New("Missing destination filename")
 		}
-		return substituteVariables(t.SourceFile, options.Variables), nil
+		return SubstituteVariables(t.SourceFile, options.Variables), nil
 	}
-	return substituteVariables(t.DestFile, options.Variables), nil
+	return SubstituteVariables(t.DestFile, options.Variables), nil
 }
 
 func (t Template) Render(options RenderOptions) error {
+	// Find the destination
+	destFile, err := t.destinationFile(options)
+	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
+	targetDirectory := path.Dir(targetFileName)
+
+	targetExists := true
+	_, err = os.Stat(targetFileName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			targetExists = false
+		} else {
+			return errors.Wrapf(err, "checking for target %q failed", targetFileName)
+		}
+	}
+
+	switch t.Operation {
+
+	case OpGone: // remove if it exists
+		if targetExists {
+			err = os.Remove(targetFileName)
+			if err != nil {
+				return errors.Wrapf(err, "removing old target %q failed", targetFileName)
+			}
+			logger.Infof("X %s (%s)", t.Name, targetFileName)
+		}
+		return nil
+
+	case OpDelete: // it must exist and be removed
+		if !targetExists {
+			return errors.Errorf("file %q required but missing", targetFileName)
+		}
+		err = os.Remove(targetFileName)
+		if err != nil {
+			return errors.Wrapf(err, "unable to remove %q", targetFileName)
+		}
+		logger.Infof("- %s (%s)", t.Name, targetFileName)
+		return nil
+
+	case OpAdd: // exists? we care not
+
+	case OpReplace: // we insist it exists before we replace it
+		if !targetExists {
+			return errors.Wrapf(ErrFileDoesNotExist, "failed replacing %q", targetFileName)
+		}
+
+	case OpNew: // we insist it does not exist before we add it
+		if targetExists {
+			return errors.Wrapf(ErrFileExistsAlready, "failed making new %q", targetFileName)
+		}
+
+	case OpAddNoOverwrite: // it may exist or not, but we don't overwrite it
+		if targetExists {
+			logger.Infof("= (skip) %s (%s)", t.Name, targetFileName)
+			return nil
+		}
+	}
+
+	contents, err := t.RenderContents(options)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the target parent directory exists
+	err = os.MkdirAll(targetDirectory, 0755)
+	if err != nil {
+		return err
+	}
+
+	// Write the rendered contents to the destination file
+
+	perm := os.FileMode(0644)
+	if t.Format == FileFormatBash { // +x for bash scripts
+		perm = os.FileMode(0755)
+	}
+
+	err = os.WriteFile(targetFileName, []byte(contents), perm)
+	if err != nil {
+		return errors.Wrapf(err, "writing %q failed", targetFileName)
+	}
+
+	if t.Format == FileFormatGo {
+		err = exec.ExecutePipesStderr(
+			exec.Info("  - Reformatting %q", path.Base(destFile)),
+			exec.ExecSimple("go", "fmt", targetFileName))
+		if err != nil {
+			return errors.Wrapf(err, "reformatting %q failed", targetFileName)
+		}
+	}
+
+	logger.Infof("+ %s (%s)", t.Name, targetFileName)
+
+	return nil
+}
+
+func (t Template) RenderContents(options RenderOptions) (result string, err error) {
 	// Load the source
 	contents, err := t.source(options)
 	if err != nil {
-		return err
+		return
 	}
 
-	// Find the destination
-	destFile, err := t.destinationFile(options)
-	if err != nil {
-		return err
+	if len(contents) < 20 {
+		logger.Warnf("improbably short template `%s` (%s, %d bytes)", t.Name, t.SourceFile, len(contents))
 	}
-
-	logger.Infof("- %s (%s)", t.Name, destFile)
 
 	// Replace strings
 	for sourceString, destString := range options.Strings {
@@ -174,37 +293,18 @@ func (t Template) Render(options RenderOptions) error {
 	}
 
 	// Substitute variables
-	contents = substituteVariables(contents, options.Variables)
+	contents = SubstituteVariables(contents, options.Variables)
 
 	// Execute conditions
 	for condition, value := range options.Conditions {
 		contents, err = processConditionalBlocks(contents, t.Format, condition, value)
 	}
 	if err != nil {
-		return err
+		return
 	}
 
-	// Ensure the target parent directory exists
-	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
-	targetDirectory := path.Dir(targetFileName)
-	err = os.MkdirAll(targetDirectory, 0755)
-	if err != nil {
-		return err
-	}
-
-	// Write the rendered contents to the destination file
-	err = os.WriteFile(targetFileName, []byte(contents), 0644)
-	if err != nil {
-		return err
-	}
-
-	if t.Format == FileFormatGo {
-		err = exec.ExecutePipes(
-			exec.Info("  - Reformatting %q", path.Base(destFile)),
-			exec.ExecSimple("go", "fmt", targetFileName))
-	}
-
-	return err
+	result = contents
+	return
 }
 
 type TemplateSet []Template
@@ -218,7 +318,17 @@ func (t TemplateSet) Render(options RenderOptions) error {
 	return nil
 }
 
-func substituteVariables(source string, variableValues map[string]string) string {
+func (t TemplateSet) Dirs(opts RenderOptions) (results []string) {
+	dirs := types.NewStringSet()
+	for _, template := range t {
+		destFile := SubstituteVariables(template.DestFile, opts.Variables)
+		destDir := path.Dir(destFile)
+		dirs.Add(destDir)
+	}
+	return dirs.Values()
+}
+
+func SubstituteVariables(source string, variableValues map[string]string) string {
 	rendered := source
 	variableInstanceRegex := regexp.MustCompile(`\${([^}]+)}`)
 	for _, variableInstance := range variableInstanceRegex.FindAllStringSubmatch(rendered, -1) {
