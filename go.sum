@@ -520,6 +520,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5
 github.com/maxatome/go-testdeep v1.11.0 h1:Tgh5efyCYyJFGUYiT0qxBSIDeXw0F5zSoatlou685kk=
 github.com/mcrawfo2/go-jsonschema v1.0.2 h1:Q4Od2ouN3vYnSBHY1Z4VPkEXf7WnceTT1lsbtPCYAug=
 github.com/mcrawfo2/go-jsonschema v1.0.2/go.mod h1:N5S7U0Q3HiervM4sdcKMe6wnlEgLBJNywT2Ljt/r66o=
+github.com/mcrawfo2/go-jsonschema v1.0.3 h1:QyEkSDh7Oi7ECZHji2jWApC2zrCRckUBI7ROmAJgM5E=
+github.com/mcrawfo2/go-jsonschema v1.0.3/go.mod h1:N5S7U0Q3HiervM4sdcKMe6wnlEgLBJNywT2Ljt/r66o=
 github.com/mcrawfo2/jennifer v1.5.2 h1:j5pKrO5KscJCC65HaNOv4i5crN1xX0sq9eEwTJUkR7o=
 github.com/mcrawfo2/jennifer v1.5.2/go.mod h1:Y/dv8HFLS3/HrYoQGBV58k2pvgGkpaIhUOidexmP99U=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b h1:j7+1HpAFS1zy5+Q4qx1fWh90gTKwiN4QCGoY9TWyyO4=

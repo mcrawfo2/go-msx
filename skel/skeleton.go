@@ -5,14 +5,13 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"gopkg.in/pipe.v2"
 	"os"
 	"path"
-
-	"cto-github.cisco.com/NFV-BU/go-msx/exec"
-	"gopkg.in/pipe.v2"
 )
 
 var ErrNoTemplates = errors.Errorf("no templates")
@@ -37,7 +36,7 @@ func init() {
 	AddTarget("generate-webservices", "Create web services from swagger manifest", GenerateDomainOpenApi)
 }
 
-// Root command
+// GenerateSkeleton is the root command
 func GenerateSkeleton(_ []string) error {
 	var generators []string
 	// Common pre-generators

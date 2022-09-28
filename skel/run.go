@@ -41,6 +41,8 @@ func init() {
 }
 
 func configure(cmd *cobra.Command, args []string) error {
+	_ = args
+
 	if cmd.Use == "version" {
 		return nil
 	}
@@ -57,8 +59,9 @@ func configure(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Configure a new project if no project was found
-	return ConfigureInteractive(args)
+	// Configure a new project via the survey menus if no project was found
+	//
+	return ConfigureInteractive()
 }
 
 func loadConfig(configFile string) error {

@@ -40,7 +40,7 @@ require (
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1
-	github.com/mcrawfo2/go-jsonschema v1.0.2
+	github.com/mcrawfo2/go-jsonschema v1.0.3
 	github.com/mcrawfo2/jennifer v1.5.2
 	github.com/minghsu0107/watermill-redistream v1.0.0
 	github.com/mitchellh/mapstructure v1.4.2
