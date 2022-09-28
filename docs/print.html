@@ -337,6 +337,9 @@ func main() {
 <p>To use a logger with a custom name:</p>
 <pre><code class="language-go">var logger = log.NewLogger(&quot;alert.api&quot;)
 </code></pre>
+<p>To create a logger named after the current module:</p>
+<pre><code class="language-go">var logger = log.NewPackageLogger()
+</code></pre>
 <p>To create a levelled logger, which outputs print at the defined log level:</p>
 <pre><code class="language-go">debugLogger := logger.Level(log.DebugLevel)
 debugLogger.Printf(&quot;Some template: %s&quot;, &quot;inserted&quot;)
