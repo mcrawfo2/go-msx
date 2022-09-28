@@ -40,9 +40,7 @@ func init() {
 	rootCmd.PersistentPreRunE = configure
 }
 
-func configure(cmd *cobra.Command, args []string) error {
-	_ = args
-
+func configure(cmd *cobra.Command, _ []string) error {
 	if cmd.Use == "version" {
 		return nil
 	}
@@ -60,7 +58,6 @@ func configure(cmd *cobra.Command, args []string) error {
 	}
 
 	// Configure a new project via the survey menus if no project was found
-	//
 	return ConfigureInteractive()
 }
 
