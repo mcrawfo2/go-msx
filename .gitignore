@@ -35,3 +35,4 @@ schema/asyncapi/asyncapi-2.3.0.json
 schema/asyncapi/asyncapi-2.4.0.json
 book/*
 !book/SUMMARY.md
+.DS_Store
