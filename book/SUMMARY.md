@@ -1,6 +1,7 @@
 # Summary
 
 [Introduction](README.md)
+[Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -57,3 +58,22 @@
 - [Scheduled Tasks](scheduled/README.md)
 - [Transit Encryption](transit/README.md)
 - [Validation]()
+---
+
+# Code Generation
+
+- [Introduction](skel/README.md)
+- [Installation](skel/docs/installation.md)
+- [Usage](skel/docs/usage.md)
+- [Projects]()
+  - [Generic Microservice](skel/docs/projects-generic.md)
+  - [Probes (Beats)](skel/docs/projects-beats.md)
+  - [Service Pack Microservice]()
+  - [Service Pack UI]()
+- [Continuous Integration]()
+- [Web Services]()
+  - [Domains]()
+  - [OpenAPI]()
+- [Stream Services]()
+  - [Channels](skel/asyncapi/channels.md)
+  - [AsyncAPI](skel/asyncapi/spec.md)
