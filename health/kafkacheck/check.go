@@ -14,43 +14,24 @@ import (
 func Check(ctx context.Context) health.CheckResult {
 	kafkaPool := kafka.PoolFromContext(ctx)
 	if kafkaPool == nil {
-		return health.CheckResult{
-			Status: health.StatusDown,
-			Details: map[string]interface{}{
-				"error": "Kafka pool not found in context",
-			},
-		}
+		return errorCheckResult(nil, "Kafka pool not found in context")
 	}
+	connectionConfig := kafkaPool.ConnectionConfig()
 
 	var healthResult health.CheckResult
 	err := trace.Operation(ctx, "kafka.healthCheck", func(ctx context.Context) error {
 		return kafkaPool.WithConnection(ctx, func(conn *kafka.Connection) error {
 			broker, err := conn.Client().Controller()
 			if err != nil {
-				healthResult = health.CheckResult{
-					Status: health.StatusDown,
-					Details: map[string]interface{}{
-						"error": err.Error(),
-					},
-				}
+				healthResult = errorCheckResult(connectionConfig, err.Error())
 				return nil
 			}
 
 			connectedResult, err := broker.Connected()
 			if err != nil {
-				healthResult = health.CheckResult{
-					Status: health.StatusDown,
-					Details: map[string]interface{}{
-						"error": err.Error(),
-					},
-				}
+				healthResult = errorCheckResult(connectionConfig, err.Error())
 			} else if !connectedResult {
-				healthResult = health.CheckResult{
-					Status: health.StatusDown,
-					Details: map[string]interface{}{
-						"error": "Kafka not connected",
-					},
-				}
+				healthResult = errorCheckResult(connectionConfig, "Kafka not connected")
 			} else {
 				healthResult = health.CheckResult{
 					Status:  health.StatusUp,
@@ -72,4 +53,27 @@ func Check(ctx context.Context) health.CheckResult {
 	}
 
 	return healthResult
+}
+
+func errorCheckResult(connectionConfig *kafka.ConnectionConfig, s string) health.CheckResult {
+	details := map[string]interface{}{
+		"error": s,
+	}
+
+	if connectionConfig != nil {
+		details = map[string]interface{}{
+			"error":   s,
+			"brokers": connectionConfig.Brokers,
+			"zk":      connectionConfig.ZkNodes,
+			"tls": map[string]interface{}{
+				"enabled":     connectionConfig.Tls.Enabled,
+				"certificate": connectionConfig.Tls.CertificateSource,
+			},
+		}
+	}
+
+	return health.CheckResult{
+		Status:  health.StatusDown,
+		Details: details,
+	}
 }
