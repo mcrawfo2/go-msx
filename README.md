@@ -10,7 +10,7 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
 
 ## Requirements
 
-- Go 1.16+
+- Go 1.18+
 
     - Ensure your GOPATH is correctly set and referenced in your PATH.  For example:
         ```bash
@@ -79,71 +79,11 @@ backwards-incompatible changes at *any* time.  After reaching the first stable r
     cd $HOME/msx
     skel
     ```
-
-## Contributing
-
-- Ensure you create a meaningfully named topic branch for your code:
-
-    `feature/sql-transactions`
-    
-    `bugfix/populate-error-handling`
-    
-- Make your code changes
-
-- Run `make precommit` to regenerate and reformat.
-
-- Commit your code to your topic branch
-
-- Rebase your topic branch onto master (do not reverse merge master into your branch)
-
-- Ensure your commits are cohesive, or just squash them
-
-- Create a Pull Request with a meaningful title similar to your topic branch name
-
+  
 ## Documentation
 
-For HTML format, please visit our [internal site](https://cto-github.cisco.com/pages/NFV-BU/go-msx)
+Please visit our [internal site](https://cto-github.cisco.com/pages/NFV-BU/go-msx)
 or [public site](https://mcrawfo2.github.io/go-msx/).
-
-### Cross-Cutting Concerns
-* [Logging](log/README.md)
-* [Configuration](config/README.md)
-* [Lifecycle](app/README.md)
-* [Dependencies](app/context.md)
-* [Stats](stats/README.md)
-* [Tracing](trace/README.md)
-
-### Application Components
-* Web Service
-    * [Controller](webservice/controller.md)
-    * [Filter](#)
-
-* Persistence
-  
-    * [Repository](sqldb/repository.md)
-    * [Migration](#)
-    
-* Communication
-    * [Integration](#)
-    * [Streaming](#)
-
-### Utilities
-
-* [Audit Events](#)
-* [Auditable Models](#)
-* [Cache](cache/lru/README.md)
-* [Certificates and TLS](certificate/README.md)
-* [Executing Commands](#)
-* [Health Checks](#)
-* [Http Client](#)
-* [Leader Election](#)
-* [Pagination](#)
-* [Resources](resource/README.md)
-* [Retry](#)
-* [Sanitization](sanitize/README.md)
-* [Scheduled Tasks](scheduled/README.md)
-* [Transit Encryption](transit/README.md)
-* [Validation](#)
 
 ## License
 
