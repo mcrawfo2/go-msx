@@ -177,11 +177,15 @@ func configureInteractiveSpec() (err error) {
 		channelNames = append(channelNames, channelName)
 	}
 
+	var defaultChannel interface{}
+	if specificationConfig.ChannelName != "" {
+		defaultChannel = specificationConfig.ChannelName
+	}
 	err = survey.AskOne(
 		&survey.Select{
 			Message: "Channel for which to generate components:",
 			Options: channelNames,
-			Default: specificationConfig.ChannelName,
+			Default: defaultChannel,
 		},
 		&specificationConfig.ChannelName)
 	if err != nil {
