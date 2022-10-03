@@ -77,11 +77,12 @@ func (g *Generator) messages(choices asyncapi.MessageChoices) (results []*asynca
 }
 
 func (g *Generator) GenerateChannel(k string) (err error) {
-	streamFolderName := g.generateFolderName(k)
-	g.setPackage("", streamFolderName, "internal/stream/"+streamFolderName)
-
 	skeletonConfig := skel.Config()
-	apiFolderName := "internal/stream/" + streamFolderName + "/api"
+
+	streamFolderName := "internal/stream/" + g.generateFolderName(k)
+	g.setPackage("", skeletonConfig.AppPackageUrl()+streamFolderName, streamFolderName)
+
+	apiFolderName := streamFolderName + "/api"
 	g.setPackage(PrefixPackageApi, skeletonConfig.AppPackageUrl()+"/"+apiFolderName, apiFolderName)
 
 	gen, _ := generator.New(generator.Config{
@@ -548,6 +549,7 @@ func (g *Generator) GenerateType(schema jsonschema.Schema, gen *generator.Genera
 			schemaName = strings.TrimPrefix(schemaName, prefix)
 			packageName = pkg.Name
 			packageFolder = pkg.Folder
+			break
 		}
 	}
 
