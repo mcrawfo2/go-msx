@@ -7,6 +7,7 @@
 
 # Cross-Cutting Concerns
 - [Logging](log/README.md)
+- [Errors](types/docs/errors.md)
 - [Configuration](config/README.md)
 - [Lifecycle](app/README.md)
 - [Dependencies](app/context.md)
