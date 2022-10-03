@@ -32,7 +32,7 @@ func (a *PanicRecovererSubscriberAction) Call(msg *message.Message) (err error) 
 			logger.
 				WithContext(msg.Context()).
 				WithError(e).
-				WithField(log.FieldStack, bt.Stanza()).
+				WithFields(bt.LogFields()).
 				Error("Recovered from panic")
 			log.Stack(logger, msg.Context(), bt)
 

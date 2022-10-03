@@ -191,7 +191,7 @@ func listenerHandler(topic string, action ListenerAction, cfg *BindingConfigurat
 			logger.
 				WithContext(msg.Context()).
 				WithError(err).
-				WithField(log.FieldStack, bt.Stanza()).
+				WithFields(bt.LogFields()).
 				Error("Failed to process message")
 			log.Stack(logger, msg.Context(), bt)
 		}
