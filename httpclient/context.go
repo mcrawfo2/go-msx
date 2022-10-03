@@ -6,10 +6,7 @@ package httpclient
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 )
-
-var logger = log.NewLogger("msx.httpclient")
 
 type httpClientContextKey int
 

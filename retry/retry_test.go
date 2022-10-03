@@ -444,7 +444,43 @@ func TestRetry_GetCurrentDelay_ExponentialDelay(t *testing.T) {
 	}
 }
 
-func TestRetry_GetCurrentDelay_LinearJitter(t *testing.T) {
+func TestRetry_GetCurrentDelay_LinearLowJitter(t *testing.T) {
+	clock := types.NewMockClock()
+	ctx := types.ContextWithClock(context.Background(), clock)
+
+	r := NewRetry(ctx, RetryConfig{
+		Attempts: 5,
+		Delay:    1000,
+		BackOff:  1.0,
+		Linear:   true,
+		Jitter:   1000,
+	})
+
+	configDelay := r.Delay.Nanoseconds()
+	currentDelay := configDelay
+	jitter := r.Jitter.Nanoseconds()
+	for i := 1; i < r.Attempts; i++ {
+		got := r.GetCurrentDelay(i)
+		if i != 1 {
+			min := configDelay + int64(i-1)*int64(float64(r.Delay.Nanoseconds())*r.BackOff)
+			max := min + jitter
+			if got < min || got > max {
+				t.Errorf("GetCurrentDelay() got = %v, want between %v - %v", got, min, max)
+			}
+
+		} else {
+			want := configDelay
+			if got != want {
+				t.Errorf("GetCurrentDelay() got = %v, want %v", got, want)
+			}
+		}
+
+		currentDelay = got
+		logger.Info(i, currentDelay/int64(time.Millisecond))
+	}
+}
+
+func TestRetry_GetCurrentDelay_LinearExtremeJitter(t *testing.T) {
 	clock := types.NewMockClock()
 	ctx := types.ContextWithClock(context.Background(), clock)
 
