@@ -1,5 +1,5 @@
 [book]
-authors = ["Michael Crawford"]
+authors = ["Michael Crawford", "Jonee Ryan Ty", "Andrew Price"]
 language = "en"
 multilingual = false
 src = "book"
@@ -11,3 +11,9 @@ create-missing = false
 
 [output.html]
 preferred-dark-theme = "coal"
+additional-js = ["book/mermaid.min.js", "book/mermaid-init.js"]
+
+[preprocessor]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"

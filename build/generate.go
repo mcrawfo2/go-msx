@@ -29,12 +29,20 @@ func init() {
 }
 
 func InstallGenerateDependencies(_ []string) error {
+	// Binary output path
 	targetPath, err := getGoBin()
 	if err != nil {
 		return err
 	}
 
+	// Book generator
 	mdBookUrl, err := getPlatformRustAssetUrl("https://github.com/rust-lang/mdBook/releases/download/v0.4.21/mdbook-v0.4.21")
+	if err != nil {
+		return err
+	}
+
+	// Book mermaid -> image generator
+	mdBookMermaidUrl, err := getPlatformRustAssetUrl("https://github.com/badboy/mdbook-mermaid/releases/download/v0.11.2/mdbook-mermaid-v0.11.2")
 	if err != nil {
 		return err
 	}
@@ -48,6 +56,10 @@ func InstallGenerateDependencies(_ []string) error {
 		tarInstall(
 			mdBookUrl,
 			"mdbook",
+			targetPath),
+		tarInstall(
+			mdBookMermaidUrl,
+			"mdbook-mermaid",
 			targetPath),
 	}
 
