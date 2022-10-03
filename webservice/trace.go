@@ -72,7 +72,7 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 		logger.
 			WithLogContext(logContext).
 			WithError(err).
-			WithField(log.FieldStack, bt.Stanza()).
+			WithFields(bt.LogFields()).
 			Errorf("Incoming request failed: %s: %s", http.StatusText(resp.StatusCode()), err.Error())
 		log.Stack(logger, ctx, bt)
 	} else if resp.StatusCode() < 399 {

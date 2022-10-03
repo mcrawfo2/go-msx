@@ -71,6 +71,7 @@ func BackTraceFrameFromFrame(frame errors.Frame) BackTraceFrame {
 type BackTraceError struct {
 	Message string
 	Frames  []BackTraceFrame
+	Fields  map[string]interface{}
 }
 
 func (b BackTraceError) Equal(other BackTraceError) bool {
@@ -101,10 +102,19 @@ func (b BackTraceError) TrimFrames(other BackTraceError) BackTraceError {
 		idx++
 	}
 
+	return b.WithFrames(b.Frames[:myCount-idx])
+}
+
+func (b BackTraceError) WithFrames(frames []BackTraceFrame) BackTraceError {
 	return BackTraceError{
 		Message: b.Message,
-		Frames:  b.Frames[:myCount-idx],
+		Frames:  frames,
+		Fields:  b.Fields,
 	}
+}
+
+func (b BackTraceError) LogFields() map[string]interface{} {
+	return b.Fields
 }
 
 func BackTraceErrorFromError(err error) BackTraceError {
@@ -132,10 +142,21 @@ func BackTraceErrorFromError(err error) BackTraceError {
 		}
 	}
 
+	// If we have log fields, attach them to the BackTraceError
+	var fields map[string]interface{}
+	if errLogFielder, ok := err.(logFielder); ok {
+		fields = errLogFielder.LogFields()
+	}
+
 	return BackTraceError{
 		Message: message,
 		Frames:  frames,
+		Fields:  fields,
 	}
+}
+
+type logFielder interface {
+	LogFields() map[string]interface{}
 }
 
 func BackTraceErrorFromDebugStackTrace(stackTraceBytes []byte) BackTraceError {
@@ -227,6 +248,28 @@ func BackTraceFromDebugStackTrace(stackTrace []byte) BackTrace {
 }
 
 type BackTrace []BackTraceError
+
+func (b BackTrace) LogFields() map[string]interface{} {
+	result := map[string]interface{}{}
+
+	for i, bte := range b {
+		if nf := bte.Fields; nf != nil {
+			for k, v := range nf {
+				result[k] = v
+			}
+		}
+
+		if i < len(b)-1 {
+			result["message"] = bte.Message
+			result = map[string]interface{}{
+				"cause": result,
+			}
+		}
+	}
+
+	result["stack"] = b.Stanza()
+	return result
+}
 
 func (b BackTrace) Stanza() string {
 	var buf bytes.Buffer

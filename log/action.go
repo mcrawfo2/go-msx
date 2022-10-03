@@ -27,7 +27,7 @@ func RecoverLogDecorator(logger *Logger) types.ActionFuncDecorator {
 					logger.
 						WithContext(ctx).
 						WithError(e).
-						WithField(FieldStack, bt.Stanza()).
+						WithFields(bt.LogFields()).
 						Error("Recovered from panic")
 					Stack(logger, ctx, bt)
 				}
@@ -47,7 +47,7 @@ func ErrorLogDecorator(logger *Logger, actionName string) types.ActionFuncDecora
 				logger.
 					WithContext(ctx).
 					WithError(err).
-					WithField(FieldStack, bt.Stanza()).
+					WithFields(bt.LogFields()).
 					Errorf("Action %q returned error", actionName)
 				Stack(logger, ctx, bt)
 			}

@@ -169,7 +169,7 @@ func (a *MsxApplication) Run(command string) error {
 					logger.
 						WithContext(a.ctx).
 						WithError(err).
-						WithField(log.FieldStack, bt.Stanza()).
+						WithFields(bt.LogFields()).
 						Error("Refresh failed")
 					log.Stack(logger, a.ctx, bt)
 					a.SetExitCode(1)
@@ -191,7 +191,7 @@ func (a *MsxApplication) Run(command string) error {
 		logger.
 			WithContext(a.ctx).
 			WithError(err).
-			WithField(log.FieldStack, bt.Stanza()).
+			WithFields(bt.LogFields()).
 			Error("Startup failed")
 		log.Stack(logger, a.ctx, bt)
 		a.SetExitCode(1)

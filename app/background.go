@@ -18,7 +18,7 @@ func (e errorReporter) Fatal(err error) {
 	bt := types.BackTraceFromError(err)
 	logger.
 		WithError(err).
-		WithField(log.FieldStack, bt.Stanza()).
+		WithFields(bt.LogFields()).
 		Error("Background task returned fatal error")
 	log.Stack(logger, nil, bt)
 
@@ -29,7 +29,7 @@ func (e errorReporter) NonFatal(err error) {
 	bt := types.BackTraceFromError(err)
 	logger.
 		WithError(err).
-		WithField(log.FieldStack, bt.Stanza()).
+		WithFields(bt.LogFields()).
 		Error("Background task returned non-fatal error")
 	log.Stack(logger, nil, bt)
 }

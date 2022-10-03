@@ -304,9 +304,22 @@ func newLogger(logger ParentLogger, fields ...LogContext) *Logger {
 	}
 }
 
+type LogFielder interface {
+	LogFields() map[string]interface{}
+}
+
 type GlobalFormatter struct{}
 
 func (g GlobalFormatter) Format(e *logrus.Entry) ([]byte, error) {
+	if logErr, ok := e.Data[logrus.ErrorKey]; ok {
+		if logFielderErr, ok := logErr.(LogFielder); ok {
+			logFields := logFielderErr.LogFields()
+			if logFields != nil {
+				e.WithFields(logFields)
+			}
+		}
+	}
+
 	return logrus.StandardLogger().Formatter.Format(e)
 }
 

@@ -110,13 +110,13 @@ func (r Retry) Retry(retryable Retryable) (err error) {
 			logger.
 				WithContext(r.Context).
 				WithError(err).
-				WithField(log.FieldStack, bt.Stanza()).
+				WithFields(bt.LogFields()).
 				Errorf("Attempt %d failed with permanent failure", n)
 		} else {
 			logger.
 				WithContext(r.Context).
 				WithError(err).
-				WithField(log.FieldStack, bt.Stanza()).
+				WithFields(bt.LogFields()).
 				Errorf("Attempt %d failed, no more attempts", n)
 		}
 		log.Stack(logger, r.Context, bt)

@@ -36,6 +36,10 @@ func (v ValidationErrors) ToPojo() types.Pojo {
 	return types.Pojo(v)
 }
 
+func (v ValidationErrors) LogFields() map[string]interface{} {
+	return v
+}
+
 func (v ValidationErrors) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v)
 }
@@ -63,6 +67,12 @@ func (e *ValidationFailure) ToPojo() types.Pojo {
 		result[k] = v.ToPojo()
 	}
 	return result
+}
+
+func (e *ValidationFailure) LogFields() map[string]interface{} {
+	return map[string]interface{}{
+		"validation": e,
+	}
 }
 
 func (e *ValidationFailure) MarshalJSON() ([]byte, error) {
