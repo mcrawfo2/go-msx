@@ -78,3 +78,16 @@
 - [Stream Services]()
   - [Channels](skel/asyncapi/channels.md)
   - [AsyncAPI](skel/asyncapi/spec.md)
+
+# Builds
+
+- [Introduction]()
+- [Makefile Usage](build/docs/usage-make.md)
+- [Build Usage](build/docs/usage-build.md)
+- [Configuration](build/docs/config.md)
+- [Build Targets](build/docs/targets.md)
+  - [Project Maintenance](build/docs/targets-project.md)
+  - [Development](build/docs/targets-development.md)
+  - [Artifacts](build/docs/targets-artifacts.md)
+  - [Verification](build/docs/targets-verification.md)
+  - [Publishing](build/docs/targets-publishing.md)
