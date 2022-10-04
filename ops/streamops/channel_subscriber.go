@@ -101,10 +101,10 @@ func NewChannelSubscriber(_ context.Context, channel *Channel, name string, disp
 		dispatchTable:  map[stream.MetadataHeader]stream.ListenerAction{},
 	}
 
-	RegisterChannelSubscriber(result)
-
-	if err := stream.AddMessageListener(result.Channel().Name(), result); err != nil {
-		return nil, errors.Wrapf(err, "Failed to listen on channel %q", channel.Name())
+	if RegisterChannelSubscriber(result) {
+		if err := stream.AddMessageListener(result.Channel().Name(), result); err != nil {
+			return nil, errors.Wrapf(err, "Failed to listen on channel %q", channel.Name())
+		}
 	}
 
 	return result, nil
@@ -112,8 +112,14 @@ func NewChannelSubscriber(_ context.Context, channel *Channel, name string, disp
 
 var registeredChannelSubscribers = make(map[string]*ChannelSubscriber)
 
-func RegisterChannelSubscriber(p *ChannelSubscriber) {
+func RegisterChannelSubscriber(p *ChannelSubscriber) bool {
+	// Do not add registration twice
+	if _, ok := registeredChannelSubscribers[p.Channel().Name()]; ok {
+		return false
+	}
+
 	registeredChannelSubscribers[p.channel.Name()] = p
+	return true
 }
 
 func RegisteredChannelSubscriber(channel string) *ChannelSubscriber {
