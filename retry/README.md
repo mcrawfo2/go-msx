@@ -38,15 +38,25 @@ r := NewRetry(ctx, RetryConfig{
     Linear: false,
 })
 ```
-
+Retries with linear delay and Jitter (low random) (1, 2.452, 3.571, 4.357) <br />
+```go
+r := NewRetry(ctx, RetryConfig{
+    Attempts: 5,
+    Delay:    1000,
+    BackOff:  1.0,
+    Linear:   true,
+    Jitter:   1000,
+})
+```
 Retries with linear delay and Jitter (extreme random) (1, 7.8, 20.3, 8.45) <br />
 > With higher Jitter value you could expect greater randomness
 ```go
 r := NewRetry(ctx, RetryConfig{
     Attempts: 5,
     Delay:    1000,
-    Jitter:   20000,
+    BackOff:  1.0,
     Linear:   true,
+    Jitter:   20000,
 })
 ```
 Retries with exponential delay and Jitter (1, 2, 4, 8) (note: jitter is negligible so this is just like exponential backoff with no jitter)
