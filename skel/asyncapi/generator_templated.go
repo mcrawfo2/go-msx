@@ -102,6 +102,11 @@ func (g *TemplatedGenerator) RenderChannelOperation(op string) (err error) {
 
 	// for each new message type
 	for _, messageId := range g.cfg.Messages {
+		if op == OperationPublish {
+			messageId += "Response"
+		} else {
+			messageId += "Request"
+		}
 		err = g.RenderMessageOperation(op, messageId, nil)
 		if err != nil {
 			return
@@ -150,7 +155,7 @@ type ${async.upmsgtype}Handler interface {
 		"implementation": `
 type ${async.msgtype}Input struct {
 //#if CHANNEL_MULTI
-	EventType string                       ` + "`" + `in:"header=${async.dispatch.header}" const:"${async.msgtype.dispatch}"` + "`" + `
+	EventType string                       ` + "`" + `in:"header=${async.dispatch.header}" const:"${async.dispatch.value}"` + "`" + `
 //#endif CHANNEL_MULTI
 	Payload   api.${async.upmsgtype} ` + "`" + `in:"body"` + "`" + `
 }
