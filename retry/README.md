@@ -51,6 +51,20 @@ Permanent errors should return `true` from `IsPermanent()`, transient
 errors should return `false`.  As above, this can be handled by wrapping
 the error in either `PermanentError` or `TransientError`.
 
+## Configuration Loading
+
+`RetryConfig` is designed to be loaded from configuration, making it possible
+to configure from static, environmental, or remote configuration
+sources in a consistent fashion.
+
+```go
+const configRootMerakiClientRetry = "meraki.client.retry"
+var retryConfig retry.Config
+if err := config.FromContext(ctx).Populate(&retryConfig, configRootMerakiClientRetry); err != nil {
+	return err
+}
+```
+
 ## Configuration Examples
 
 - Retries without delays
