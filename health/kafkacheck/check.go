@@ -44,12 +44,7 @@ func Check(ctx context.Context) health.CheckResult {
 	})
 
 	if err != nil {
-		healthResult = health.CheckResult{
-			Status: health.StatusDown,
-			Details: map[string]interface{}{
-				"error": err.Error(),
-			},
-		}
+		healthResult = errorCheckResult(connectionConfig, err.Error())
 	}
 
 	return healthResult
