@@ -46,6 +46,10 @@ func (d MessageSubscriberDocumentor) Document(subscriber *streamops.MessageSubsc
 		message = new(Message)
 	}
 
+	if message.ID == nil {
+		message.WithID(subscriber.Name())
+	}
+
 	if message.ContentType == nil {
 		if subscriber.ContentType() != "" {
 			message.WithContentType(subscriber.ContentType())
