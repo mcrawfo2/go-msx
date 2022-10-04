@@ -184,6 +184,13 @@ func (o Optional[I]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.value)
 }
 
+func (o Optional[I]) Ptr() *I {
+	if !o.valid {
+		return nil
+	}
+	return &o.value
+}
+
 func OptionalOf[I any](v I) Optional[I] {
 	return Optional[I]{
 		valid: true,

@@ -35,7 +35,7 @@ func NewPublisher(ctx context.Context, name string) (Publisher, error) {
 
 	provider, ok := providers[bindingConfig.Binder]
 	if !ok {
-		return nil, ErrBinderNotEnabled
+		return nil, errors.Wrap(ErrBinderNotEnabled, bindingConfig.Binder)
 	}
 
 	publisher, err := provider.NewPublisher(ctx, name, bindingConfig)
@@ -62,7 +62,7 @@ func NewSubscriber(ctx context.Context, name string) (message.Subscriber, error)
 
 	provider, ok := providers[bindingConfig.Binder]
 	if !ok {
-		return nil, ErrBinderNotEnabled
+		return nil, errors.Wrap(ErrBinderNotEnabled, bindingConfig.Binder)
 	}
 
 	subscriber, err := provider.NewSubscriber(ctx, name, bindingConfig)
