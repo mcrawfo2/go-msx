@@ -45,7 +45,7 @@ func New${async.upmsgtype}Publisher(ctx context.Context) (${async.upmsgtype}Publ
 			return nil, err
 		}
 
-		mpb, err := streamops.NewMessagePublisherBuilder(ctx, cp, "${async.msgtype}", ${async.msgtype}Output{})
+		mpb, err := streamops.NewMessagePublisherBuilder(ctx, cp, "${async.upmsgtype}", ${async.msgtype}Output{})
 
 		mp, err := mpb.
 			WithDocumentor(doc).
