@@ -40,6 +40,7 @@
     - [SQL]()
     - [GoChannel]()
     - [Redis]()
+
 ---
 
 # Utilities
@@ -54,11 +55,12 @@
 - [Leader Election]()
 - [Pagination]()
 - [Resources](resource/README.md)
-- [Retry]()
+- [Retry](retry/README.md)
 - [Sanitization](sanitize/README.md)
 - [Scheduled Tasks](scheduled/README.md)
 - [Transit Encryption](transit/README.md)
 - [Validation]()
+
 ---
 
 # Code Generation
@@ -78,6 +80,8 @@
 - [Stream Services]()
   - [Channels](skel/asyncapi/channels.md)
   - [AsyncAPI](skel/asyncapi/spec.md)
+
+---
 
 # Builds
 
