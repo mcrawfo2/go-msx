@@ -15,17 +15,24 @@ all: clean deps vet test docker deployment manifest package
 all: clean deps vet test docker assemblies deployment manifest package
 #endif GENERATOR_SP
 
-deps:
+help: ## Show this help
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| sed -n 's/^\(.*\): \(.*\)##\(.*\)/\1\3/p' \
+	| sed -n 's/^\([^ ]*\) \(.*\)$$/\1,\2/p' \
+	| column -t  -s ',' \
+	| sort
+
+deps: ## Install dependencies
 	go mod download
 
-vet:
+vet:  ## Use go vet to validate sources
 	$(BUILDER) go-vet
 
-test:
+test: ## Execute unit tests
 	$(BUILDER) download-test-deps
 	$(BUILDER) execute-unit-tests
 
-dist:
+dist: ## Build all outputs required for a container image
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
 	$(BUILDER) install-resources
@@ -36,92 +43,92 @@ dist:
 	$(BUILDER) download-seccomp-dependencies
 	$(BUILDER) generate-seccomp-profile
 
-debug: dist
+debug: dist ## Build a debug executable
 	$(BUILDER) build-debug-executable
 
-deployment:
+deployment: ## Generate the installer deployment variables
 	$(BUILDER) generate-deployment-variables
 #if GENERATOR_BEAT
 #else GENERATOR_BEAT
 
-assemblies:
+assemblies: ## Generate supplemental artifacts
 	$(BUILDER) build-assemblies
 #endif GENERATOR_BEAT
 
-manifest:
+manifest: ## Generate the installer manifest
 	$(BUILDER) build-installer-manifest
 
-package:
+package: ## Generate an SLM package
 	$(BUILDER) build-package
 
-package-publish: all
+package-publish: all ## Publish this service as an SLM package to S3
 	$(BUILDER) publish-package
 
-package-deploy:
+package-deploy: ## Deploy this service using SLM to an MSX instance
 	$(BUILDER) deploy-package
 
-docker:
+docker: ## Generate a docker image for this service
 	go mod vendor
 	$(BUILDER) docker-build
 
-docker-debug:
+docker-debug: ## Generate a debugging docker image for this service
 	go mod vendor
 	$(BUILDER) docker-build-debug
 
-docker-publish: docker
+docker-publish: docker ## Publish a docker image for this service
 	$(BUILDER) docker-push
 
-publish:
+publish: ## Publish all artifacts required for the installer
 	$(BUILDER) docker-push
 	$(BUILDER) publish-binaries
 	$(BUILDER) publish-installer-manifest
 
-clean:
+clean: ## Remove any temporary build outputs
 	rm -Rf dist
 	rm -Rf vendor
 
-generate:
+generate: ## Execute code generation
 	$(BUILDER) download-generate-deps
 	$(BUILDER) generate
 
-precommit: generate
+precommit: generate ## Ensure the code is ready for committing to version control
 	$(BUILDER) go-fmt
 
-tag:
+tag: ## Tag the repository with a new PATCH version number
 	$(BUILDER) git-tag
 
-update-go-msx:
+update-go-msx: ## Update the go-msx library dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/go-msx
 	go mod tidy
 
-update-go-msx-build:
+update-go-msx-build: ## Update the go-msx-build library dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/go-msx-build
 	go mod tidy
 
-update-go-msx-populator:
+update-go-msx-populator: ## Update the go-msx-populator library dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/go-msx-populator
 	go mod tidy
 #if GENERATOR_BEAT
 
-update-go-msx-beats:
+update-go-msx-beats: ## Update the go-msx-beats library dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/go-msx-beats
 	go mod tidy
 #endif GENERATOR_BEAT
 
-deploy-jenkins-job:
+deploy-jenkins-job: ## Upload a standard Jenkins build job to MSX Jenkins
 	$(BUILDER) deploy-jenkins-job
 
-deploy-github-repo:
+deploy-github-repo: ## Configure a standard github repository
 	$(BUILDER) deploy-github-repo
 
 #if GENERATOR_SP
 .PHONY: update-administrationservice update-catalogservice
 
-update-administrationservice:
+update-administrationservice: ## Update the administration dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/administrationservice
 	go mod tidy
 
-update-catalogservice:
+update-catalogservice: ## Update the catalog dependency to the latest version
 	go get cto-github.cisco.com/NFV-BU/catalogservice
 	go mod tidy
 
@@ -134,12 +141,12 @@ ui:
 
 #endif UI
 
-verify-contract:
+verify-contract: ## Ensure the openapi contract matches the generated code
 	ls ccv.yml && ccv check || echo "WARNING! No ccv.yml found"
 
-openapi-generate:
+openapi-generate: ## Store the openapi contract for the microservice
 	$(BUILDER) generate-openapi-spec
 
-openapi-compare:
+openapi-compare: ## Compare the openapi contract for the microservice
 	$(BUILDER) download-generate-deps
 	$(BUILDER) compare-openapi-spec
