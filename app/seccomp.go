@@ -54,6 +54,16 @@ func applySecCompProfile(ctx context.Context) error {
 		return nil
 	}
 
+	defaultAction, err := cfg.StringOr("seccomp.default-action", "errno")
+	if err != nil {
+		return err
+	}
+
+	err = policy.DefaultAction.Unpack(defaultAction)
+	if err != nil {
+		return err
+	}
+
 	// Create a filter based on config.
 	filter := seccomp.Filter{
 		NoNewPrivs: noNewPrivs,
