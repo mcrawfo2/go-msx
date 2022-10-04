@@ -2,6 +2,11 @@
 
 go-msx is a Go library for microservices and tools interacting with MSX. 
 
+## Support
+
+Support for go-msx and related projects is available on the [#go-msx](https://ciscovms.slack.com/messages/go-msx)
+channel on the [MSX slack workspace](https://ciscovms.slack.com/).
+
 ## Versioning
 
 Currently this library and tools are in a pre-alpha state.  They are subject to
