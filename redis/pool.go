@@ -49,6 +49,7 @@ func ConfigurePool(ctx context.Context) error {
 		pool = &ConnectionPool{
 			cfg: connectionConfig,
 		}
+		return err
 	} else {
 		pool = &ConnectionPool{
 			conn: conn,

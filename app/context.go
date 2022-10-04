@@ -90,7 +90,7 @@ func configureSqlDbCrudRepositoryFactory(context.Context) error {
 func configureConsulPool(cfg *config.Config) error {
 	if err := consul.ConfigurePool(cfg); err != nil && err != consul.ErrDisabled {
 		return err
-	} else if err != consul.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(consul.ContextWithPool)
 		health.RegisterCheck("consul", consulcheck.Check)
 	}
@@ -101,7 +101,7 @@ func configureConsulPool(cfg *config.Config) error {
 func configureVaultPool(ctx context.Context) error {
 	if err := vault.ConfigurePool(ctx); err != nil && err != vault.ErrDisabled {
 		return err
-	} else if err != vault.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(vault.ContextWithPool)
 		RegisterContextInjector(func(ctx context.Context) context.Context {
 			return vault.ContextWithConnection(ctx, vault.PoolFromContext(ctx).Connection())
@@ -115,7 +115,7 @@ func configureVaultPool(ctx context.Context) error {
 func configureCassandraPool(cfg *config.Config) error {
 	if err := cassandra.ConfigurePool(cfg); err != nil && err != cassandra.ErrDisabled {
 		return err
-	} else if err != cassandra.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(cassandra.ContextWithPool)
 		health.RegisterCheck("cassandra", cassandracheck.Check)
 	}
@@ -126,7 +126,7 @@ func configureCassandraPool(cfg *config.Config) error {
 func configureSqlDbPool(ctx context.Context) error {
 	if err := sqldb.ConfigurePool(ctx); err != nil && err != sqldb.ErrDisabled {
 		return err
-	} else if err != sqldb.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(sqldb.ContextWithPool)
 		health.RegisterCheck("sqldb", sqldbcheck.Check)
 	}
@@ -137,7 +137,7 @@ func configureSqlDbPool(ctx context.Context) error {
 func configureRedisPool(ctx context.Context) error {
 	if err := redis.ConfigurePool(ctx); err != nil && err != redis.ErrDisabled {
 		return err
-	} else if err != redis.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(redis.ContextWithPool)
 		health.RegisterCheck("redis", redischeck.Check)
 	}
@@ -148,7 +148,7 @@ func configureRedisPool(ctx context.Context) error {
 func configureKafkaPool(ctx context.Context) error {
 	if err := kafka.ConfigurePool(ctx); err != nil && err != kafka.ErrDisabled {
 		return err
-	} else if err != kafka.ErrDisabled {
+	} else if err == nil {
 		RegisterContextInjector(kafka.ContextWithPool)
 		health.RegisterCheck("kafka", kafkacheck.Check)
 	}
