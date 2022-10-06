@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type RetryPolicy = retryablehttp.CheckRetry
+const HeaderRetryAfter = "Retry-After"
 
 // Retries with linear delay and Jitter (low random) (1, 2.452, 3.571, 4.357)
 var DefaultHTTPClientRetryConfig = retry.RetryConfig{
@@ -25,9 +25,11 @@ var DefaultHTTPClientRetryConfig = retry.RetryConfig{
 	Jitter:   1000,
 }
 
+type RetryPolicy = retryablehttp.CheckRetry
+
 // NewRetryable returns an HTTP client that will retry requests based on the supplied
 // retryPolicy and retry/backoff configuration.
-// parses Retry-After on 409 response header by default
+// parses Retry-After on 429 response header by default
 func NewRetryable(ctx context.Context, customizer Configurer, retryConfig retry.RetryConfig, backoff retryablehttp.Backoff, retryPolicy RetryPolicy) (*http.Client, error) {
 	// Configure the go-msx http client
 	client, err := New(ctx, customizer)
@@ -37,7 +39,7 @@ func NewRetryable(ctx context.Context, customizer Configurer, retryConfig retry.
 
 	// Set the default retry retryPolicy
 	if retryPolicy == nil {
-		retryPolicy = retryablehttp.DefaultRetryPolicy
+		retryPolicy = retryablehttp.ErrorPropagatedRetryPolicy
 	}
 
 	if backoff == nil {
@@ -48,7 +50,7 @@ func NewRetryable(ctx context.Context, customizer Configurer, retryConfig retry.
 			// tries to parse Retry-After response header when a http.StatusTooManyRequests
 			// (HTTP Code 429) is found in the resp parameter
 			// thank me (or hashicorp) later Meraki
-			sleep := parse429(resp)
+			sleep := Parse429(resp)
 			if sleep.IsPresent() {
 				return sleep.Value() // should be in time.Duration already
 			}
@@ -60,20 +62,20 @@ func NewRetryable(ctx context.Context, customizer Configurer, retryConfig retry.
 	// Create the retryable http client
 	rhc := &retryablehttp.Client{
 		HTTPClient: client,
-		CheckRetry: retryablehttp.CheckRetry(retryPolicy),
+		CheckRetry: retryPolicy,
 		Backoff:    backoff,
 		RetryMax:   retryConfig.Attempts - 1, // first attempt is not counted as retry
-		Logger:     logger, // will be picked up as non leveled (just Printf)
+		Logger:     logger,                   // will be picked up as non leveled (just Printf)
 	}
 
 	// Return an actual http.Client
 	return rhc.StandardClient(), nil
 }
 
-func parse429(resp *http.Response) (result types.Optional[time.Duration]) {
+func Parse429(resp *http.Response) (result types.Optional[time.Duration]) {
 	if resp != nil {
 		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
-			if s, ok := resp.Header["Retry-After"]; ok {
+			if s, ok := resp.Header[HeaderRetryAfter]; ok {
 				if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 					return types.OptionalOf(time.Duration(sleep) * time.Second)
 				}
