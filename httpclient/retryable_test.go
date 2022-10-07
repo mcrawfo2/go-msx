@@ -176,10 +176,25 @@ func applyFakeMerakiInterceptor(c *http.Client) {
 
 				// simulate 429
 				resp.StatusCode = http.StatusTooManyRequests
-				resp.Header.Set("Retry-After", "1")
+				resp.Header.Set(HeaderRetryAfter, "1")
 			}
 
 			return resp, nil
 		}
 	}(c.Transport.RoundTrip)
+}
+
+func Test_Parse429(t *testing.T) {
+	resp := &http.Response{}
+	// simulate 429
+	resp.StatusCode = http.StatusTooManyRequests
+	resp.Header = http.Header{}
+	resp.Header.Set(HeaderRetryAfter, "1")
+
+	retryAfter := Parse429(resp)
+	got := retryAfter.Value()
+	want := time.Second * time.Duration(1)
+	if got != want {
+		t.Errorf("Parse429() got = %v, want %v", got, want)
+	}
 }
