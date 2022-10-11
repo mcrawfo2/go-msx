@@ -147,6 +147,6 @@ verify-contract: ## Ensure the openapi contract matches the generated code
 openapi-generate: ## Store the openapi contract for the microservice
 	$(BUILDER) generate-openapi-spec
 
-openapi-compare: ## Compare the openapi contract for the microservice
+openapi-compare: ## Compare the openapi contracts for the microservice
 	$(BUILDER) download-generate-deps
-	$(BUILDER) compare-openapi-spec
+	$(BUILDER) compare-openapi-specs

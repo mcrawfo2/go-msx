@@ -17,6 +17,13 @@ checks:
     analyzers:
       - builtin: generate-vet-report
 
+  - name: Contracts
+    module: Microservice
+    commands:
+      - make: openapi-compare
+    analyzers:
+      - builtin: generate-openapi-report
+
   - name: Test
     commands:
       - make: test
