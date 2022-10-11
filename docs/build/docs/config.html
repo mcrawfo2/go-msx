@@ -448,6 +448,34 @@ no extra configuration should be required if using them.</p>
 <tr><td><code>deploy.host</code></td><td>-</td><td>Required</td><td>SSH config host name to target for deployment.  Must point to an installer container.</td></tr>
 </tbody></table>
 </div>
+<h3 id="openapi"><a class="header" href="#openapi"><code>openapi</code></a></h3>
+<p>The <code>openapi</code> configuration specifies producer and consumer contract locations (local and upstream),
+along with schema resolution aliases.</p>
+<div class="table-wrapper"><table><thead><tr><th>Key</th><th>Default</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td>openapi.spec</td><td><code>api/openapi.yaml</code></td><td>Optional</td><td>The project-root relative location of the producer contract specification.</td></tr>
+<tr><td>openapi.contracts[*].consumer</td><td>-</td><td>Required</td><td>Local copy of the consumer contract for client generation.</td></tr>
+<tr><td>openapi.contracts[*].producer</td><td>-</td><td>Required</td><td>Upstream copy of the producer contract for client generation.</td></tr>
+<tr><td>openapi.alias[*].from</td><td>-</td><td>Required</td><td>Canonical schema url to be loaded from an alternative source</td></tr>
+<tr><td>openapi.alias[*].to</td><td>-</td><td>Required</td><td>Alternative source location for schema</td></tr>
+</tbody></table>
+</div>
+<p>Example:</p>
+<pre><code class="language-yaml"># Contract Management
+openapi:
+  # Local (producer) API contract
+  spec: api/openapi.yaml
+
+  # Remote (consumer) API contract pairs
+  contracts:
+    - consumer: internal/stream/.openapi/manage-service-8.yaml
+      producer: https://cto-github.cisco.com/raw/NFV-BU/msx-platform-specs/develop/manage-service-8.yaml
+
+  # Alternative sources for well-known schema
+  alias:
+    - from: https://api.swaggerhub.com/domains/Cisco-Systems46/msx-common-domain/8
+      to: https://cto-github.cisco.com/raw/NFV-BU/msx-platform-specs/sdk1.0.10/common-domain-8.yaml
+</code></pre>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
