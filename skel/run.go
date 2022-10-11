@@ -16,6 +16,8 @@ import (
 	"golang.org/x/text/language"
 )
 
+// skel program is likely started by ../cmd/skel/skel.go
+
 const appName = "skel"
 const projectConfigFileName = ".skel.json"
 const generateConfigFileName = "generate.json"
@@ -82,6 +84,8 @@ func loadConfig(configFile string) error {
 	return nil
 }
 
+// loadProjectConfig finds the project config file in the dir where skel is run, or above it
+// in containing directories
 func loadProjectConfig() (bool, error) {
 	here, err := os.Getwd()
 	if err != nil {

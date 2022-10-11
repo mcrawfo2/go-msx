@@ -19,6 +19,7 @@ type SkeletonConfig struct {
 	TargetParent      string `survey:"targetParent" json:"targetParent"`
 	TargetDir         string `json:"-"`
 	AppName           string `survey:"appName" json:"appName"`
+	AppUUID           string `survey:"appUUID" json:"appUUID"`
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
 	AppDescription    string `survey:"appDescription" json:"appDescription"`
 	ServerPort        int    `survey:"serverPort" json:"serverPort"`
@@ -31,6 +32,7 @@ type SkeletonConfig struct {
 	KubernetesGroup   string `json:"kubernetesGroup"`
 	SlackChannel      string `survey:"slackChannel" json:"slackChannel"`
 	Trunk             string `survey:"trunk" json:"trunk"`
+	ImageFile         string `survey:"imageFile" json:"imageFile"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -82,6 +84,7 @@ var skeletonConfig = &SkeletonConfig{
 	ServiceType:       "",
 	SlackChannel:      "go-msx-build",
 	Trunk:             "main",
+	ImageFile:         "msx.png",
 }
 
 func Config() *SkeletonConfig {
@@ -321,6 +324,65 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Validate: survey.Required,
 		},
 	},
+	archetypeKeySPUI: {
+		{
+			Name: "targetParent",
+			Prompt: &survey.Input{
+				Message: "Project Parent Directory:",
+				Default: skeletonConfig.TargetParent,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "appName",
+			Prompt: &survey.Input{
+				Message: "Microservice name:",
+				Default: skeletonConfig.AppName,
+			},
+			Validate:  survey.Required,
+			Transform: survey.ToLower,
+		},
+		{
+			Name: "appDisplayName",
+			Prompt: &survey.Input{
+				Message: "App display name:",
+				Default: skeletonConfig.AppDisplayName,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "appDescription",
+			Prompt: &survey.Input{
+				Message: "App description:",
+				Default: skeletonConfig.AppDescription,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "serviceType",
+			Prompt: &survey.Input{
+				Message: "Catalog Service Type:",
+				Default: skeletonConfig.ServiceType,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "slackChannel",
+			Prompt: &survey.Input{
+				Message: "Build notifications slack channel:",
+				Default: skeletonConfig.SlackChannel,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "trunk",
+			Prompt: &survey.Input{
+				Message: "Primary branch name:",
+				Default: skeletonConfig.Trunk,
+			},
+			Validate: survey.Required,
+		},
+	},
 }
 
 var archetypeQuestions = []*survey.Question{
@@ -337,12 +399,12 @@ var archetypeQuestions = []*survey.Question{
 // ConfigureInteractive is the only entry point to the menu UI
 func ConfigureInteractive() error {
 	var archetypeIndex int
-	err := survey.Ask(archetypeQuestions, &archetypeIndex)
+	err := survey.Ask(archetypeQuestions, &archetypeIndex) // determine the archetype
 	if err != nil {
 		return err
 	}
 
-	// Configure the archetype
+	// Configure the archetype using the questions for it
 	skeletonConfig.Archetype = archetypes.Key(archetypeIndex)
 	var questions = archetypeSurveyQuestions[skeletonConfig.Archetype]
 	err = survey.Ask(questions, skeletonConfig)

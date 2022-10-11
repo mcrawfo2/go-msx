@@ -1,0 +1,23 @@
+checks:
+  - name: Dependencies
+    commands:
+      - npm: install
+        fail: delay
+        retries: 3
+
+  - name: Build
+    commands:
+      - npm: run build
+
+  - name: Test Results
+    commands:
+      - npm: run coverage
+        fail: delay
+    analyzers:
+      - builtin: generate-test-report
+        config:
+          report: test/junit-report.xml
+          title: "UI Tests"
+
+slack:
+  channel: example-github

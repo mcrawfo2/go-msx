@@ -8,6 +8,7 @@ const (
 	archetypeKeyApp         = "app"
 	archetypeKeyBeat        = "beat"
 	archetypeKeyServicePack = "sp"
+	archetypeKeySPUI        = "spui"
 )
 
 type Archetype struct {
@@ -63,6 +64,15 @@ var archetypes = Archetypes{
 			"generate-migrate",
 			"generate-service-pack",
 			"generate-kubernetes",
+		},
+	},
+	{
+		Key:         archetypeKeySPUI,
+		DisplayName: "Service Pack UI",
+		Generators: []string{
+			"generate-spui",
+			"generate-github",
+			"generate-git",
 		},
 	},
 }
