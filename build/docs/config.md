@@ -302,10 +302,10 @@ The `go` configuration specifies environment variables and options to be passed 
 
 The `build` configuration specifies information about the build used to generate `buildinfo.yml`.
 
-| Key | Default | Required | Description |
-|-----|---------|----------|-------------|
-| `build.number` | `SNAPSHOT` | Required | The build number of this build. |
-| `build.group` | `com.cisco.msx` | Optional | The build group. 
+| Key             | Default         | Required | Description                     |
+|-----------------|-----------------|----------|---------------------------------|
+| `build.number`  | `SNAPSHOT`      | Required | The build number of this build. |
+| `build.group`   | `com.cisco.msx` | Optional | The build group.                |
 
 ### `info.app`
 
@@ -378,7 +378,6 @@ Example:
 github.organization: xiaoydu
 ```
 
-
 ### `aws`
 
 The `aws` configuration specifies credentials and target details for AWS.
@@ -391,7 +390,6 @@ The `aws` configuration specifies credentials and target details for AWS.
 These values default to the standard environment variables (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) so
 no extra configuration should be required if using them.
 
-
 ### `deploy`
 
 The `deploy` configuration specifies the target for package deployment.
@@ -399,3 +397,36 @@ The `deploy` configuration specifies the target for package deployment.
 | Key | Default | Required | Description |
 |-----|---------|----------|-------------|
 | `deploy.host`| - | Required | SSH config host name to target for deployment.  Must point to an installer container. |
+
+
+### `openapi`
+
+The `openapi` configuration specifies producer and consumer contract locations (local and upstream),
+along with schema resolution aliases.
+
+| Key                           | Default            | Required   | Description                                                                |
+|-------------------------------|--------------------|------------|----------------------------------------------------------------------------|
+| openapi.spec                  | `api/openapi.yaml` | Optional   | The project-root relative location of the producer contract specification. |
+| openapi.contracts[*].consumer | -                  | Required   | Local copy of the consumer contract for client generation.                 |
+| openapi.contracts[*].producer | -                  | Required   | Upstream copy of the producer contract for client generation.              |
+| openapi.alias[*].from         | -                  | Required   | Canonical schema url to be loaded from an alternative source               |
+| openapi.alias[*].to           | -                  | Required   | Alternative source location for schema                                     |
+
+Example:
+
+```yaml
+# Contract Management
+openapi:
+  # Local (producer) API contract
+  spec: api/openapi.yaml
+
+  # Remote (consumer) API contract pairs
+  contracts:
+    - consumer: internal/stream/.openapi/manage-service-8.yaml
+      producer: https://cto-github.cisco.com/raw/NFV-BU/msx-platform-specs/develop/manage-service-8.yaml
+
+  # Alternative sources for well-known schema
+  alias:
+    - from: https://api.swaggerhub.com/domains/Cisco-Systems46/msx-common-domain/8
+      to: https://cto-github.cisco.com/raw/NFV-BU/msx-platform-specs/sdk1.0.10/common-domain-8.yaml
+```

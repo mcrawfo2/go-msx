@@ -46,7 +46,7 @@ docker-publish           Publish a docker image for this service
 generate                 Execute code generation
 help                     Show this help
 manifest                 Generate the installer manifest
-openapi-compare          Compare the openapi contract for the microservice
+openapi-compare          Compare the openapi contracts for the microservice
 openapi-generate         Store the openapi contract for the microservice
 package                  Generate an SLM package
 package-deploy           Deploy this service using SLM to an MSX instance
