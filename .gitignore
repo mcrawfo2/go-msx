@@ -36,4 +36,5 @@ schema/asyncapi/asyncapi-2.4.0.json
 book/*
 !book/SUMMARY.md
 !book/mermaid*.js
+!book/checks
 .DS_Store
