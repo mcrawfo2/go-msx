@@ -50,17 +50,3 @@ from the coverage data.
 
 The `go-vet` target executes `go vet` on directories which contain `*.go` files (excluding the `vendor` directory).
 Options to pass to `go vet` can be specified in the build configuration under `go.vet.options`.
-
-### `update-openapi-producer-spec`
-
-The `update-openapi-producer-spec` target will obtain the latest version of the
-microservice _producer_ OpenApi contract specification and overwrite the stored version.
-
-Producer specification file is configured via the `openapi.spec` build [setting](config.md#openapi). 
-
-### `update-openapi-consumer-spec`
-
-The `update-openapi-consumer-spec` target will obtain the latest version of the
-_consumer_ OpenApi contract specification and overwrite the stored version.
-
-Consumer local and remote specification are configured via the `openapi.contracts[*]` build [setting](config.md#openapi). 

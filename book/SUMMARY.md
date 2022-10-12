@@ -28,6 +28,7 @@
 
 ## Communication
 - [Integration]()
+  - [OpenAPI Client 🎉](integration/docs/openapi.md) 
 - [Streaming]()
   - [Stream Operations 🎉](ops/streamops/README.md)
     - [Ports](ops/streamops/ports.md)
@@ -83,7 +84,7 @@
 
 ---
 
-# Builds
+# Builds 🎉
 
 - [Introduction]()
 - [Makefile Usage](build/docs/usage-make.md)
@@ -100,5 +101,5 @@
 
 # Continuous Integration
 
-- [Checks](checks/README.md)
+- [Checks 🎉](checks/README.md)
 - [Jenkins]()
