@@ -183,7 +183,7 @@ pipeline {
                                 def sonarHome = tool name: 'sonarscaner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                                 def sonarCommand = "$sonarHome/bin/sonar-scanner"
                                 sonarProperties.each { key, value -> sonarCommand = sonarCommand + " -Dsonar.$key=$value" }
-                                sonarCommand = sonarCommand + " -Dproject.settings=sonar-project.properties"
+                                sonarCommand = sonarCommand + " -Dproject.settings=build/ci/sonar-project.properties"
                                 sh sonarCommand
                             }
                         }

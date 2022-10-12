@@ -29,12 +29,20 @@ checks:
     analyzers:
       - builtin: generate-test-report 'Framework Tests'
 
+  - name: Sonar
+    commands:
+      - builtin: sonar
+
   - name: Vulnerability
     commands:
       - make: vulnerability
         fail: delay
     analyzers:
       - builtin: generate-vulnerability-report
+
+  - name: Skel
+    commands:
+      - make: skel
 
 slack:
   channel: go-msx-build

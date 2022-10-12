@@ -209,7 +209,7 @@ func (c *lowerCamelSingularController) deleteUpperCamelSingular(svc *restful.Web
 		Operation("deleteUpperCamelSingular").
 		Doc("Delete the specified Title Singular").
 		Do(webservice.StandardDelete).
-		Do(webservice.ResponseRawPayload(struct{}{})).
+		Do(webservice.ResponseRawPayload(types.Empty{})).
 		Param(paramUpperCamelSingularId).
 		Do(managePermission).
 		Do(webservice.PopulateParams(params{})).
