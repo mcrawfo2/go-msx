@@ -249,6 +249,7 @@ func (c SwaggerCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger) {
 	var schemaSources = []SwaggerSchemaSource{
 		new(types.Time),
 		new(types.UUID),
+		new(types.Empty),
 	}
 
 	for _, schemaSource := range schemaSources {
