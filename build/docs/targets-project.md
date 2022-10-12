@@ -16,7 +16,12 @@ Target server and job is configured via the `jenkins.*` build [settings](config.
 
 ### `update-go-msx`
 
+The `update-go-msx` target will attempt to update your `go-msx` library to the latest version.
+
 ### `update-go-msx-build`
+
+The `update-go-msx-build` target will attempt to update your `go-msx-build` library to the latest version.
 
 ### `update-go-msx-populator`
 
+The `update-go-msx-populator` target will attempt to update your `go-msx-populator` library to the latest version.

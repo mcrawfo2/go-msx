@@ -95,3 +95,10 @@
   - [Artifacts](build/docs/targets-artifacts.md)
   - [Verification](build/docs/targets-verification.md)
   - [Publishing](build/docs/targets-publishing.md)
+
+---
+
+# Continuous Integration
+
+- [Checks](checks/README.md)
+- [Jenkins]()
