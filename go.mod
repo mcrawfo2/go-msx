@@ -79,6 +79,8 @@ require (
 	moul.io/banner v1.0.1
 )
 
+require github.com/hashicorp/go-retryablehttp v0.6.7
+
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
 	github.com/DataDog/sketches-go v1.0.0 // indirect
@@ -110,7 +112,6 @@ require (
 	github.com/hashicorp/go-hclog v1.3.1 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.6.7 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
