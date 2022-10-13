@@ -249,14 +249,18 @@ func newUpperCamelSingularController(ctx context.Context) (webservice.RestContro
 }
 
 func init() {
-	app.OnRootEvent(app.EventStart, app.PhaseBefore, func(ctx context.Context) error {
-		controller, err := newUpperCamelSingularController(ctx)
-		if err != nil {
-			return err
-		}
+	app.OnCommandsEvent(
+		[]string{app.CommandRoot, app.CommandOpenApi},
+		app.EventStart,
+		app.PhaseBefore,
+		func(ctx context.Context) error {
+			controller, err := newUpperCamelSingularController(ctx)
+			if err != nil {
+				return err
+			}
 
-		return webservice.
-			WebServerFromContext(ctx).
-			RegisterRestController(pathRoot, controller)
-	})
+			return webservice.
+				WebServerFromContext(ctx).
+				RegisterRestController(pathRoot, controller)
+		})
 }
