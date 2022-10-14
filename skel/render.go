@@ -235,8 +235,6 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		}
 	}
 
-	//	logger.Infof("- %s (%s)", t.Name, targetFileName)
-
 	targetExists := true
 	_, err = os.Stat(targetFileName)
 	if err != nil {
