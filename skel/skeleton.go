@@ -645,8 +645,9 @@ func GoGenerate(targetDirectory string) error {
 func GenerateSPUI(_ []string) error {
 	logger.Info("Generating service pack UI")
 
-	targetDirectory := filepath.Join(skeletonConfig.TargetParent,
-		skeletonConfig.AppName)
+	projName := skeletonConfig.AppName + "-ui"
+
+	targetDirectory := filepath.Join(skeletonConfig.TargetParent, projName)
 
 	skeletonConfig.TargetDir = targetDirectory
 	logger.Infof("Target Directory: %s", targetDirectory)
@@ -684,7 +685,7 @@ func GenerateSPUI(_ []string) error {
 			pipe.Line(
 				exec.Info("- Creating Angular Project"),
 				pipe.Exec("npm", "run", "create-project", "--",
-					"-project-name="+skeletonConfig.AppName,
+					"-project-name="+projName,
 					"-project-description=\""+skeletonConfig.AppDescription+"\"",
 					"-project-uuid="+skeletonConfig.AppUUID,
 					"-output-dir="+tmpTargetDir))), // skeletonConfig.TargetParent

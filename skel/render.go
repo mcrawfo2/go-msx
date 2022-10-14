@@ -235,7 +235,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		}
 	}
 
-	logger.Infof("- %s (%s)", t.Name, targetFileName)
+	//	logger.Infof("- %s (%s)", t.Name, targetFileName)
 
 	targetExists := true
 	_, err = os.Stat(targetFileName)
@@ -331,7 +331,7 @@ func (t Template) RenderContents(options RenderOptions) (result string, err erro
 		return
 	}
 
-	if len(contents) < 20 {
+	if len(contents) < 3 {
 		logger.Warnf("improbably short template `%s` (%s, %d bytes)", t.Name, t.SourceFile, len(contents))
 	}
 
