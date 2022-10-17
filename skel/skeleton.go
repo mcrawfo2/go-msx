@@ -653,7 +653,7 @@ func GenerateSPUI(_ []string) error {
 	logger.Infof("Target Directory: %s", targetDirectory)
 	err := exec.ExecutePipes(pipe.MkDirAll(targetDirectory, 0755))
 	if err != nil {
-		logger.Warn("failed to create target dir: %s", targetDirectory)
+		logger.Warnf("failed to create target dir: %s", targetDirectory)
 		return err
 	}
 
