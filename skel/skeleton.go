@@ -8,10 +8,12 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/pipe.v2"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 var ErrNoTemplates = errors.Errorf("no templates")
@@ -34,33 +36,61 @@ func init() {
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 	AddTarget("generate-github", "Create github configuration files", GenerateGithub)
 	AddTarget("generate-webservices", "Create web services from swagger manifest", GenerateDomainOpenApi)
+	AddTarget("generate-spui", "Create service pack UI", GenerateSPUI)
+}
+
+var defaultPreGenerators = []string{
+	"generate-skel-json",
+	"generate-build",
+	"generate-app",
+	"generate-test",
+}
+
+var defaultPostGenerators = []string{
+	"generate-deployment-variables",
+	"add-go-msx-dependency",
+	"generate-local",
+	"generate-manifest",
+	"generate-dockerfile",
+	"generate-goland",
+	"generate-vscode",
+	"generate-jenkins",
+	"generate-github",
+	"generate-git",
+}
+
+type prePost struct {
+	pre  []string
+	post []string
+}
+
+var prePostByArchetype = map[string]prePost{
+	archetypeKeySPUI: {pre: []string{}, post: []string{}}, // override with nothing for SPUI
+}
+
+func prePostGenerators(target string) (preAndPost prePost) { // everything else uses the defaults
+	prp, found := prePostByArchetype[target]
+	if !found {
+		prp.pre = defaultPreGenerators
+		prp.post = defaultPostGenerators
+	}
+	return prp
 }
 
 // GenerateSkeleton is the root command
 func GenerateSkeleton(_ []string) error {
 	var generators []string
-	// Common pre-generators
-	generators = append(generators,
-		"generate-skel-json",
-		"generate-build",
-		"generate-app",
-		"generate-test")
+
+	preAndPost := prePostGenerators(skeletonConfig.Archetype)
+	generators = append(generators, preAndPost.pre...)
 
 	// Archetype-specific generators
 	generators = append(generators, archetypes.Generators(skeletonConfig.Archetype)...)
 
-	// Common post-generators
-	generators = append(generators,
-		"generate-deployment-variables",
-		"add-go-msx-dependency",
-		"generate-local",
-		"generate-manifest",
-		"generate-dockerfile",
-		"generate-goland",
-		"generate-vscode",
-		"generate-jenkins",
-		"generate-github",
-		"generate-git")
+	generators = append(generators, preAndPost.post...)
+
+	logger.Infof("Using archetype: %s", skeletonConfig.Archetype)
+	logger.Infof("Generators will be: %s", generators)
 
 	return ExecTargets(generators...)
 }
@@ -610,4 +640,179 @@ func GoGenerate(targetDirectory string) error {
 	}
 
 	return exec.ExecutePipes(pipes...)
+}
+
+func GenerateSPUI(_ []string) error {
+	logger.Info("Generating service pack UI")
+
+	projName := skeletonConfig.AppName + "-ui"
+
+	targetDirectory := filepath.Join(skeletonConfig.TargetParent, projName)
+
+	skeletonConfig.TargetDir = targetDirectory
+	logger.Infof("Target Directory: %s", targetDirectory)
+	err := exec.ExecutePipes(pipe.MkDirAll(targetDirectory, 0755))
+	if err != nil {
+		logger.Warnf("failed to create target dir: %s", targetDirectory)
+		return err
+	}
+
+	skeletonConfig.AppUUID = uuid.NewString()
+
+	generatorDir := filepath.Join(os.TempDir(), uuid.NewString()) // the npm generator app loaded here
+	logger.Infof("Generator Directory: %s", generatorDir)
+
+	// the create-project script rimrafs its target dir, :# ,
+	// so we need to generate elsewhere and then copy in to place
+	tmpTargetDir := filepath.Join(os.TempDir(), uuid.NewString())
+	logger.Infof("Temp target Directory: %s", tmpTargetDir)
+
+	err = exec.ExecutePipes(
+		exec.WithDir(".",
+			pipe.Line(
+				exec.Info("- Cloning Angular Template to "+generatorDir),
+				pipe.Exec("git", "clone",
+					"https://github.com/CiscoDevNet/angular9-msx-service-pack-ui-generator",
+					generatorDir))),
+	)
+	if err != nil {
+		logger.Warn("failed to clone template Angular 9 Tenant Centric Service Pack Sample")
+		return err
+	}
+
+	err = exec.ExecutePipes(
+		exec.WithDir(generatorDir,
+			pipe.Line(
+				exec.Info("- Creating Angular Project"),
+				pipe.Exec("npm", "run", "create-project", "--",
+					"-project-name="+projName,
+					"-project-description=\""+skeletonConfig.AppDescription+"\"",
+					"-project-uuid="+skeletonConfig.AppUUID,
+					"-output-dir="+tmpTargetDir))), // skeletonConfig.TargetParent
+	)
+	if err != nil {
+		logger.Warn("npm failed to create project")
+		return err
+	}
+
+	err = exec.ExecutePipes(
+		exec.WithDir(tmpTargetDir,
+			pipe.Line(
+				exec.Info("- Copying generated project from "+tmpTargetDir+
+					" to "+skeletonConfig.TargetParent),
+				pipe.Exec("cp", "-R", tmpTargetDir+`/`,
+					skeletonConfig.TargetParent))),
+	)
+	if err != nil {
+		logger.Warn("failed to copy generated project")
+		return err
+	}
+
+	templates := SPUITemplates(path.Join("spui", "patch"), "")
+	if err := templates.RenderTo(targetDirectory, NewRenderOptions()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SPUITemplates(srcroot, dstroot string) TemplateSet {
+	return TemplateSet{
+		{Name: "Overlaying license",
+			SourceFile: path.Join(srcroot, "LICENSE.md"),
+			DestFile:   path.Join(dstroot, "LICENSE.md"),
+			Format:     FileFormatMarkdown},
+		{Name: "Overlaying jenkins file",
+			SourceFile: path.Join(srcroot, "becomesbin/ci/Jenkinsfile"),
+			DestFile:   path.Join(dstroot, "bin/ci/Jenkinsfile"),
+			Format:     FileFormatJenkins},
+		{Name: "Overlaying sonar properties",
+			SourceFile: path.Join(srcroot, "becomesbin/ci/sonar-project.properties"),
+			DestFile:   path.Join(dstroot, "bin/ci/sonar-project.properties"),
+			Format:     FileFormatProperties},
+		{Name: "Overlaying conformance script",
+			SourceFile: path.Join(srcroot, "becomesbin/conformance.sh"),
+			DestFile:   path.Join(dstroot, "bin/conformance.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying docker build script",
+			SourceFile: path.Join(srcroot, "becomesbin/docker-build.sh"),
+			DestFile:   path.Join(dstroot, "bin/docker-build.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying docker clean script",
+			SourceFile: path.Join(srcroot, "becomesbin/docker-clean.sh"),
+			DestFile:   path.Join(dstroot, "bin/docker-clean.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying docker push script",
+			SourceFile: path.Join(srcroot, "becomesbin/docker-push.sh"),
+			DestFile:   path.Join(dstroot, "bin/docker-push.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying package script",
+			SourceFile: path.Join(srcroot, "becomesbin/package.sh"),
+			DestFile:   path.Join(dstroot, "bin/package.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying dockerfile",
+			SourceFile: path.Join(srcroot, "becomesbin/package/Dockerfile"),
+			DestFile:   path.Join(dstroot, "bin/package/Dockerfile"),
+			Format:     FileFormatDocker},
+		{Name: "Overlaying publish script",
+			SourceFile: path.Join(srcroot, "becomesbin/publish.sh"),
+			DestFile:   path.Join(dstroot, "bin/publish.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying vars script",
+			SourceFile: path.Join(srcroot, "becomesbin/vars.sh"),
+			DestFile:   path.Join(dstroot, "bin/vars.sh"),
+			Format:     FileFormatBash},
+		{Name: "Overlaying jest configuration",
+			SourceFile: path.Join(srcroot, "jest.config.js"),
+			DestFile:   path.Join(dstroot, "jest.config.js"),
+			Format:     FileFormatJavaScript},
+		{Name: "Overlaying jest init",
+			SourceFile: path.Join(srcroot, "jest.init.js"),
+			DestFile:   path.Join(dstroot, "jest.init.js"),
+			Format:     FileFormatJavaScript},
+		{Name: "Overlaying package lock",
+			SourceFile: path.Join(srcroot, "package-lock.json"),
+			DestFile:   path.Join(dstroot, "package-lock.json"),
+			Format:     FileFormatJson},
+		{Name: "Replacing package file",
+			SourceFile: path.Join(srcroot, "package.json"),
+			DestFile:   path.Join(dstroot, "package.json"),
+			Format:     FileFormatJson},
+		{Name: "Overlaying empty module",
+			SourceFile: path.Join(srcroot, "src/spec-helpers/empty-module.js"),
+			DestFile:   path.Join(dstroot, "src/spec-helpers/empty-module.js"),
+			Format:     FileFormatJson},
+		{Name: "Overlaying api client",
+			SourceFile: path.Join(srcroot, "src/spec-helpers/mocks/api-client.ts"),
+			DestFile:   path.Join(dstroot, "src/spec-helpers/mocks/api-client.ts"),
+			Format:     FileFormatTypeScript},
+		{Name: "Overlaying mock index",
+			SourceFile: path.Join(srcroot, "src/spec-helpers/mocks/index.ts"),
+			DestFile:   path.Join(dstroot, "src/spec-helpers/mocks/index.ts"),
+			Format:     FileFormatTypeScript},
+		{Name: "Overlaying mock monitor",
+			SourceFile: path.Join(srcroot, "src/spec-helpers/mocks/mock-monitor.service.ts"),
+			DestFile:   path.Join(dstroot, "src/spec-helpers/mocks/mock-monitor.service.ts"),
+			Format:     FileFormatTypeScript},
+		{Name: "Overlaying html transformers",
+			SourceFile: path.Join(srcroot, "src/spec-helpers/transformers/html.js"),
+			DestFile:   path.Join(dstroot, "src/spec-helpers/transformers/html.js"),
+			Format:     FileFormatJavaScript},
+		{Name: "Overlaying eslint ignore",
+			SourceFile: path.Join(srcroot, ".eslintignore"),
+			DestFile:   path.Join(dstroot, ".eslintignore"),
+			Format:     FileFormatOther},
+		{Name: "Overlaying eslint config",
+			SourceFile: path.Join(srcroot, ".eslintrc.json"),
+			DestFile:   path.Join(dstroot, ".eslintrc.json"),
+			Format:     FileFormatJson},
+		{Name: "Overlaying gitignore",
+			SourceFile: path.Join(srcroot, ".gitignore"),
+			DestFile:   path.Join(dstroot, ".gitignore"),
+			Format:     FileFormatOther},
+		{Name: "Overlaying npm run commands",
+			SourceFile: path.Join(srcroot, ".npmrc"),
+			DestFile:   path.Join(dstroot, ".npmrc"),
+			Format:     FileFormatOther},
+	}
 }

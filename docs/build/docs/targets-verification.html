@@ -174,6 +174,14 @@ from the coverage data.</p>
 <h3 id="go-vet"><a class="header" href="#go-vet"><code>go-vet</code></a></h3>
 <p>The <code>go-vet</code> target executes <code>go vet</code> on directories which contain <code>*.go</code> files (excluding the <code>vendor</code> directory).
 Options to pass to <code>go vet</code> can be specified in the build configuration under <code>go.vet.options</code>.</p>
+<h3 id="update-openapi-producer-spec"><a class="header" href="#update-openapi-producer-spec"><code>update-openapi-producer-spec</code></a></h3>
+<p>The <code>update-openapi-producer-spec</code> target will obtain the latest version of the
+microservice <em>producer</em> OpenApi contract specification and overwrite the stored version.</p>
+<p>Producer specification file is configured via the <code>openapi.spec</code> build <a href="config.html#openapi">setting</a>. </p>
+<h3 id="update-openapi-consumer-spec"><a class="header" href="#update-openapi-consumer-spec"><code>update-openapi-consumer-spec</code></a></h3>
+<p>The <code>update-openapi-consumer-spec</code> target will obtain the latest version of the
+<em>consumer</em> OpenApi contract specification and overwrite the stored version.</p>
+<p>Consumer local and remote specification are configured via the <code>openapi.contracts[*]</code> build <a href="config.html#openapi">setting</a>. </p>
 
                     </main>
 

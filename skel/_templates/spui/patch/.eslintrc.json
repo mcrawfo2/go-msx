@@ -1,0 +1,107 @@
+{
+    "env": {
+        "browser": true
+    },
+    "extends": "eslint-config-vms",
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "2018",
+        "sourceType": "module"
+    },
+    "plugins": ["@typescript-eslint"],
+    "rules": {
+        "arrow-spacing": [
+            "error",
+            {
+                "before": true,
+                "after": true
+            }
+        ],
+        "block-spacing": ["error", "always"],
+        "function-paren-newline": ["error", "multiline"],
+        "capIsNewExceptions": ["Component"],
+        "indent": [
+            "warn",
+            4,
+            {
+                "VariableDeclarator": {
+                    "var": 2,
+                    "let": 2,
+                    "const": 3
+                }
+            }
+        ],
+        "linebreak-style": ["error", "unix"],
+        "new-parens": "error",
+        "no-mixed-spaces-and-tabs": "error",
+        "no-multiple-empty-lines": [
+            "error",
+            {
+                "max": 2,
+                "maxBOF": 1,
+                "maxEOF": 1
+            }
+        ],
+        "arrow-parens": ["error", "as-needed"],
+        "no-restricted-syntax": ["error", "WithStatement"],
+        "no-shadow": "off",
+        "no-tabs": "error",
+        "no-unused-expressions": "error",
+        "no-whitespace-before-property": "error",
+        "object-curly-newline": [
+            "error",
+            {
+                "consistent": true
+            }
+        ],
+        "object-curly-spacing": "off",
+        "one-var-declaration-per-line": ["error", "initializations"],
+        "operator-assignment": "off",
+        "operator-linebreak": ["error", "after"],
+        "quote-props": ["error", "as-needed"],
+        "quotes": [
+            "error",
+            "single",
+            {
+                "avoidEscape": true
+            }
+        ],
+        "semi-style": ["error", "last"],
+        "spaced-comment": ["error", "always"],
+        "space-unary-ops": [
+            "error",
+            {
+                "words": true,
+                "nonwords": false
+            }
+        ],
+        "switch-colon-spacing": [
+            "error",
+            {
+                "before": false,
+                "after": true
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": ["*.spec.js", "*.spec.ts"],
+            "env": {
+                "jasmine": true,
+                "jest": true,
+                "es6": true
+            },
+            "globals": {
+                "stubs": true,
+                "testDirectiveExists": true
+            }
+        },
+        {
+            "files": ["*.spec.ts"],
+            "rules": {
+                "@typescript-eslint/no-unused-vars": [2, { "args": "none" }]
+            }
+        }
+    ]
+}

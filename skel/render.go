@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -41,6 +42,10 @@ const (
 	FileFormatGoMod
 	FileFormatDocker
 	FileFormatBash
+	FileFormatJavaScript
+	FileFormatTypeScript
+	FileFormatJenkins
+	FileFormatOther
 )
 
 var (
@@ -89,6 +94,7 @@ func NewRenderOptions() RenderOptions {
 		Variables: map[string]string{
 			"app.name":                     skeletonConfig.AppName,
 			"app.shortname":                strings.TrimSuffix(skeletonConfig.AppName, "service"),
+			"app.uuid":                     skeletonConfig.AppUUID,
 			"app.description":              skeletonConfig.AppDescription,
 			"app.displayname":              skeletonConfig.AppDisplayName,
 			"app.version":                  skeletonConfig.AppVersion,
@@ -120,13 +126,15 @@ func NewRenderOptions() RenderOptions {
 	}
 }
 
+type TemplateOp int
+
 type Template struct {
 	Name       string
 	DestFile   string
-	Operation  TemplateOperation
 	SourceFile string
 	SourceData []byte
 	Format     FileFormat
+	Operation  TemplateOperation
 }
 
 type TemplateOperation int
@@ -149,7 +157,7 @@ func (t Template) source(options RenderOptions) (string, error) {
 
 	f, ok := staticFiles[sourceFile]
 	if !ok {
-		return "", errors.Wrapf(ErrFileDoesNotExist, "template file not found: %s", sourceFile)
+		return "", errors.Errorf("Template file not found: %s", sourceFile)
 	}
 
 	var reader io.Reader
@@ -172,8 +180,8 @@ func (t Template) source(options RenderOptions) (string, error) {
 }
 
 func (t Template) destinationFile(options RenderOptions) (string, error) {
-	if t.DestFile == "" {
-		if t.SourceFile == "" {
+	if len(t.DestFile) == 0 {
+		if len(t.SourceFile) == 0 {
 			return "", errors.New("Missing destination filename")
 		}
 		return SubstituteVariables(t.SourceFile, options.Variables), nil
@@ -181,11 +189,51 @@ func (t Template) destinationFile(options RenderOptions) (string, error) {
 	return SubstituteVariables(t.DestFile, options.Variables), nil
 }
 
+// Render does the original Render to skeletonConfig.TargetDirectory()
 func (t Template) Render(options RenderOptions) error {
+	return t.RenderTo(skeletonConfig.TargetDirectory(), options)
+}
+
+// RenderTo allows rendering to a directory root other than skeletonConfig.TargetDirectory()
+func (t Template) RenderTo(directory string, options RenderOptions) error {
+
 	// Find the destination
 	destFile, err := t.destinationFile(options)
-	targetFileName := path.Join(skeletonConfig.TargetDirectory(), destFile)
+	if err != nil {
+		return err
+	}
+
+	targetFileName := path.Join(directory, destFile)
 	targetDirectory := path.Dir(targetFileName)
+
+	if t.Operation == OpDelete || t.Operation == OpGone {
+		if t.Operation == OpDelete { // we *must* delete
+			_, err := os.Stat(targetFileName)
+			if errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("- %s - erroneously gone - (%s)", t.Name, targetFileName)
+			}
+		}
+		err := os.Remove(targetFileName)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) { // ok if not there already
+				logger.Infof("- %s - already gone - (%s)", t.Name, targetFileName)
+				return nil
+			} else {
+				return fmt.Errorf("unable to remove %s: %w", targetFileName, err)
+			}
+		}
+		logger.Infof("- %s (%s)", t.Name, targetFileName)
+		return nil
+	}
+
+	if t.Operation == OpReplace { // we insist it exists before we replace it
+		_, err := os.Stat(targetFileName)
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("target to be replaced does not exist %s: %w", targetFileName, err)
+		} else if err != nil {
+			return fmt.Errorf("error checking target file %s: %w", targetFileName, err)
+		}
+	}
 
 	targetExists := true
 	_, err = os.Stat(targetFileName)
@@ -239,7 +287,7 @@ func (t Template) Render(options RenderOptions) error {
 		}
 	}
 
-	contents, err := t.RenderContents(options)
+	newcontents, err := t.RenderContents(options)
 	if err != nil {
 		return err
 	}
@@ -251,13 +299,11 @@ func (t Template) Render(options RenderOptions) error {
 	}
 
 	// Write the rendered contents to the destination file
-
 	perm := os.FileMode(0644)
 	if t.Format == FileFormatBash { // +x for bash scripts
 		perm = os.FileMode(0755)
 	}
-
-	err = os.WriteFile(targetFileName, []byte(contents), perm)
+	err = os.WriteFile(targetFileName, []byte(newcontents), perm)
 	if err != nil {
 		return errors.Wrapf(err, "writing %q failed", targetFileName)
 	}
@@ -283,7 +329,7 @@ func (t Template) RenderContents(options RenderOptions) (result string, err erro
 		return
 	}
 
-	if len(contents) < 20 {
+	if len(contents) < 3 {
 		logger.Warnf("improbably short template `%s` (%s, %d bytes)", t.Name, t.SourceFile, len(contents))
 	}
 
@@ -310,8 +356,12 @@ func (t Template) RenderContents(options RenderOptions) (result string, err erro
 type TemplateSet []Template
 
 func (t TemplateSet) Render(options RenderOptions) error {
+	return t.RenderTo(skeletonConfig.TargetDirectory(), options)
+}
+
+func (t TemplateSet) RenderTo(directory string, options RenderOptions) error {
 	for _, template := range t {
-		if err := template.Render(options); err != nil {
+		if err := template.RenderTo(directory, options); err != nil {
 			return err
 		}
 	}

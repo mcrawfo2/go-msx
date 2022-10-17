@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Optional variables
+SKIP_CONFORMANCE=${SKIP_CONFORMANCE:-true}
+BUILD_NUMBER=${BUILD_NUMBER:-SNAPSHOT}
+MSX_RELEASE=${MSX_RELEASE:-5.0.0}
+
+# Calculated variables
+SERVICEPACK_NAME="${app.name}"
+SOURCE_PATH="$(pwd)"
+FULL_VERSION="${MSX_RELEASE}-${BUILD_NUMBER}"
+IMAGE_NAME="${SERVICEPACK_NAME}-ui"
+IMAGE_VERSION="${FULL_VERSION}"
+TARBALL_NAME="skyfallui-files"
+TARBALL_VERSION="${FULL_VERSION}"
+
+# Fixed config
+DOCKERFILE=bin/package/Dockerfile
