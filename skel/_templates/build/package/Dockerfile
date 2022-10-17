@@ -23,4 +23,6 @@ ENV SERVICE_BIN "/usr/bin/${app.name}"
 WORKDIR /var/run/${app.name}/
 CMD ["/usr/bin/${app.name}"]
 COPY --from=builder /app/dist/root/ /
+#if NOT_GENERATOR_BEAT
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
+#endif NOT_GENERATOR_BEAT

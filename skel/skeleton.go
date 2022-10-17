@@ -483,11 +483,13 @@ func GenerateDockerfile(_ []string) error {
 			SourceFile: "build/package/Dockerfile.debug",
 			Format:     FileFormatDocker,
 		},
-		{
+	}
+	if skeletonConfig.Archetype != archetypeKeyBeat {
+		templates = append(templates, Template{
 			Name:       "Creating docker entrypoint",
 			SourceFile: "build/package/docker-entrypoint.sh",
 			Format:     FileFormatBash,
-		},
+		})
 	}
 
 	return templates.Render(NewRenderOptions())
