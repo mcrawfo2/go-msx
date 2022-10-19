@@ -816,5 +816,9 @@ func SPUITemplates(srcroot, dstroot string) TemplateSet {
 			SourceFile: path.Join(srcroot, ".npmrc"),
 			DestFile:   path.Join(dstroot, ".npmrc"),
 			Format:     FileFormatOther},
+		{Name: "Overlaying checks file",
+			SourceFile: path.Join(srcroot, ".checks.yml"),
+			DestFile:   path.Join(dstroot, ".checks.yml"),
+			Format:     FileFormatOther},
 	}
 }

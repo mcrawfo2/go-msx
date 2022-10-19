@@ -19,5 +19,11 @@ checks:
           report: test/junit-report.xml
           title: "UI Tests"
 
+  - name: Sonar
+    commands:
+      - builtin: sonar
+        config:
+          settings: bin/ci/sonar-project.properties
+
 slack:
-  channel: example-github
+  channel: ${slack.channel}
