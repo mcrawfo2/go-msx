@@ -125,3 +125,16 @@ func (r *deviceSqlRepository) Delete(ctx context.Context, name string) (err erro
 2. Delegate to our internal CrudRepository to perform the record retrieval and struct mapping.
    - The `CrudRepositoryApi.DeleteBy` method accepts a map of criteria to delete by -- 
      in this case, the primary key.
+
+### Transaction Support 
+
+```go
+    err := sqldb.NewTransactionManager().
+        WithTransaction(ctx, func(ctx context.Context) error {
+            // do all your db processes in here (preferably prepared)
+
+            // then return nil to commit or an error to rollback
+            // return errors.New("some error") // to rollback
+            return nil // to commit
+        })
+```

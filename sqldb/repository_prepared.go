@@ -16,7 +16,7 @@ type CrudPreparedRepository struct {
 	tableName string
 }
 
-func (c *CrudPreparedRepository) Rebind(conn *sqlx.DB, stmt string) string {
+func (c *CrudPreparedRepository) Rebind(conn SqlExecutor, stmt string) string {
 	driver := conn.DriverName()
 	baseDriver := baseDriverName(driver)
 	bindType := sqlx.BindType(baseDriver)
@@ -77,7 +77,7 @@ func (c *CrudPreparedRepository) CountAllByExpression(ctx context.Context, where
 	})
 }
 
-func (c *CrudPreparedRepository) dialect(conn *sqlx.DB) goqu.DialectWrapper {
+func (c *CrudPreparedRepository) dialect(conn SqlExecutor) goqu.DialectWrapper {
 	return goqu.Dialect(conn.DriverName())
 }
 
@@ -358,12 +358,7 @@ func (c *CrudPreparedRepository) constructSortedQueryWithArgsByExpression(conn *
 }
 
 func (c *CrudPreparedRepository) Insert(ctx context.Context, value interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
@@ -376,12 +371,7 @@ func (c *CrudPreparedRepository) Insert(ctx context.Context, value interface{}) 
 }
 
 func (c *CrudPreparedRepository) Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Update(c.tableName).Where(goqu.Ex(where)).Set(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
@@ -404,7 +394,7 @@ func (c *CrudPreparedRepository) Save(ctx context.Context, value interface{}) (e
 		return ErrNotImplemented
 	}
 
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).Prepared(true).ToSQL()
 		if err != nil {
 			return err
@@ -412,8 +402,10 @@ func (c *CrudPreparedRepository) Save(ctx context.Context, value interface{}) (e
 
 		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
 		stmt = c.Rebind(conn, stmt)
+
 		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
+
 		return err
 	})
 }
@@ -429,7 +421,7 @@ func (c *CrudPreparedRepository) SaveAll(ctx context.Context, values []interface
 		return ErrNotImplemented
 	}
 
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(values...).Prepared(true).ToSQL()
 		if err != nil {
 			return err
@@ -444,12 +436,7 @@ func (c *CrudPreparedRepository) SaveAll(ctx context.Context, values []interface
 }
 
 func (c *CrudPreparedRepository) DeleteBy(ctx context.Context, where map[string]interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Delete(c.tableName).Where(goqu.Ex(where)).Prepared(true).ToSQL()
 		if err != nil {
 			return err
@@ -462,12 +449,7 @@ func (c *CrudPreparedRepository) DeleteBy(ctx context.Context, where map[string]
 }
 
 func (c *CrudPreparedRepository) Truncate(ctx context.Context) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Truncate(c.tableName).Prepared(true).ToSQL()
 		if err != nil {
 			return err

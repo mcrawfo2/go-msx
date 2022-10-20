@@ -274,6 +274,16 @@ in this case, the primary key.</li>
 </ul>
 </li>
 </ol>
+<h3 id="transaction-support"><a class="header" href="#transaction-support">Transaction Support</a></h3>
+<pre><code class="language-go">    err := sqldb.NewTransactionManager().
+        WithTransaction(ctx, func(ctx context.Context) error {
+            // do all your db processes in here (preferably prepared)
+
+            // then return nil to commit or an error to rollback
+            // return errors.New(&quot;some error&quot;) // to rollback
+            return nil // to commit
+        })
+</code></pre>
 
                     </main>
 

@@ -94,7 +94,7 @@ func (c *CrudRepository) CountAllByExpression(ctx context.Context, where goqu.Ex
 	})
 }
 
-func (c *CrudRepository) dialect(conn *sqlx.DB) goqu.DialectWrapper {
+func (c *CrudRepository) dialect(conn SqlExecutor) goqu.DialectWrapper {
 	return goqu.Dialect(conn.DriverName())
 }
 
@@ -368,12 +368,7 @@ func (c *CrudRepository) constructSortedQueryWithArgsByExpression(conn *sqlx.DB,
 }
 
 func (c *CrudRepository) Insert(ctx context.Context, value interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).ToSQL()
 		if err != nil {
 			return err
@@ -385,12 +380,7 @@ func (c *CrudRepository) Insert(ctx context.Context, value interface{}) (err err
 }
 
 func (c *CrudRepository) Update(ctx context.Context, where map[string]interface{}, value interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Update(c.tableName).Where(goqu.Ex(where)).Set(value).ToSQL()
 		if err != nil {
 			return err
@@ -412,7 +402,7 @@ func (c *CrudRepository) Save(ctx context.Context, value interface{}) (err error
 		return ErrNotImplemented
 	}
 
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(value).ToSQL()
 		if err != nil {
 			return err
@@ -422,6 +412,7 @@ func (c *CrudRepository) Save(ctx context.Context, value interface{}) (err error
 
 		statements.Printf(queryLogFormat, stmt, args)
 		_, err = conn.ExecContext(ctx, stmt, args...)
+
 		return err
 	})
 }
@@ -437,7 +428,7 @@ func (c *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err
 		return ErrNotImplemented
 	}
 
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Insert(c.tableName).Rows(values...).ToSQL()
 		if err != nil {
 			return err
@@ -452,12 +443,7 @@ func (c *CrudRepository) SaveAll(ctx context.Context, values []interface{}) (err
 }
 
 func (c *CrudRepository) DeleteBy(ctx context.Context, where map[string]interface{}) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Delete(c.tableName).Where(goqu.Ex(where)).ToSQL()
 		if err != nil {
 			return err
@@ -469,12 +455,7 @@ func (c *CrudRepository) DeleteBy(ctx context.Context, where map[string]interfac
 }
 
 func (c *CrudRepository) Truncate(ctx context.Context) (err error) {
-	pool, err := PoolFromContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	return pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
+	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
 		stmt, args, err := c.dialect(conn).Truncate(c.tableName).ToSQL()
 		if err != nil {
 			return err
