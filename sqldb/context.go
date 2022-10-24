@@ -14,6 +14,7 @@ type contextKey int
 const (
 	contextKeySqlPool contextKey = iota
 	contextKeyCrudRepositoryFactory
+	contextKeyTransaction
 )
 
 var ErrDisabled = errors.New("Sql connection disabled")
