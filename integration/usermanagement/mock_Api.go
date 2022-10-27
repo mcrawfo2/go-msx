@@ -3,10 +3,16 @@
 package usermanagement
 
 import (
+	auth "cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
+	idm "cto-github.cisco.com/NFV-BU/go-msx/integration/idm"
+
 	integration "cto-github.cisco.com/NFV-BU/go-msx/integration"
+
 	mock "github.com/stretchr/testify/mock"
 
 	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
+
+	secrets "cto-github.cisco.com/NFV-BU/go-msx/integration/secrets"
 
 	types "cto-github.cisco.com/NFV-BU/go-msx/types"
 )
@@ -16,13 +22,13 @@ type MockUserManagement struct {
 	mock.Mock
 }
 
-// AddSystemSecrets provides a mock function with given fields: scope, secrets
-func (_m *MockUserManagement) AddSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(scope, secrets)
+// AddSystemSecrets provides a mock function with given fields: scope, _a1
+func (_m *MockUserManagement) AddSystemSecrets(scope string, _a1 map[string]string) (*integration.MsxResponse, error) {
+	ret := _m.Called(scope, _a1)
 
 	var r0 *integration.MsxResponse
 	if rf, ok := ret.Get(0).(func(string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(scope, secrets)
+		r0 = rf(scope, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -31,7 +37,7 @@ func (_m *MockUserManagement) AddSystemSecrets(scope string, secrets map[string]
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, map[string]string) error); ok {
-		r1 = rf(scope, secrets)
+		r1 = rf(scope, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -39,13 +45,13 @@ func (_m *MockUserManagement) AddSystemSecrets(scope string, secrets map[string]
 	return r0, r1
 }
 
-// AddTenantSecrets provides a mock function with given fields: tenantId, scope, secrets
-func (_m *MockUserManagement) AddTenantSecrets(tenantId string, scope string, secrets map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(tenantId, scope, secrets)
+// AddTenantSecrets provides a mock function with given fields: tenantId, scope, _a2
+func (_m *MockUserManagement) AddTenantSecrets(tenantId string, scope string, _a2 map[string]string) (*integration.MsxResponse, error) {
+	ret := _m.Called(tenantId, scope, _a2)
 
 	var r0 *integration.MsxResponse
 	if rf, ok := ret.Get(0).(func(string, string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(tenantId, scope, secrets)
+		r0 = rf(tenantId, scope, _a2)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -54,7 +60,7 @@ func (_m *MockUserManagement) AddTenantSecrets(tenantId string, scope string, se
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, map[string]string) error); ok {
-		r1 = rf(tenantId, scope, secrets)
+		r1 = rf(tenantId, scope, _a2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,11 +69,11 @@ func (_m *MockUserManagement) AddTenantSecrets(tenantId string, scope string, se
 }
 
 // BatchCreateCapabilities provides a mock function with given fields: populator, owner, capabilities
-func (_m *MockUserManagement) BatchCreateCapabilities(populator bool, owner string, capabilities []CapabilityCreateRequest) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) BatchCreateCapabilities(populator bool, owner string, capabilities []idm.CapabilityCreateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(populator, owner, capabilities)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(bool, string, []CapabilityCreateRequest) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(bool, string, []idm.CapabilityCreateRequest) *integration.MsxResponse); ok {
 		r0 = rf(populator, owner, capabilities)
 	} else {
 		if ret.Get(0) != nil {
@@ -76,7 +82,7 @@ func (_m *MockUserManagement) BatchCreateCapabilities(populator bool, owner stri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool, string, []CapabilityCreateRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(bool, string, []idm.CapabilityCreateRequest) error); ok {
 		r1 = rf(populator, owner, capabilities)
 	} else {
 		r1 = ret.Error(1)
@@ -86,11 +92,11 @@ func (_m *MockUserManagement) BatchCreateCapabilities(populator bool, owner stri
 }
 
 // BatchUpdateCapabilities provides a mock function with given fields: populator, owner, capabilities
-func (_m *MockUserManagement) BatchUpdateCapabilities(populator bool, owner string, capabilities []CapabilityUpdateRequest) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) BatchUpdateCapabilities(populator bool, owner string, capabilities []idm.CapabilityUpdateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(populator, owner, capabilities)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(bool, string, []CapabilityUpdateRequest) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(bool, string, []idm.CapabilityUpdateRequest) *integration.MsxResponse); ok {
 		r0 = rf(populator, owner, capabilities)
 	} else {
 		if ret.Get(0) != nil {
@@ -99,7 +105,7 @@ func (_m *MockUserManagement) BatchUpdateCapabilities(populator bool, owner stri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool, string, []CapabilityUpdateRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(bool, string, []idm.CapabilityUpdateRequest) error); ok {
 		r1 = rf(populator, owner, capabilities)
 	} else {
 		r1 = ret.Error(1)
@@ -109,11 +115,11 @@ func (_m *MockUserManagement) BatchUpdateCapabilities(populator bool, owner stri
 }
 
 // CreateRole provides a mock function with given fields: dbinstaller, body
-func (_m *MockUserManagement) CreateRole(dbinstaller bool, body RoleCreateRequest) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) CreateRole(dbinstaller bool, body idm.RoleCreateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(dbinstaller, body)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(bool, RoleCreateRequest) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(bool, idm.RoleCreateRequest) *integration.MsxResponse); ok {
 		r0 = rf(dbinstaller, body)
 	} else {
 		if ret.Get(0) != nil {
@@ -122,7 +128,7 @@ func (_m *MockUserManagement) CreateRole(dbinstaller bool, body RoleCreateReques
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool, RoleCreateRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(bool, idm.RoleCreateRequest) error); ok {
 		r1 = rf(dbinstaller, body)
 	} else {
 		r1 = ret.Error(1)
@@ -201,11 +207,11 @@ func (_m *MockUserManagement) DeleteSecretPolicy(name string) (*integration.MsxR
 }
 
 // EncryptSystemSecrets provides a mock function with given fields: scope, names, encrypt
-func (_m *MockUserManagement) EncryptSystemSecrets(scope string, names []string, encrypt EncryptSecretsDTO) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) EncryptSystemSecrets(scope string, names []string, encrypt secrets.EncryptSecretsDTO) (*integration.MsxResponse, error) {
 	ret := _m.Called(scope, names, encrypt)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, []string, EncryptSecretsDTO) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(string, []string, secrets.EncryptSecretsDTO) *integration.MsxResponse); ok {
 		r0 = rf(scope, names, encrypt)
 	} else {
 		if ret.Get(0) != nil {
@@ -214,7 +220,7 @@ func (_m *MockUserManagement) EncryptSystemSecrets(scope string, names []string,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, []string, EncryptSecretsDTO) error); ok {
+	if rf, ok := ret.Get(1).(func(string, []string, secrets.EncryptSecretsDTO) error); ok {
 		r1 = rf(scope, names, encrypt)
 	} else {
 		r1 = ret.Error(1)
@@ -224,11 +230,11 @@ func (_m *MockUserManagement) EncryptSystemSecrets(scope string, names []string,
 }
 
 // EncryptTenantSecrets provides a mock function with given fields: tenantId, scope, names, encrypt
-func (_m *MockUserManagement) EncryptTenantSecrets(tenantId string, scope string, names []string, encrypt EncryptSecretsDTO) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) EncryptTenantSecrets(tenantId string, scope string, names []string, encrypt secrets.EncryptSecretsDTO) (*integration.MsxResponse, error) {
 	ret := _m.Called(tenantId, scope, names, encrypt)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, string, []string, EncryptSecretsDTO) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(string, string, []string, secrets.EncryptSecretsDTO) *integration.MsxResponse); ok {
 		r0 = rf(tenantId, scope, names, encrypt)
 	} else {
 		if ret.Get(0) != nil {
@@ -237,7 +243,7 @@ func (_m *MockUserManagement) EncryptTenantSecrets(tenantId string, scope string
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, []string, EncryptSecretsDTO) error); ok {
+	if rf, ok := ret.Get(1).(func(string, string, []string, secrets.EncryptSecretsDTO) error); ok {
 		r1 = rf(tenantId, scope, names, encrypt)
 	} else {
 		r1 = ret.Error(1)
@@ -285,29 +291,6 @@ func (_m *MockUserManagement) GenerateTenantSecrets(tenantId string, scope strin
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, []string, bool) error); ok {
 		r1 = rf(tenantId, scope, names, save)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAdminHealth provides a mock function with given fields:
-func (_m *MockUserManagement) GetAdminHealth() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -734,14 +717,14 @@ func (_m *MockUserManagement) GetTokenDetails(noDetails bool) (*integration.MsxR
 }
 
 // GetTokenKeys provides a mock function with given fields:
-func (_m *MockUserManagement) GetTokenKeys() (JsonWebKeys, *integration.MsxResponse, error) {
+func (_m *MockUserManagement) GetTokenKeys() (auth.JsonWebKeys, *integration.MsxResponse, error) {
 	ret := _m.Called()
 
-	var r0 JsonWebKeys
-	if rf, ok := ret.Get(0).(func() JsonWebKeys); ok {
+	var r0 auth.JsonWebKeys
+	if rf, ok := ret.Get(0).(func() auth.JsonWebKeys); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(JsonWebKeys)
+		r0 = ret.Get(0).(auth.JsonWebKeys)
 	}
 
 	var r1 *integration.MsxResponse
@@ -947,13 +930,13 @@ func (_m *MockUserManagement) RemoveTenantSecrets(tenantId string, scope string)
 	return r0, r1
 }
 
-// ReplaceSystemSecrets provides a mock function with given fields: scope, secrets
-func (_m *MockUserManagement) ReplaceSystemSecrets(scope string, secrets map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(scope, secrets)
+// ReplaceSystemSecrets provides a mock function with given fields: scope, _a1
+func (_m *MockUserManagement) ReplaceSystemSecrets(scope string, _a1 map[string]string) (*integration.MsxResponse, error) {
+	ret := _m.Called(scope, _a1)
 
 	var r0 *integration.MsxResponse
 	if rf, ok := ret.Get(0).(func(string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(scope, secrets)
+		r0 = rf(scope, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -962,7 +945,7 @@ func (_m *MockUserManagement) ReplaceSystemSecrets(scope string, secrets map[str
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, map[string]string) error); ok {
-		r1 = rf(scope, secrets)
+		r1 = rf(scope, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -970,13 +953,13 @@ func (_m *MockUserManagement) ReplaceSystemSecrets(scope string, secrets map[str
 	return r0, r1
 }
 
-// ReplaceTenantSecrets provides a mock function with given fields: tenantId, scope, secrets
-func (_m *MockUserManagement) ReplaceTenantSecrets(tenantId string, scope string, secrets map[string]string) (*integration.MsxResponse, error) {
-	ret := _m.Called(tenantId, scope, secrets)
+// ReplaceTenantSecrets provides a mock function with given fields: tenantId, scope, _a2
+func (_m *MockUserManagement) ReplaceTenantSecrets(tenantId string, scope string, _a2 map[string]string) (*integration.MsxResponse, error) {
+	ret := _m.Called(tenantId, scope, _a2)
 
 	var r0 *integration.MsxResponse
 	if rf, ok := ret.Get(0).(func(string, string, map[string]string) *integration.MsxResponse); ok {
-		r0 = rf(tenantId, scope, secrets)
+		r0 = rf(tenantId, scope, _a2)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*integration.MsxResponse)
@@ -985,7 +968,7 @@ func (_m *MockUserManagement) ReplaceTenantSecrets(tenantId string, scope string
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, map[string]string) error); ok {
-		r1 = rf(tenantId, scope, secrets)
+		r1 = rf(tenantId, scope, _a2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -994,11 +977,11 @@ func (_m *MockUserManagement) ReplaceTenantSecrets(tenantId string, scope string
 }
 
 // StoreSecretPolicy provides a mock function with given fields: name, policy
-func (_m *MockUserManagement) StoreSecretPolicy(name string, policy SecretPolicySetRequest) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) StoreSecretPolicy(name string, policy secrets.SecretPolicySetRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(name, policy)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(string, SecretPolicySetRequest) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(string, secrets.SecretPolicySetRequest) *integration.MsxResponse); ok {
 		r0 = rf(name, policy)
 	} else {
 		if ret.Get(0) != nil {
@@ -1007,7 +990,7 @@ func (_m *MockUserManagement) StoreSecretPolicy(name string, policy SecretPolicy
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, SecretPolicySetRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(string, secrets.SecretPolicySetRequest) error); ok {
 		r1 = rf(name, policy)
 	} else {
 		r1 = ret.Error(1)
@@ -1040,11 +1023,11 @@ func (_m *MockUserManagement) SwitchContext(accessToken string, userId types.UUI
 }
 
 // UpdateRole provides a mock function with given fields: dbinstaller, body
-func (_m *MockUserManagement) UpdateRole(dbinstaller bool, body RoleUpdateRequest) (*integration.MsxResponse, error) {
+func (_m *MockUserManagement) UpdateRole(dbinstaller bool, body idm.RoleUpdateRequest) (*integration.MsxResponse, error) {
 	ret := _m.Called(dbinstaller, body)
 
 	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func(bool, RoleUpdateRequest) *integration.MsxResponse); ok {
+	if rf, ok := ret.Get(0).(func(bool, idm.RoleUpdateRequest) *integration.MsxResponse); ok {
 		r0 = rf(dbinstaller, body)
 	} else {
 		if ret.Get(0) != nil {
@@ -1053,7 +1036,7 @@ func (_m *MockUserManagement) UpdateRole(dbinstaller bool, body RoleUpdateReques
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool, RoleUpdateRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(bool, idm.RoleUpdateRequest) error); ok {
 		r1 = rf(dbinstaller, body)
 	} else {
 		r1 = ret.Error(1)
