@@ -7,7 +7,7 @@ package service
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
@@ -51,7 +51,7 @@ func DefaultServiceAccount(action types.ActionFunc) types.ActionFunc {
 
 // LoginDefaultServiceAccount returns a new security.UserContext by escalating to the system account
 func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, error) {
-	api, err := usermanagement.NewIntegration(ctx)
+	api, err := auth.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func LoginDefaultServiceAccount(ctx context.Context) (*security.UserContext, err
 		return nil, err
 	}
 
-	loginResponse, ok := msxResponse.Payload.(*usermanagement.LoginResponse)
+	loginResponse, ok := msxResponse.Payload.(*auth.LoginResponse)
 	if !ok {
 		return nil, errors.New("Invalid login response object")
 	}
@@ -96,7 +96,7 @@ func SwitchUserAccountDecorator(userId types.UUID) types.ActionFuncDecorator {
 
 // LoginUserAccount returns a new security.UserContext by switching to the specified user
 func LoginUserAccount(ctx context.Context, userId types.UUID) (*security.UserContext, error) {
-	api, err := usermanagement.NewIntegration(ctx)
+	api, err := auth.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -111,14 +111,14 @@ func LoginUserAccount(ctx context.Context, userId types.UUID) (*security.UserCon
 		return nil, err
 	}
 
-	systemToken, ok := msxResponseSystemToken.Payload.(*usermanagement.LoginResponse)
+	systemToken, ok := msxResponseSystemToken.Payload.(*auth.LoginResponse)
 
 	msxResponse, err := api.SwitchContext(systemToken.AccessToken, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	loginResponse, ok := msxResponse.Payload.(*usermanagement.LoginResponse)
+	loginResponse, ok := msxResponse.Payload.(*auth.LoginResponse)
 	if !ok {
 		return nil, errors.New("Invalid login response object")
 	}

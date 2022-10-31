@@ -7,7 +7,7 @@ package populate
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	api "cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/secrets"
 	"cto-github.cisco.com/NFV-BU/go-msx/populate"
 	"cto-github.cisco.com/NFV-BU/go-msx/resource"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
@@ -42,11 +42,11 @@ type SecretPolicyPopulator struct {
 	cfg SecretPolicyPopulatorConfig
 }
 
-func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api.Api, artifact populate.Artifact) error {
+func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, api secrets.Api, artifact populate.Artifact) error {
 	logger.WithContext(ctx).Infof("Loading policy from %q", artifact.TemplateFileName)
 
 	var policy struct {
-		api.SecretPolicySetRequest
+		secrets.SecretPolicySetRequest
 		Name string `json:"name"`
 	}
 
@@ -57,7 +57,7 @@ func (p SecretPolicyPopulator) populateSecretPolicy(ctx context.Context, idm api
 		return errors.Wrapf(err, "Unable to load policy %q", artifact.TemplateFileName)
 	}
 
-	_, err = idm.StoreSecretPolicy(policy.Name, policy.SecretPolicySetRequest)
+	_, err = api.StoreSecretPolicy(policy.Name, policy.SecretPolicySetRequest)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to store secret policy %q", artifact.TemplateFileName)
 	}
@@ -81,12 +81,12 @@ func (p SecretPolicyPopulator) Populate(ctx context.Context) error {
 			return err
 		}
 
-		idm, _ := api.NewIntegration(ctx)
+		api, _ := secrets.NewIntegration(ctx)
 
 		logger.WithContext(ctx).Info("Populating secret policies")
 
 		for _, artifact := range manifest.SecretPolicies {
-			err = p.populateSecretPolicy(ctx, idm, artifact)
+			err = p.populateSecretPolicy(ctx, api, artifact)
 			if err != nil {
 				return err
 			}

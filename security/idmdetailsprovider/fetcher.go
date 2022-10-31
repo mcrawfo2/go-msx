@@ -6,7 +6,7 @@ package idmdetailsprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
@@ -23,37 +23,37 @@ func (t *fastDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 }
 
 func (t *fastDetailsFetcher) FetchActive(ctx context.Context) (bool, error) {
-	userManagementApi, err := usermanagement.NewIntegration(ctx)
+	api, err := auth.NewIntegration(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	response, err := userManagementApi.GetTokenDetails(true)
+	response, err := api.GetTokenDetails(true)
 	if err != nil {
 		return false, err
 	}
 
-	payload := response.Payload.(*usermanagement.TokenDetails)
+	payload := response.Payload.(*auth.TokenDetails)
 	return payload.Active, nil
 }
 
 func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*security.UserContextDetails, error) {
-	userManagementApi, err := usermanagement.NewIntegration(ctx)
+	api, err := auth.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := userManagementApi.GetTokenDetails(false)
+	response, err := api.GetTokenDetails(false)
 	if err != nil {
 		return nil, err
 	}
 
-	payload := response.Payload.(*usermanagement.TokenDetails)
+	payload := response.Payload.(*auth.TokenDetails)
 	accessibleTenantsSet := make(types.UUIDSet)
 	accessibleTenantsSet.Add(payload.Tenants...)
 
 	for _, tenantId := range payload.Tenants {
-		_, descendants, e := userManagementApi.GetTenantHierarchyDescendants(tenantId)
+		_, descendants, e := api.GetTenantHierarchyDescendants(tenantId)
 		if e != nil {
 			return nil, e
 		}
@@ -72,7 +72,7 @@ func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*secu
 	return userContext, nil
 }
 
-func (t *fastDetailsFetcher) toUserContextDetails(payload *usermanagement.TokenDetails) *security.UserContextDetails {
+func (t *fastDetailsFetcher) toUserContextDetails(payload *auth.TokenDetails) *security.UserContextDetails {
 	return &security.UserContextDetails{
 		Active:       payload.Active,
 		Issuer:       payload.Issuer,

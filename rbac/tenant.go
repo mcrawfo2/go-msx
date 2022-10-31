@@ -6,7 +6,7 @@ package rbac
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -93,7 +93,7 @@ func HasAccessToTenant(ctx context.Context, tenantId types.UUID) error {
 //
 // ValidateTenant Checks if the tenant id is a valid tenant. See securitytest.MockedTenantValidation for test mocking
 func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
-	userManagementApi, err := usermanagement.NewIntegration(ctx)
+	authApi, err := auth.NewIntegration(ctx)
 	if err != nil {
 		return errors.Wrap(err, "Error initializing usermanagement.")
 	}
@@ -109,7 +109,7 @@ func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 	}
 
 	//check if the token has a parent
-	parentTenant, err := userManagementApi.GetTenantHierarchyParent(tenantId)
+	parentTenant, err := authApi.GetTenantHierarchyParent(tenantId)
 	if err != nil {
 		return errors.Wrap(err, "Error getting Parent TenantId.")
 	}
@@ -125,13 +125,13 @@ func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 func GetRootTenant(ctx context.Context) (types.UUID, error) {
 	//fetch the root token; it's system wide so we only need to do this once
 	if rootTenantId.Load() == nil {
-		userManagementApi, err := usermanagement.NewIntegration(ctx)
+		authApi, err := auth.NewIntegration(ctx)
 
 		if err != nil {
 			return nil, err
 		}
 
-		resp, err := userManagementApi.GetTenantHierarchyRoot()
+		resp, err := authApi.GetTenantHierarchyRoot()
 		if err == nil {
 			rootTenantId.Store(types.MustParseUUID(resp.BodyString))
 		} else {

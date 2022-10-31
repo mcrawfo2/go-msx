@@ -2,15 +2,20 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package usermanagement
+package secrets
 
-import "context"
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+)
 
 type contextKey int
 
 const (
 	contextKeyIntegration contextKey = iota
 )
+
+var logger = log.NewLogger("msx.integration.secrets")
 
 func IntegrationFromContext(ctx context.Context) Api {
 	value, _ := ctx.Value(contextKeyIntegration).(Api)
