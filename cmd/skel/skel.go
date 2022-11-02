@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-var BuildNumber = "0"
+var BuildNumber = "0" // over-written by ldflags
 
 func main() {
 	buildNumber, _ := strconv.ParseInt(BuildNumber, 10, 64)

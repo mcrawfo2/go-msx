@@ -5,7 +5,10 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
+	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"path/filepath"
 
@@ -57,6 +60,24 @@ func configure(cmd *cobra.Command, _ []string) error {
 		return err
 	} else if loaded {
 		return nil
+	}
+
+	if cmd.Use != "skel" {
+		printErr := color.New(color.FgRed).PrintfFunc()
+
+		// checks and warnings before starting
+		// warn if there are existing projects
+		projs, _ := FindProjects(types.May(os.Getwd()), 4) // 4 seems like a good cutoff
+		if len(projs) > 0 {
+			printErr("We found %d possible project(s) in this dir:\n", len(projs))
+			for _, proj := range projs {
+				fmt.Println("  " + proj + "\n")
+			}
+			printErr("Please switch to one of these folders first.\n")
+		} else {
+			printErr("No projects found in parent or child folders.  Please create a project first using `skel`.\n")
+		}
+		os.Exit(1)
 	}
 
 	// Configure a new project via the survey menus if no project was found
@@ -144,6 +165,8 @@ func loadGenerateConfig() (bool, error) {
 
 var buildNumber int
 
+// Run the skel command. This is the entry point for the skel command line
+// it is called from cmd/skel.go
 func Run(build int) {
 	buildNumber = build
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)

@@ -80,6 +80,8 @@ require (
 	moul.io/banner v1.0.1
 )
 
+require github.com/hashicorp/go-retryablehttp v0.6.7
+
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
 	github.com/DataDog/sketches-go v1.0.0 // indirect
