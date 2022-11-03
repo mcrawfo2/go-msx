@@ -16,7 +16,7 @@ import (
 
 const (
 	metadataFileName    = "maven-metadata.xml"
-	ciscoArtifactoryUrl = "http://engci-maven-master.cisco.com/artifactory/symphony-group"
+	ciscoArtifactoryUrl = "https://engci-maven-master.cisco.com/artifactory/symphony-group"
 )
 
 type ArtifactRepository interface {
@@ -58,6 +58,8 @@ func (r *FileRepository) getSnapshotFilePath(groupId, artifactId, version, subPa
 }
 
 func (r *FileRepository) getHashedData(filePath string) (*HashedData, error) {
+	logger.Debugf("Loading %s", filePath)
+
 	// Load the file
 	fileBytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -210,6 +212,8 @@ func (r *HttpRepository) readUrl(sourceUrl string) ([]byte, error) {
 }
 
 func (r *HttpRepository) getHashedData(filePath string) (*HashedData, error) {
+	logger.Debugf("Downloading %s", filePath)
+
 	// Load the file
 	fileBytes, err := r.readUrl(filePath)
 	if err != nil {

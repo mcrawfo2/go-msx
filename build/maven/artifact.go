@@ -56,6 +56,10 @@ func (d ArtifactDescriptor) JarFileName() string {
 	return fmt.Sprintf("%s-%s.jar", d.ArtifactId, d.Version)
 }
 
+func (d ArtifactDescriptor) ResourcesZipName() string {
+	return fmt.Sprintf("%s-%s-resources.zip", d.ArtifactId, d.Version)
+}
+
 func (d ArtifactDescriptor) Triple() string {
 	return fmt.Sprintf("%s:%s:%s", d.GroupId, d.ArtifactId, d.Version)
 }
