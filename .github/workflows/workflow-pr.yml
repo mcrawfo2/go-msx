@@ -1,7 +1,7 @@
 name: Checks
 on: [pull_request, pull_request_target]
 concurrency:
-  group: checks-${{ github.ref }}-1
+  group: checks-${{ github.ref }}
   cancel-in-progress: true
 env:
   CHECKS_ENTERPRISE_TOKEN: ${{ secrets.ENTERPRISE_TOKEN }}
@@ -11,7 +11,7 @@ env:
   GOPROXY: proxy.golang.org,direct
 jobs:
   Modules:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, linux ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -35,7 +35,7 @@ jobs:
     outputs:
       glance: ${{ steps.analysis.outputs.glance }}
   License:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -50,7 +50,7 @@ jobs:
       - name: Check License
         run: make license-check
   Vet:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -75,7 +75,7 @@ jobs:
     outputs:
       glance: ${{ steps.analysis.outputs.glance }}
   Lint:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -108,7 +108,7 @@ jobs:
     outputs:
       glance: ${{ steps.analysis.outputs.glance }}
   Test:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -141,7 +141,7 @@ jobs:
     outputs:
       glance: ${{ steps.analysis.outputs.glance }}
   Sonar:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     env:
       SONAR_URL: https://engci-sonar-gpk.cisco.com/sonar
     needs:
@@ -172,7 +172,7 @@ jobs:
           -Dsonar.linksCi=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           -Dsonar.qualitygate.timeout=600
   Slack:
-    runs-on: self-hosted
+    runs-on: [ self-hosted, cisco ]
     env:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
     if: ${{ always() }}

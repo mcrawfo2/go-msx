@@ -12,12 +12,12 @@ permissions:
 jobs:
   build:
     if: github.repository == 'cpx-saas/go-msx'
-    runs-on: [ ubuntu-latest ]
+    runs-on: [ self-hosted, linux ]
     environment:
       name: github-pages
     steps:
       # Check out the code
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       # Install go
       - name: Set Up Go
         uses: actions/setup-go@v3

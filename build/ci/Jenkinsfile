@@ -13,7 +13,7 @@ def SOURCEGRAPH_CREDENTIALS = 'sourcegraph-lsif-token'
 def TRIGGER = ''
 def TRIGGER_URL = ''
 def TRIGGER_SUFFIX = ''
-def TRUNK = 'master'
+def TRUNK = 'main'
 def TOOLS = ''
 def TEST_SUMMARY = null
 
@@ -132,7 +132,7 @@ pipeline {
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                     withCredentials([string(credentialsId: SOURCEGRAPH_CREDENTIALS, variable: 'SRC_ACCESS_TOKEN')]) {
                     script {
-                        if (env.BRANCH_NAME == TRUNK || env.BRANCH_NAME == 'master') {
+                        if (env.BRANCH_NAME == TRUNK) {
                             // Download sourcegraph go indexer
                             sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
                             sh "chmod +x ${TOOLS}/lsif-go"
@@ -167,7 +167,7 @@ pipeline {
                                     'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
                                 ]
 
-                                if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
+                                if (env.BRANCH_NAME != TRUNK) {
                                     if (env.ghprbTargetBranch) {
                                         sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
                                         sonarProperties['pullrequest.provider'] = "github"
