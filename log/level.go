@@ -5,7 +5,10 @@
 package log
 
 import (
+	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 const (
@@ -37,6 +40,8 @@ var AllLevelNames = []string{
 }
 
 type LoggerLevel logrus.Level
+
+var ErrInvalidLogLevel = errors.New("invalid log level")
 
 func (l LoggerLevel) Name() string {
 	switch logrus.Level(l) {
@@ -77,6 +82,18 @@ func LevelFromName(name string) logrus.Level {
 	default:
 		return PanicLevel
 	}
+}
+
+// CheckLevel checks if the given string is a valid level name.
+// It ignores case
+func CheckLevel(name string) (err error) {
+	n := strings.ToUpper(name)
+	for _, level := range AllLevelNames {
+		if n == level {
+			return nil
+		}
+	}
+	return fmt.Errorf("%w: %s", ErrInvalidLogLevel, name)
 }
 
 type LevelLogger struct {
