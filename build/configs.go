@@ -8,6 +8,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/build/maven"
+	"cto-github.cisco.com/NFV-BU/go-msx/build/maven/platform"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/bmatcuk/doublestar"
 	copypkg "github.com/otiai10/copy"
@@ -57,22 +58,26 @@ func InstallEntryPoint(args []string) error {
 
 func InstallDependencyConfigs([]string) error {
 	version := BuildConfig.Msx.Platform.Version
-	downloaded := &types.StringStack{}
+	downloaded := types.StringSet{}
 	artifacts := BuildConfig.Msx.Platform.ParentArtifacts
 
 	for _, artifactTriple := range artifacts {
+		logger.Infof("Inspecting artifact %q", artifactTriple)
 		artifact := maven.NewArtifactDescriptor(artifactTriple)
 		if artifact.Version == "" {
 			artifact = artifact.WithVersion(version)
 		}
-
-		descriptorPtr, err := maven.ResolveArtifactVersion(artifact)
+		platformManifest, err := platform.GetPlatformManifest(artifact)
+		if err != nil {
+			return err
+		}
+		descriptorPtr := platformManifest.ResolveArtifactVersion(artifact)
 		if err != nil {
 			return err
 		}
 		descriptor := *descriptorPtr
 
-		if err = installDependencyConfigs(descriptor, downloaded); err != nil {
+		if err = installDependencyConfigs(platformManifest, descriptor, downloaded); err != nil {
 			return err
 		}
 	}
@@ -80,11 +85,11 @@ func InstallDependencyConfigs([]string) error {
 	return nil
 }
 
-func installDependencyConfigs(descriptor maven.ArtifactDescriptor, downloaded *types.StringStack) (err error) {
+func installDependencyConfigs(platformManifest *platform.Manifest, descriptor maven.ArtifactDescriptor, downloaded types.StringSet) (err error) {
 	if downloaded.Contains(descriptor.ArtifactId) {
 		return nil
 	} else {
-		*downloaded = append(*downloaded, descriptor.ArtifactId)
+		downloaded.Add(descriptor.ArtifactId)
 	}
 
 	if descriptor.Scope == "test" {
@@ -130,15 +135,15 @@ func installDependencyConfigs(descriptor maven.ArtifactDescriptor, downloaded *t
 
 	// Install direct dependencies
 	for _, dependency := range pomFile.Dependencies {
-		dependency = dependency.WithVersion(descriptor.Version)
-		if err = installDependencyConfigs(dependency, downloaded); err != nil {
+		dependency = dependency.WithVersion(platformManifest.ResolveDependencyVersion(dependency, descriptor))
+		if err = installDependencyConfigs(platformManifest, dependency, downloaded); err != nil {
 			return err
 		}
 	}
 
 	// Install parent
-	parent := pomFile.Parent.WithVersion(descriptor.Version)
-	if err = installDependencyConfigs(parent, downloaded); err != nil {
+	parent := pomFile.Parent.WithVersion(platformManifest.ResolveDependencyVersion(pomFile.Parent, descriptor))
+	if err = installDependencyConfigs(platformManifest, parent, downloaded); err != nil {
 		return err
 	}
 

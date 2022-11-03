@@ -14,10 +14,29 @@ import (
 	"strings"
 )
 
+var logLevel logrus.Level
+var logLevelName string
+
 func init() {
 	rootCmd := cli.RootCmd()
 	rootCmd.Flags().Bool("list", false, "List available build targets")
 	rootCmd.PersistentFlags().StringArray("config", []string{"build.yml"}, "Specify one or more build config files")
+	rootCmd.PersistentFlags().StringVarP(&logLevelName, "loglevel", "l",
+		"INFO", "Set logging level: TRACE, DEBUG, INFO, WARN, ERROR or FATAL")
+	rootCmd.PersistentPreRunE = handleGlobalFlags
+}
+
+func handleGlobalFlags(cmd *cobra.Command, args []string) error {
+	logLevelName = strings.ToUpper(logLevelName)
+	if log.CheckLevel(logLevelName) != nil {
+		logger.Fatalf("invalid log level: %s", logLevelName)
+	}
+	logLevel = log.LevelFromName(logLevelName)
+	log.SetLoggerLevel("build", logLevel)
+	log.SetLoggerLevel("build.maven", logLevel)
+	log.SetLoggerLevel("build.maven.platform", logLevel)
+
+	return nil
 }
 
 func loadConfig(cmd *cobra.Command, args []string) error {

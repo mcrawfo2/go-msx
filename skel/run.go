@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"cto-github.cisco.com/NFV-BU/go-msx/cli"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
@@ -57,6 +58,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 		return nil
 	}
 
+	logLevelName = strings.ToUpper(logLevelName)
 	if log.CheckLevel(logLevelName) != nil {
 		logger.Fatalf("invalid log level: %s", logLevelName)
 	}
