@@ -99,12 +99,10 @@ spec:
               value: "8200"
             - name: SPRING_CLOUD_VAULT_SCHEME
               value: "https"
-            - name: SPRING_CLOUD_VAULT_TOKEN
-{% if dual_dc and  dc == "passive" %}
-              value: "{{ dc1_beats_client_token_auth_client_token }}"
-{% else %}
-              value: "{{ beats_general_token.stdout }}"
-{% endif %}
+            - name: SPRING_CLOUD_VAULT_TOKEN-SOURCE_SOURCE
+              value: "kubernetes"
+            - name: SPRING_CLOUD_VAULT_TOKEN-SOURCE_KUBERNETES_ROLE
+              value: "{{.Values.name }}"
         livenessProbe:
           failureThreshold: 3
           httpGet:
