@@ -62,7 +62,7 @@ var (
 		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
 		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.23.11",
 		"msx.release":                  "5.0.0",
-		"msx.platform.version":         "5.0.0-EDGE",
+		"msx.platform.version":         "5.0.0-STABLE",
 		"build.number":                 "SNAPSHOT",
 		"build.group":                  "com.cisco.msx",
 		"manifest.folder":              "Build-Stable",

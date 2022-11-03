@@ -13,7 +13,7 @@ msx:
       - com.cisco.vms:vms-service-starter-core
       - com.cisco.vms:vms-service-starter-kafka
       - com.cisco.nfv:nfv-integration-consul-leader
-    version: ${app.version}-EDGE
+    version: ${app.version}-STABLE
     includeGroups: "com.cisco.**"
 
 resources:
