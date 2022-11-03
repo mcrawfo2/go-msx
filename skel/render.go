@@ -128,6 +128,18 @@ func NewRenderOptions() RenderOptions {
 	}
 }
 
+func (r RenderOptions) String() string {
+	return fmt.Sprintf("Variables: \n%v\nConditions: \n%v\nStrings: %v\n", mapStr(r.Variables), mapStr(r.Conditions), mapStr(r.Strings))
+}
+
+func mapStr[t interface{ string | bool }](m map[string]t) string {
+	var buf bytes.Buffer
+	for k, v := range m {
+		buf.WriteString(fmt.Sprintf("%s = %v\n", k, v))
+	}
+	return buf.String()
+}
+
 type TemplateOp int
 
 type Template struct {
@@ -362,6 +374,7 @@ func (t TemplateSet) Render(options RenderOptions) error {
 }
 
 func (t TemplateSet) RenderTo(directory string, options RenderOptions) error {
+	logger.Debugf("Template rendering options: \n%s\n", options)
 	for _, template := range t {
 		if err := template.RenderTo(directory, options); err != nil {
 			return err

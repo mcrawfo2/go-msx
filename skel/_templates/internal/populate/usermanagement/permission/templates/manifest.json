@@ -1,0 +1,52 @@
+{
+  "capabilities": [
+    {
+      "name":"VIEW_SCREAMING_SNAKE_PLURAL",
+      "displayName":"cisco.common.role.capability.VIEW_SCREAMING_SNAKE_PLURAL",
+      "description":"Add/Edit/Delete SCREAMING_SNAKE_PLURAL Service Templates",
+      "category":"cisco.lowerplural.role.capability.category.lowerCamel_Category",
+      "operation":"manage",
+      "objectName":"cisco.common.role.capability.SCREAMING_SNAKE_PLURAL",
+      "owner":"lowerplural"
+    },
+    {
+      "name":"MANAGE_SCREAMING_SNAKE_PLURAL",
+      "displayName":"cisco.common.role.capability.MANAGE_SCREAMING_SNAKE_PLURAL",
+      "description":"Add/Edit/Delete SCREAMING_SNAKE_PLURAL Service Templates Data",
+      "category":"cisco.lowerplural.role.capability.category.SCREAMING_SNAKE_PLURAL_Category",
+      "operation":"manage",
+      "objectName":"cisco.common.role.capability.SCREAMING_SNAKE_PLURAL",
+      "owner":"SCREAMING_SNAKE_PLURAL"
+    }
+  ],
+  "owner": "lowerplural",
+  "roles": [
+    //#if TENANT_DOMAIN
+    {
+      "roleName": "ADMIN",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL", "MANAGE_SCREAMING_SNAKE_PLURAL"]
+    },
+    {
+      "roleName": "OPERATOR",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL", "MANAGE_SCREAMING_SNAKE_PLURAL"]
+    },
+    {
+      "roleName": "ENTERPRISE_ADMIN",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL", "MANAGE_SCREAMING_SNAKE_PLURAL"]
+    },
+    {
+      "roleName": "CONSUMER",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL", "MANAGE_SCREAMING_SNAKE_PLURAL"]
+    }
+    //#else TENANT_DOMAIN
+    {
+      "roleName": "ADMIN",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL", "MANAGE_SCREAMING_SNAKE_PLURAL"]
+    },
+    {
+      "roleName": "OPERATOR",
+      "capabilitylist": ["VIEW_SCREAMING_SNAKE_PLURAL"]
+    }
+    //#endif TENANT_DOMAIN
+  ]
+}

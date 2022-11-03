@@ -26,6 +26,8 @@ const projectConfigFileName = ".skel.json"
 const generateConfigFileName = "generate.json"
 
 var logger = log.NewLogger("msx.skel")
+var logLevel logrus.Level
+var logLevelName string
 
 var TitlingLanguage = language.English
 
@@ -42,13 +44,30 @@ func init() {
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return GenerateSkeleton(args)
 	}
+	rootCmd.PersistentFlags().StringVarP(&logLevelName, "loglevel", "l",
+		"INFO", "Set logging level: TRACE, DEBUG, INFO, WARN, ERROR or FATAL")
+
 	rootCmd.PersistentPreRunE = configure
+
 }
 
 func configure(cmd *cobra.Command, _ []string) error {
+
 	if cmd.Use == "version" {
 		return nil
 	}
+
+	if log.CheckLevel(logLevelName) != nil {
+		logger.Fatalf("invalid log level: %s", logLevelName)
+	}
+	logLevel = log.LevelFromName(logLevelName)
+	logger.SetLevel(logLevel)
+	if logLevel <= log.InfoLevel {
+		fmt.Printf("Log level set to %s (%d)\n",
+			log.LoggerLevel(logLevel).Name(), logLevel)
+	}
+	logger.Printf("Log level set to %s (%d)",
+		log.LoggerLevel(logLevel).Name(), logLevel)
 
 	if loaded, err := loadProjectConfig(); err != nil {
 		return err
@@ -62,7 +81,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	if cmd.Use != "skel" {
+	if cmd != cli.RootCmd() {
 		printErr := color.New(color.FgRed).PrintfFunc()
 
 		// checks and warnings before starting
@@ -171,5 +190,6 @@ func Run(build int) {
 	buildNumber = build
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
+
 	cli.Run(appName)
 }

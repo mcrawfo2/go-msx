@@ -246,7 +246,7 @@ func GenerateTimer(args []string) error {
 
 func inflect(title string) map[string]string {
 	caser := cases.Title(TitlingLanguage)
-	titleSingular := caser.String((inflector.Singularize(title)))
+	titleSingular := caser.String(inflector.Singularize(title))
 	titlePlural := caser.String(inflector.Pluralize(titleSingular))
 	upperCamelSingular := strcase.ToCamel(titleSingular)
 	upperCamelPlural := strcase.ToCamel(titlePlural)
@@ -282,6 +282,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 	apiPackagePath := path.Join("pkg", "api")
 	apiPackageSource := path.Join("code", "domain", "api")
 	apiPackageUrl := path.Join("cto-github.cisco.com/NFV-BU", skeletonConfig.AppName, apiPackagePath)
+	populatePackage := path.Join("internal", "populate", "usermanagement", "permission", "templates")
 	migratePackageSource := path.Join("code", "domain", "migrate", "version")
 	migratePackagePath := path.Join("internal", "migrate", "V"+strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_"))
 	migratePrefix, err := nextMigrationPrefix(migratePackagePath)
@@ -341,6 +342,12 @@ func generateDomain(name string, conditions map[string]bool) error {
 				inflections[inflectionScreamingSnakeSingular],
 				queryFileExtension),
 			Format: FileFormatSql,
+		},
+		{
+			Name:       inflections[inflectionTitleSingular] + " Permissions",
+			SourceFile: path.Join(populatePackage, "manifest.json"),
+			DestFile:   path.Join(populatePackage, "manifest.json"),
+			Format:     FileFormatJson,
 		},
 	}
 
