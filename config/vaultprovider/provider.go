@@ -6,9 +6,7 @@ package vaultprovider
 
 import (
 	"context"
-	"crypto/sha1"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/retry"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
@@ -16,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/thejerf/abtime"
 	"reflect"
-	"sort"
 	"time"
 )
 
@@ -24,9 +21,8 @@ const (
 	configRootVaultConfigProvider = "spring.cloud.vault.generic"
 	configKeyAppName              = "spring.application.name"
 	VaultClockBackoffTimerId      = iota
+	configRootInstallerPasswords  = "installer.passwords"
 )
-
-var logger = log.NewLogger("msx.config.vaultprovider")
 
 type ProviderConfig struct {
 	Enabled          bool          `config:"default=false"`
@@ -36,14 +32,22 @@ type ProviderConfig struct {
 	Delay            time.Duration `config:"default=1h"`
 }
 
+type InstallerPasswordsConfig struct {
+	Enabled       bool   `config:"default=false"`
+	Context       string `config:"default=deploymentpasswords/ansible_pass_file"`
+	Prefix        string `config:"default=installer.passwords.data"`
+	YamlDataField string `config:"default=ansible_pass_file"`
+}
+
 type Provider struct {
-	name        string
-	cfg         *ProviderConfig
-	contextPath string
-	connection  vault.ConnectionApi
-	loaded      chan map[string]string
-	notify      chan struct{}
-	clock       abtime.AbstractTime
+	name         string
+	cfg          *ProviderConfig
+	contextPath  string
+	connection   vault.ConnectionApi
+	loaded       chan map[string]string
+	notify       chan struct{}
+	clock        abtime.AbstractTime
+	installerCfg *InstallerPasswordsConfig
 }
 
 func (p *Provider) Description() string {
@@ -68,8 +72,23 @@ func (p *Provider) Load(ctx context.Context) (entries config.ProviderEntries, er
 		return nil, err
 	}
 
+	isInstallerPasswords := p.installerCfg != nil
+
 	for k, v := range settings {
-		entries = append(entries, config.NewEntry(p, k, v))
+		if !isInstallerPasswords {
+			entries = append(entries, config.NewEntry(p, k, v))
+
+		} else if k == p.installerCfg.YamlDataField {
+			// convert yaml
+			ents, err := config.ParseYaml(func() ([]byte, error) { return []byte(v), nil }, p)
+			if err != nil {
+				return nil, err
+			}
+			for _, e1 := range ents {
+				k1 := config.PrefixWithName(p.installerCfg.Prefix, e1.Name) // add prefix
+				entries = append(entries, config.NewEntry(p, k1, e1.Value))
+			}
+		}
 	}
 
 	return entries, nil
@@ -107,26 +126,6 @@ func (p *Provider) backoff(ctx context.Context) {
 	}
 }
 
-var nullSeparator = []byte{0}
-
-func (p *Provider) settingsHash(settings map[string]string) []byte {
-	var keys []string
-	for k := range settings {
-		keys = append(keys, k)
-	}
-	sort.StringSlice(keys).Sort()
-
-	h := sha1.New()
-	for _, k := range keys {
-		h.Write([]byte(k))
-		h.Write(nullSeparator)
-		h.Write([]byte(settings[k]))
-		h.Write(nullSeparator)
-	}
-
-	return h.Sum(nil)
-}
-
 func (p *Provider) Run(ctx context.Context) {
 	var prefix = p.ContextPath()
 	logger.WithContext(ctx).Infof("Starting config watcher for %s", p.Description())
@@ -146,7 +145,7 @@ func (p *Provider) Run(ctx context.Context) {
 			continue
 		}
 
-		newHash := p.settingsHash(settings)
+		newHash := config.SettingsHash(settings)
 		if lastHash == nil || !reflect.DeepEqual(lastHash, newHash) {
 			lastHash = newHash
 			p.loaded <- settings
@@ -182,6 +181,15 @@ func NewProviderConfig(cfg *config.Config) (*ProviderConfig, error) {
 	return providerConfig, nil
 }
 
+func newInstallerPasswordsProviderConfig(cfg *config.Config) (*InstallerPasswordsConfig, error) {
+	var installerPasswordsProviderConfig = &InstallerPasswordsConfig{}
+	var err = cfg.Populate(installerPasswordsProviderConfig, configRootInstallerPasswords)
+	if err != nil {
+		return nil, err
+	}
+	return installerPasswordsProviderConfig, nil
+}
+
 func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config) ([]config.Provider, error) {
 	providerConfig, err := NewProviderConfig(cfg)
 	if err != nil {
@@ -213,8 +221,26 @@ func NewProvidersFromConfig(name string, ctx context.Context, cfg *config.Config
 
 	clock := types.NewClock(ctx)
 
-	return []config.Provider{
+	providers := []config.Provider{
 		NewProvider(name, providerConfig, providerConfig.DefaultContext, conn, clock),
 		NewProvider(name, providerConfig, appContext, conn, clock),
-	}, nil
+	}
+
+	installerPasswordsProviderConfig, err := newInstallerPasswordsProviderConfig(cfg)
+	if err != nil {
+		err = errors.Wrap(err, "Failed to load installer passwords provider config")
+		return nil, err
+	}
+
+	if !installerPasswordsProviderConfig.Enabled {
+		logger.Warn("installer passwords configuration source disabled")
+
+	} else { // installer passwords enabled
+		// kv v1 only for now
+		installerPasswordsProvider := NewProvider(name, providerConfig, installerPasswordsProviderConfig.Context, conn, clock)
+		installerPasswordsProvider.installerCfg = installerPasswordsProviderConfig
+		providers = append(providers, installerPasswordsProvider)
+	}
+
+	return providers, nil
 }
