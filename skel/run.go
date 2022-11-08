@@ -29,6 +29,8 @@ const generateConfigFileName = "generate.json"
 var logger = log.NewLogger("msx.skel")
 var logLevel logrus.Level
 var logLevelName string
+var incFiles []string
+var excFiles []string
 
 var TitlingLanguage = language.English
 
@@ -47,6 +49,10 @@ func init() {
 	}
 	rootCmd.PersistentFlags().StringVarP(&logLevelName, "loglevel", "l",
 		"INFO", "Set logging level: TRACE, DEBUG, INFO, WARN, ERROR or FATAL")
+	rootCmd.PersistentFlags().StringSliceVarP(&incFiles, "include", "i",
+		[]string{}, "eg: i=\"**/*.go,**/*.ts\"\nOnly output file operations matching these quoted doublestar patterns will be done\nAlt syntax {alt1,...} not supported\nIf you don't include a file that a subsequent generation step needs, it may fail")
+	rootCmd.PersistentFlags().StringSliceVarP(&excFiles, "exclude", "e",
+		[]string{}, "eg: e=\"**/*.mod,**/*.sum\"\nOutput file operations matching these doublestar quoted patterns will not be done\nAlt syntax {alt1,...} not supported\nIf you exclude a file that a subsequent generation step needs, it may fail")
 
 	rootCmd.PersistentPreRunE = configure
 
