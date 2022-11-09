@@ -8,7 +8,9 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
+	"github.com/go-git/go-git/v5"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,12 +91,15 @@ func configure(cmd *cobra.Command, _ []string) error {
 		return nil
 	}
 
+	printErr := color.New(color.FgRed).PrintfFunc()
+	dir := types.May(os.Getwd())
+
 	if cmd != cli.RootCmd() {
-		printErr := color.New(color.FgRed).PrintfFunc()
 
 		// checks and warnings before starting
+
 		// warn if there are existing projects
-		projs, _ := FindProjects(types.May(os.Getwd()), 4) // 4 seems like a good cutoff
+		projs, _ := FindProjects(dir, 4) // 4 seems like a good cutoff
 		if len(projs) > 0 {
 			printErr("We found %d possible project(s) in this dir:\n", len(projs))
 			for _, proj := range projs {
@@ -187,6 +192,49 @@ func loadGenerateConfig() (bool, error) {
 		return false, err
 	}
 
+	return true, nil
+}
+
+// GitCheckAsk determines if there are vulnerable modifications in the given dir
+// if so, it asks whether to continue
+func GitCheckAsk(dir string) (ok bool, err error) {
+
+	printErr := color.New(color.FgRed).PrintfFunc()
+
+	logger.Tracef("GitCheckAsk(%s)", dir)
+
+	// warn if git is dirty
+	r, err := git.PlainOpenWithOptions(dir, &git.PlainOpenOptions{DetectDotGit: true})
+	if err != nil {
+		logger.Tracef("GitCheckAsk(%s) not a git repo: %s", dir, err)
+		return true, nil
+	}
+	wt, err := r.Worktree()
+	if err != nil {
+		logger.Tracef("GitCheckAsk(%s) error wt: %s", dir, err)
+		return true, nil
+	}
+	status, err := wt.Status()
+	if err != nil {
+		logger.Tracef("GitCheckAsk(%s) error status: %s", dir, err)
+		return true, nil
+	}
+	if !status.IsClean() {
+		printErr("\n\nThere are some uncommited modified files in this repo\n")
+		printErr("You may want to commit them before running this command\n\n")
+		keepCalm := false
+		carryOn := &survey.Confirm{
+			Message: "Continue anyway?",
+		}
+		err = survey.AskOne(carryOn, &keepCalm)
+		if err != nil {
+			logger.Tracef("GitCheckAsk(%s) error ask: %s", dir, err)
+			return false, err
+		}
+		if !keepCalm {
+			return false, nil
+		}
+	}
 	return true, nil
 }
 
