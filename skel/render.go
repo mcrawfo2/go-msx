@@ -10,6 +10,7 @@ import (
 	"compress/gzip"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
+	"github.com/bmatcuk/doublestar"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -57,6 +58,8 @@ type RenderOptions struct {
 	Variables  map[string]string
 	Conditions map[string]bool
 	Strings    map[string]string
+	IncFiles   []string // glob patterns of files to consider (empty=all)
+	ExcFiles   []string // glob patterns of files to exclude (empty=none)
 }
 
 func (r RenderOptions) AddString(source, dest string) {
@@ -124,12 +127,16 @@ func NewRenderOptions() RenderOptions {
 			"GENERATOR_SPUI":       skeletonConfig.Archetype == archetypeKeySPUI,
 			"UI":                   hasUI(),
 		},
-		Strings: make(map[string]string),
+		Strings:  make(map[string]string),
+		IncFiles: incFiles,
+		ExcFiles: excFiles,
 	}
 }
 
 func (r RenderOptions) String() string {
-	return fmt.Sprintf("Variables: \n%v\nConditions: \n%v\nStrings: %v\n", mapStr(r.Variables), mapStr(r.Conditions), mapStr(r.Strings))
+	return fmt.Sprintf("Variables: \n%s\nConditions: \n%s\nStrings: %s\nInclude: %s\nExclude: %s\n",
+		mapStr(r.Variables), mapStr(r.Conditions), mapStr(r.Strings),
+		r.IncFiles, r.ExcFiles)
 }
 
 func mapStr[t interface{ string | bool }](m map[string]t) string {
@@ -219,6 +226,18 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 
 	targetFileName := path.Join(directory, destFile)
 	targetDirectory := path.Dir(targetFileName)
+
+	logger.Tracef("Considering file %s against (inc/exc) %s %s", destFile, options.IncFiles, options.ExcFiles)
+
+	includeIt, err := shouldInclude(destFile, options)
+	if err != nil {
+		return err
+	}
+
+	if !includeIt {
+		logger.Infof("o (skip on inc/exc) %s (%s)", t.Name, destFile)
+		return nil
+	}
 
 	if t.Operation == OpDelete || t.Operation == OpGone {
 		if t.Operation == OpDelete { // we *must* delete
@@ -373,9 +392,49 @@ func (t TemplateSet) Render(options RenderOptions) error {
 	return t.RenderTo(skeletonConfig.TargetDirectory(), options)
 }
 
-func (t TemplateSet) RenderTo(directory string, options RenderOptions) error {
+// shouldInclude returns true if the destination file should be considered for output
+func shouldInclude(destination string, options RenderOptions) (includeIt bool, err error) {
+
+	includeIt = true
+	excludeIt := false
+
+	if len(options.IncFiles) > 0 {
+		includeIt = false
+		for _, m := range options.IncFiles {
+			j, err := doublestar.Match(m, destination)
+			if err != nil {
+				return false, err
+			}
+			includeIt = includeIt || j
+		}
+		if includeIt {
+			logger.Tracef("Including %s", destination)
+		} else {
+			logger.Tracef("Not including %s", destination)
+		}
+	}
+
+	if len(options.ExcFiles) > 0 {
+		for _, m := range options.ExcFiles {
+			j, err := doublestar.Match(m, destination)
+			if err != nil {
+				return false, err
+			}
+			excludeIt = excludeIt || j
+		}
+		if excludeIt {
+			logger.Tracef("Excluding %s", destination)
+			includeIt = false
+		}
+	}
+
+	return includeIt && !excludeIt, nil
+}
+
+func (t TemplateSet) RenderTo(directory string, options RenderOptions) (err error) {
 	logger.Debugf("Template rendering options: \n%s\n", options)
 	for _, template := range t {
+
 		if err := template.RenderTo(directory, options); err != nil {
 			return err
 		}
