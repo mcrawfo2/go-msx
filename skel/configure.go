@@ -5,6 +5,7 @@
 package skel
 
 import (
+	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -13,6 +14,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"golang.org/x/text/cases"
 )
+
+var ErrUserCancelled = errors.New("user cancelled")
 
 type SkeletonConfig struct {
 	Archetype         string `survey:"generator" json:"generator"`
@@ -36,10 +39,23 @@ type SkeletonConfig struct {
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
-	if c.TargetDir == "" {
-		return path.Join(c.TargetParent, c.AppName)
+
+	if c.TargetDir != "" {
+		return c.TargetDir
 	}
-	return c.TargetDir
+
+	switch c.Archetype {
+	case archetypeKeyApp:
+		return path.Join(c.TargetParent, c.AppName)
+	case archetypeKeyBeat:
+		return path.Join(c.TargetParent, c.BeatProtocol+"beat")
+	case archetypeKeyServicePack:
+		return path.Join(c.TargetParent, c.AppName)
+	case archetypeKeySPUI:
+		return path.Join(c.TargetParent, c.AppName+"-ui")
+	}
+	return path.Join(c.TargetParent, c.AppName)
+
 }
 
 func (c SkeletonConfig) AppMigrateVersion() string {
@@ -93,14 +109,6 @@ func Config() *SkeletonConfig {
 
 var archetypeSurveyQuestions = map[string][]*survey.Question{
 	archetypeKeyApp: {
-		{
-			Name: "targetParent",
-			Prompt: &survey.Input{
-				Message: "Project Parent Directory:",
-				Default: skeletonConfig.TargetParent,
-			},
-			Validate: survey.Required,
-		},
 		{
 			Name: "appVersion",
 			Prompt: &survey.Input{
@@ -181,14 +189,6 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 	},
 	archetypeKeyBeat: {
 		{
-			Name: "targetParent",
-			Prompt: &survey.Input{
-				Message: "Project Parent Directory:",
-				Default: skeletonConfig.TargetParent,
-			},
-			Validate: survey.Required,
-		},
-		{
 			Name: "appVersion",
 			Prompt: &survey.Input{
 				Message: "Version:",
@@ -222,14 +222,6 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 		},
 	},
 	archetypeKeyServicePack: {
-		{
-			Name: "targetParent",
-			Prompt: &survey.Input{
-				Message: "Project Parent Directory:",
-				Default: skeletonConfig.TargetParent,
-			},
-			Validate: survey.Required,
-		},
 		{
 			Name: "appVersion",
 			Prompt: &survey.Input{
@@ -326,14 +318,6 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 	},
 	archetypeKeySPUI: {
 		{
-			Name: "targetParent",
-			Prompt: &survey.Input{
-				Message: "Project Parent Directory:",
-				Default: skeletonConfig.TargetParent,
-			},
-			Validate: survey.Required,
-		},
-		{
 			Name: "appName",
 			Prompt: &survey.Input{
 				Message: "Microservice name:",
@@ -398,14 +382,34 @@ var archetypeQuestions = []*survey.Question{
 
 // ConfigureInteractive is the only entry point to the menu UI
 func ConfigureInteractive() error {
+
 	var archetypeIndex int
 	err := survey.Ask(archetypeQuestions, &archetypeIndex) // determine the archetype
 	if err != nil {
 		return err
 	}
 
+	// Ask for the TargetParent and compute the target from it and the archetype
+	targetPQ := &survey.Input{
+		Message: "Project Parent Directory:",
+		Default: skeletonConfig.TargetParent,
+	}
+	err = survey.AskOne(targetPQ, &skeletonConfig.TargetParent, survey.WithValidator(survey.Required))
+	if err != nil {
+		return err
+	}
+
+	target := skeletonConfig.TargetDirectory()
+	logger.Debugf("Target directory: %s", target)
+
+	carryOn, err := GitCheckAsk(target)
+	if err != nil || carryOn == false {
+		return ErrUserCancelled
+	}
+
 	// Configure the archetype using the questions for it
 	skeletonConfig.Archetype = archetypes.Key(archetypeIndex)
+
 	var questions = archetypeSurveyQuestions[skeletonConfig.Archetype]
 	err = survey.Ask(questions, skeletonConfig)
 	if err != nil {
