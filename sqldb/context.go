@@ -9,12 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type contextKey int
+type contextKey string
 
 const (
-	contextKeySqlPool contextKey = iota
-	contextKeyCrudRepositoryFactory
-	contextKeyTransaction
+	contextKeySqlPool               = contextKey("SqlPool")
+	contextKeyCrudRepositoryFactory = contextKey("CrudRepositoryFactory")
+	contextKeySqlExecutor           = contextKey("SqlExecutor")
+	contextKeyTransactionManager    = contextKey("TransactionManager")
 )
 
 var ErrDisabled = errors.New("Sql connection disabled")

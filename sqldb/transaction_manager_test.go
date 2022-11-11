@@ -7,28 +7,39 @@ package sqldb
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Test_TransactionManager_Commit(t *testing.T) {
 	ctx := context.Background()
-	NewTransactionManager().
-		WithTransaction(ctx, func(ctx context.Context) error {
-			// do all your db processes in here (preferably prepared)
 
-			// then return nil to commit or an error to rollback
-			// return errors.New("some error") // to rollback
-			return nil // to commit
-		})
+	tm, err := NewTransactionManager(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, tm)
+
+	err = tm.WithTransaction(ctx, func(ctx context.Context) error {
+		// do all your db processes in here (preferably prepared)
+
+		// then return nil to commit or an error to rollback
+		// return errors.New("some error") // to rollback
+		return nil // to commit
+	})
+	assert.Error(t, err)
 }
 
 func Test_TransactionManager_Rollback(t *testing.T) {
 	ctx := context.Background()
-	NewTransactionManager().
-		WithTransaction(ctx, func(ctx context.Context) error {
-			// do all your db processes in here (preferably prepared)
 
-			// then return nil to commit or an error to rollback
-			return errors.New("some error") // to rollback
-		})
+	tm, err := NewTransactionManager(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, tm)
+
+	err = tm.WithTransaction(ctx, func(ctx context.Context) error {
+		// do all your db processes in here (preferably prepared)
+
+		// then return nil to commit or an error to rollback
+		return errors.New("some error") // to rollback
+	})
+	assert.Error(t, err)
 }
