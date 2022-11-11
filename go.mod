@@ -21,7 +21,7 @@ require (
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/getkin/kin-openapi v0.20.0
 	github.com/ghodss/yaml v1.0.0
-    github.com/go-git/go-git/v5 v5.4.2
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-ini/ini v1.48.0
 	github.com/go-openapi/spec v0.20.3
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible

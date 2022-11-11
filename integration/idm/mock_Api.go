@@ -129,29 +129,6 @@ func (_m *MockIdm) DeleteRole(roleName string) (*integration.MsxResponse, error)
 	return r0, r1
 }
 
-// GetAdminHealth provides a mock function with given fields:
-func (_m *MockIdm) GetAdminHealth() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetCapabilities provides a mock function with given fields: p
 func (_m *MockIdm) GetCapabilities(p paging.Request) (*integration.MsxResponse, error) {
 	ret := _m.Called(p)

@@ -14,29 +14,6 @@ type MockAuth struct {
 	mock.Mock
 }
 
-// GetAdminHealth provides a mock function with given fields:
-func (_m *MockAuth) GetAdminHealth() (*integration.MsxResponse, error) {
-	ret := _m.Called()
-
-	var r0 *integration.MsxResponse
-	if rf, ok := ret.Get(0).(func() *integration.MsxResponse); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*integration.MsxResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetTenantHierarchyAncestors provides a mock function with given fields: tenantId
 func (_m *MockAuth) GetTenantHierarchyAncestors(tenantId types.UUID) (*integration.MsxResponse, []types.UUID, error) {
 	ret := _m.Called(tenantId)

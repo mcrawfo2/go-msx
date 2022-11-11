@@ -6,7 +6,7 @@ package idmdetailsprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
@@ -23,37 +23,37 @@ func (t *fastDetailsFetcher) FetchDetails(ctx context.Context) (*security.UserCo
 }
 
 func (t *fastDetailsFetcher) FetchActive(ctx context.Context) (bool, error) {
-	api, err := auth.NewIntegration(ctx)
+	userManagementApi, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	response, err := api.GetTokenDetails(true)
+	response, err := userManagementApi.GetTokenDetails(true)
 	if err != nil {
 		return false, err
 	}
 
-	payload := response.Payload.(*auth.TokenDetails)
+	payload := response.Payload.(*usermanagement.TokenDetails)
 	return payload.Active, nil
 }
 
 func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*security.UserContextDetails, error) {
-	api, err := auth.NewIntegration(ctx)
+	userManagementApi, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := api.GetTokenDetails(false)
+	response, err := userManagementApi.GetTokenDetails(false)
 	if err != nil {
 		return nil, err
 	}
 
-	payload := response.Payload.(*auth.TokenDetails)
+	payload := response.Payload.(*usermanagement.TokenDetails)
 	accessibleTenantsSet := make(types.UUIDSet)
 	accessibleTenantsSet.Add(payload.Tenants...)
 
 	for _, tenantId := range payload.Tenants {
-		_, descendants, e := api.GetTenantHierarchyDescendants(tenantId)
+		_, descendants, e := userManagementApi.GetTenantHierarchyDescendants(tenantId)
 		if e != nil {
 			return nil, e
 		}
@@ -72,7 +72,7 @@ func (t *fastDetailsFetcher) fetchUserContextDetails(ctx context.Context) (*secu
 	return userContext, nil
 }
 
-func (t *fastDetailsFetcher) toUserContextDetails(payload *auth.TokenDetails) *security.UserContextDetails {
+func (t *fastDetailsFetcher) toUserContextDetails(payload *usermanagement.TokenDetails) *security.UserContextDetails {
 	return &security.UserContextDetails{
 		Active:       payload.Active,
 		Issuer:       payload.Issuer,

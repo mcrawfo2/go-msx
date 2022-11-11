@@ -6,10 +6,10 @@ package rbac
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
 	"testing"
 
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,16 +18,16 @@ func TestHasTenant_Explicit(t *testing.T) {
 	tenantId, _ := types.NewUUID()
 	tenantBadId, _ := types.NewUUID()
 
-	api := new(auth.MockAuth)
-	ctx := auth.ContextWithIntegration(context.Background(), api)
+	userManagementApi := new(usermanagement.MockUserManagement)
+	ctx := usermanagement.ContextWithIntegration(context.Background(), userManagementApi)
 	setMockTokenDetailsProvider(ctx, []types.UUID{tenantId}, []string{})
-	mockAuth := auth.IntegrationFromContext(ctx).(*auth.MockAuth)
+	mockedUsermanagement := usermanagement.IntegrationFromContext(ctx).(*usermanagement.MockUserManagement)
 
 	var err error
 	err = HasTenant(ctx, tenantId)
 	assert.NoError(t, err)
 
-	mockAuth.On("GetTenantHierarchyAncestors", tenantBadId).Return(nil, []types.UUID{}, nil)
+	mockedUsermanagement.On("GetTenantHierarchyAncestors", tenantBadId).Return(nil, []types.UUID{}, nil)
 	err = HasTenant(ctx, tenantBadId)
 	assert.Error(t, err)
 	assert.Equal(t, ErrUserDoesNotHaveTenantAccess, err)
@@ -35,7 +35,7 @@ func TestHasTenant_Explicit(t *testing.T) {
 	rootTenantId, _ := types.NewUUID()
 	childTenantId, _ := types.NewUUID()
 	ancestors := []types.UUID{rootTenantId, tenantId}
-	mockAuth.On("GetTenantHierarchyAncestors", childTenantId).Return(nil, ancestors, nil)
+	mockedUsermanagement.On("GetTenantHierarchyAncestors", childTenantId).Return(nil, ancestors, nil)
 	err = HasAccessToTenant(ctx, childTenantId)
 	assert.NoError(t, err)
 }
@@ -55,21 +55,21 @@ func TestHasAccessToTenant(t *testing.T) {
 	rootTenantId, _ := types.NewUUID()
 
 	//build mocked context
-	api := new(auth.MockAuth)
-	ctx := auth.ContextWithIntegration(context.Background(), api)
+	userManagementApi := new(usermanagement.MockUserManagement)
+	ctx := usermanagement.ContextWithIntegration(context.Background(), userManagementApi)
 	setMockTokenDetailsProvider(ctx, []types.UUID{tenantId}, []string{})
-	mockedAuth := auth.IntegrationFromContext(ctx).(*auth.MockAuth)
+	mockedUsermanagement := usermanagement.IntegrationFromContext(ctx).(*usermanagement.MockUserManagement)
 
 	//validate
 	err := HasAccessToTenant(ctx, tenantId)
 	assert.NoError(t, err)
 
 	tenantBadId, _ := types.NewUUID()
-	mockedAuth.On("GetTenantHierarchyAncestors", tenantBadId).Return(nil, []types.UUID{rootTenantId}, nil)
+	mockedUsermanagement.On("GetTenantHierarchyAncestors", tenantBadId).Return(nil, []types.UUID{rootTenantId}, nil)
 	notValid := HasAccessToTenant(ctx, tenantBadId)
 	assert.Error(t, notValid, ErrTenantDoesNotExist)
 
-	mockedAuth.AssertExpectations(t)
+	mockedUsermanagement.AssertExpectations(t)
 }
 
 func Test_ValidateTenant(t *testing.T) {
@@ -98,22 +98,22 @@ func Test_ValidateTenant(t *testing.T) {
 
 	//build mocked context
 	ctx := context.Background()
-	api := new(auth.MockAuth)
-	ctx = auth.ContextWithIntegration(context.Background(), api)
+	userManagementApi := new(usermanagement.MockUserManagement)
+	ctx = usermanagement.ContextWithIntegration(context.Background(), userManagementApi)
 	setMockTokenDetailsProvider(ctx, []types.UUID{rootTenantId}, []string{})
 
-	mockAuth := auth.IntegrationFromContext(ctx).(*auth.MockAuth)
-	mockAuth.On("GetTenantHierarchyRoot").Return(rootTenantIdMsxResponse, nil).Maybe()
-	mockAuth.On("GetTenantHierarchyParent", tenantId).Return(parentTenantIdMsxResponse, nil).Maybe()
+	mockedUsermanagement := usermanagement.IntegrationFromContext(ctx).(*usermanagement.MockUserManagement)
+	mockedUsermanagement.On("GetTenantHierarchyRoot").Return(rootTenantIdMsxResponse, nil).Maybe()
+	mockedUsermanagement.On("GetTenantHierarchyParent", tenantId).Return(parentTenantIdMsxResponse, nil).Maybe()
 
 	//validate true
 	validateErr := ValidateTenant(ctx, tenantId)
 	assert.Nil(t, validateErr)
 
 	//validate false
-	mockAuth.On("GetTenantHierarchyParent", tenantBadId).Return(badTenantIdMsxResponse, nil).Maybe()
+	mockedUsermanagement.On("GetTenantHierarchyParent", tenantBadId).Return(badTenantIdMsxResponse, nil).Maybe()
 	validateErr = ValidateTenant(ctx, tenantBadId)
 	assert.Error(t, validateErr)
 
-	mockAuth.AssertExpectations(t)
+	mockedUsermanagement.AssertExpectations(t)
 }
