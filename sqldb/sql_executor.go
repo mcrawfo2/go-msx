@@ -19,7 +19,7 @@ type SqlExecutor interface {
 }
 
 func ContextSqlExecutor() types.ContextKeyAccessor[SqlExecutor] {
-	return types.NewContextKeyAccessor[SqlExecutor](contextKeyTransaction)
+	return types.NewContextKeyAccessor[SqlExecutor](contextKeySqlExecutor)
 }
 
 type SqlExecutorAction func(ctx context.Context, sqlExecutor SqlExecutor) error

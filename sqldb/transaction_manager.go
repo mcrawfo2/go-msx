@@ -47,8 +47,16 @@ type TransactionManager interface {
 	WithTransaction(ctx context.Context, action types.ActionFunc) error
 }
 
-func NewTransactionManager() TransactionManager {
-	return new(SqlTransactionManager)
+func ContextTransactionManager() types.ContextKeyAccessor[TransactionManager] {
+	return types.NewContextKeyAccessor[TransactionManager](contextKeyTransactionManager)
+}
+
+func NewTransactionManager(ctx context.Context) (TransactionManager, error) {
+	mgr := ContextTransactionManager().Get(ctx)
+	if mgr == nil {
+		mgr = new(SqlTransactionManager)
+	}
+	return mgr, nil
 }
 
 type SqlTransactionManager struct{}
