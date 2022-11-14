@@ -8,7 +8,7 @@ package rbac
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
@@ -199,7 +199,7 @@ func newTenantHierarchyCache(ctx context.Context) (*TenantHierarchyCache, error)
 type TenantHierarchyLoader struct{}
 
 func (t TenantHierarchyLoader) Parent(ctx context.Context, tenantId types.UUID) (types.UUID, error) {
-	api, err := auth.NewIntegration(ctx)
+	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (t TenantHierarchyLoader) Parent(ctx context.Context, tenantId types.UUID) 
 }
 
 func (t TenantHierarchyLoader) Ancestors(ctx context.Context, tenantId types.UUID) ([]types.UUID, error) {
-	api, err := auth.NewIntegration(ctx)
+	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func (t TenantHierarchyLoader) Ancestors(ctx context.Context, tenantId types.UUI
 }
 
 func (t TenantHierarchyLoader) Root(ctx context.Context) (types.UUID, error) {
-	api, err := auth.NewIntegration(ctx)
+	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}

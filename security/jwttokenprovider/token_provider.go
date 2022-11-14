@@ -8,7 +8,7 @@ import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
-	"cto-github.cisco.com/NFV-BU/go-msx/integration/auth"
+	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -232,7 +232,7 @@ func (j *TokenProvider) cachedSigningKey(kid string) (interface{}, error) {
 }
 
 func (j *TokenProvider) idmSigningKey(ctx context.Context, kid string) (interface{}, error) {
-	api, err := auth.NewIntegration(ctx)
+	api, err := usermanagement.NewIntegration(ctx)
 	if err != nil {
 		return nil, err
 	}
