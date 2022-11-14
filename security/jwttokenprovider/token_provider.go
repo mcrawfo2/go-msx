@@ -8,17 +8,25 @@ import (
 	"context"
 	"crypto/x509"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/discoveryinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/loginterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/statsinterceptor"
+	"cto-github.cisco.com/NFV-BU/go-msx/httpclient/traceinterceptor"
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/usermanagement"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/vault"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/pavel-v-chernykh/keystore-go"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -27,6 +35,7 @@ import (
 const (
 	jwtClaimUserName    = "user_name"
 	jwtClaimScope       = "scope"
+	jwtClaimScopeAlt    = "scp"
 	jwtClaimTenantId    = "tenantId"
 	jwtClaimRoles       = "roles"
 	jwtClaimAuthorities = "authorities"
@@ -39,6 +48,7 @@ const (
 	keySourceKeystore = "keystore"
 	keySourceVault    = "vault"
 	keySourceIdm      = "idm"
+	keySourceJwks     = "jwks"
 
 	pemBeginPublicKey = `-----BEGIN PUBLIC KEY-----`
 	pemEndPublicKey   = `-----END PUBLIC KEY-----`
@@ -62,10 +72,12 @@ func init() {
 }
 
 type TokenProviderConfig struct {
-	KeySource   string `config:"default=vault"`
-	KeyPath     string `config:"default=secret/phi_pnp"`
-	KeyName     string `config:"default=key"`
-	KeyPassword string `config:"default="`
+	KeySource    string `config:"default=jwks"`
+	KeyPath      string `config:"default=/v2/jwks"`
+	KeyScheme    string `config:"default=http"`
+	KeyAuthority string `config:"default=authservice"`
+	KeyName      string `config:"default=key"`
+	KeyPassword  string `config:"default="`
 }
 
 type TokenProvider struct {
@@ -95,11 +107,19 @@ func (j *TokenProvider) UserContextFromToken(ctx context.Context, token string) 
 		}
 	}
 
+	scope := jwtClaims[jwtClaimScope]
+	if scope == nil {
+		scope = jwtClaims[jwtClaimScopeAlt]
+	}
+	if scope == nil {
+		scope = []interface{}{}
+	}
+
 	uc := &security.UserContext{
 		UserName: jwtClaims[jwtClaimUserName].(string),
 		Roles:    types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimRoles].([]interface{})),
 		TenantId: tenantUuid,
-		Scopes:   types.InterfaceSliceToStringSlice(jwtClaims[jwtClaimScope].([]interface{})),
+		Scopes:   types.InterfaceSliceToStringSlice(scope.([]interface{})),
 		Token:    token[:],
 	}
 
@@ -123,7 +143,9 @@ func (j *TokenProvider) signingKeyFunc(ctx context.Context) (jwt.Keyfunc, error)
 	case keySourceVault:
 		return j.vaultSigningKeyFunc(ctx), nil
 	case keySourceIdm:
-		return j.idmSigningKeyFunc(ctx), nil
+		return j.cachedSigningKeyFunc(ctx, j.idmSigningKey), nil
+	case keySourceJwks:
+		return j.cachedSigningKeyFunc(ctx, j.jwksSigningKey), nil
 	default:
 		return nil, errors.Errorf("Unknown JWT Key Source: %s", j.cfg.KeySource)
 	}
@@ -255,7 +277,69 @@ func (j *TokenProvider) idmSigningKey(ctx context.Context, kid string) (interfac
 	}
 }
 
-func (j *TokenProvider) idmSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
+func (j *TokenProvider) jwksSigningKey(ctx context.Context, kid string) (interface{}, error) {
+	httpProdClientFactory, err := httpclient.NewProductionHttpClientFactory(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	prodClient := httpProdClientFactory.NewHttpClientWithConfigurer(ctx, httpclient.ClientConfigurer{
+		ClientFuncs: []httpclient.ClientConfigurationFunc{
+			httpclient.ApplyRecoveryErrorInterceptor,
+			loginterceptor.ApplyInterceptor(),
+			discoveryinterceptor.ApplyInterceptor(),
+			statsinterceptor.ApplyInterceptor(),
+			traceinterceptor.ApplyInterceptor(),
+		},
+		TransportFuncs: []httpclient.TransportConfigurationFunc{},
+	})
+
+	requestUrl := new(url.URL)
+	requestUrl.Scheme = j.cfg.KeyScheme
+	requestUrl.Host = j.cfg.KeyAuthority
+	requestUrl.Path = j.cfg.KeyPath
+
+	request, err := http.NewRequest("GET", requestUrl.String(), http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Set("Accept", "application/jwk+json")
+	request.Header.Add("Accept", "application/json")
+
+	response, err := prodClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	responseBodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jwks usermanagement.JsonWebKeys
+	err = json.Unmarshal(responseBodyBytes, &jwks)
+	if err != nil {
+		return nil, err
+	}
+
+	jwk, err := jwks.KeyById(kid)
+	if err != nil {
+		return nil, errors.Wrap(ErrKeyNotExists, err.Error())
+	}
+
+	switch jwk.KeyType {
+	case "RSA":
+		return jwk.RsaPublicKey()
+	default:
+		return nil, errors.Wrap(ErrUnsupportedKeyType, jwk.KeyType)
+	}
+}
+
+type signingKeyFunc func(context.Context, string) (interface{}, error)
+
+func (j *TokenProvider) cachedSigningKeyFunc(ctx context.Context, fn signingKeyFunc) jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
 		kid, ok := token.Header[jwtHeaderKeyId].(string)
 		if !ok {
@@ -265,7 +349,7 @@ func (j *TokenProvider) idmSigningKeyFunc(ctx context.Context) jwt.Keyfunc {
 		key, err := j.cachedSigningKey(kid)
 
 		if err != nil && errors.Is(err, ErrKeyNotExists) {
-			key, err = j.idmSigningKey(ctx, kid)
+			key, err = fn(ctx, kid)
 			if err == nil {
 				j.keyCache.Store(kid, key)
 			}

@@ -6,6 +6,9 @@ package security
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"encoding/json"
+	"github.com/pkg/errors"
+	"strings"
 )
 
 type UserContextDetails struct {
@@ -20,7 +23,7 @@ type UserContextDetails struct {
 	FamilyName   *string      `json:"family_name"`
 	Email        *string      `json:"email"`
 	Locale       *string      `json:"locale"`
-	Scopes       []string     `json:"scope"`
+	Scopes       Scopes       `json:"scope"`
 	ClientId     *string      `json:"client_id"`
 	Username     *string      `json:"username"`
 	UserId       types.UUID   `json:"user_id"`
@@ -61,4 +64,28 @@ func NewUserContextDetailsFromUserContext(userContext *UserContext) *UserContext
 		Roles:       userContext.Roles,
 		Permissions: []string{},
 	}
+}
+
+type Scopes []string
+
+func (s *Scopes) UnmarshalJSON(bytes []byte) error {
+	var raw interface{}
+	if err := json.Unmarshal(bytes, &raw); err != nil {
+		return err
+	}
+
+	switch vt := raw.(type) {
+	case string:
+		*s = strings.Fields(vt)
+	case []string:
+		*s = vt
+	case []interface{}:
+		*s = types.InterfaceSliceToStringSlice(vt)
+	case nil:
+		*s = []string{}
+	default:
+		return errors.Errorf("Cannot convert %T to strings", raw)
+	}
+
+	return nil
 }

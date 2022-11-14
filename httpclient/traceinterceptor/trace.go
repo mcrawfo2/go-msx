@@ -44,3 +44,9 @@ func NewInterceptor(fn httpclient.DoFunc) httpclient.DoFunc {
 		return response, err
 	}
 }
+
+func ApplyInterceptor() httpclient.ClientConfigurationFunc {
+	return func(c *http.Client) {
+		httpclient.ApplyInterceptor(c, NewInterceptor)
+	}
+}
