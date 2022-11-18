@@ -123,9 +123,13 @@ func (c *CrudRepository) FindAllPagedBy(ctx context.Context, where map[string]in
 	err = pool.WithSqlxConnection(ctx, func(ctx context.Context, conn *sqlx.DB) error {
 		selectDataSet := c.dialect(conn).
 			From(c.tableName).
-			Where(goqu.Ex(where)).
-			Limit(pagingRequest.Size).
-			Offset(pagingRequest.Page * pagingRequest.Size)
+			Where(goqu.Ex(where))
+
+		if pagingRequest.Size > 0 {
+			selectDataSet = selectDataSet.
+				Limit(pagingRequest.Size).
+				Offset(pagingRequest.Page * pagingRequest.Size)
+		}
 
 		for _, sortOrder := range pagingRequest.Sort {
 			ident := goqu.I(sortOrder.Property)
@@ -208,9 +212,13 @@ func (c *CrudRepository) FindAllPagedByExpression(ctx context.Context, where goq
 
 		ds := c.dialect(conn).
 			From(c.tableName).
-			Where(where).
-			Limit(pagingRequest.Size).
-			Offset(pagingRequest.Page * pagingRequest.Size)
+			Where(where)
+
+		if pagingRequest.Size > 0 {
+			ds = ds.
+				Limit(pagingRequest.Size).
+				Offset(pagingRequest.Page * pagingRequest.Size)
+		}
 
 		for _, sortOrder := range pagingRequest.Sort {
 			ident := goqu.I(sortOrder.Property)
