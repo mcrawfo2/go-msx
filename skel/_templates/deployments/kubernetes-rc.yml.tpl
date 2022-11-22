@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   namespace: vms
   name: ${app.name}
+  labels:
+    app: ${app.name}
 spec:
 #if GENERATOR_SP
   replicas: "{{ deployment_mode_env[deployment_mode|lower]['replica_count']['servicepack_count'] }}"
