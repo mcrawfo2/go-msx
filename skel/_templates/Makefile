@@ -1,7 +1,7 @@
 BUILDER = go run $(BUILDER_FLAGS) cmd/build/build.go --config cmd/build/build.yml $(BUILD_FLAGS)
 
-.PHONY: all deps vet test dist debug assemblies manifest package package-publish package-deploy
-.PHONY: docker docker-debug docker-publish publish clean generate precommit tag
+.PHONY: all deps vet test dist debug dist-debug assemblies manifest package package-publish package-deploy
+.PHONY: docker docker-debug docker-push docker-publish publish clean generate precommit tag
 .PHONY: update-go-msx update-go-msx-build update-go-msx-beats
 .PHONY: verify-contract openapi-generate openapi-compare
 
@@ -45,6 +45,16 @@ dist: ## Build all outputs required for a container image
 
 debug: dist ## Build a debug executable
 	$(BUILDER) build-debug-executable
+
+dist-debug: ## Build all outputs required for a debug container image
+	$(BUILDER) generate-build-info
+	$(BUILDER) install-executable-configs
+	$(BUILDER) install-resources
+	$(BUILDER) install-dependency-configs
+	$(BUILDER) build-debug-executable
+
+docker-push:
+	$(BUILDER) docker-push
 
 deployment: ## Generate the installer deployment variables
 	$(BUILDER) generate-deployment-variables

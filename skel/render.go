@@ -105,6 +105,7 @@ func NewRenderOptions() RenderOptions {
 			"app.packageurl":               skeletonConfig.AppPackageUrl(),
 			"deployment.group":             skeletonConfig.DeploymentGroup,
 			"server.port":                  strconv.Itoa(skeletonConfig.ServerPort),
+			"debug.port":                   strconv.Itoa(skeletonConfig.DebugPort),
 			"server.contextpath":           path.Clean("/" + skeletonConfig.ServerContextPath),
 			"kubernetes.group":             skeletonConfig.KubernetesGroup,
 			"target.dir":                   skeletonConfig.TargetDirectory(),

@@ -1,28 +1,24 @@
 ARG BASE_IMAGE=dockerhub.cisco.com/vms-platform-dev-docker/msx-base-bullseye:latest
 
-###
-### Build container
-###
+### Debug Build Container
 
-FROM dockerhub.cisco.com/docker.io/golang:1.18-bullseye AS builder
-ARG BUILD_FLAGS
-ENV BUILDER_FLAGS -mod=vendor
+FROM dockerhub.cisco.com/docker.io/golang:1.18-bullseye AS debug-builder
 ADD . /app/
 WORKDIR /app
-RUN make debug
+RUN make dist-debug
+WORKDIR /go
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
-###
 ### Debug Container
-###
 
 FROM ${BASE_IMAGE}
 EXPOSE ${server.port}
-EXPOSE 40000
+EXPOSE ${debug.port}
 
 ENV SERVICE_BIN "/usr/bin/${app.name}"
-COPY --from=builder /app/dist/root/ /
-COPY --from=builder /go/bin/dlv /usr/bin
+COPY --from=debug-builder /app/dist/root/ /
+COPY --from=debug-builder /go/bin/dlv /usr/bin
 
 WORKDIR /var/run/${app.name}/
-ENTRYPOINT ["/usr/bin/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/usr/bin/${app.name}-debug", "--"]
+ENTRYPOINT ["/usr/bin/dlv", "--listen=:${debug.port}", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/usr/bin/${app.name}-debug", "--"]
+
