@@ -26,6 +26,7 @@ type SkeletonConfig struct {
 	AppDisplayName    string `survey:"appDisplayName" json:"appDisplayName"`
 	AppDescription    string `survey:"appDescription" json:"appDescription"`
 	ServerPort        int    `survey:"serverPort" json:"serverPort"`
+	DebugPort         int    `json:"debugPort"`
 	ServerContextPath string `survey:"serverContextPath" json:"serverContextPath"`
 	AppVersion        string `survey:"appVersion" json:"appVersion"`
 	Repository        string `survey:"repository" json:"repository"`
@@ -94,6 +95,7 @@ var skeletonConfig = &SkeletonConfig{
 	AppVersion:        "5.0.0",
 	DeploymentGroup:   "something",
 	ServerPort:        9999,
+	DebugPort:         40000,
 	ServerContextPath: "/some",
 	Repository:        "cockroach",
 	BeatProtocol:      "",

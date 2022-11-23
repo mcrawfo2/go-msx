@@ -524,6 +524,24 @@ func GenerateKubernetes(_ []string) error {
 				DestFile:   "deployments/kubernetes/${app.name}-pdb.yml.tpl",
 				Format:     FileFormatYaml,
 			},
+			{
+				Name:       "Creating Skaffold file",
+				SourceFile: "deployments/kubernetes/skaffold.yaml.tpl",
+				DestFile:   "skaffold.yaml",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating K8S minivms deployment manifest for skaffold",
+				SourceFile: "deployments/kubernetes/minivms/minivms-deployment.yaml.tpl",
+				DestFile:   "deployments/kubernetes/minivms/${app.name}-deployment.yaml",
+				Format:     FileFormatYaml,
+			},
+			{
+				Name:       "Creating K8S msxlite deployment manifest for skaffold",
+				SourceFile: "deployments/kubernetes/msxlite/msxlite-deployment.yaml.tpl",
+				DestFile:   "deployments/kubernetes/msxlite/${app.name}-deployment.yaml",
+				Format:     FileFormatYaml,
+			},
 		}
 	} else if skeletonConfig.Archetype == archetypeKeyBeat {
 		templates = TemplateSet{
