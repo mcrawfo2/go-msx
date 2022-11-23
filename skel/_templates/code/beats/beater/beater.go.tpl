@@ -10,7 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/pkg/errors"
 	"sort"
 	"time"

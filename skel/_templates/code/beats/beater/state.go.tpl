@@ -9,7 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
-	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/pkg/errors"
 )
 
