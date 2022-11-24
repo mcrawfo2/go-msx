@@ -16,9 +16,13 @@ type TraceSubscriberAction struct {
 }
 
 func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
+	ctx := msg.Context()
+
 	incomingSpanContext, err := trace.TextMapCarrier(msg.Metadata).Extract()
 	if err != nil {
 		logger.WithError(err).Error("Missing or invalid trace context.")
+	} else {
+		ctx = trace.ContextWithParentContext(ctx, incomingSpanContext)
 	}
 
 	operationName := fmt.Sprintf("%s.receive.%s", a.cfg.Binder, a.cfg.Destination)
@@ -35,7 +39,7 @@ func (a *TraceSubscriberAction) Call(msg *message.Message) (err error) {
 			trace.StartWithRelated(trace.RefFollowsFrom, incomingSpanContext))
 	}
 
-	ctx, span := trace.NewSpan(msg.Context(), operationName, options...)
+	ctx, span := trace.NewSpan(ctx, operationName, options...)
 	defer span.Finish()
 	msg.SetContext(ctx)
 

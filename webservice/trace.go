@@ -23,9 +23,11 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 	// Grab the incoming trace
 	wireContext, err := trace.HttpHeadersCarrier(req.Request.Header).Extract()
 	if err == nil {
-		opts = append(opts,
+		opts = append(
+			opts,
 			trace.StartWithTag(trace.FieldSpanKind, trace.SpanKindServer),
-			trace.StartWithRelated(trace.RefChildOf, wireContext))
+		)
+		ctx = trace.ContextWithParentContext(ctx, wireContext)
 	}
 	opts = append(opts,
 		trace.StartWithTag(trace.FieldOperation, operationName),

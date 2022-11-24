@@ -105,27 +105,34 @@ func FinishWithError(err error) FinishSpanOption {
 }
 
 func NewSpan(ctx context.Context, operationName string, options ...StartSpanOption) (context.Context, Span) {
-	var span Span
 	var parentSpan Span
+	var parentSpanContext SpanContext
 	if parentSpan = SpanFromContext(ctx); parentSpan != nil {
-		// Create a child span inside the existing parent
-		options = append(options, StartWithRelated(RefChildOf, parentSpan.Context()))
+		parentSpanContext = parentSpan.Context()
+	}
+	if parentSpanContext == nil {
+		parentSpanContext = ParentContextFromContext(ctx)
 	}
 
-	span = tracer.StartSpan(operationName, options...)
+	if parentSpanContext != nil {
+		// Create a child span inside the existing partial parent span
+		options = append(options, StartWithRelated(RefChildOf, parentSpanContext))
+	}
+
+	span := tracer.StartSpan(operationName, options...)
 	ctx = ContextWithSpan(ctx, span)
-	ctx = contextWithTraceLogContext(ctx, tracer, span, parentSpan)
+	ctx = contextWithTraceLogContext(ctx, tracer, span, parentSpanContext)
 
 	return ctx, span
 }
 
-func baseLogContext(span, parentSpan Span) log.LogContext {
+func baseLogContext(span Span, parentSpanContext SpanContext) log.LogContext {
 	// Calculate log fields
 	spanId := span.Context().SpanId().String()
 	traceId := span.Context().TraceId().String()
 	parentSpanId := SpanId(0)
-	if parentSpan != nil {
-		parentSpanId = parentSpan.Context().SpanId()
+	if parentSpanContext != nil {
+		parentSpanId = parentSpanContext.SpanId()
 	}
 	parentId := parentSpanId.String()
 
@@ -136,14 +143,14 @@ func baseLogContext(span, parentSpan Span) log.LogContext {
 	}
 }
 
-func contextWithTraceLogContext(ctx context.Context, tracer Tracer, span, parentSpan Span) context.Context {
+func contextWithTraceLogContext(ctx context.Context, tracer Tracer, span Span, parentSpanContext SpanContext) context.Context {
 	if span.Context().SpanId() == SpanId(0) {
 		// NoopTracer is in effect
 		return ctx
 	}
 
 	// Generate generic log context
-	logContext := baseLogContext(span, parentSpan)
+	logContext := baseLogContext(span, parentSpanContext)
 
 	// Add tracer-specific log context
 	for k, v := range tracer.LogContext(span) {

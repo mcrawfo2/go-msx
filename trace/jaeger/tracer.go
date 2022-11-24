@@ -55,7 +55,7 @@ func (t *tracer) Configure(ctx context.Context, tracingConfig *trace.TracingConf
 		reporter,
 		jaegerconfig.Logger(jaegerLogger),
 		jaegerconfig.Metrics(jaegerMetricsFactory),
-		jaegerconfig.ZipkinSharedRPCSpan(true),
+		jaegerconfig.ZipkinSharedRPCSpan(false),
 	)
 	if err != nil {
 		return err
