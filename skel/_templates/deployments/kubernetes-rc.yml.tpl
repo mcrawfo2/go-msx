@@ -27,6 +27,7 @@ spec:
       annotations:
         tagprefix: logfmt
     spec:
+      serviceAccountName: ${app.name}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -116,11 +117,10 @@ spec:
               value: "8200"
             - name: SPRING_CLOUD_VAULT_SCHEME
               value: "{{ vault_scheme }}"
-            - name: SPRING_CLOUD_VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: msxvault
-                  key: token
+            - name: SPRING_CLOUD_VAULT_TOKEN-SOURCE_SOURCE
+              value: "kubernetes"
+            - name: SPRING_CLOUD_VAULT_TOKEN-SOURCE_KUBERNETES_ROLE
+              value: "${app.name}"
             - name: SPRING_REDIS_SENTINEL_ENABLE
               value: "true"
           ports:
