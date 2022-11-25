@@ -94,6 +94,7 @@ func (s ServiceConfiguration) Validate() error {
 type AssignmentEvent struct {
 	Event
 	AssignedTenantId types.UUID `json:"assignedTenantId"`
+	AssignmentId     types.UUID `json:"assignmentId"`
 }
 
 func (s AssignmentEvent) Validate() error {
@@ -101,6 +102,7 @@ func (s AssignmentEvent) Validate() error {
 		s.Event.Validate(),
 		types.ErrorMap{
 			"assignedTenantId": validation.Validate(&s.AssignedTenantId, validation.Required, validate.Self),
+			"assignmentId":     validation.Validate(&s.AssignmentId, validation.Required, validate.Self),
 		}.Filter(),
 	}.Filter()
 }
