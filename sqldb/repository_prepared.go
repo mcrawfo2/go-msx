@@ -199,9 +199,13 @@ func (c *CrudPreparedRepository) FindAllPagedByExpression(ctx context.Context, w
 
 		ds := c.dialect(conn).
 			From(c.tableName).
-			Where(where).
-			Limit(pagingRequest.Size).
-			Offset(pagingRequest.Page * pagingRequest.Size)
+			Where(where)
+
+		if pagingRequest.Size > 0 {
+			ds = ds.
+				Limit(pagingRequest.Size).
+				Offset(pagingRequest.Page * pagingRequest.Size)
+		}
 
 		for _, sortOrder := range pagingRequest.Sort {
 			ident := goqu.I(sortOrder.Property)
