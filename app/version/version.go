@@ -45,6 +45,14 @@ func Version(ctx context.Context, args []string) (err error) {
 		for _, setting := range bi.Settings {
 			logger.WithContext(ctx).Infof("    %s: %s", setting.Key, setting.Value)
 		}
+		logger.WithContext(ctx).Info("Modules:")
+		for _, dep := range bi.Deps {
+			if dep.Replace == nil {
+				logger.WithContext(ctx).Infof("    %s: %s", dep.Path, dep.Version)
+			} else {
+				logger.WithContext(ctx).Infof("    %s replaced with %s: %s", dep.Path, dep.Replace.Path, dep.Replace.Version)
+			}
+		}
 	} else {
 		logger.WithContext(ctx).Warn("No embedded go BuildInfo found.")
 	}
