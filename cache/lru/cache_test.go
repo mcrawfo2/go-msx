@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-func testCache(ttl time.Duration, expireLimit int) (*HeapMapCache, *clock.Mock) {
+func testCache(ttl time.Duration, expireLimit int, age bool,
+	metrics bool, prefix string) (*HeapMapCache, *clock.Mock) {
 	mockClock := clock.NewMock()
-	return NewCache(ttl, expireLimit, 500*time.Millisecond, mockClock), mockClock
+	return NewCache2(ttl, expireLimit, 500*time.Millisecond, age, mockClock, metrics, prefix), mockClock
 }
 
 func TestHeapMapCache(t *testing.T) {
-	cache, mockClock := testCache(1*time.Second, 1)
 
 	type kvpair struct {
 		key   string
@@ -100,25 +100,28 @@ func TestHeapMapCache(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cache.Clear()
-			assert.Empty(t, cache.index)
+	for _, age := range []bool{false, true} {
+		cache, mockClock := testCache(1*time.Second, 1, age, false, "")
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				cache.Clear()
+				assert.Empty(t, cache.index)
 
-			for _, preset := range tt.preset {
-				cache.Set(preset.key, preset.value)
-			}
-			mockClock.Add(500 * time.Millisecond)
-			cache.Set(tt.setArgs.key, tt.setArgs.value)
-			mockClock.Add(tt.advance)
-			got, gotOk := cache.Get(tt.getKey)
-			if gotOk != tt.wantOk || !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Get() = (%v,%v) want (%v,%v)", got, gotOk, tt.want, tt.wantOk)
-			}
+				for _, preset := range tt.preset {
+					cache.Set(preset.key, preset.value)
+				}
+				mockClock.Add(500 * time.Millisecond)
+				cache.Set(tt.setArgs.key, tt.setArgs.value)
+				mockClock.Add(tt.advance)
+				got, gotOk := cache.Get(tt.getKey)
+				if gotOk != tt.wantOk || !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("Get() = (%v,%v) want (%v,%v)", got, gotOk, tt.want, tt.wantOk)
+				}
 
-			// Allow everything to expire
-			mockClock.Add(2 * time.Second)
-			assert.Empty(t, cache.index)
-		})
+				// Allow everything to expire
+				mockClock.Add(2 * time.Second)
+				assert.Empty(t, cache.index)
+			})
+		}
 	}
 }
