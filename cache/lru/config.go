@@ -13,6 +13,9 @@ type CacheConfig struct {
 	Ttl             time.Duration `config:"default=300s"`
 	ExpireLimit     int           `config:"default=100"`
 	ExpireFrequency time.Duration `config:"default=30s"`
+	DeAgeOnAccess   bool          `config:"default=false"`
+	Metrics         bool          `config:"default=false"`
+	MetricsPrefix   string        `config:"default=cache"`
 }
 
 func NewCacheConfig(cfg *config.Config, root string) (*CacheConfig, error) {

@@ -12,11 +12,14 @@ import (
 	"time"
 )
 
-func testCacheConfig(ttl, expireLimit, expireFrequency, root string) *config.Config {
+func testCacheConfig(ttl, expireLimit, expireFrequency, deAge, metrics, metricsPrefix, root string) *config.Config {
 	return configtest.NewInMemoryConfig(map[string]string{
 		root + ".ttl":              ttl,
 		root + ".expire-limit":     expireLimit,
 		root + ".expire-frequency": expireFrequency,
+		root + ".de-age-on-access": deAge,
+		root + ".metrics":          metrics,
+		root + ".metrics-prefix":   metricsPrefix,
 	})
 }
 
@@ -34,25 +37,32 @@ func TestNewCacheConfig(t *testing.T) {
 		{
 			name: "Configured",
 			args: args{
-				cfg:  testCacheConfig("1m", "10", "30s", "cache"),
+				cfg: testCacheConfig("1m", "10", "30s", "true",
+					"true", "idm", "cache"),
 				root: "cache",
 			},
 			want: &CacheConfig{
 				Ttl:             1 * time.Minute,
 				ExpireLimit:     10,
 				ExpireFrequency: 30 * time.Second,
+				DeAgeOnAccess:   true,
+				Metrics:         true,
+				MetricsPrefix:   "idm",
 			},
 		},
 		{
 			name: "Defaults",
 			args: args{
-				cfg:  testCacheConfig("1m", "10", "30s", "cache"),
+				cfg:  testCacheConfig("1m", "10", "30s", "", "", "", "cache"),
 				root: "elsewhere",
 			},
 			want: &CacheConfig{
 				Ttl:             5 * time.Minute,
 				ExpireLimit:     100,
 				ExpireFrequency: 30 * time.Second,
+				DeAgeOnAccess:   false,
+				Metrics:         false,
+				MetricsPrefix:   "cache",
 			},
 		},
 	}
