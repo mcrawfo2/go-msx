@@ -9,6 +9,7 @@
 - [Logging](log/README.md)
 - [Errors](types/docs/errors.md)
 - [Configuration](config/README.md)
+  - [Consul Configuration Provider](config/consulprovider/README.md) 
 - [Lifecycle](app/README.md)
 - [Dependencies](app/context.md)
 - [Stats](stats/README.md)
