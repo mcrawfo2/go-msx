@@ -7,7 +7,9 @@ package sqldb
 import (
 	"database/sql/driver"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"sync"
 )
 

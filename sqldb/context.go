@@ -6,6 +6,7 @@ package sqldb
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +17,9 @@ const (
 	contextKeyCrudRepositoryFactory = contextKey("CrudRepositoryFactory")
 	contextKeySqlExecutor           = contextKey("SqlExecutor")
 	contextKeyTransactionManager    = contextKey("TransactionManager")
+	contextKeyRepositorySql         = contextKey("RepositorySql")
+	contextKeyRepositoryGoqu        = contextKey("RepositoryGoqu")
+	contextKeyRepositoryTypedPrefix = "RepositoryTyped"
 )
 
 var ErrDisabled = errors.New("Sql connection disabled")
@@ -39,4 +43,17 @@ func ContextWithCrudRepositoryFactory(ctx context.Context, factory CrudRepositor
 func CrudRepositoryFactoryFromContext(ctx context.Context) CrudRepositoryFactoryApi {
 	api, _ := ctx.Value(contextKeyCrudRepositoryFactory).(CrudRepositoryFactoryApi)
 	return api
+}
+
+func ContextSqlRepository() types.ContextKeyAccessor[SqlRepositoryApi] {
+	return types.NewContextKeyAccessor[SqlRepositoryApi](contextKeyRepositorySql)
+}
+
+func ContextGoquRepository() types.ContextKeyAccessor[GoquRepositoryApi] {
+	return types.NewContextKeyAccessor[GoquRepositoryApi](contextKeyRepositoryGoqu)
+}
+
+func ContextTypedRepository[I any](table string) types.ContextKeyAccessor[TypedRepositoryApi[I]] {
+	contextKey := contextKey(contextKeyRepositoryTypedPrefix + table)
+	return types.NewContextKeyAccessor[TypedRepositoryApi[I]](contextKey)
 }

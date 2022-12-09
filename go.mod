@@ -11,7 +11,7 @@ require (
 	github.com/benbjohnson/clock v1.0.3
 	github.com/bmatcuk/doublestar v1.1.5
 	github.com/davecgh/go-spew v1.1.1
-	github.com/doug-martin/goqu/v9 v9.9.0
+	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
 	github.com/emicklei/go-restful v2.14.3+incompatible
 	github.com/emicklei/go-restful-openapi v1.2.0
@@ -80,6 +80,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	moul.io/banner v1.0.1
 )
+
+require github.com/mattn/go-sqlite3 v1.14.16
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
