@@ -5,15 +5,15 @@
 // Package lru implements a cache for arbitrary values
 // It provides an interface type Cache and a concrete type HeapMapCache
 // Entries are added with a key, a value and an individual TTL - time to live.
-// New uses should call NewCache2 to instanciate a cache with the deAgeOnAccess setting.
+// New uses should call NewCache2 to instantiate a cache with the deAgeOnAccess setting.
 // The cache will expire entries after the TTL has passed. It checks every
 // ExpireFrequency for expired entries and expires them in batches
 // of at most ExpireLimit at once.
-// The cache has no size limit. It will grow until the process runs out of memory unless entries are expired.
+// The cache has no size limit. It will grow until the process runs out of memory, unless entries are expired.
 // The cache is safe for concurrent access.
 // The setting DeAgeOnAccess being true will cause the cache to reset the TTL of an entry when it is accessed or updated in true LRU fashion.
 // When this setting is false (default) it behaves like a simple TTL cache.
-// When the setting metricsOn is true (default false), the cache will emit metrics to the stats package thus:
+// When the setting metrics is true (default false), the cache will emit metrics to the stats package thus:
 // - entries: the number of entries in the cache
 // - hits: the number of cache hits
 // - misses: the number of cache misses
@@ -22,7 +22,7 @@
 // - gcRuns: the number of times the garbage collector was run
 // - gcSizes: a histogram of the number of entries evicted in each garbage collection run
 // - deAgedAt: a histogram of the remaining time to live of entries when they are deaged
-// The metricsPrefix setting is used to prefix the metrics names to "cache".
+// The metricsPrefix setting is used to prefix the metrics names.
 // The timeSource setting is used to provide a clock for testing purposes.
 package lru
 
