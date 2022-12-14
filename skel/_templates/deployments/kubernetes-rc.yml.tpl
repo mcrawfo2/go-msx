@@ -128,22 +128,12 @@ spec:
           volumeMounts:
             - mountPath: /etc/ssl/certs/ca-certificates.crt
               name: rootcert
-            - mountPath: /certs/${app.name}-key.pem
-              name: cockroach-client-sslkey
-            - mountPath: /certs/${app.name}.pem
-              name: cockroach-client-sslcert
             - mountPath: /keystore
               name: keystore
       volumes:
         - hostPath:
             path: /etc/ssl/certs/ca-bundle.crt
           name: rootcert
-        - hostPath:
-            path: /etc/ssl/vms-certs/${app.name}-key.pem
-          name: cockroach-client-sslkey
-        - hostPath:
-            path: /etc/ssl/vms-certs/${app.name}.pem
-          name: cockroach-client-sslcert
         - hostPath:
             path: /data/vms/keystore/
           name: keystore
