@@ -7,7 +7,7 @@ spring.cloud.consul.discovery:
 
 http.client.tlsInsecure: false
 
-spring.datasource.data-source-name: postgresql://${spring.datasource.username}:${spring.datasource.password}@${db.cockroach.host}:${db.cockroach.port}/${spring.datasource.name}?ssl=true&sslmode=require&sslrootcert=/etc/ssl/certs/ca-certificates.crt&sslkey=/certs/${spring.datasource.username}-key.pem&sslcert=/certs/${spring.datasource.username}.pem
+spring.datasource.data-source-name: postgresql://${spring.datasource.username}:${spring.datasource.password}@${db.cockroach.host}:${db.cockroach.port}/${spring.datasource.name}?sslmode=require&sslrootcert=/etc/ssl/certs/ca-certificates.crt
 
 probe.host-name: ""
 

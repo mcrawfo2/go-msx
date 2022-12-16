@@ -31,22 +31,7 @@ spec:
       annotations:
         tagprefix: logfmt
     spec:
-{% if (deployment_mode | lower) != 'lite' %}
-      tolerations:
-      - key: "dedicated"
-        operator: "Equal"
-        value: "sa-probe"
-{% endif %}
       affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: vms/nodetype
-                operator: In
-                values:
-                - sa
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
@@ -83,10 +68,6 @@ spec:
             - name: HTTPS_PROXY
               value: "{{ proxy }}"
 {% endif %}
-            - name: SPRING_CLOUD_CONSUL_DISCOVERY_DEFAULTQUERYTAG
-              value: "{{ deployer_version }}"
-            - name: SPRING_CLOUD_CONSUL_DISCOVERY_TAGS
-              value: "{{ deployer_version }}"
             - name: SPRING_CLOUD_CONSUL_HOST
               value: "localhost"
             - name: SPRING_CLOUD_CONSUL_SCHEME
@@ -150,6 +131,8 @@ spec:
           name: keystore
         - mountPath: /etc/ssl/certs/ca-certificates.crt
           name: certs
+        - mountPath: /certs
+          name: cachecerts
       - name: consul
         image: {{ consul_image }}:{{ consul_version }}
         command:
@@ -178,4 +161,5 @@ spec:
         - name: certs
           hostPath:
             path: /etc/ssl/certs/ca-bundle.crt
-
+        - name: cachecerts
+          emptyDir: {}
