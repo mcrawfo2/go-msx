@@ -65,7 +65,7 @@
 
 ---
 
-# Code Generation
+# Code Generation (skel)
 
 - [Introduction](skel/README.md)
 - [Installation](skel/docs/installation.md)
@@ -104,3 +104,12 @@
 
 - [Checks 🎉](checks/README.md)
 - [Jenkins]()
+
+---
+
+# For Developers of `go-msx`
+
+- [Introduction]()
+- [`skel`: Code Generation]()
+  - [Execution Sequence](skel/docs/sequence.md)
+  - [Making templates](skel/docs/templating.md)

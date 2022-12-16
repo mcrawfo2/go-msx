@@ -29,6 +29,7 @@ func init() {
 	AddTarget("generate-goland", "Create a Goland project for the application", GenerateGoland)
 	AddTarget("generate-vscode", "Create a VSCode project for the application", GenerateVsCode)
 	AddTarget("generate-kubernetes", "Create production kubernetes manifest templates", GenerateKubernetes)
+	AddTarget("generate-harness", "Create production harness files", GenerateHarness)
 	AddTarget("generate-deployment-variables", "Create deployment variables manifest", GenerateDeploymentVariables)
 	AddTarget("generate-manifest", "Create installer manifest templates", GenerateInstallerManifest)
 	AddTarget("generate-jenkins", "Create Jenkins CI templates", GenerateJenkinsCi)
@@ -581,6 +582,26 @@ func GenerateDeploymentVariables(_ []string) error {
 			Name:       "Creating deployment variables",
 			SourceFile: "deployments/deployment_variables.yml",
 			DestFile:   "deployments/kubernetes/${deployment.group}_deployment_variables.yml",
+			Format:     FileFormatYaml,
+		},
+	}
+
+	return templates.Render(NewRenderOptions())
+}
+
+func GenerateHarness(_ []string) error {
+	logger.Info("Generating harness")
+	templates := TemplateSet{
+		{
+			Name:       "Creating harness manifest",
+			SourceFile: "harness/service.yaml.tpl",
+			DestFile:   "deployments/harness/service.yaml",
+			Format:     FileFormatYaml,
+		},
+		{
+			Name:       "Creating harness helm values",
+			SourceFile: "harness/helm-chart-values.yaml.tpl",
+			DestFile:   "deployments/harness/values_${app.name}.yaml",
 			Format:     FileFormatYaml,
 		},
 	}

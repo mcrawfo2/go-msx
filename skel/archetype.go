@@ -47,6 +47,7 @@ var archetypes = Archetypes{
 		Generators: []string{
 			"generate-migrate",
 			"generate-kubernetes",
+			"generate-harness",
 		},
 	},
 	{
@@ -55,6 +56,7 @@ var archetypes = Archetypes{
 		Generators: []string{
 			"generate-domain-beats",
 			"generate-kubernetes",
+			"generate-harness",
 		},
 	},
 	{
@@ -64,6 +66,7 @@ var archetypes = Archetypes{
 			"generate-migrate",
 			"generate-service-pack",
 			"generate-kubernetes",
+			"generate-harness",
 		},
 	},
 	{
