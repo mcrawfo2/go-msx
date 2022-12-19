@@ -1,0 +1,10 @@
+name: <+service.name>
+cmname: <+service.name>
+image: <+artifact.image>
+containerPort: "${server.port}"
+endpoint: "${server.contextpath.noroot}"
+#if K8S_GROUP_DATAPLATFORM
+pollingPeriod: "60s"
+#endif K8S_GROUP_DATAPLATFORM
+group: "${kubernetes.group}"
+vaultInitContainer: "false"
