@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"cto-github.cisco.com/NFV-BU/go-msx/background"
+	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -24,21 +25,22 @@ import (
 )
 
 type WebServer struct {
-	ctx           context.Context
-	cfg           *WebServerConfig
-	container     *restful.Container
-	containerMtx  sync.Mutex
-	router        *restful.CurlyRouter
-	services      []*restful.WebService
-	handlers      map[string]http.Handler
-	documentation []DocumentationProvider
-	security      AuthenticationProvider
-	actuators     []ServiceProvider
-	actuatorCfg   *ManagementSecurityConfig
-	aliases       []StaticAlias
-	server        *http.Server
-	injectors     *types.ContextInjectors
-	webRoot       http.FileSystem
+	ctx            context.Context
+	cfg            *WebServerConfig
+	container      *restful.Container
+	containerMtx   sync.Mutex
+	router         *restful.CurlyRouter
+	services       []*restful.WebService
+	handlers       map[string]http.Handler
+	documentation  []DocumentationProvider
+	security       AuthenticationProvider
+	actuators      []ServiceProvider
+	actuatorCfg    *ManagementSecurityConfig
+	aliases        []StaticAlias
+	server         *http.Server
+	injectors      *types.ContextInjectors
+	webRoot        http.FileSystem
+	RecordingCache lru.Cache
 }
 
 // NewService returns an existing restful.WebService if one exists at the specified path.
@@ -169,6 +171,8 @@ func (s *WebServer) generateContainer() *restful.Container {
 	s.container.Filter(authenticationFilter)
 	s.container.Filter(auditContextFilter)
 	s.container.Filter(filterFilter)
+
+	// s.container.Filter(RecordingCacheFilter(s.RecordingCache)) // enable recording cache globally
 
 	// Add all web services
 	for _, svc := range s.services {
@@ -387,12 +391,13 @@ func NewWebServer(cfg *WebServerConfig, actuatorConfig *ManagementSecurityConfig
 	}
 
 	return &WebServer{
-		ctx:         ctx,
-		cfg:         cfg,
-		actuatorCfg: actuatorConfig,
-		router:      &restful.CurlyRouter{},
-		injectors:   new(types.ContextInjectors),
-		handlers:    make(map[string]http.Handler),
-		webRoot:     webRoot,
+		ctx:            ctx,
+		cfg:            cfg,
+		actuatorCfg:    actuatorConfig,
+		router:         &restful.CurlyRouter{},
+		injectors:      new(types.ContextInjectors),
+		handlers:       make(map[string]http.Handler),
+		webRoot:        webRoot,
+		RecordingCache: lru.NewCacheFromConfig(&cfg.RecordingCache),
 	}, nil
 }
