@@ -88,6 +88,10 @@ func (s *SecureData) Scan(src interface{}) (err error) {
 }
 
 func (s *SecureData) Field(ctx context.Context, name string) (value *string, err error) {
+	if s == nil {
+		return nil, nil
+	}
+	
 	// Lazy decrypt on first read
 	s.ctx = ctx
 	if s.payload == nil {
@@ -190,6 +194,9 @@ type WithSecureData struct {
 }
 
 func (g *WithSecureData) SecureValue(ctx context.Context, fieldName string) (string, error) {
+	if g == nil {
+		return "", nil
+	}
 	optionalValue, err := g.SecureOptionalValue(ctx, fieldName)
 	if err != nil {
 		return "", err
@@ -198,6 +205,10 @@ func (g *WithSecureData) SecureValue(ctx context.Context, fieldName string) (str
 }
 
 func (g *WithSecureData) SecureOptionalValue(ctx context.Context, fieldName string) (types.OptionalString, error) {
+	if g == nil {
+		return types.OptionalString{}, nil
+	}
+
 	value, err := g.SecureData.Field(ctx, fieldName)
 	if err != nil {
 		return types.NewOptionalString(nil), err
