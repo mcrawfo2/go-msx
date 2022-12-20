@@ -12,9 +12,11 @@ import (
 
 type FindAllOption = func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request)
 
-func Where(where WhereOption) FindAllOption {
+func Where(where ...WhereOption) FindAllOption {
 	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
-		ds = ds.Where(where)
+		for _, w := range where {
+			ds = ds.Where(w.Expression())
+		}
 		return ds, pgReq
 	}
 }

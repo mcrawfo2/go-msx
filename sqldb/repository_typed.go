@@ -7,19 +7,52 @@ package sqldb
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
-	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )
 
-type WhereOption = goqu.Expression
+type WhereOption interface {
+	Expression() goqu.Expression
+}
+
+type WhereOptionFunc func() goqu.Expression
+
+func (w WhereOptionFunc) Expression() goqu.Expression {
+	return w()
+}
+
 type KeysOption = goqu.Ex
+
+func All(exps ...WhereOption) WhereOption {
+	var expressions []exp.Expression
+	for _, expressioner := range exps {
+		expressions = append(expressions, expressioner.Expression())
+	}
+	return exp.NewExpressionList(exp.AndType, expressions...)
+}
+
+func Any(exps ...WhereOption) WhereOption {
+	var expressions []exp.Expression
+	for _, expressioner := range exps {
+		expressions = append(expressions, expressioner.Expression())
+	}
+	return exp.NewExpressionList(exp.OrType, expressions...)
+}
+
+func And(exp goqu.Ex) WhereOption {
+	return exp
+}
+
+func Or(exp goqu.ExOr) WhereOption {
+	return exp
+}
 
 //go:generate mockery --inpackage --name=TypedRepositoryApi --structname=MockTypedRepositoryApi
 type TypedRepositoryApi[I any] interface {
-	CountAll(ctx context.Context, dest *int64, where types.Optional[WhereOption]) error
+	CountAll(ctx context.Context, dest *int64, where WhereOption) error
 	FindAll(ctx context.Context, dest *[]I, options ...FindAllOption) (pagingResponse paging.Response, err error)
-	FindOne(ctx context.Context, dest *I, where types.Optional[WhereOption]) error
+	FindOne(ctx context.Context, dest *I, where WhereOption) error
 	Insert(ctx context.Context, value I) error
 	Update(ctx context.Context, where WhereOption, value I) error
 	Upsert(ctx context.Context, value I) error
@@ -55,14 +88,14 @@ func (c *TypedRepository[I]) Rebind(conn SqlExecutor, stmt string) string {
 	return sqlx.Rebind(bindType, stmt)
 }
 
-func (c *TypedRepository[I]) CountAll(ctx context.Context, dest *int64, where types.Optional[WhereOption]) error {
+func (c *TypedRepository[I]) CountAll(ctx context.Context, dest *int64, where WhereOption) error {
 	ds, err := c.goqu.Select(ctx, c.table)
 	if err != nil {
 		return err
 	}
 
-	if where.IsPresent() {
-		ds = ds.Where(where.Value())
+	if where != nil {
+		ds = ds.Where(where.Expression())
 	}
 
 	return c.goqu.ExecuteGet(ctx, ds.Select(goqu.COUNT("*")), dest)
@@ -127,14 +160,14 @@ func (c *TypedRepository[I]) FindAll(ctx context.Context, dest *[]I, options ...
 	return
 }
 
-func (c *TypedRepository[I]) FindOne(ctx context.Context, dest *I, where types.Optional[WhereOption]) error {
+func (c *TypedRepository[I]) FindOne(ctx context.Context, dest *I, where WhereOption) error {
 	ds, err := c.goqu.Get(ctx, c.table)
 	if err != nil {
 		return err
 	}
 
-	if where.IsPresent() {
-		ds = ds.Where(where.Value())
+	if where != nil {
+		ds = ds.Where(where.Expression())
 	}
 
 	return c.goqu.ExecuteGet(ctx, ds, dest)
@@ -153,7 +186,12 @@ func (c *TypedRepository[I]) Update(ctx context.Context, where WhereOption, valu
 	if err != nil {
 		return err
 	}
-	return c.goqu.ExecuteUpdate(ctx, ds.Where(where).Set(value))
+
+	if where != nil {
+		ds = ds.Where(where.Expression())
+	}
+
+	return c.goqu.ExecuteUpdate(ctx, ds.Set(value))
 }
 
 func (c *TypedRepository[I]) Upsert(ctx context.Context, value I) error {
@@ -177,7 +215,12 @@ func (c *TypedRepository[I]) DeleteAll(ctx context.Context, where WhereOption) e
 	if err != nil {
 		return err
 	}
-	return c.goqu.ExecuteDelete(ctx, ds.Where(where))
+
+	if where != nil {
+		ds = ds.Where(where.Expression())
+	}
+
+	return c.goqu.ExecuteDelete(ctx, ds)
 }
 
 func (c *TypedRepository[I]) Truncate(ctx context.Context) error {
