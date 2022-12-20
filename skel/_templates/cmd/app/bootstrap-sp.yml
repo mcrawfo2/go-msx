@@ -31,10 +31,6 @@ server:
   context-path: ${server.contextPath}
   enabled: true
 
-spring.data.cassandra:
-  keyspace-name: ${app.name}
-  enabled: ${repository.cassandra.enabled}
-
 spring.datasource:
   name: ${app.name}
   enabled: ${repository.cockroach.enabled}

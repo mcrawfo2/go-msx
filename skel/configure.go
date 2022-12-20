@@ -161,18 +161,6 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Validate: survey.Required,
 		},
 		{
-			Name: "repository",
-			Prompt: &survey.Select{
-				Message: "Repository:",
-				Options: []string{
-					"cassandra",
-					"cockroach",
-				},
-				Default: skeletonConfig.Repository,
-			},
-			Validate: survey.Required,
-		},
-		{
 			Name: "slackChannel",
 			Prompt: &survey.Input{
 				Message: "Build notifications slack channel:",
@@ -278,18 +266,6 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 			Prompt: &survey.Input{
 				Message: "Web server context path:",
 				Default: skeletonConfig.ServerContextPath,
-			},
-			Validate: survey.Required,
-		},
-		{
-			Name: "repository",
-			Prompt: &survey.Select{
-				Message: "Repository:",
-				Options: []string{
-					"cassandra",
-					"cockroach",
-				},
-				Default: skeletonConfig.Repository,
 			},
 			Validate: survey.Required,
 		},
