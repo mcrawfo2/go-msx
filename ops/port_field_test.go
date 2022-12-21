@@ -12,7 +12,7 @@ import (
 )
 
 func TestPortField_WithOptional(t *testing.T) {
-	pf := NewPortField("test", "peer", "group", true, PortFieldType{}, []int{0})
+	pf := NewPortField("test", "peer", "group", true, "in", PortFieldType{}, []int{0})
 	pf.WithOptional(true)
 	assert.True(t, pf.Optional)
 }
@@ -836,7 +836,7 @@ func TestPortFieldHasGroup(t *testing.T) {
 
 			matcher := PortFieldHasGroup(tt.args.group)
 
-			pf := NewPortField("", "", tt.args.pfgroup, true, PortFieldType{}, []int{0})
+			pf := NewPortField("", "", tt.args.pfgroup, true, "in", PortFieldType{}, []int{0})
 			matches := matcher(pf)
 
 			assert.Equalf(t, tt.want, matches, "PortFieldHasGroup(%v)", tt.args.group)
@@ -884,7 +884,7 @@ func TestPortFieldHasName(t *testing.T) {
 
 			matcher := PortFieldHasName(tt.args.name)
 
-			pf := NewPortField(tt.args.pfname, "", "", true, PortFieldType{}, []int{0})
+			pf := NewPortField(tt.args.pfname, "", "", true, "in", PortFieldType{}, []int{0})
 			matches := matcher(pf)
 
 			assert.Equalf(t, tt.want, matches, "PortFieldHasName(%v)", tt.args.name)
@@ -932,7 +932,7 @@ func TestPortFieldHasPeer(t *testing.T) {
 
 			matcher := PortFieldHasPeer(tt.args.peer)
 
-			pf := NewPortField("", tt.args.pfpeer, "", true, PortFieldType{}, []int{0})
+			pf := NewPortField("", tt.args.pfpeer, "", true, "in", PortFieldType{}, []int{0})
 			matches := matcher(pf)
 
 			assert.Equalf(t, tt.want, matches, "PortFieldHasName(%v)", tt.args.peer)

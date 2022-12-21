@@ -6,10 +6,13 @@ package webservice
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"mime/multipart"
 	"reflect"
 	"testing"
 	"time"
@@ -31,7 +34,7 @@ func TestRouteParam_populateBody(t *testing.T) {
 	}{
 		{
 			name: "JsonStruct",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRouteTargetReturn(200).
 				WithRequestHeader("Content-Type", MIME_JSON).
@@ -46,7 +49,7 @@ func TestRouteParam_populateBody(t *testing.T) {
 		},
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRouteTargetReturn(200).
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
@@ -74,7 +77,7 @@ func TestRouteParam_populateHeader(t *testing.T) {
 	}{
 		{
 			name: "AllValues",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestHeader("Content-Type", MIME_JSON).
@@ -89,7 +92,7 @@ func TestRouteParam_populateHeader(t *testing.T) {
 		},
 		{
 			name: "OptionalValue",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestHeader("Content-Type", MIME_XML).
@@ -103,7 +106,7 @@ func TestRouteParam_populateHeader(t *testing.T) {
 		},
 		{
 			name: "MissingValue",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
@@ -130,7 +133,7 @@ func TestRouteParam_populatePath(t *testing.T) {
 	}{
 		{
 			name: "PathElement",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestPath("/populate/path/xyz").
 				WithRoutePath("/populate/path/{pathId}").
@@ -145,7 +148,7 @@ func TestRouteParam_populatePath(t *testing.T) {
 		},
 		{
 			name: "PathTail",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestPath("/populate/path/xyz/abc").
 				WithRoutePath("/populate/path/{pathId:*}").
@@ -171,6 +174,7 @@ func TestRouteParam_populateQuery(t *testing.T) {
 		Optional  *int         `req:"query"`
 		Uuid      types.UUID   `req:"query"`
 		MultiUuid []types.UUID `req:"query,multi"`
+		Csv       []string     `req:"query,csv"`
 	}
 
 	tests := []struct {
@@ -179,7 +183,7 @@ func TestRouteParam_populateQuery(t *testing.T) {
 	}{
 		{
 			name: "AllValues",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestQueryParameter("required", MIME_JSON).
@@ -187,6 +191,7 @@ func TestRouteParam_populateQuery(t *testing.T) {
 				WithRequestQueryParameter("uuid", "703665b9-6d89-4bda-b786-3645ce75b699").
 				WithRequestQueryParameter("multiUuid", "e9db0eee-dd1f-4ef6-b749-4ad810cb1842").
 				WithRequestQueryParameter("multiUuid", "096c431d-94b7-4b2a-8257-9990eb841c1c").
+				WithRequestQueryParameter("csv", "a,b,c").
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
 					p := &params{}
 					err := Populate(req, p)
@@ -197,17 +202,19 @@ func TestRouteParam_populateQuery(t *testing.T) {
 					assert.Len(t, p.MultiUuid, 2)
 					assert.Equal(t, "e9db0eee-dd1f-4ef6-b749-4ad810cb1842", p.MultiUuid[0].String())
 					assert.Equal(t, "096c431d-94b7-4b2a-8257-9990eb841c1c", p.MultiUuid[1].String())
+					assert.Equal(t, []string{"a", "b", "c"}, p.Csv)
 				}),
 		},
 		{
 			name: "OptionalValue",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestQueryParameter("required", MIME_XML).
 				WithRequestQueryParameter("uuid", "703665b9-6d89-4bda-b786-3645ce75b699").
 				WithRequestQueryParameter("multiUuid", "e9db0eee-dd1f-4ef6-b749-4ad810cb1842").
 				WithRequestQueryParameter("multiUuid", "096c431d-94b7-4b2a-8257-9990eb841c1c").
+				WithRequestQueryParameter("csv", "a,b,c").
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
 					p := &params{}
 					err := Populate(req, p)
@@ -218,11 +225,93 @@ func TestRouteParam_populateQuery(t *testing.T) {
 					assert.Len(t, p.MultiUuid, 2)
 					assert.Equal(t, "e9db0eee-dd1f-4ef6-b749-4ad810cb1842", p.MultiUuid[0].String())
 					assert.Equal(t, "096c431d-94b7-4b2a-8257-9990eb841c1c", p.MultiUuid[1].String())
+					assert.Equal(t, []string{"a", "b", "c"}, p.Csv)
 				}),
 		},
 		{
 			name: "MissingValue",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
+				WithRequestMethod("GET").
+				WithRouteTargetReturn(200).
+				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
+					p := &params{}
+					err := Populate(req, p)
+					assert.Error(t, err)
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+func TestRouteParam_populateForm_File(t *testing.T) {
+
+	type params struct {
+		Field string                `req:"form"`
+		File  *multipart.FileHeader `req:"form,file"`
+	}
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "AllValues",
+			test: new(webservicetest.RouteBuilderTest).
+				WithRequestMethod("POST").
+				WithRouteTargetReturn(200).
+				WithRequestFormFieldParameter("field", "def456").
+				WithRequestFormFileParameter("file", "example.txt", "abc123").
+				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
+					p := &params{}
+					err := Populate(req, p)
+					assert.NoError(t, err)
+
+					assert.Equal(t, "def456", p.Field)
+
+					assert.Equal(t, "example.txt", p.File.Filename)
+
+					reader, err := p.File.Open()
+					assert.NoError(t, err)
+
+					contents, err := ioutil.ReadAll(reader)
+					assert.NoError(t, err)
+
+					assert.Equal(t, "abc123", string(contents))
+				}),
+		},
+		{
+			name: "BodyFile",
+			test: new(webservicetest.RouteBuilderTest).
+				WithRequestMethod("POST").
+				WithRouteTargetReturn(200).
+				WithRequestQueryParameter("field", "def456").
+				WithRequestBodyString("abc123").
+				WithoutRequestHeader("Content-Type").
+				WithRequestHeader("Content-Type", "application/json").
+				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
+					p := &params{}
+					err := Populate(req, p)
+					assert.NoError(t, err)
+
+					assert.Equal(t, "def456", p.Field)
+
+					assert.Equal(t, "body", p.File.Filename)
+
+					reader, err := p.File.Open()
+					assert.NoError(t, err)
+
+					contents, err := ioutil.ReadAll(reader)
+					assert.NoError(t, err)
+
+					assert.Equal(t, "abc123", string(contents))
+				}),
+		},
+		{
+			name: "MissingValue",
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("GET").
 				WithRouteTargetReturn(200).
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
@@ -283,7 +372,7 @@ func TestRouteParam_populateScalar(t *testing.T) {
 	}{
 		{
 			name: "Scalars",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("string", "xyz").
 				WithRequestQueryParameter("int", "1").
@@ -322,7 +411,7 @@ func TestRouteParam_populateScalar(t *testing.T) {
 		},
 		{
 			name: "Pointers",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("string", "xyz").
 				WithRequestQueryParameter("int", "1").
@@ -361,7 +450,7 @@ func TestRouteParam_populateScalar(t *testing.T) {
 		},
 		{
 			name: "Custom",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("time", "2020-12-18T19:44:14Z").
 				WithRouteTargetReturn(200).
@@ -404,7 +493,7 @@ func TestRouteParam_populateScaler_sanitize(t *testing.T) {
 	}{
 		{
 			name: "Scalar",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("string", "x<a>yz</a>").
 				WithRouteTargetReturn(200).
@@ -417,7 +506,7 @@ func TestRouteParam_populateScaler_sanitize(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestHeader("Content-Type", MIME_JSON).
 				WithRequestBodyString(`{"name": "a<b>c</b>d", "description": "d<c>b</c>a", "ignored": "<a>bcd</a>"}`).
@@ -464,7 +553,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 	}{
 		{
 			name: "Strings",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("strings", "a").
 				WithRequestQueryParameter("strings", "b").
@@ -479,7 +568,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 		},
 		{
 			name: "OptionalStrings",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("strings", "a").
 				WithRequestQueryParameter("strings", "b").
@@ -495,7 +584,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 		},
 		{
 			name: "MissingOptionalStrings",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRouteTargetReturn(200).
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {
@@ -507,7 +596,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 		},
 		{
 			name: "UUIDs",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("uuids", testID1).
 				WithRequestQueryParameter("uuids", testID2).
@@ -523,7 +612,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 		},
 		{
 			name: "OptionalUuids",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestQueryParameter("uuids", testID1).
 				WithRequestQueryParameter("uuids", testID2).
@@ -542,7 +631,7 @@ func TestRouteParam_populateSlice(t *testing.T) {
 		},
 		{
 			name: "MissingOptionalUuids",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRouteTargetReturn(200).
 				WithRequestVerifier(func(t *testing.T, req *restful.Request) {

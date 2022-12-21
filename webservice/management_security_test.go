@@ -67,7 +67,7 @@ func TestManagementSecurityFilter_Filter(t *testing.T) {
 	}{
 		{
 			name: "NoPermission",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.PermissionInjector()).
 				WithContextInjector(securitytest.AuthoritiesInjector("ROLE_CLIENT")).
 				WithRouteFilter(NewManagementSecurityFilter(cfg)).
@@ -75,14 +75,14 @@ func TestManagementSecurityFilter_Filter(t *testing.T) {
 		},
 		{
 			name: "NoAuthority",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.PermissionInjector("IS_API_ADMIN")).
 				WithRouteFilter(NewManagementSecurityFilter(cfg)).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(401)),
 		},
 		{
 			name: "Authorized",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.AuthoritiesInjector("ROLE_CLIENT")).
 				WithContextInjector(securitytest.PermissionInjector("IS_API_ADMIN")).
 				WithRouteFilter(NewManagementSecurityFilter(cfg)).

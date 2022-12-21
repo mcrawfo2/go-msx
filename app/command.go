@@ -84,10 +84,10 @@ func init() {
 		populate.CustomizeCommand(populateCommand)
 	}
 
-	if openApiCommand, err := AddCommand(CommandOpenApi, "Save REST API specification", swaggerprovider.SaveSpec, commandOpenApiInit); err != nil {
+	if openApiCommand, err := AddCommand(CommandOpenApi, "Save REST API specification", swaggerprovider.GenerateOpenApiSpecCommand, commandOpenApiInit); err != nil {
 		cli.Fatal(err)
 	} else {
-		swaggerprovider.CustomizeCommand(openApiCommand)
+		swaggerprovider.CustomizeOpenApiSpecCommand(openApiCommand)
 	}
 
 	if _, err := AddCommand(CommandVersion, "Show version", version.Version, commandVersionInit); err != nil {

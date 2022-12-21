@@ -35,7 +35,7 @@ const (
 )
 
 func Populate(req *restful.Request, params interface{}) (err error) {
-	routeParams, err := getRouteParams(req.Request.Context(), params)
+	routeParams, err := GetRouteParams(req.Request.Context(), params)
 	if err != nil {
 		return
 	}
@@ -166,7 +166,6 @@ func (r RouteParam) populateForm(req *restful.Request, fieldValue reflect.Value)
 	case MIME_MULTIPART_FORM:
 		return r.populateMultipartForm(req, fieldValue)
 	case MIME_APPLICATION_FORM:
-		// TODO: Support for url-encoded forms
 		return errors.Errorf("Content-Type %q currently unsupported", baseContentType)
 	default:
 		if r.Options["file"] == "true" {
@@ -665,7 +664,7 @@ func (r RouteParams) Populate(req *restful.Request, paramsValue reflect.Value) e
 var routeParamsMtx sync.Mutex
 var routeParamsIndex = make(map[reflect.Type]*RouteParams)
 
-func getRouteParams(ctx context.Context, params interface{}) (*RouteParams, error) {
+func GetRouteParams(ctx context.Context, params interface{}) (*RouteParams, error) {
 	routeParamsMtx.Lock()
 	defer routeParamsMtx.Unlock()
 

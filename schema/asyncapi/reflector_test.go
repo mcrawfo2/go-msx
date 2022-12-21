@@ -35,7 +35,7 @@ func TestLookupSchema(t *testing.T) {
 	_, err := Reflect(TestStructA{})
 	assert.NoError(t, err)
 
-	schema, exists := LookupSchema("AsyncapiTestStructA")
+	schema, exists := LookupSchema("asyncapi.TestStructA")
 	assert.True(t, exists)
 	assert.True(t, schema.HasType(jsonschema.Object))
 }

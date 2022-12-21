@@ -893,27 +893,347 @@ func TestPortFieldExtractor_ExtractPrimitive_Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestPortFieldExtractor_ExtractRawValue(t *testing.T) {
-	type fields struct {
-		portField    *PortField
-		outputs      interface{}
-		outputsValue reflect.Value
+func TestPortFieldExtractor_ExtractArray_Scalar(t *testing.T) {
+	type arrays struct {
+		A []string                 `test:"extractor"`
+		B []*string                `test:"extractor"`
+		C []**string               `test:"extractor"`
+		D []int                    `test:"extractor"`
+		E *[]int                   `test:"extractor"`
+		F **[]int                  `test:"extractor"`
+		G []MyTextType             `test:"extractor"`
+		H []*MyTextType            `test:"extractor"`
+		J []**MyTextType           `test:"extractor"`
+		M []string                 `test:"extractor"`
+		N []string                 `test:"extractor" default:"abc,def"`
+		O []string                 `test:"extractor" const:"abc,def"`
+		P []string                 `test:"extractor" required:"true"`
+		Q []types.Optional[string] `test:"extractor"`
+		R []types.Optional[string] `test:"extractor" default:"abc,def"`
+		S []types.Optional[string] `test:"extractor" const:"abc,def"`
+		T []types.Optional[string] `test:"extractor" required:"true"`
+		U [][]byte                 `test:"extractor"`
+		V [][]rune                 `test:"extractor"`
 	}
+
+	pr := PortReflector{
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupExtractor: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeArray),
+			},
+		},
+		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+	}
+
+	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(arrays{}))
+	assert.NoError(t, err)
+
 	tests := []struct {
-		name   string
-		fields fields
-		want   reflect.Value
+		name    string
+		field   *PortField
+		value   arrays
+		want    []string
+		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "StringArray",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: arrays{
+				A: []string{"abc"},
+			},
+			want:    []string{"abc"},
+			wantErr: false,
+		},
+		{
+			name:  "StringIndirectArray",
+			field: port.Fields.First(PortFieldHasName("B")),
+			value: arrays{
+				B: []*string{
+					types.NewStringPtr("abc"),
+					types.NewStringPtr("def"),
+				},
+			},
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:  "StringDoubleIndirectArray",
+			field: port.Fields.First(PortFieldHasName("C")),
+			value: arrays{
+				C: func() []**string {
+					v := types.NewStringPtr("abc")
+					w := types.NewStringPtr("def")
+					return []**string{&v, &w}
+				}(),
+			},
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:  "IntSlice",
+			field: port.Fields.First(PortFieldHasName("D")),
+			value: arrays{
+				D: []int{1, 2, 3},
+			},
+			want:    []string{"1", "2", "3"},
+			wantErr: false,
+		},
+		{
+			name:  "IntSliceIndirect",
+			field: port.Fields.First(PortFieldHasName("E")),
+			value: arrays{
+				E: &[]int{1, 2, 3},
+			},
+			want:    []string{"1", "2", "3"},
+			wantErr: false,
+		},
+		{
+			name:  "IntSliceDoubleIndirect",
+			field: port.Fields.First(PortFieldHasName("F")),
+			value: arrays{
+				F: func() **[]int {
+					v := &[]int{1, 2, 3}
+					return &v
+				}(),
+			},
+			want:    []string{"1", "2", "3"},
+			wantErr: false,
+		},
+		{
+			name:  "TextMarshalerArray",
+			field: port.Fields.First(PortFieldHasName("G")),
+			value: arrays{
+				G: func() []MyTextType {
+					return []MyTextType{
+						*NewMyTextType("abc"),
+						*NewMyTextType("def"),
+					}
+				}(),
+			},
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:  "TextMarshalerIndirectArray",
+			field: port.Fields.First(PortFieldHasName("H")),
+			value: arrays{
+				H: func() []*MyTextType {
+					return []*MyTextType{
+						NewMyTextType("abc"),
+						NewMyTextType("def"),
+					}
+				}(),
+			},
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:  "TextMarshalerDoubleIndirectArray",
+			field: port.Fields.First(PortFieldHasName("J")),
+			value: arrays{
+				J: func() []**MyTextType {
+					v := NewMyTextType("abc")
+					w := NewMyTextType("def")
+					return []**MyTextType{&v, &w}
+				}(),
+			},
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:    "StringOptionalArray",
+			field:   port.Fields.First(PortFieldHasName("M")),
+			want:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "StringDefaultArray",
+			field:   port.Fields.First(PortFieldHasName("N")),
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:    "StringConstArray",
+			field:   port.Fields.First(PortFieldHasName("O")),
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:    "StringRequiredError",
+			field:   port.Fields.First(PortFieldHasName("P")),
+			value:   arrays{},
+			wantErr: true,
+		},
+		{
+			name:    "OptionalStringArray",
+			field:   port.Fields.First(PortFieldHasName("Q")),
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringDefault",
+			field:   port.Fields.First(PortFieldHasName("R")),
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringConst",
+			field:   port.Fields.First(PortFieldHasName("S")),
+			want:    []string{"abc", "def"},
+			wantErr: false,
+		},
+		{
+			name:    "OptionalStringRequiredError",
+			field:   port.Fields.First(PortFieldHasName("T")),
+			value:   arrays{},
+			wantErr: true,
+		},
+		{
+			name:  "ByteArrayArray",
+			field: port.Fields.First(PortFieldHasName("U")),
+			value: arrays{
+				U: [][]byte{
+					[]byte("abc"),
+					[]byte("def"),
+				},
+			},
+			want: []string{"abc", "def"},
+		},
+		{
+			name:  "RuneArrayArray",
+			field: port.Fields.First(PortFieldHasName("V")),
+			value: arrays{
+				V: [][]rune{
+					[]rune("abc"),
+					[]rune("def"),
+				},
+			},
+			want: []string{"abc", "def"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := PortFieldExtractor{
-				portField:    tt.fields.portField,
-				outputs:      tt.fields.outputs,
-				outputsValue: tt.fields.outputsValue,
+			i := NewPortFieldExtractor(tt.field, &tt.value)
+
+			gotValue, err := i.ExtractArray()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExtractPrimitive() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			assert.Equalf(t, tt.want, i.ExtractRawValue(), "ExtractRawValue()")
+			if !tt.wantErr {
+				want := tt.want
+				if len(tt.want) == 0 {
+					want = []string{}
+				}
+				if !reflect.DeepEqual(want, gotValue) {
+					t.Errorf("ExtractArray() diff\n%s",
+						testhelpers.Diff(want, gotValue))
+				}
+			}
+		})
+	}
+}
+
+func TestPortFieldExtractor_ExtractObject_Scalar(t *testing.T) {
+	type object struct {
+		A string
+		B string
+	}
+
+	type objects struct {
+		A object   `test:"extractor"`
+		B *object  `test:"extractor" default:"{\"A\":\"abc\"}"`
+		C **object `test:"extractor" required:"true"`
+	}
+
+	pr := PortReflector{
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupExtractor: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeObject),
+			},
+		},
+		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+	}
+
+	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(objects{}))
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name    string
+		field   *PortField
+		value   objects
+		want    types.Pojo
+		wantErr bool
+	}{
+		{
+			name:  "Object",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: objects{
+				A: object{
+					A: "abc",
+					B: "def",
+				},
+			},
+			want: types.Pojo{"A": "abc", "B": "def"},
+		},
+		{
+			name: "ObjectIndirect",
+
+			field: port.Fields.First(PortFieldHasName("B")),
+			value: objects{
+				B: &object{
+					A: "abc",
+					B: "def",
+				},
+			},
+			want: types.Pojo{"A": "abc", "B": "def"},
+		},
+		{
+			name: "ObjectDoubleIndirect",
+
+			field: port.Fields.First(PortFieldHasName("C")),
+			value: objects{
+				C: func() **object {
+					v := &object{
+						A: "abc",
+						B: "def",
+					}
+					return &v
+				}(),
+			},
+			want: types.Pojo{"A": "abc", "B": "def"},
+		},
+		{
+			name:  "ObjectDefault",
+			field: port.Fields.First(PortFieldHasName("B")),
+			value: objects{},
+			want:  types.Pojo{"A": "abc"},
+		},
+		{
+			name:    "ObjectMissing",
+			field:   port.Fields.First(PortFieldHasName("C")),
+			value:   objects{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := NewPortFieldExtractor(tt.field, &tt.value)
+
+			gotValue, err := i.ExtractObject()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExtractPrimitive() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				want := tt.want
+				if len(tt.want) == 0 {
+					want = types.Pojo{}
+				}
+				if !reflect.DeepEqual(want, gotValue) {
+					t.Errorf("ExtractObject() diff\n%s",
+						testhelpers.Diff(want, gotValue))
+				}
+			}
 		})
 	}
 }
@@ -921,7 +1241,6 @@ func TestPortFieldExtractor_ExtractRawValue(t *testing.T) {
 func TestPortFieldExtractor_ExtractValue(t *testing.T) {
 	type fields struct {
 		portField    *PortField
-		outputs      interface{}
 		outputsValue reflect.Value
 	}
 	tests := []struct {
@@ -936,7 +1255,6 @@ func TestPortFieldExtractor_ExtractValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			i := PortFieldExtractor{
 				portField:    tt.fields.portField,
-				outputs:      tt.fields.outputs,
 				outputsValue: tt.fields.outputsValue,
 			}
 			gotFv, err := i.ExtractValue()

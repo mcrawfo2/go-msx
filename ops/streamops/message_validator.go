@@ -68,7 +68,7 @@ func (v MessageValidator) ValidateMessage() (err error) {
 	}
 
 	if len(errs.Children) > 0 {
-		return errs
+		return errors.Wrap(errs, "Validation Failure")
 	}
 	return nil
 }
@@ -126,7 +126,11 @@ func (v MessageValidator) GetPayloadAsParsedJson(field *ops.PortField) (interfac
 		return nil, err
 	}
 
-	contentType := content.MimeType()
+	contentType, err := content.BaseMediaType()
+	if err != nil {
+		return nil, err
+	}
+
 	if contentType != httpclient.MimeTypeApplicationJson {
 		// Need to round-trip via the field DTO
 		return nil, errors.Errorf("Unsupported content format for JSON Schema validation: %s", contentType)

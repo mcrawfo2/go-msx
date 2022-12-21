@@ -9,6 +9,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/contexttest"
@@ -28,6 +29,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	_ "cto-github.cisco.com/NFV-BU/go-msx/ops/restops/httperrors"
 )
 
 // Allow the testing.T object to be injected via the context.Context
@@ -36,6 +39,8 @@ type contextKey int
 const contextKeyTesting contextKey = iota
 
 type ControllerFactory func(ctx context.Context) (webservice.RestController, error)
+
+type EndpointProducerSourceFactory func(ctx context.Context) (restops.EndpointsProducer, error)
 
 type ControllerTest struct {
 	Server struct {
@@ -49,8 +54,9 @@ type ControllerTest struct {
 		Body            []byte
 	}
 	Controller struct {
-		RootPath string
-		Factory  ControllerFactory
+		RootPath          string
+		Factory           ControllerFactory
+		EndpointsProducer EndpointProducerSourceFactory
 	}
 	Context struct {
 		Base         context.Context
@@ -101,6 +107,11 @@ func (r *ControllerTest) WithControllerRootPath(rootPath string) *ControllerTest
 
 func (r *ControllerTest) WithControllerFactory(factory ControllerFactory) *ControllerTest {
 	r.Controller.Factory = factory
+	return r
+}
+
+func (r *ControllerTest) WithEndpointProducerSourceFactory(factory EndpointProducerSourceFactory) *ControllerTest {
+	r.Controller.EndpointsProducer = factory
 	return r
 }
 
@@ -280,9 +291,19 @@ func (r *ControllerTest) Test(t *testing.T) {
 
 	// Create a web server
 	s := r.newWebServer(context.Background(), t)
-	controller, err := r.Controller.Factory(ctx)
-	assert.NoError(t, err)
-	err = s.RegisterRestController(r.Controller.RootPath, controller)
+	if r.Controller.Factory != nil {
+		var controller webservice.RestController
+		controller, err = r.Controller.Factory(ctx)
+		assert.NoError(t, err)
+		err = s.RegisterRestController(r.Controller.RootPath, controller)
+	} else if r.Controller.EndpointsProducer != nil {
+		var producer restops.EndpointsProducer
+		producer, err = r.Controller.EndpointsProducer(ctx)
+		assert.NoError(t, err)
+		err = restops.
+			NewRestfulEndpointRegisterer(s).
+			RegisterEndpoints(producer)
+	}
 	assert.NoError(t, err)
 	ctx = webservice.ContextWithWebServerValue(ctx, s)
 	ctx = trace.ContextWithUntracedContext(ctx)

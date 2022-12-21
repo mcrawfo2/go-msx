@@ -16,7 +16,7 @@ func TestArraySchema(t *testing.T) {
 	want := NewSchemaPtr(jsonschema.Array)
 	wantItems := NewSchemaPtr(jsonschema.Object).ToSchemaOrBool()
 	want.WithItems(jsonschema.Items{
-		SchemaArray: []jsonschema.SchemaOrBool{wantItems},
+		SchemaOrBool: &wantItems,
 	})
 	got := ArraySchema(*NewSchemaPtr(jsonschema.Object))
 	assert.True(t,

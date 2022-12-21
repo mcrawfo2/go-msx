@@ -13,8 +13,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/elastic/go-seccomp-bpf v1.2.0
-	github.com/emicklei/go-restful v2.14.3+incompatible
-	github.com/emicklei/go-restful-openapi v1.2.0
+	github.com/emicklei/go-restful v2.15.0+incompatible
+	github.com/emicklei/go-restful-openapi v1.4.1
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structtag v1.2.0
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-ini/ini v1.48.0
-	github.com/go-openapi/spec v0.20.3
+	github.com/go-openapi/spec v0.20.4
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-stack/stack v1.8.0
@@ -67,6 +67,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggest/jsonschema-go v0.3.37
+	github.com/swaggest/openapi-go v0.2.10
 	github.com/swaggest/refl v1.1.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.9.3
@@ -80,6 +81,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	moul.io/banner v1.0.1
 )
+
+require github.com/lithammer/dedent v1.1.0
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
@@ -106,8 +109,8 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
-	github.com/go-openapi/jsonreference v0.19.5 // indirect
-	github.com/go-openapi/swag v0.19.14 // indirect
+	github.com/go-openapi/jsonreference v0.19.6 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
@@ -165,7 +168,6 @@ require (
 	github.com/uber-go/atomic v1.4.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	github.com/yuin/goldmark v1.4.13 // indirect
 	go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama v0.31.0 // indirect
 	go.opentelemetry.io/otel v1.6.1 // indirect
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect

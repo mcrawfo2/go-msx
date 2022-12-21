@@ -67,3 +67,10 @@ func NewNullUUID(value uuid.UUID) NullUUID {
 		value: value,
 	}
 }
+
+func NewOptionalNullUUID(value *uuid.UUID) NullUUID {
+	if value != nil {
+		return NewNullUUID(*value)
+	}
+	return NullUUID{}
+}

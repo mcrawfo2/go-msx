@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"mime/multipart"
 	"strings"
 )
 
@@ -72,6 +73,26 @@ func (w MessageDecoder) DecodePrimitive(pf *ops.PortField) (result types.Optiona
 	}
 
 	return
+}
+
+func (w MessageDecoder) DecodeArray(pf *ops.PortField) (result []string, err error) {
+	return nil, errors.Wrap(ErrNotImplemented, "Array types not supported by stream ops")
+}
+
+func (w MessageDecoder) DecodeObject(pf *ops.PortField) (result types.Pojo, err error) {
+	return nil, errors.Wrap(ErrNotImplemented, "Object types not supported by stream ops")
+}
+
+func (w MessageDecoder) DecodeFile(pf *ops.PortField) (result *multipart.FileHeader, err error) {
+	return nil, errors.Wrap(ErrNotImplemented, "File types not supported by stream ops")
+}
+
+func (w MessageDecoder) DecodeFileArray(pf *ops.PortField) (result []*multipart.FileHeader, err error) {
+	return nil, errors.Wrap(ErrNotImplemented, "FileArray types not supported by stream ops")
+}
+
+func (w MessageDecoder) DecodeAny(pf *ops.PortField) (result types.Optional[any], err error) {
+	return types.OptionalEmpty[any](), errors.Wrap(ErrNotImplemented, "Any types not supported by stream ops")
 }
 
 func NewMessageDecoder(source MessageDataSource, defaultContentType, defaultEncoding string) MessageDecoder {

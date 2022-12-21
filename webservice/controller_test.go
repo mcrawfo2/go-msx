@@ -24,7 +24,7 @@ func TestContextController(t *testing.T) {
 	}{
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(ContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return nil, nil
@@ -34,7 +34,7 @@ func TestContextController(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(ContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return struct{}{}, nil
@@ -47,7 +47,7 @@ func TestContextController(t *testing.T) {
 		},
 		{
 			name: "Error",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(ContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return nil, errors.New("some error")
@@ -68,7 +68,7 @@ func TestController(t *testing.T) {
 	}{
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(Controller(
 					func(req *restful.Request) (interface{}, error) {
 						return nil, nil
@@ -78,7 +78,7 @@ func TestController(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(Controller(
 					func(req *restful.Request) (interface{}, error) {
 						return struct{}{}, nil
@@ -91,7 +91,7 @@ func TestController(t *testing.T) {
 		},
 		{
 			name: "Error",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(Controller(
 					func(req *restful.Request) (interface{}, error) {
 						return nil, errors.New("some error")
@@ -112,7 +112,7 @@ func TestEnsureSlash(t *testing.T) {
 	}{
 		{
 			name: "Slash",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestPath("/swagger/").
 				WithRouteTarget(EnsureSlash(func(writer http.ResponseWriter, request *http.Request) {
 					writer.WriteHeader(200)
@@ -121,7 +121,7 @@ func TestEnsureSlash(t *testing.T) {
 		},
 		{
 			name: "NoSlash",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestPath("/swagger").
 				WithRouteTarget(EnsureSlash(func(writer http.ResponseWriter, request *http.Request) {
 					writer.WriteHeader(200)
@@ -142,7 +142,7 @@ func TestHttpHandlerController(t *testing.T) {
 	}{
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(HttpHandlerController(
 					func(resp http.ResponseWriter, req *http.Request) {
 						resp.WriteHeader(204)
@@ -151,7 +151,7 @@ func TestHttpHandlerController(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(HttpHandlerController(
 					func(resp http.ResponseWriter, req *http.Request) {
 						resp.Header().Set("Content-Type", MIME_JSON)
@@ -175,7 +175,7 @@ func TestRawContextController(t *testing.T) {
 	}{
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return nil, nil
@@ -184,7 +184,7 @@ func TestRawContextController(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return map[string]string{
@@ -196,7 +196,7 @@ func TestRawContextController(t *testing.T) {
 		},
 		{
 			name: "Error",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawContextController(
 					func(ctx context.Context) (interface{}, error) {
 						return nil, errors.New("some error")
@@ -218,7 +218,7 @@ func TestRawController(t *testing.T) {
 	}{
 		{
 			name: "NoBody",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawController(
 					func(req *restful.Request) (interface{}, error) {
 						return nil, nil
@@ -227,7 +227,7 @@ func TestRawController(t *testing.T) {
 		},
 		{
 			name: "Body",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawController(
 					func(req *restful.Request) (interface{}, error) {
 						return map[string]string{
@@ -239,7 +239,7 @@ func TestRawController(t *testing.T) {
 		},
 		{
 			name: "Error",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(RawController(
 					func(req *restful.Request) (interface{}, error) {
 						return nil, errors.New("some error")
@@ -261,7 +261,7 @@ func TestStaticFileAlias(t *testing.T) {
 	}{
 		{
 			name: "Rewrite",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestPath("/swagger").
 				WithRouteTarget(StaticFileAlias(
 					StaticAlias{

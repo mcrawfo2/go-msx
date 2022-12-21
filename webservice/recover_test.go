@@ -23,7 +23,7 @@ func Test_recoveryFilter(t *testing.T) {
 	}{
 		{
 			name: "NoPanic",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(recoveryFilter).
 				WithRouteFilter(DummyFilter).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
@@ -34,7 +34,7 @@ func Test_recoveryFilter(t *testing.T) {
 		},
 		{
 			name: "PanicString",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(recoveryFilter).
 				WithRouteFilter(DummyFilter).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
@@ -56,7 +56,7 @@ func Test_recoveryFilter(t *testing.T) {
 		},
 		{
 			name: "PanicError",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(recoveryFilter).
 				WithRouteFilter(DummyFilter).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {

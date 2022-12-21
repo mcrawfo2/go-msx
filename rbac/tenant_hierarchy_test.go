@@ -64,7 +64,7 @@ func TestTenantHierarchyCache_Parent(t *testing.T) {
 			loader: func(api *MockTenantHierarchyApi) {
 				api.
 					On("Ancestors", mock.AnythingOfType("*context.valueCtx"), testChildTenantId).
-					Return(nil, errTenantNotFound)
+					Return(nil, errTenantNotFoundInCache)
 
 			},
 			wantErr: true,
@@ -110,7 +110,7 @@ func TestTenantHierarchyCache_Root(t *testing.T) {
 				api.ExpectedCalls = nil
 				api.
 					On("Root", mock.AnythingOfType("*context.valueCtx")).
-					Return(nil, errTenantNotFound)
+					Return(nil, errTenantNotFoundInCache)
 			},
 			wantErr: true,
 		},
@@ -167,7 +167,7 @@ func TestTenantHierarchyCache_Ancestors(t *testing.T) {
 			loader: func(api *MockTenantHierarchyApi) {
 				api.
 					On("Ancestors", mock.AnythingOfType("*context.valueCtx"), testChildTenantId).
-					Return(nil, errTenantNotFound)
+					Return(nil, errTenantNotFoundInCache)
 
 			},
 			wantErr: true,

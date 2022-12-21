@@ -53,10 +53,51 @@ func TestPortReflector_ReflectPortStruct_Type(t *testing.T) {
 						Group:    "test",
 						Indices:  []int{0},
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
 							HandlerType: reflect.TypeOf(""),
+						},
+						Options: map[string]string{
+							"extra": "test2",
+						},
+						Baggage: map[interface{}]interface{}{},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "AnyField",
+			fields: fields{
+				FieldGroups: map[string]FieldGroup{
+					FieldGroupTest: {
+						Cardinality:   types.CardinalityZeroToMany(),
+						AllowedShapes: types.NewStringSet(FieldShapeAny),
+					},
+				},
+			},
+			args: args{
+				typ: "inp",
+				st: reflect.TypeOf(struct {
+					AnyField any `inp:"test" extra:"test2"`
+				}{}),
+			},
+			want: &Port{
+				Type: "inp",
+				Fields: []*PortField{
+					{
+						Name:     "AnyField",
+						Peer:     "anyField",
+						Group:    "test",
+						Indices:  []int{0},
+						Optional: true,
+						PortType: "inp",
+						Type: PortFieldType{
+							Shape:       FieldShapeAny,
+							Type:        AnyType,
+							HandlerType: AnyType,
 						},
 						Options: map[string]string{
 							"extra": "test2",
@@ -93,6 +134,7 @@ func TestPortReflector_ReflectPortStruct_Type(t *testing.T) {
 						Group:    "test",
 						Indices:  []int{0},
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -232,6 +274,7 @@ func TestPortReflector_ReflectPortStruct_Name(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -269,6 +312,7 @@ func TestPortReflector_ReflectPortStruct_Name(t *testing.T) {
 						Peer:     "bob",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -349,6 +393,7 @@ func TestPortReflector_ReflectPortStruct_PrimaryTag(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -388,6 +433,7 @@ func TestPortReflector_ReflectPortStruct_PrimaryTag(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -470,6 +516,7 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -507,6 +554,7 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -546,6 +594,7 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: true,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -585,6 +634,7 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -624,6 +674,7 @@ func TestPortReflector_ReflectPortStruct_Optional(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: true,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -710,6 +761,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -724,6 +776,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "anotherField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -762,6 +815,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -776,10 +830,21 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "secondField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapeObject,
 							Type:        reflect.TypeOf(embeddedStruct{}),
 							HandlerType: reflect.TypeOf(embeddedStruct{}),
+							Fields: []PortFieldElementType{
+								{
+									Indices: []int{0},
+									PortFieldType: PortFieldType{
+										Shape:       FieldShapePrimitive,
+										Type:        reflect.TypeOf(""),
+										HandlerType: reflect.TypeOf(""),
+									},
+								},
+							},
 						},
 						Options: map[string]string{},
 						Baggage: map[interface{}]interface{}{},
@@ -814,6 +879,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -828,11 +894,22 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "secondField",
 						Group:    "test",
 						Optional: true,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:        FieldShapeObject,
 							Type:         reflect.TypeOf(embeddedStruct{}),
 							Indirections: 1,
 							HandlerType:  reflect.TypeOf(embeddedStruct{}),
+							Fields: []PortFieldElementType{
+								{
+									Indices: []int{0},
+									PortFieldType: PortFieldType{
+										Shape:       FieldShapePrimitive,
+										Type:        reflect.TypeOf(""),
+										HandlerType: reflect.TypeOf(""),
+									},
+								},
+							},
 						},
 						Options: map[string]string{},
 						Baggage: map[interface{}]interface{}{},
@@ -867,6 +944,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -881,6 +959,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "anotherField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -919,6 +998,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "singleField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
@@ -933,6 +1013,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 						Peer:     "anotherField",
 						Group:    "test",
 						Optional: false,
+						PortType: "inp",
 						Type: PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),

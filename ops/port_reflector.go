@@ -23,9 +23,17 @@ type FieldGroup struct {
 	Content       bool
 }
 
+type PortDirection bool
+
+const (
+	PortDirectionIn  = PortDirection(true)
+	PortDirectionOut = PortDirection(false)
+)
+
 type PortFieldPostProcessorFunc func(*PortField, reflect.StructField)
 
 type PortReflector struct {
+	Direction          PortDirection
 	FieldGroups        map[string]FieldGroup
 	FieldPostProcessor PortFieldPostProcessorFunc
 	FieldTypeReflector PortFieldTypeReflector
@@ -131,10 +139,30 @@ func (r PortReflector) cardinality(groupName string) types.CardinalityRange {
 	return group.Cardinality
 }
 
+type FieldVisitor struct {
+	Indices []int
+}
+
+func (v *FieldVisitor) incrementIndex() {
+	lastIndex := v.Indices[len(v.Indices)-1]
+	v.Indices[len(v.Indices)-1] = lastIndex + 1
+}
+
+func (v *FieldVisitor) EnterAnonymousStructField(_ reflect.StructField) {
+	// push
+	v.Indices = append(v.Indices, 0)
+}
+
+func (v *FieldVisitor) ExitAnonymousStructField(_ reflect.StructField) {
+	// pop
+	v.Indices = v.Indices[:len(v.Indices)-1]
+	v.incrementIndex()
+}
+
 type PortReflectorFieldVisitor struct {
 	Port      *Port
 	Reflector PortReflector
-	Indices   []int
+	*FieldVisitor
 }
 
 func (v *PortReflectorFieldVisitor) reflectPortField(field reflect.StructField) (*PortField, error) {
@@ -173,12 +201,14 @@ func (v *PortReflectorFieldVisitor) reflectPortField(field reflect.StructField) 
 	// Parse shape
 	var shapeReflector = v.Reflector.FieldTypeReflector
 	if shapeReflector == nil {
-		shapeReflector = DefaultPortFieldTypeReflector{}
+		shapeReflector = DefaultPortFieldTypeReflector{
+			Direction: v.Reflector.Direction,
+		}
 	}
 	fieldType, optional := shapeReflector.ReflectPortFieldType(field.Type)
 
 	indices := append([]int{}, v.Indices...)
-	f := NewPortField(name, peer, group, optional, fieldType, indices)
+	f := NewPortField(name, peer, group, optional, v.Port.Type, fieldType, indices)
 
 	// Apply all tag to the options set
 	v.reflectPrimaryTag(f, portTag)
@@ -246,11 +276,6 @@ func (v PortReflectorFieldVisitor) reflectSupplementalTag(p *PortField, tag *str
 	return p
 }
 
-func (v *PortReflectorFieldVisitor) incrementIndex() {
-	lastIndex := v.Indices[len(v.Indices)-1]
-	v.Indices[len(v.Indices)-1] = lastIndex + 1
-}
-
 func (v *PortReflectorFieldVisitor) VisitField(f reflect.StructField) error {
 	pf, err := v.reflectPortField(f)
 	if err != nil {
@@ -262,21 +287,16 @@ func (v *PortReflectorFieldVisitor) VisitField(f reflect.StructField) error {
 	return nil
 }
 
-func (v *PortReflectorFieldVisitor) EnterAnonymousStructField(_ reflect.StructField) {
-	// push
-	v.Indices = append(v.Indices, 0)
-}
-
-func (v *PortReflectorFieldVisitor) ExitAnonymousStructField(_ reflect.StructField) {
-	// pop
-	v.Indices = v.Indices[:len(v.Indices)-1]
-	v.incrementIndex()
-}
-
 func newPortReflectorFieldVisitor(r PortReflector, port *Port) *PortReflectorFieldVisitor {
 	return &PortReflectorFieldVisitor{
-		Port:      port,
-		Reflector: r,
-		Indices:   []int{0},
+		Port:         port,
+		Reflector:    r,
+		FieldVisitor: newFieldVisitor(),
+	}
+}
+
+func newFieldVisitor() *FieldVisitor {
+	return &FieldVisitor{
+		Indices: []int{0},
 	}
 }

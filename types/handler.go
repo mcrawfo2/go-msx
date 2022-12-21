@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"reflect"
+	"strings"
 )
 
 var ErrUnknownValueType = errors.New("Unknown value type")
@@ -190,6 +191,10 @@ type HandlerValueType struct {
 	ValueType    reflect.Type
 }
 
+func (h HandlerValueType) String() string {
+	return h.ValueType.String()
+}
+
 func (h HandlerValueType) IsEmpty() bool {
 	return h.ValueType == nil
 }
@@ -297,6 +302,17 @@ func (e ErrorResults) Finish() error {
 }
 
 type TypeSet map[reflect.Type]struct{}
+
+func (t TypeSet) String() string {
+	var sb strings.Builder
+	for k := range t {
+		if sb.Len() > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(k.String())
+	}
+	return sb.String()
+}
 
 func (t TypeSet) With(o TypeSet) TypeSet {
 	for k := range o {

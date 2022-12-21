@@ -9,7 +9,7 @@ import "encoding/json"
 // Response
 
 type PaginatedResponse struct {
-	Content          interface{}      `json:"content"`
+	Content          interface{}      `json:"content" inject:"Page"`
 	HasNext          bool             `json:"hasNext"`
 	Size             uint             `json:"size"`
 	NumberOfElements uint             `json:"numberOfElements"`
@@ -26,7 +26,7 @@ type PaginatedResponseV8 struct {
 	HasPrevious bool          `json:"hasPrevious"`
 	SortBy      string        `json:"sortBy,omitempty"`
 	SortOrder   SortDirection `json:"sortOrder,omitempty"`
-	Contents    interface{}   `json:"contents"`
+	Contents    interface{}   `json:"contents" inject:"Page"`
 }
 
 type PageableResponse struct {

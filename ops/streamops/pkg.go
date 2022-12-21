@@ -4,7 +4,10 @@
 
 package streamops
 
-import "cto-github.cisco.com/NFV-BU/go-msx/log"
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
+	"github.com/pkg/errors"
+)
 
 var logger = log.NewPackageLogger()
 
@@ -12,3 +15,5 @@ const PeerNameContentType = "contentType"
 const PeerNameContentEncoding = "contentEncoding"
 
 type contextKey string
+
+var ErrNotImplemented = errors.New("Not implemented")

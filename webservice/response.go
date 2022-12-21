@@ -15,11 +15,7 @@ import (
 	"github.com/emicklei/go-restful"
 )
 
-type ErrorRaw interface {
-	SetError(code int, err error, path string)
-}
-
-// Force response body or error into an envelope
+// EnvelopeResponse forces the response body or error into an envelope
 func EnvelopeResponse(req *restful.Request, resp *restful.Response, body interface{}, err error) {
 	if err != nil {
 		status := http.StatusBadRequest
@@ -72,7 +68,7 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 	if span != nil {
 		span.LogFields(trace.Error(resp.Error()))
 	}
-	req.SetAttribute(AttributeError, err)
+	RequestWithError(req, err)
 
 	logger.
 		WithContext(req.Request.Context()).
@@ -80,7 +76,7 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 		WithError(err).
 		Error("Request failed")
 
-	payload := req.Attribute(AttributeErrorPayload)
+	payload := ErrorPayloadFromRequest(req)
 	if payload == nil {
 		WriteErrorEnvelope(req, resp, status, err)
 		return
@@ -89,6 +85,9 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 	switch payload.(type) {
 	case *integration.MsxEnvelope:
 		WriteErrorEnvelope(req, resp, status, err)
+
+	case ErrorApplier:
+		WriteErrorApplier(req, resp, status, err, payload.(ErrorApplier))
 
 	case ErrorRaw:
 		WriteErrorRaw(req, resp, status, err, payload.(ErrorRaw))
@@ -105,6 +104,16 @@ func WriteError(req *restful.Request, resp *restful.Response, status int, err er
 func WriteErrorRaw(req *restful.Request, resp *restful.Response, status int, err error, payload ErrorRaw) {
 	envelope := reflect.New(reflect.TypeOf(payload).Elem()).Interface().(ErrorRaw)
 	envelope.SetError(status, err, req.Request.URL.Path)
+
+	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON_CHARSET)
+	if err2 != nil {
+		logger.WithContext(req.Request.Context()).WithError(err2).Error("Failed to write error payload")
+	}
+}
+
+func WriteErrorApplier(req *restful.Request, resp *restful.Response, status int, err error, payload ErrorApplier) {
+	envelope := reflect.New(reflect.TypeOf(payload).Elem()).Interface().(ErrorApplier)
+	envelope.ApplyError(err)
 
 	err2 := resp.WriteHeaderAndJson(status, envelope, MIME_JSON_CHARSET)
 	if err2 != nil {

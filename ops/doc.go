@@ -11,6 +11,10 @@ type Documentor[I any] interface {
 	Document(*I) error
 }
 
+type DocumentResult[I any] interface {
+	Result() *I
+}
+
 type Documented[I any] interface {
 	Documentor(pred DocumentorPredicate[I]) Documentor[I]
 }

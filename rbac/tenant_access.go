@@ -84,9 +84,12 @@ func (t TenantAccess) ValidateAncestorAccess(tenantId types.UUID) error {
 	return repository.ErrNotFound
 }
 
-type TenantAccessWithAncestors struct {
-	TenantAccess
-	Ancestors []types.UUID
+func (t TenantAccess) ValidateTenantOrAncestorAccess(tenantId types.UUID) error {
+	if err := t.ValidateTenantAccess(tenantId); err == nil {
+		return nil
+	}
+
+	return t.ValidateAncestorAccess(tenantId)
 }
 
 func NewTenantAccess(ctx context.Context) (result TenantAccess, err error) {

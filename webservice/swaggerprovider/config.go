@@ -5,16 +5,17 @@
 package swaggerprovider
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"github.com/pkg/errors"
 	"strings"
 )
 
 const (
 	configRootDocumentation = "swagger"
-	configKeyAppName        = "info.app.name"
-	configKeyAppDescription = "info.app.description"
-	configKeyBuildVersion   = "info.build.version"
-	configKeyDisplayName    = "info.app.attributes.display-name"
 )
 
 type DocumentationSecuritySsoConfig struct {
@@ -35,12 +36,31 @@ type DocumentationUiConfig struct {
 	View     string `config:"default=/swagger-ui.html"`
 }
 
+type DocumentationServerConfig struct {
+	TlsEnabled  bool   `config:"default=${server.tls.enabled:false}"`
+	Host        string `config:"default=${server.host:localhost}"`
+	Port        int    `config:"default=${server.port:0}"`
+	ContextPath string `config:"default=${server.context-path:/${info.app.name}}"`
+}
+
+func (c DocumentationServerConfig) Scheme() string {
+	switch c.TlsEnabled {
+	case false:
+		return "http"
+	default:
+		return "https"
+	}
+}
+
 type DocumentationConfig struct {
 	Enabled     bool   `config:"default=false"`
 	ApiPath     string `config:"default=/apidocs.json"`
+	ApiYamlPath string `config:"default=/apidocs.yml"`
 	SwaggerPath string `config:"default=/swagger-resources"`
+	Version     string `config:"default=2.0"`
 	Security    DocumentationSecurityConfig
 	Ui          DocumentationUiConfig
+	Server      DocumentationServerConfig
 }
 
 func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, error) {
@@ -60,27 +80,44 @@ func DocumentationConfigFromConfig(cfg *config.Config) (*DocumentationConfig, er
 	return &documentationConfig, nil
 }
 
-type AppInfo struct {
-	Name        string
-	DisplayName string
-	Description string
-	Version     string
-}
+func RegisterSwaggerProvider(ctx context.Context) error {
+	server := webservice.WebServerFromContext(ctx)
+	if server == nil {
+		return nil
+	}
 
-func AppInfoFromConfig(cfg *config.Config) (*AppInfo, error) {
-	var appInfo AppInfo
-	var err error
-	if appInfo.Name, err = cfg.String(configKeyAppName); err != nil {
-		return nil, err
+	cfg, err := DocumentationConfigFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
 	}
-	if appInfo.Description, err = cfg.String(configKeyAppDescription); err != nil {
-		return nil, err
+
+	if !cfg.Enabled {
+		return ErrDisabled
 	}
-	if appInfo.Version, err = cfg.String(configKeyBuildVersion); err != nil {
-		return nil, err
+
+	appInfo, err := schema.AppInfoFromConfig(config.MustFromContext(ctx))
+	if err != nil {
+		return err
 	}
-	if appInfo.DisplayName, err = cfg.String(configKeyDisplayName); err != nil {
-		return nil, err
+
+	oapiVersion, err := types.NewVersion(cfg.Version)
+	if err != nil {
+		return err
 	}
-	return &appInfo, nil
+
+	var provider webservice.DocumentationProvider
+	switch oapiVersion[0] {
+	case 2:
+		provider = NewSwaggerProvider(ctx, cfg, appInfo)
+
+	case 3:
+		provider = NewOpenApiProvider(ctx, cfg, appInfo)
+
+	default:
+		return errors.Errorf("Unknown OpenApi version: %q", cfg.Version)
+	}
+
+	server.AddDocumentationProvider(provider)
+	specProvider = provider.(SpecProvider)
+	return nil
 }

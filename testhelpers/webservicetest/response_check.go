@@ -5,6 +5,7 @@
 package webservicetest
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/tidwall/gjson"
@@ -27,6 +28,7 @@ func (r ResponseCheck) Check(resp *httptest.ResponseRecorder) []error {
 		if !predicate.Matches(resp) {
 			results = append(results, ResponseCheckError{
 				Validator: predicate,
+				Diff:      predicate.Diff(resp),
 			})
 		}
 	}
@@ -37,15 +39,19 @@ func (r ResponseCheck) Check(resp *httptest.ResponseRecorder) []error {
 
 type ResponseCheckError struct {
 	Validator ResponsePredicate
+	Diff      string
 }
 
 func (c ResponseCheckError) Error() string {
-	return fmt.Sprintf("Failed response validator: %s", c.Validator.Description)
+	return fmt.Sprintf("Failed response validator: %s\n%s",
+		c.Validator.Description,
+		c.Diff)
 }
 
 type ResponsePredicate struct {
 	Description string
 	Matches     func(*httptest.ResponseRecorder) bool
+	Diff        func(*httptest.ResponseRecorder) string
 }
 
 func ResponseHasStatus(status int) ResponsePredicate {
@@ -53,6 +59,9 @@ func ResponseHasStatus(status int) ResponsePredicate {
 		Description: fmt.Sprintf("response.Code == %d", status),
 		Matches: func(resp *httptest.ResponseRecorder) bool {
 			return resp.Code == status
+		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			return testhelpers.Diff(status, resp.Code)
 		},
 	}
 }
@@ -64,6 +73,9 @@ func ResponseHasHeader(header, value string) ResponsePredicate {
 			values := types.StringStack(resp.Header().Values(header))
 			return values.Contains(value)
 		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			return testhelpers.Diff([]string{value}, resp.Header().Values(header))
+		},
 	}
 }
 
@@ -74,6 +86,9 @@ func ResponseHasBodySubstring(substring string) ResponsePredicate {
 			body := resp.Body.String()
 			return strings.Contains(body, substring)
 		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			return testhelpers.Diff(substring, resp.Body.String())
+		},
 	}
 }
 
@@ -82,6 +97,9 @@ func ResponseHasBodyJson(path string, eq func(gjson.Result) bool) ResponsePredic
 		Description: fmt.Sprintf("response.Body[%q] passes fn", path),
 		Matches: func(resp *httptest.ResponseRecorder) bool {
 			return eq(gjson.GetBytes(resp.Body.Bytes(), path))
+		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			return ""
 		},
 	}
 }
@@ -93,6 +111,10 @@ func ResponseHasBodyJsonValue(path string, value interface{}) ResponsePredicate 
 			actualValue := gjson.GetBytes(resp.Body.Bytes(), path).Value()
 			return reflect.DeepEqual(actualValue, value)
 		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			actualValue := gjson.GetBytes(resp.Body.Bytes(), path).Value()
+			return testhelpers.Diff(value, actualValue)
+		},
 	}
 }
 
@@ -101,6 +123,22 @@ func ResponseHasBodyJsonValueType(path string, kind gjson.Type) ResponsePredicat
 		Description: fmt.Sprintf("response.Body[%q] == %s", path, kind.String()),
 		Matches: func(resp *httptest.ResponseRecorder) bool {
 			return gjson.GetBytes(resp.Body.Bytes(), path).Type == kind
+		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			actualType := gjson.GetBytes(resp.Body.Bytes(), path).Type
+			return testhelpers.Diff(kind, actualType)
+		},
+	}
+}
+
+func ResponseHasNoBody() ResponsePredicate {
+	return ResponsePredicate{
+		Description: fmt.Sprintf("response.Body == nil"),
+		Matches: func(resp *httptest.ResponseRecorder) bool {
+			return resp.Body.Len() == 0
+		},
+		Diff: func(resp *httptest.ResponseRecorder) string {
+			return testhelpers.Diff(0, resp.Body.Len())
 		},
 	}
 }
