@@ -7,6 +7,7 @@ package sqldb
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -53,9 +54,9 @@ type TypedRepositoryApi[I any] interface {
 	CountAll(ctx context.Context, dest *int64, where WhereOption) error
 	FindAll(ctx context.Context, dest *[]I, options ...FindAllOption) (pagingResponse paging.Response, err error)
 	FindOne(ctx context.Context, dest *I, where WhereOption) error
-	Insert(ctx context.Context, value I) error
+	Insert(ctx context.Context, value ...I) error
 	Update(ctx context.Context, where WhereOption, value I) error
-	Upsert(ctx context.Context, value I) error
+	Upsert(ctx context.Context, value ...I) error
 	DeleteOne(ctx context.Context, keys KeysOption) error
 	DeleteAll(ctx context.Context, where WhereOption) error
 	Truncate(ctx context.Context) error
@@ -173,12 +174,12 @@ func (c *TypedRepository[I]) FindOne(ctx context.Context, dest *I, where WhereOp
 	return c.goqu.ExecuteGet(ctx, ds, dest)
 }
 
-func (c *TypedRepository[I]) Insert(ctx context.Context, value I) error {
+func (c *TypedRepository[I]) Insert(ctx context.Context, value ...I) error {
 	ds, err := c.goqu.Insert(ctx, c.table)
 	if err != nil {
 		return err
 	}
-	return c.goqu.ExecuteInsert(ctx, ds.Rows(value))
+	return c.goqu.ExecuteInsert(ctx, ds.Rows(types.Slice[I](value).AnySlice()...))
 }
 
 func (c *TypedRepository[I]) Update(ctx context.Context, where WhereOption, value I) error {
@@ -194,12 +195,12 @@ func (c *TypedRepository[I]) Update(ctx context.Context, where WhereOption, valu
 	return c.goqu.ExecuteUpdate(ctx, ds.Set(value))
 }
 
-func (c *TypedRepository[I]) Upsert(ctx context.Context, value I) error {
+func (c *TypedRepository[I]) Upsert(ctx context.Context, value ...I) error {
 	ds, err := c.goqu.Upsert(ctx, c.table)
 	if err != nil {
 		return err
 	}
-	return c.goqu.ExecuteUpsert(ctx, ds.Rows(value))
+	return c.goqu.ExecuteUpsert(ctx, ds.Rows(types.Slice[I](value).AnySlice()...))
 }
 
 func (c *TypedRepository[I]) DeleteOne(ctx context.Context, keys KeysOption) error {
