@@ -24,6 +24,8 @@ def PUBLISH_URL = 'https://engci-maven-master.cisco.com/artifactory/symphony-gro
 def FULL_VERSION = ''
 def SONARQUBE_ENABLED = false
 def GOPROXY = 'https://proxy.golang.org,direct'
+def RELEASE_BRANCHES = 'release/'
+def IS_TRUNK = false
 
 pipeline {
 
@@ -65,7 +67,7 @@ pipeline {
 
                     BUILD_FLAGS = "--build.number=" + env.BUILD_NUMBER
 
-                    if (env.BRANCH_NAME == TRUNK && !env.MANIFEST_FOLDER) {
+                    if ((env.BRANCH_NAME == TRUNK && || env.BRANCH_NAME.startsWith(RELEASE_BRANCHES)) && !env.MANIFEST_FOLDER) {
                         env.MANIFEST_FOLDER = TRUNK_MANIFEST_FOLDER
                     }
 
@@ -81,6 +83,13 @@ pipeline {
                     if (env.GOPROXY) {
                         GOPROXY = env.GOPROXY
                         BUILD_FLAGS = "${BUILD_FLAGS} --go.env.all.GOPROXY='$GOPROXY'"
+                    }
+
+                    if (env.BRANCH_NAME == TRUNK ||
+                        env.BRANCH_NAME == 'master' ||
+                        env.BRANCH_NAME == 'main' ||
+                        env.BRANCH_NAME.startsWith(RELEASE_BRANCHES)) {
+                        IS_TRUNK = true
                     }
 
                     TOOLS = env.WORKSPACE + "/bin"
@@ -140,7 +149,7 @@ pipeline {
                     withCredentials([string(credentialsId: GITHUB_CREDENTIALS, variable: 'GITHUB_ACCESS_TOKEN')]) {
                     withCredentials([string(credentialsId: SOURCEGRAPH_CREDENTIALS, variable: 'SRC_ACCESS_TOKEN')]) {
                     script {
-                        if (env.BRANCH_NAME == TRUNK || env.BRANCH_NAME == 'master') {
+                        if (IS_TRUNK) {
                             // Download sourcegraph go indexer
                             sh "curl -L https://github.com/sourcegraph/lsif-go/releases/download/v1.2.0/src_linux_amd64 -o ${TOOLS}/lsif-go"
                             sh "chmod +x ${TOOLS}/lsif-go"
@@ -178,7 +187,7 @@ pipeline {
                                         'sonar.alm.github.app.name': GITHUB_APP_NAME_SONARQUBE,
                                     ]
 
-                                    if (env.BRANCH_NAME != TRUNK && env.BRANCH_NAME != 'master') {
+                                    if (!IS_TRUNK) {
                                         if (env.ghprbTargetBranch) {
                                             sonarProperties['pullrequest.github.repository'] = "NFV-BU/${REPO_NAME}"
                                             sonarProperties['pullrequest.provider'] = "github"
