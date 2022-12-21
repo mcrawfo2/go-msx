@@ -93,11 +93,6 @@ func HasAccessToTenant(ctx context.Context, tenantId types.UUID) error {
 //
 // ValidateTenant Checks if the tenant id is a valid tenant. See securitytest.MockedTenantValidation for test mocking
 func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
-	userManagementApi, err := usermanagement.NewIntegration(ctx)
-	if err != nil {
-		return errors.Wrap(err, "Error initializing usermanagement.")
-	}
-
 	//all tenants belong to the root tenantid, or have a parent
 	rootTenant, err := GetRootTenant(ctx)
 	if err != nil {
@@ -106,6 +101,11 @@ func ValidateTenant(ctx context.Context, tenantId types.UUID) error {
 
 	if rootTenant.Equals(tenantId) {
 		return nil
+	}
+
+	userManagementApi, err := usermanagement.NewIntegration(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Error initializing usermanagement.")
 	}
 
 	//check if the token has a parent

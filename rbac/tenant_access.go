@@ -33,7 +33,7 @@ func (t TenantAccess) ValidateTenantAccess(tenantId types.UUID) error {
 		}
 	}
 
-	// No access to this task
+	// No direct access to this tenant
 	return repository.ErrNotFound
 }
 
@@ -165,4 +165,39 @@ func NewTenantAccessForTenantSlice(ctx context.Context, tenantIds []types.UUID) 
 
 	result.TenantIds = tenantIds[:]
 	return result, err
+}
+
+func NewTenantAccessForTenantWithAncestors(ctx context.Context, tenantId types.UUID) (result TenantAccess, err error) {
+	access, err := NewTenantAccessForTenant(ctx, tenantId)
+	if err != nil {
+		return
+	}
+
+	access, err = access.WithAncestors(ctx)
+	if err != nil {
+		return
+	}
+
+	return access, nil
+}
+
+func NewTenantAccessForDescendantWithAncestors(ctx context.Context, tenantId types.UUID) (result TenantAccess, err error) {
+	err = ValidateTenant(ctx, tenantId)
+	if err != nil {
+		return
+	}
+
+	access, err := NewTenantAccess(ctx)
+	if err != nil {
+		return
+	}
+
+	access.TenantIds = append(access.TenantIds, tenantId)
+
+	access, err = access.WithAncestors(ctx)
+	if err != nil {
+		return
+	}
+
+	return access, nil
 }
