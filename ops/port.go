@@ -9,13 +9,8 @@ import (
 	"reflect"
 )
 
-const (
-	PortTypeInput  = "in"
-	PortTypeOutput = "out"
-)
-
 type Port struct {
-	Type       string
+	Type       string // Tag name
 	StructType reflect.Type
 	Fields     PortFields
 }

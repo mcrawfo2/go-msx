@@ -12,6 +12,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/contexttest"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
@@ -478,7 +479,7 @@ func Test_requestContextInjectorFilter(t *testing.T) {
 		return context.WithValue(ctx, key, value)
 	})
 
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRequestPath("/bob").
 		WithRequestMethod(http.MethodGet).
 		WithContext(ctx).

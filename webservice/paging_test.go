@@ -11,7 +11,7 @@ import (
 )
 
 func TestPaginated(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Paginated).
 		WithRoutePredicate(webservicetest.RouteHasParameter(restful.QueryParameterKind, "page")).
 		WithRoutePredicate(webservicetest.RouteHasParameter(restful.QueryParameterKind, "pageSize")).

@@ -22,7 +22,7 @@ func TestEnvelopeResponse(t *testing.T) {
 	}{
 		{
 			name: "ErrorStatusCodeProvider",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					err := NewStatusError(errors.New("some error"), 444)
 					EnvelopeResponse(request, response, nil, err)
@@ -31,7 +31,7 @@ func TestEnvelopeResponse(t *testing.T) {
 		},
 		{
 			name: "NoDefaultReturnCode",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					EnvelopeResponse(request, response, nil, nil)
 				}).
@@ -39,7 +39,7 @@ func TestEnvelopeResponse(t *testing.T) {
 		},
 		{
 			name: "DefaultReturnCode",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(DefaultReturns(202)).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					EnvelopeResponse(request, response, nil, nil)
@@ -48,7 +48,7 @@ func TestEnvelopeResponse(t *testing.T) {
 		},
 		{
 			name: "BodyStatusCodeProvider",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					body := NewStatusCodeProvider(nil, 204)
 					EnvelopeResponse(request, response, body, nil)
@@ -69,7 +69,7 @@ func TestRawResponse(t *testing.T) {
 	}{
 		{
 			name: "ErrorStatusCodeProvider",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					err := NewStatusError(errors.New("some error"), 444)
 					RawResponse(request, response, nil, err)
@@ -78,7 +78,7 @@ func TestRawResponse(t *testing.T) {
 		},
 		{
 			name: "NoDefaultReturnCode",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					RawResponse(request, response, nil, nil)
 				}).
@@ -86,7 +86,7 @@ func TestRawResponse(t *testing.T) {
 		},
 		{
 			name: "DefaultReturnCode",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(DefaultReturns(202)).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					RawResponse(request, response, nil, nil)
@@ -95,7 +95,7 @@ func TestRawResponse(t *testing.T) {
 		},
 		{
 			name: "BodyStatusCodeProvider",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					body := NewStatusCodeProvider(nil, 204)
 					RawResponse(request, response, body, nil)
@@ -116,7 +116,7 @@ func TestWriteError(t *testing.T) {
 	}{
 		{
 			name: "NoErrorPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 409, errors.New("some error"))
 				}).
@@ -133,7 +133,7 @@ func TestWriteError(t *testing.T) {
 		},
 		{
 			name: "EnvelopeErrorPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(ErrorPayload(new(integration.MsxEnvelope))).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 400, errors.New("some error"))
@@ -151,7 +151,7 @@ func TestWriteError(t *testing.T) {
 		},
 		{
 			name: "RawErrorPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(ErrorPayload(new(integration.ErrorDTO))).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 401, errors.New("some error"))
@@ -169,7 +169,7 @@ func TestWriteError(t *testing.T) {
 		},
 		{
 			name: "UnknownErrorPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(ErrorPayload(new(struct{}))).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteError(request, response, 403, errors.New("some error"))
@@ -219,7 +219,7 @@ func TestWriteSuccessEnvelope(t *testing.T) {
 	}{
 		{
 			name: "NoPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteSuccessEnvelope(request, response, 200, nil)
 				}).
@@ -228,7 +228,7 @@ func TestWriteSuccessEnvelope(t *testing.T) {
 		},
 		{
 			name: "StructPayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					WriteSuccessEnvelope(request, response, 201, struct{}{})
 				}).
@@ -238,7 +238,7 @@ func TestWriteSuccessEnvelope(t *testing.T) {
 		},
 		{
 			name: "EnvelopePayload",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteTarget(func(request *restful.Request, response *restful.Response) {
 					envelope := &integration.MsxEnvelope{
 						Command: "command",

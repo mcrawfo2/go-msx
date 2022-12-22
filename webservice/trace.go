@@ -61,10 +61,7 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 
 	err = resp.Error()
 	if err == nil {
-		errInterface := req.Attribute(AttributeError)
-		if errInterface != nil {
-			err = errInterface.(error)
-		}
+		err = ErrorFromRequest(req)
 	}
 
 	if err != nil {
@@ -78,12 +75,7 @@ func tracingFilter(req *restful.Request, resp *restful.Response, chain *restful.
 			Errorf("Incoming request failed: %s: %s", http.StatusText(resp.StatusCode()), err.Error())
 		log.Stack(logger, ctx, bt)
 	} else if resp.StatusCode() < 399 {
-		var silenced = false
-		silencedAttribute := req.Attribute(AttributeSilenceLog)
-		if silencedAttributeValue, ok := silencedAttribute.(bool); ok {
-			silenced = silencedAttributeValue
-		}
-		if !silenced {
+		if !SilenceLogFromRequest(req) {
 			logger.WithLogContext(logContext).Infof("Incoming request succeeded: %s", http.StatusText(resp.StatusCode()))
 		}
 	} else {

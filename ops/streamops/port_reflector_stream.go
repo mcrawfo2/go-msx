@@ -17,6 +17,11 @@ const (
 	FieldGroupStreamBody      = "body"
 )
 
+const (
+	PortTypeInput  = "in"
+	PortTypeOutput = "out"
+)
+
 type PortReflector struct{}
 
 func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
@@ -42,7 +47,7 @@ func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 		FieldPostProcessor: r.PostProcessField,
 	}
 
-	return reflector.ReflectPortStruct(ops.PortTypeInput, st)
+	return reflector.ReflectPortStruct(PortTypeInput, st)
 }
 
 func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
@@ -68,7 +73,7 @@ func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
 		FieldPostProcessor: r.PostProcessField,
 	}
 
-	return reflector.ReflectPortStruct(ops.PortTypeOutput, st)
+	return reflector.ReflectPortStruct(PortTypeOutput, st)
 }
 
 func (r PortReflector) PostProcessField(pf *ops.PortField, sf reflect.StructField) {

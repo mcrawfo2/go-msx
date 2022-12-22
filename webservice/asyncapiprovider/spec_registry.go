@@ -7,10 +7,10 @@ package asyncapiprovider
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
-	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
 	"encoding/json"
 	"fmt"
 	"github.com/swaggest/jsonschema-go"
@@ -18,7 +18,7 @@ import (
 )
 
 type RegistrySpecProvider struct {
-	appInfo *swaggerprovider.AppInfo
+	appInfo *schema.AppInfo
 }
 
 func (p RegistrySpecProvider) Spec() ([]byte, error) {
@@ -112,7 +112,7 @@ func (p RegistrySpecProvider) SecuritySchemes() asyncapi.ComponentsSecuritySchem
 }
 
 func NewRegistrySpecProvider(ctx context.Context) (*RegistrySpecProvider, error) {
-	appInfo, err := swaggerprovider.AppInfoFromConfig(config.FromContext(ctx))
+	appInfo, err := schema.AppInfoFromConfig(config.FromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

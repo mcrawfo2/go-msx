@@ -4,10 +4,19 @@
 
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type OptionalString struct {
 	Value *string
+}
+
+func (s OptionalString) ToOptional() Optional[string] {
+	if s.Value != nil {
+		return OptionalOf(*s.Value)
+	}
+	return Optional[string]{}
 }
 
 func (s OptionalString) IsPresent() bool {
@@ -159,6 +168,21 @@ func (o Optional[I]) ValuePtrInterface() interface{} {
 		return nil
 	}
 	return &o.value
+}
+
+func (o Optional[I]) ValueInterfacePtr() *interface{} {
+	if !o.valid {
+		return nil
+	}
+	var value interface{} = o.value
+	return &value
+}
+
+func (o Optional[I]) ValueInterface() interface{} {
+	if !o.valid {
+		return nil
+	}
+	return o.value
 }
 
 func (o Optional[I]) IfPresent(fn func(v I)) {

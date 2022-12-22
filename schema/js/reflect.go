@@ -5,9 +5,11 @@
 package js
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/schema"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/iancoleman/strcase"
 	"github.com/swaggest/jsonschema-go"
+	"github.com/swaggest/refl"
 	"reflect"
 	"strings"
 )
@@ -20,6 +22,12 @@ func DefNameInterceptor() ReflectContextOptionFunc {
 			if exposer, ok := reflect.New(t).Interface().(DefNameExposer); ok {
 				return exposer.JSONSchemaDefName()
 			}
+
+			defName := schema.Namer().TypeName(t)
+			if defName != "" {
+				return defName
+			}
+
 			return defaultDefName
 		}
 	}
@@ -46,6 +54,8 @@ func TypeTitleInterceptor() ReflectContextOptionFunc {
 }
 
 func FindRequiredJsonFields(valueType reflect.Type) []string {
+	valueType = refl.DeepIndirect(valueType)
+
 	if valueType.Kind() != reflect.Struct {
 		return nil
 	}
@@ -58,7 +68,8 @@ func FindRequiredJsonFields(valueType reflect.Type) []string {
 		if structField.Type.Kind() == reflect.Ptr ||
 			structField.Type.Kind() == reflect.Map ||
 			structField.Type.Kind() == reflect.Slice {
-			r = false
+
+			r = structField.Type == reflect.TypeOf(types.UUID{})
 		}
 
 		jsonTag, ok := structField.Tag.Lookup("json")

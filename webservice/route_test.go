@@ -17,12 +17,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"net/http"
-	"reflect"
 	"testing"
 )
 
 func TestAcceptReturns(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(AcceptReturns).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(202, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(202)).
@@ -31,21 +30,21 @@ func TestAcceptReturns(t *testing.T) {
 }
 
 func TestConsumesJson(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ConsumesJson).
 		WithRoutePredicate(webservicetest.RouteHasConsumes("application/json")).
 		Test(t)
 }
 
 func TestConsumesTextPlain(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ConsumesTextPlain).
 		WithRoutePredicate(webservicetest.RouteHasConsumes("text/plain")).
 		Test(t)
 }
 
 func TestCreateReturns(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(CreateReturns).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(201, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(201)).
@@ -60,7 +59,7 @@ func TestDefaultReturns(t *testing.T) {
 	}{
 		{
 			name: "Ok",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(func(b *restful.RouteBuilder) {
 					b.Do(DefaultReturns(100))
 				}).
@@ -69,7 +68,7 @@ func TestDefaultReturns(t *testing.T) {
 		},
 		{
 			name: "NotFound",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(func(b *restful.RouteBuilder) {
 					b.Do(DefaultReturns(404))
 				}).
@@ -86,7 +85,7 @@ func TestDefaultReturns(t *testing.T) {
 func TestErrorPayload(t *testing.T) {
 	payload := types.NewOptionalStringFromString("bob").Ptr()
 
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(func(b *restful.RouteBuilder) {
 			b.Do(ErrorPayload(payload))
 		}).
@@ -95,7 +94,7 @@ func TestErrorPayload(t *testing.T) {
 }
 
 func TestNoContentReturns(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(NoContentReturns).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(204, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(204)).
@@ -118,7 +117,7 @@ func TestParams(t *testing.T) {
 	}{
 		{
 			name: "OptionalAbsent",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(PopulateParams(new(params))).
 				WithRouteTarget(func(req *restful.Request, resp *restful.Response) {
 					_ = Params(req).(*params)
@@ -128,7 +127,7 @@ func TestParams(t *testing.T) {
 		},
 		{
 			name: "OptionalPresent",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestQueryParameter("a", "222").
 				WithRouteBuilderDo(PopulateParams(new(params))).
 				WithRouteTarget(func(req *restful.Request, resp *restful.Response) {
@@ -145,7 +144,7 @@ func TestParams(t *testing.T) {
 }
 
 func TestPermissions(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Permissions("MANAGE_SERVICES", "VIEW_SERVICES")).
 		WithRoutePredicate(webservicetest.RouteHasPermissions("MANAGE_SERVICES", "VIEW_SERVICES")...).
 		Test(t)
@@ -158,7 +157,7 @@ func TestPermissionsFilter(t *testing.T) {
 	}{
 		{
 			name: "Forbidden",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.PermissionInjector("MANAGE_TESTS")).
 				WithRouteFilter(PermissionsFilter("MANAGE_SERVICES", "VIEW_SERVICES")).
 				WithRouteTargetReturn(http.StatusOK).
@@ -166,7 +165,7 @@ func TestPermissionsFilter(t *testing.T) {
 		},
 		{
 			name: "Allowed",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.PermissionInjector("MANAGE_SERVICES")).
 				WithRouteFilter(PermissionsFilter("MANAGE_SERVICES", "VIEW_SERVICES")).
 				WithRouteTargetReturn(http.StatusOK).
@@ -184,14 +183,14 @@ func TestPopulateParams(t *testing.T) {
 }
 
 func TestProducesJson(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ProducesJson).
 		WithRoutePredicate(webservicetest.RouteHasProduces("application/json")).
 		Test(t)
 }
 
 func TestProducesTextPlain(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ProducesTextPlain).
 		WithRoutePredicate(webservicetest.RouteHasProduces("text/plain")).
 		Test(t)
@@ -200,7 +199,7 @@ func TestProducesTextPlain(t *testing.T) {
 func TestResponsePayload(t *testing.T) {
 	payload := types.NewOptionalStringFromString("bob").Ptr()
 
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ResponsePayload(payload)).
 		WithRoutePredicate(webservicetest.RouteHasAnyWriteSample()).
 		Test(t)
@@ -210,51 +209,10 @@ func TestResponseRawPayload(t *testing.T) {
 	payload := types.NewOptionalStringFromString("bob").Ptr()
 	var payloadInterface interface{} = payload
 
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(ResponseRawPayload(payloadInterface)).
 		WithRoutePredicate(webservicetest.RouteHasWriteSample(payloadInterface)).
 		Test(t)
-}
-
-func TestResponseTypeName(t *testing.T) {
-	type args struct {
-		t reflect.Type
-	}
-	tests := []struct {
-		name  string
-		args  args
-		want  string
-		want1 bool
-	}{
-		{
-			name: "BuiltIn",
-			args: args{
-				t: reflect.TypeOf("string"),
-			},
-			want:  "string",
-			want1: true,
-		},
-		{
-			name: "Struct",
-			args: args{
-				t: reflect.TypeOf(RouteParam{}),
-			},
-			want:  "webservice.RouteParam",
-			want1: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := ResponseTypeName(tt.args.t)
-			if got != tt.want {
-				t.Errorf("ResponseTypeName() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("ResponseTypeName() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
 }
 
 func TestReturns(t *testing.T) {
@@ -264,85 +222,85 @@ func TestReturns(t *testing.T) {
 	}{
 		{
 			name: "200",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(200)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(200)),
 		},
 		{
 			name: "201",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(201)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(201)),
 		},
 		{
 			name: "202",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(202)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(202)),
 		},
 		{
 			name: "204",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(204)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(204)),
 		},
 		{
 			name: "400",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(400)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(400)),
 		},
 		{
 			name: "401",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(401)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(401)),
 		},
 		{
 			name: "403",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(403)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(403)),
 		},
 		{
 			name: "404",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(404)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(404)),
 		},
 		{
 			name: "409",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(409)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(409)),
 		},
 		{
 			name: "424",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(424)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(424)),
 		},
 		{
 			name: "500",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(500)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(500)),
 		},
 		{
 			name: "502",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(502)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(502)),
 		},
 		{
 			name: "503",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(503)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCode(503)),
 		},
 		{
 			name: "Multiple",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(Returns(200, 404)).
 				WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 404)...),
 		},
@@ -354,91 +312,91 @@ func TestReturns(t *testing.T) {
 }
 
 func TestReturns200(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns200).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(200)).
 		Test(t)
 }
 
 func TestReturns201(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns201).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(201)).
 		Test(t)
 }
 
 func TestReturns202(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns202).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(202)).
 		Test(t)
 }
 
 func TestReturns204(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns204).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(204)).
 		Test(t)
 }
 
 func TestReturns400(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns400).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(400)).
 		Test(t)
 }
 
 func TestReturns401(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns401).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(401)).
 		Test(t)
 }
 
 func TestReturns403(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns403).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(403)).
 		Test(t)
 }
 
 func TestReturns404(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns404).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(404)).
 		Test(t)
 }
 
 func TestReturns409(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns409).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(409)).
 		Test(t)
 }
 
 func TestReturns424(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns424).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(424)).
 		Test(t)
 }
 
 func TestReturns500(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns500).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(500)).
 		Test(t)
 }
 
 func TestReturns502(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns502).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(502)).
 		Test(t)
 }
 
 func TestReturns503(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(Returns503).
 		WithRoutePredicate(webservicetest.RouteHasReturnCode(503)).
 		Test(t)
@@ -449,7 +407,7 @@ func TestRoutes(t *testing.T) {
 }
 
 func TestStandardAccept(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardAccept).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(202, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(202)).
@@ -459,7 +417,7 @@ func TestStandardAccept(t *testing.T) {
 }
 
 func TestStandardCreate(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardCreate).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(201, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(201)).
@@ -469,7 +427,7 @@ func TestStandardCreate(t *testing.T) {
 }
 
 func TestStandardDelete(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardDelete).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(200)).
@@ -478,7 +436,7 @@ func TestStandardDelete(t *testing.T) {
 }
 
 func TestStandardList(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardList).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(200)).
@@ -487,7 +445,7 @@ func TestStandardList(t *testing.T) {
 }
 
 func TestStandardRetrieve(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardRetrieve).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(200)).
@@ -496,7 +454,7 @@ func TestStandardRetrieve(t *testing.T) {
 }
 
 func TestStandardReturns(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardReturns).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(200)).
@@ -504,7 +462,7 @@ func TestStandardReturns(t *testing.T) {
 }
 
 func TestStandardUpdate(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(StandardUpdate).
 		WithRoutePredicate(webservicetest.RouteHasReturnCodes(200, 400, 401, 403)...).
 		WithRoutePredicate(webservicetest.RouteHasDefaultReturnCode(200)).
@@ -514,7 +472,7 @@ func TestStandardUpdate(t *testing.T) {
 }
 
 func TestTagDefinition(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteBuilderDo(TagDefinition("bob", "alice")).
 		WithRoutePredicate(webservicetest.RouteHasTag("bob")).
 		Test(t)
@@ -530,7 +488,7 @@ func TestTenantFilter(t *testing.T) {
 	}{
 		{
 			name: "Forbidden",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.TenantAssignmentInjector()).
 				WithRouteFilter(TenantFilter(tenantParam)).
 				WithRequestQueryParameter("tenantId", tenantId.String()).
@@ -539,7 +497,7 @@ func TestTenantFilter(t *testing.T) {
 		},
 		{
 			name: "Allowed",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(securitytest.TenantAssignmentInjector(tenantId)).
 				WithRouteFilter(TenantFilter(tenantParam)).
 				WithRequestQueryParameter("tenantId", tenantId.String()).
@@ -560,7 +518,7 @@ func TestValidateParams(t *testing.T) {
 	}{
 		{
 			name: "BadRequest",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(ValidateParams(func(req *restful.Request) (err error) {
 					return errors.New("Invalid")
 				})).
@@ -569,7 +527,7 @@ func TestValidateParams(t *testing.T) {
 		},
 		{
 			name: "Ok",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteBuilderDo(ValidateParams(func(req *restful.Request) (err error) {
 					return nil
 				})).
@@ -584,7 +542,7 @@ func TestValidateParams(t *testing.T) {
 }
 
 func Test_auditContextFilter(t *testing.T) {
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRouteFilter(auditContextFilter).
 		WithRouteTargetReturn(http.StatusOK).
 		WithContextInjector(func(ctx context.Context) context.Context {
@@ -609,7 +567,7 @@ func Test_authenticationFilter(t *testing.T) {
 	}{
 		{
 			name: "Unauthorized",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(func(ctx context.Context) context.Context {
 					mockAuthenticationProvider := new(MockAuthenticationProvider)
 					mockAuthenticationProvider.
@@ -624,7 +582,7 @@ func Test_authenticationFilter(t *testing.T) {
 		},
 		{
 			name: "Authorized",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithContextInjector(func(ctx context.Context) context.Context {
 					mockAuthenticationProvider := new(MockAuthenticationProvider)
 					mockAuthenticationProvider.
@@ -704,7 +662,7 @@ func Test_securityContextFilter(t *testing.T) {
 	}{
 		{
 			name: "NoToken",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(tokenUserContextFilter).
 				WithRouteTargetReturn(http.StatusOK).
 				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK)).
@@ -712,7 +670,7 @@ func Test_securityContextFilter(t *testing.T) {
 		},
 		{
 			name: "MalformedHeader",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(tokenUserContextFilter).
 				WithRequestHeader("Authorization", "malformed").
 				WithRouteTargetReturn(http.StatusOK).
@@ -720,7 +678,7 @@ func Test_securityContextFilter(t *testing.T) {
 		},
 		{
 			name: "BearerToken",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(tokenUserContextFilter).
 				WithRouteBuilderDo(func(_ *restful.RouteBuilder) {
 					mockTokenProvider := new(security.MockTokenProvider)
@@ -740,7 +698,7 @@ func Test_securityContextFilter(t *testing.T) {
 		},
 		{
 			name: "BadBearerToken",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRouteFilter(tokenUserContextFilter).
 				WithRouteBuilderDo(func(_ *restful.RouteBuilder) {
 					mockTokenProvider := new(security.MockTokenProvider)

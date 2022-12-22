@@ -66,13 +66,17 @@ func TestPortFieldInjector_InjectPrimitive_Text(t *testing.T) {
 	}
 
 	pr := PortReflector{
+		Direction: PortDirectionIn,
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupInjector: {
 				Cardinality:   types.CardinalityZeroToMany(),
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldPostProcessor: nil,
+		FieldTypeReflector: DefaultPortFieldTypeReflector{
+			Direction: PortDirectionIn,
+		},
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))

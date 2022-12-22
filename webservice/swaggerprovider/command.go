@@ -6,52 +6,42 @@ package swaggerprovider
 
 import (
 	"context"
-	"encoding/json"
-	"github.com/pkg/errors"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"path/filepath"
 )
 
-func CustomizeCommand(cmd *cobra.Command) {
-	cmd.Args = cobra.ExactArgs(1)
-	cmd.Use += " target.{json|yml}"
+const (
+	defaultSpecFileName = "${fs.sources}/api/openapi.yaml"
+)
+
+var specProvider SpecProvider
+
+type SpecProvider interface {
+	RenderYamlSpec() ([]byte, error)
 }
 
-func SaveSpec(ctx context.Context, args []string) (err error) {
-	filename := args[0]
-	format := filepath.Ext(filename)
+func GenerateOpenApiSpecCommand(ctx context.Context, _ []string) error {
+	if specProvider == nil {
+		logger.WithContext(ctx).Fatal("No OpenApi specification provider registered")
+	}
 
-	swagger := provider.GetSpecDocument()
-
-	data, err := json.MarshalIndent(swagger, "", "  ")
+	yamlBytes, err := specProvider.RenderYamlSpec()
 	if err != nil {
-		return err
+		logger.WithContext(ctx).WithError(err).Fatal("Failed to render OpenApi spec as YAML")
 	}
 
-	switch format {
-	case ".yml", ".yaml":
-		data, err = jsonToYaml(data)
-	case ".json":
-	default:
-		return errors.Errorf("Unknown file format: %q", format)
+	outputFileName, _ := config.FromContext(ctx).StringOr("cli.flag.output", defaultSpecFileName)
+	err = ioutil.WriteFile(outputFileName, yamlBytes, 0664)
+	if err != nil {
+		logger.WithContext(ctx).WithError(err).Fatalf("Failed to save OpenApi spec to %q", outputFileName)
 	}
 
-	return ioutil.WriteFile(filename, data, 0644)
+	logger.WithContext(ctx).Infof("Saved OpenApi spec to %q", outputFileName)
+	return nil
 }
 
-func jsonToYaml(specJsonBytes []byte) (specYamlBytes []byte, err error) {
-	var specYaml = yaml.MapSlice{}
-	err = yaml.Unmarshal(specJsonBytes, &specYaml)
-	if err != nil {
-		return nil, err
-	}
-
-	specYamlBytes, err = yaml.Marshal(specYaml)
-	if err != nil {
-		return nil, err
-	}
-
-	return specYamlBytes, nil
+func CustomizeOpenApiSpecCommand(cmd *cobra.Command) {
+	cmd.Args = cobra.NoArgs
+	cmd.Flags().String("output", defaultSpecFileName, "Specify the output file for the OpenApi specification")
 }

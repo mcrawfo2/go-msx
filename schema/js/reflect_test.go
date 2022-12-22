@@ -41,7 +41,7 @@ func TestDefNameInterceptor(t *testing.T) {
 			verify: func(rc *jsonschema.ReflectContext) {
 				fn := rc.DefName
 				got := fn(reflect.TypeOf(TestStruct{}), "TestStruct")
-				assert.Equal(t, "TestStruct", got)
+				assert.Equal(t, "js.TestStruct", got)
 			},
 		},
 		{

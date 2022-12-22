@@ -7,11 +7,13 @@ package ops
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
+	"mime"
 )
 
 type Encoding []string
@@ -61,12 +63,24 @@ func (g GzipEncoder) Writer(w io.Writer) (io.WriteCloser, error) {
 	return gzip.NewWriterLevel(w, gzip.BestCompression)
 }
 
+type Base64Encoder struct{}
+
+func (g Base64Encoder) Reader(r io.ReadCloser) (io.ReadCloser, error) {
+	return io.NopCloser(base64.NewDecoder(base64.StdEncoding, r)), nil
+}
+
+func (g Base64Encoder) Writer(w io.Writer) (io.WriteCloser, error) {
+	return base64.NewEncoder(base64.StdEncoding, w), nil
+}
+
 const (
-	EncoderGzip = "gzip"
+	EncoderGzip   = "gzip"
+	EncoderBase64 = "base64"
 )
 
 var encoders = map[string]Encoder{
-	EncoderGzip: GzipEncoder{},
+	EncoderGzip:   GzipEncoder{},
+	EncoderBase64: Base64Encoder{},
 }
 
 func RegisterEncoder(name string, m Encoder) {
@@ -199,7 +213,12 @@ func (c ContentOptions) WriteEntity(w io.WriteCloser, value interface{}) (err er
 		err = w.Close()
 	}()
 
-	m, err := NewMarshaler(c.MimeType)
+	mimeType, err := c.BaseMediaType()
+	if err != nil {
+		return err
+	}
+
+	m, err := NewMarshaler(mimeType)
 	if err != nil {
 		return
 	}
@@ -213,7 +232,12 @@ func (c ContentOptions) ReadEntity(r io.ReadCloser, target interface{}) (err err
 		return err
 	}
 
-	m, err := NewMarshaler(c.MimeType)
+	mimeType, err := c.BaseMediaType()
+	if err != nil {
+		return err
+	}
+
+	m, err := NewMarshaler(mimeType)
 	if err != nil {
 		return
 	}
@@ -230,6 +254,11 @@ func (c ContentOptions) ReadBytes(r io.ReadCloser) (data []byte, err error) {
 	return ioutil.ReadAll(r)
 }
 
+func (c *ContentOptions) BaseMediaType() (string, error) {
+	mimeType, _, err := mime.ParseMediaType(c.MimeType)
+	return mimeType, err
+}
+
 func NewContentOptions(mimeType string) ContentOptions {
 	return ContentOptions{
 		MimeType: mimeType,
@@ -244,6 +273,10 @@ type Content struct {
 
 func (s Content) IsPresent() bool {
 	return s.present
+}
+
+func (s Content) BaseMediaType() (string, error) {
+	return s.options.BaseMediaType()
 }
 
 func (s Content) MimeType() string {

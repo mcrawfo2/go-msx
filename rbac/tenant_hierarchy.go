@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-var errTenantNotFound = errors.New("tenant not found in cache")
+var errTenantNotFoundInCache = errors.Wrap(ErrTenantDoesNotExist, "tenant not found in cache")
 
 type TenantHierarchyApi interface {
 	Parent(ctx context.Context, tenantId types.UUID) (types.UUID, error)
@@ -125,7 +125,7 @@ func (t *TenantHierarchyCache) loadAncestors(ctx context.Context, tenantId types
 
 func (t *TenantHierarchyCache) cachedRoot() (result types.UUID, err error) {
 	if t.rootId == nil {
-		return nil, errTenantNotFound
+		return nil, errTenantNotFoundInCache
 	}
 	return t.rootId, nil
 }
@@ -139,7 +139,7 @@ func (t *TenantHierarchyCache) cachedAncestors(tenantUuid types.UUID) (results [
 	for !tenantUuid.Equals(t.rootId) {
 		parentId, ok := t.tenants.Load(tenantId)
 		if !ok {
-			return nil, errors.Wrap(errTenantNotFound, tenantId)
+			return nil, errors.Wrap(errTenantNotFoundInCache, tenantId)
 		}
 		tenantId = parentId.(string)
 		tenantUuid = types.MustParseUUID(tenantId)
@@ -159,7 +159,7 @@ func (t *TenantHierarchyCache) cachedParent(tenantId types.UUID) (result types.U
 	if ok {
 		result = types.MustParseUUID(parentId.(string))
 	} else {
-		err = errTenantNotFound
+		err = errTenantNotFoundInCache
 	}
 	return
 }

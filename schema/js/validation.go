@@ -5,13 +5,17 @@
 package js
 
 import (
+	"bytes"
+	"crypto/md5"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/pkg/errors"
 	jsv "github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/swaggest/jsonschema-go"
 	"path"
 	"strings"
+	"sync"
 )
 
 func NewValidationFailure(p string) *ValidationFailure {
@@ -178,12 +182,61 @@ func (s ValidationSchema) Types() []string {
 	return st.Values()
 }
 
+func (s ValidationSchema) Items() *jsv.Schema {
+	return s.schema.Items2020
+}
+
 func (s ValidationSchema) AllOf() []ValidationSchema {
 	var results []ValidationSchema
 	for _, allOfOne := range s.schema.AllOf {
 		results = append(results, NewValidationSchema(allOfOne))
 	}
 	return results
+}
+
+func (s ValidationSchema) IsPropertyAllowed(key string) bool {
+	// Explicitly declared properties
+	if _, ok := s.schema.Properties[key]; ok {
+		return true
+	}
+
+	if s.schema.AdditionalProperties == nil {
+		return false
+	}
+
+	if allowed, ok := s.schema.AdditionalProperties.(bool); ok {
+		return allowed
+	}
+
+	if _, ok := s.schema.AdditionalProperties.(*jsv.Schema); ok {
+		return true
+	}
+
+	return false
+
+}
+
+func (s ValidationSchema) Property(key string) ValidationSchema {
+	// Explicitly declared properties
+	if ps, ok := s.schema.Properties[key]; ok {
+		return NewValidationSchema(ps)
+	}
+
+	if s.schema.AdditionalProperties == nil {
+		return NewValidationSchema(new(jsv.Schema))
+	}
+
+	if allowed, ok := s.schema.AdditionalProperties.(bool); ok {
+		if allowed {
+			return anyType
+		}
+	}
+
+	if ps, ok := s.schema.AdditionalProperties.(*jsv.Schema); ok {
+		return NewValidationSchema(ps)
+	}
+
+	return ValidationSchema{}
 }
 
 func (s ValidationSchema) Validate(value interface{}) error {
@@ -193,4 +246,35 @@ func (s ValidationSchema) Validate(value interface{}) error {
 	}
 
 	return s.schema.Validate(value)
+}
+
+var validationCompilerMtx sync.Mutex
+var validationCompiler = jsv.NewCompiler()
+
+func NewValidationSchemaFromJsonSchema(schema *jsonschema.Schema) (vs ValidationSchema, err error) {
+	validationCompilerMtx.Lock()
+	defer validationCompilerMtx.Unlock()
+
+	// Convert the json schema to json
+	schemaBytes, err := schema.JSONSchemaBytes()
+	if err != nil {
+		return
+	}
+
+	// Compile the standalone document
+	sum := md5.Sum(schemaBytes)
+	hash := hex.EncodeToString(sum[:])
+	schemaUrl := "mem:///" + hash + ".json"
+
+	if err = validationCompiler.AddResource(schemaUrl, bytes.NewReader(schemaBytes)); err != nil {
+		return
+	}
+
+	s, err := validationCompiler.Compile(schemaUrl)
+	if err != nil {
+		return
+	}
+
+	vs = NewValidationSchema(s)
+	return
 }

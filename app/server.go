@@ -22,6 +22,8 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/maintenanceprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/metricsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/swaggerprovider"
+
+	_ "cto-github.cisco.com/NFV-BU/go-msx/ops/restops/httperrors"
 )
 
 func init() {

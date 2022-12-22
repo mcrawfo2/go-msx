@@ -139,6 +139,13 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]int{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]int{}),
+				Items: &PortFieldElementType{
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapePrimitive,
+						Type:        reflect.TypeOf(int(0)),
+						HandlerType: reflect.TypeOf(int(0)),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -150,6 +157,13 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]int{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]int{}),
+				Items: &PortFieldElementType{
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapePrimitive,
+						Type:        reflect.TypeOf(int(0)),
+						HandlerType: reflect.TypeOf(int(0)),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -161,6 +175,14 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]struct{}{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]struct{}{}),
+				Items: &PortFieldElementType{
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapeObject,
+						Fields:      []PortFieldElementType{},
+						Type:        reflect.TypeOf(struct{}{}),
+						HandlerType: reflect.TypeOf(struct{}{}),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -172,6 +194,15 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]*string{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]*string{}),
+				Items: &PortFieldElementType{
+					Optional: true,
+					PortFieldType: PortFieldType{
+						Shape:        FieldShapePrimitive,
+						Type:         reflect.TypeOf(""),
+						Indirections: 1,
+						HandlerType:  reflect.TypeOf(""),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -183,6 +214,15 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]*string{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]*string{}),
+				Items: &PortFieldElementType{
+					Optional: true,
+					PortFieldType: PortFieldType{
+						Shape:        FieldShapePrimitive,
+						Type:         reflect.TypeOf(""),
+						Indirections: 1,
+						HandlerType:  reflect.TypeOf(""),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -203,6 +243,15 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 }
 
 func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T) {
+	type embeddedStruct struct {
+		AnotherField string `inp:"test"`
+	}
+
+	type nestedStruct struct {
+		SingleField string         `inp:"test"`
+		SecondField embeddedStruct `inp:"test"`
+	}
+
 	tests := []struct {
 		name         string
 		arg          reflect.Type
@@ -217,6 +266,21 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(map[string]interface{}{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(map[string]interface{}{}),
+				Keys: &PortFieldElementType{
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapePrimitive,
+						Type:        reflect.TypeOf(""),
+						HandlerType: reflect.TypeOf(""),
+					},
+				},
+				Values: &PortFieldElementType{
+					Optional: true,
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapeAny,
+						Type:        reflect.TypeOf((*interface{})(nil)).Elem(),
+						HandlerType: reflect.TypeOf((*interface{})(nil)).Elem(),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -228,6 +292,21 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(map[string]interface{}{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(map[string]interface{}{}),
+				Keys: &PortFieldElementType{
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapePrimitive,
+						Type:        reflect.TypeOf(""),
+						HandlerType: reflect.TypeOf(""),
+					},
+				},
+				Values: &PortFieldElementType{
+					Optional: true,
+					PortFieldType: PortFieldType{
+						Shape:       FieldShapeAny,
+						Type:        reflect.TypeOf((*interface{})(nil)).Elem(),
+						HandlerType: reflect.TypeOf((*interface{})(nil)).Elem(),
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -239,6 +318,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(struct{}{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(struct{}{}),
+				Fields:       []PortFieldElementType{},
 			},
 		},
 		{
@@ -249,6 +329,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(struct{}{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(struct{}{}),
+				Fields:       []PortFieldElementType{},
 			},
 			wantOptional: true,
 		},
@@ -260,6 +341,48 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(struct{}{}),
 				Indirections: 2,
 				HandlerType:  reflect.TypeOf(struct{}{}),
+				Fields:       []PortFieldElementType{},
+			},
+			wantOptional: true,
+		},
+		{
+			name: "StructNested",
+			arg:  reflect.TypeOf(new(nestedStruct)),
+			wantType: PortFieldType{
+				Shape:        FieldShapeObject,
+				Indirections: 1,
+				Type:         reflect.TypeOf(nestedStruct{}),
+				HandlerType:  reflect.TypeOf(nestedStruct{}),
+				Fields: []PortFieldElementType{
+					{
+						Indices:  []int{0},
+						Optional: false,
+						PortFieldType: PortFieldType{
+							Shape:       FieldShapePrimitive,
+							Type:        reflect.TypeOf(""),
+							HandlerType: reflect.TypeOf(""),
+						},
+					},
+					{
+						Indices:  []int{1},
+						Optional: false,
+						PortFieldType: PortFieldType{
+							Shape:       FieldShapeObject,
+							Type:        reflect.TypeOf(embeddedStruct{}),
+							HandlerType: reflect.TypeOf(embeddedStruct{}),
+							Fields: []PortFieldElementType{
+								{
+									Indices: []int{0},
+									PortFieldType: PortFieldType{
+										Shape:       FieldShapePrimitive,
+										Type:        reflect.TypeOf(""),
+										HandlerType: reflect.TypeOf(""),
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			wantOptional: true,
 		},
@@ -665,7 +788,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
+			r := DefaultPortFieldTypeReflector{
+				Direction: PortDirectionIn,
+			}
 			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
 			if !reflect.DeepEqual(gotType, tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
@@ -693,6 +818,54 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Unknown(t *testing.T
 				Type:         reflect.TypeOf(make(chan struct{})),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(make(chan struct{})),
+			},
+			wantOptional: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := DefaultPortFieldTypeReflector{}
+			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
+			if !reflect.DeepEqual(gotType, tt.wantType) {
+				t.Errorf("ReflectPortFieldType() diff\n%s",
+					testhelpers.Diff(tt.wantType, gotType))
+			}
+			if gotOptional != tt.wantOptional {
+				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+			}
+		})
+	}
+}
+
+func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Any(t *testing.T) {
+	var anything any
+	var anythingType = reflect.TypeOf(&anything).Elem()
+
+	tests := []struct {
+		name         string
+		arg          reflect.Type
+		wantType     PortFieldType
+		wantOptional bool
+	}{
+		{
+			name: "Interface",
+			arg:  anythingType,
+			wantType: PortFieldType{
+				Shape:        FieldShapeAny,
+				Type:         anythingType,
+				Indirections: 0,
+				HandlerType:  anythingType,
+			},
+			wantOptional: true,
+		},
+		{
+			name: "IndirectInterface",
+			arg:  reflect.TypeOf(&anything),
+			wantType: PortFieldType{
+				Shape:        FieldShapeAny,
+				Type:         anythingType,
+				Indirections: 1,
+				HandlerType:  anythingType,
 			},
 			wantOptional: true,
 		},

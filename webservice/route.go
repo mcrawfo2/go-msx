@@ -12,32 +12,47 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/certdetailsprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/security/httprequest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
 	"github.com/emicklei/go-restful"
 	restfulspec "github.com/emicklei/go-restful-openapi"
 	"github.com/go-openapi/spec"
+	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"github.com/swaggest/refl"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 const (
-	HeaderNameAuthorization     = "Authorization"
-	MetadataKeyResponseEnvelope = "MSX_RESPONSE_ENVELOPE"
-	MetadataKeyResponsePayload  = "MSX_RESPONSE_PAYLOAD"
-	MetadataTagDefinition       = "TagDefinition"
-	MetadataPermissions         = "Permissions"
-	AttributeDefaultReturnCode  = "DefaultReturnCode"
-	AttributeErrorPayload       = "ErrorPayload"
-	AttributeError              = "Error"
-	AttributeParams             = "Params"
-	AttributeStandard           = "Standard"
-	AttributeParamsValidator    = "ParamsValidator"
-	AttributeSilenceLog         = "ManagementSilenceLog"
+	HeaderNameAuthorization   = "Authorization"
+	HeaderNameContentEncoding = "Content-Encoding"
+	HeaderNameContentType     = "Content-Type"
+
+	MetadataTagDefinition     = "TagDefinition"
+	MetadataPermissions       = "Permissions"
+	MetadataSuccessResponse   = "SuccessResponse"
+	MetadataErrorPayload      = "ErrorPayload"
+	MetadataRequest           = "Request"
+	MetadataDefaultReturnCode = "DefaultReturnCode"
+	MetadataEnvelope          = "Envelope"
+	MetadataParams            = "InputParamsStruct"
+
+	AttributeDefaultReturnCode = "DefaultReturnCode"
+	AttributeSuccessResponse   = "SuccessResponse"
+	AttributeErrorPayload      = "ErrorPayload"
+	AttributeError             = "Error"
+	AttributeParams            = "Params"
+	AttributeSilenceLog        = "ManagementSilenceLog"
+
+	StructTagRequest  = "req"
+	StructTagResponse = "resp"
 )
 
 var (
@@ -76,15 +91,9 @@ func NoBodyNoContent(b *restful.RouteBuilder) {
 	b.Do(NoContentReturns, ProducesJson, ConsumesAny)
 }
 
-func ResponseTypeName(t reflect.Type) (string, bool) {
-	typeName := types.GetTypeName(t, true)
-	return typeName, typeName != ""
-}
-
-func newGenericResponse(structType reflect.Type, structFieldName string, payloadInstance interface{}) interface{} {
-	responseType := types.NewParameterizedStruct(
-		structType,
-		structFieldName,
+func NewEnvelopedResponse(envelopeType reflect.Type, payloadInstance interface{}) interface{} {
+	responseType := schema.NewParameterizedStruct(
+		envelopeType,
 		payloadInstance)
 
 	return reflect.New(responseType).Interface()
@@ -93,10 +102,11 @@ func newGenericResponse(structType reflect.Type, structFieldName string, payload
 func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
 	return func(b *restful.RouteBuilder) {
-		example := newGenericResponse(
+		example := NewEnvelopedResponse(
 			reflect.TypeOf(integration.MsxEnvelope{}),
-			"Payload",
 			payload)
+		RouteBuilderWithSuccessResponse(b, example)
+		RouteBuilderWithEnvelopedPayload(b, payload)
 		b.DefaultReturns("Success", example)
 		b.Writes(example)
 		b.Do(errorPayloadFn)
@@ -106,14 +116,31 @@ func ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 func PaginatedResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
 	return func(b *restful.RouteBuilder) {
-		paginatedPayload := newGenericResponse(
+		paginatedPayload := NewEnvelopedResponse(
 			reflect.TypeOf(paging.PaginatedResponse{}),
-			"Content",
 			payload)
-		envelopedPayload := newGenericResponse(
+		envelopedPayload := NewEnvelopedResponse(
 			reflect.TypeOf(integration.MsxEnvelope{}),
-			"Payload",
 			paginatedPayload)
+		RouteBuilderWithSuccessResponse(b, envelopedPayload)
+		RouteBuilderWithEnvelopedPayload(b, payload)
+		b.DefaultReturns("Success", envelopedPayload)
+		b.Writes(envelopedPayload)
+		b.Do(errorPayloadFn)
+	}
+}
+
+func PaginatedV8ResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
+	errorPayloadFn := ErrorPayload(new(integration.MsxEnvelope))
+	return func(b *restful.RouteBuilder) {
+		paginatedPayload := NewEnvelopedResponse(
+			reflect.TypeOf(paging.PaginatedResponseV8{}),
+			payload)
+		envelopedPayload := NewEnvelopedResponse(
+			reflect.TypeOf(integration.MsxEnvelope{}),
+			paginatedPayload)
+		RouteBuilderWithSuccessResponse(b, envelopedPayload)
+		RouteBuilderWithEnvelopedPayload(b, paginatedPayload)
 		b.DefaultReturns("Success", envelopedPayload)
 		b.Writes(envelopedPayload)
 		b.Do(errorPayloadFn)
@@ -123,6 +150,7 @@ func PaginatedResponsePayload(payload interface{}) func(*restful.RouteBuilder) {
 func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 	errorPayloadFn := ErrorPayload(new(integration.ErrorDTO))
 	return func(b *restful.RouteBuilder) {
+		RouteBuilderWithSuccessResponse(b, payload)
 		b.DefaultReturns("Success", payload)
 		if payload != nil {
 			b.Writes(payload)
@@ -133,11 +161,77 @@ func ResponseRawPayload(payload interface{}) func(*restful.RouteBuilder) {
 
 func ErrorPayload(payload interface{}) func(*restful.RouteBuilder) {
 	return func(builder *restful.RouteBuilder) {
+		RouteBuilderWithErrorPayload(builder, payload)
 		builder.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
-			request.SetAttribute(AttributeErrorPayload, payload)
+			RequestWithErrorPayload(request, payload)
 			chain.ProcessFilter(request, response)
 		})
 	}
+}
+
+func SuccessResponse(template interface{}) restfulcontext.RouteBuilderFunc {
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	// Create an instance for the metadata (swagger)
+	template = reflect.Zero(templateType).Interface()
+
+	// Extract the payload
+	var payload = samplePayload(template, StructTagResponse)
+
+	return func(builder *restful.RouteBuilder) {
+		RouteBuilderWithSuccessResponse(builder, template)
+		builder.DefaultReturns("Success", payload)
+		if payload != nil {
+			builder.Writes(payload)
+		}
+
+		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+			// Instantiate a new object of the same type as template for the request
+			target := reflect.New(templateType).Interface()
+
+			// Store it in the request attributes
+			req.SetAttribute(AttributeSuccessResponse, target)
+
+			// Continue processing
+			chain.ProcessFilter(req, response)
+		})
+	}
+}
+
+func samplePayload(template interface{}, structTagName string) interface{} {
+	hasReq := false
+	templateType := reflect.TypeOf(template)
+
+	if templateType.Kind() == reflect.Struct {
+		// search for `req:"body"` in struct tags
+		for i := 0; i < templateType.NumField(); i++ {
+			templateField := templateType.Field(i)
+			req := templateField.Tag.Get(structTagName)
+			if req != "" {
+				hasReq = true
+			}
+			if req != "body" {
+				continue
+			}
+
+			payloadType := templateField.Type
+			for payloadType.Kind() == reflect.Ptr {
+				payloadType = payloadType.Elem()
+			}
+
+			return types.Instantiate(payloadType)
+		}
+	}
+
+	if !hasReq {
+		// Assume the template is the payload
+		return types.Instantiate(templateType)
+	}
+
+	return nil
 }
 
 func StandardReturns(b *restful.RouteBuilder) {
@@ -168,6 +262,10 @@ func ConsumesAny(b *restful.RouteBuilder) {
 	b.Consumes("*/*")
 }
 
+func ConsumesNone(b *restful.RouteBuilder) {
+	b.Consumes("")
+}
+
 func ProducesTextPlain(b *restful.RouteBuilder) {
 	b.Produces(MIME_TEXT_PLAIN)
 }
@@ -176,9 +274,9 @@ func ConsumesTextPlain(b *restful.RouteBuilder) {
 	b.Consumes(MIME_TEXT_PLAIN)
 }
 
-func DefaultReturns(code int) RouteBuilderFunc {
+func DefaultReturns(code int) restfulcontext.RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
-		b.Metadata(AttributeDefaultReturnCode, code)
+		RouteBuilderWithDefaultReturnCode(b, code)
 		b.Filter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 			request.SetAttribute(AttributeDefaultReturnCode, code)
 			chain.ProcessFilter(request, response)
@@ -187,7 +285,7 @@ func DefaultReturns(code int) RouteBuilderFunc {
 }
 
 func logSilenceFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-	req.SetAttribute(AttributeSilenceLog, true)
+	RequestWithSilenceLog(req)
 	chain.ProcessFilter(req, resp)
 }
 
@@ -269,9 +367,9 @@ func auditContextFilter(req *restful.Request, resp *restful.Response, chain *res
 	chain.ProcessFilter(req, resp)
 }
 
-func Permissions(anyOf ...string) RouteBuilderFunc {
+func Permissions(anyOf ...string) restfulcontext.RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
-		b.Metadata(MetadataPermissions, anyOf)
+		RouteBuilderWithPermissions(b, anyOf)
 		b.Filter(PermissionsFilter(anyOf...))
 	}
 }
@@ -340,8 +438,6 @@ func TenantFilter(parameter *restful.Parameter) restful.FilterFunction {
 	}
 }
 
-type RouteBuilderFunc func(*restful.RouteBuilder)
-
 func Returns200(b *restful.RouteBuilder) {
 	b.Returns(http.StatusOK, "OK", nil)
 }
@@ -382,8 +478,8 @@ func Returns503(b *restful.RouteBuilder) {
 	b.Returns(http.StatusServiceUnavailable, "Service Unavailable", nil)
 }
 
-func Returns(statuses ...int) RouteBuilderFunc {
-	var statusFuncs []RouteBuilderFunc
+func Returns(statuses ...int) restfulcontext.RouteBuilderFunc {
+	var statusFuncs []restfulcontext.RouteBuilderFunc
 	for _, status := range statuses {
 		switch status {
 		case 200:
@@ -422,14 +518,23 @@ func Returns(statuses ...int) RouteBuilderFunc {
 	}
 }
 
-func TagDefinition(name, description string) RouteBuilderFunc {
+func TagDefinition(name, description string) restfulcontext.RouteBuilderFunc {
 	return func(b *restful.RouteBuilder) {
 		b.Metadata(restfulspec.KeyOpenAPITags, []string{name})
-		b.Metadata(MetadataTagDefinition, spec.TagProps{
-			Name:        name,
-			Description: description,
-		})
+		RouteBuilderWithTagDefinition(b,
+			spec.TagProps{
+				Name:        name,
+				Description: description,
+			})
 	}
+}
+
+func TagsFromRoute(route restful.Route) []string {
+	tags := route.Metadata[restfulspec.KeyOpenAPITags]
+	if tags == nil {
+		return nil
+	}
+	return tags.([]string)
 }
 
 type RestController interface {
@@ -438,31 +543,169 @@ type RestController interface {
 
 type RouteFunction func(svc *restful.WebService) *restful.RouteBuilder
 
-func PopulateParams(template interface{}) RouteBuilderFunc {
-	templateType := reflect.TypeOf(template)
-	if templateType.Kind() == reflect.Ptr {
-		templateType = templateType.Elem()
-	}
+func PopulateParams(inputPort interface{}) restfulcontext.RouteBuilderFunc {
+	inputPortType := refl.DeepIndirect(reflect.TypeOf(inputPort))
 
 	return func(builder *restful.RouteBuilder) {
-		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
-			// Instantiate a new object of the same type as template
-			target := reflect.New(templateType).Interface()
+		builder.
+			Do(RouteInputParamsInjector(reflect.New(inputPortType).Interface())).
+			Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+				// Instantiate a new object of the same type as template
+				target := reflect.New(inputPortType).Interface()
 
-			// Populate the target
-			if err := Populate(req, target); err != nil {
-				WriteError(req, response, 400, err)
-				return
-			}
+				// Populate the target
+				if err := Populate(req, target); err != nil {
+					WriteError(req, response, 400, err)
+					return
+				}
 
-			req.SetAttribute(AttributeParams, target)
+				RequestWithParams(req, target)
 
-			chain.ProcessFilter(req, response)
-		})
+				chain.ProcessFilter(req, response)
+			})
 	}
 }
 
-func ValidateParams(fn ValidatorFunction) RouteBuilderFunc {
+func Request(template interface{}) restfulcontext.RouteBuilderFunc {
+	populateParamsFunc := PopulateParams(template)
+
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	// Create an instance for the metadata (swagger)
+	template = reflect.Zero(templateType).Interface()
+
+	// Extract the parameters
+	var params = extractRequestParameters(template)
+
+	// Extract the payload
+	var payload = samplePayload(template, StructTagRequest)
+
+	return func(builder *restful.RouteBuilder) {
+		RouteBuilderWithRequest(builder, template)
+		if payload != nil {
+			builder.Reads(payload)
+		}
+
+		for _, param := range params {
+			paramName := param.Data().Name
+			existingParam := builder.ParameterNamed(paramName)
+			if existingParam == nil {
+				builder.Param(param)
+			}
+		}
+
+		populateParamsFunc(builder)
+	}
+}
+
+func extractRequestParameters(template interface{}) []*restful.Parameter {
+	templateType := reflect.TypeOf(template)
+	for templateType.Kind() == reflect.Ptr {
+		templateType = templateType.Elem()
+	}
+
+	var results []*restful.Parameter
+
+	if templateType.Kind() == reflect.Struct {
+		for i := 0; i < templateType.NumField(); i++ {
+			if p := extractRequestParameter(templateType.Field(i)); p != nil {
+				results = append(results, p)
+			}
+		}
+	}
+
+	return results
+}
+
+type ParameterTag struct {
+	TagName string
+	Source  string
+	Name    string
+}
+
+func NewParameterTag(field reflect.StructField, tagName string) ParameterTag {
+	source := field.Tag.Get(tagName)
+	name := ""
+
+	if strings.Contains(source, "=") {
+		reqParts := strings.SplitN(source, "=", 2)
+		source, name = reqParts[0], reqParts[1]
+	}
+
+	if name == "" {
+		name = strcase.ToLowerCamel(field.Name)
+	}
+
+	return ParameterTag{
+		TagName: tagName,
+		Source:  source,
+		Name:    name,
+	}
+}
+
+var typesTimeType = reflect.TypeOf(types.Time{})
+var typesUuidType = reflect.TypeOf(types.UUID{})
+var textUnmarshalerInstance types.TextUnmarshaler
+var textUnmarshalerType = reflect.TypeOf(&textUnmarshalerInstance).Elem()
+
+func parameterType(fieldType reflect.Type) (dataType, format string) {
+	fieldType = refl.DeepIndirect(fieldType)
+
+	if fieldType == typesTimeType {
+		return "string", "date-time"
+	} else if fieldType == typesUuidType {
+		return "string", "uuid"
+	} else if fieldType.Implements(textUnmarshalerType) {
+		return "string", ""
+	}
+
+	switch fieldType.Kind() {
+	case reflect.Struct, reflect.Map:
+		return "object", ""
+	case reflect.Array, reflect.Slice:
+		return "array", ""
+	case reflect.Uint, reflect.Uint64, reflect.Int, reflect.Int64:
+		return "integer", "int64"
+	case reflect.Uint32, reflect.Uint16, reflect.Uint8,
+		reflect.Int32, reflect.Int16, reflect.Int8:
+		return "integer", "int32"
+	case reflect.Float64:
+		return "number", "double"
+	case reflect.Float32:
+		return "number", "float"
+	case reflect.Bool:
+		return "boolean", ""
+	case reflect.String:
+		return "string", ""
+	default:
+		return "string", ""
+	}
+}
+
+func extractRequestParameter(templateField reflect.StructField) *restful.Parameter {
+	parameter := NewParameterTag(templateField, StructTagRequest)
+	desc := templateField.Tag.Get("description")
+	required := templateField.Tag.Get("required") == "true"
+	dataType, format := parameterType(templateField.Type)
+
+	switch parameter.Source {
+	case "path":
+		return restful.PathParameter(parameter.Name, desc).Required(true).DataType(dataType).DataFormat(format).Description(desc)
+	case "query":
+		return restful.QueryParameter(parameter.Name, desc).Required(required).DataType(dataType).DataFormat(format).Description(desc)
+	case "header":
+		return restful.HeaderParameter(parameter.Name, desc).Required(required).DataType(dataType).DataFormat(format).Description(desc)
+	case "form":
+		return restful.FormParameter(parameter.Name, desc).Required(required).DataType(dataType).DataFormat(format).Description(desc)
+	}
+
+	return nil
+}
+
+func ValidateParams(fn ValidatorFunction) restfulcontext.RouteBuilderFunc {
 	return func(builder *restful.RouteBuilder) {
 		builder.Filter(func(req *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 			err := validate.Validate(requestValidator{fn: fn, req: req})
@@ -487,14 +730,18 @@ func (r requestValidator) Validate() error {
 	return r.fn(r.req)
 }
 
-func Params(req *restful.Request) interface{} {
-	return req.Attribute(AttributeParams)
-}
-
-func Routes(svc *restful.WebService, tag RouteBuilderFunc, routeFunctions ...RouteFunction) {
+// Routes adds the routes to the specified webservice after optionally tagging
+func Routes(svc *restful.WebService, tag restfulcontext.RouteBuilderFunc, routeFunctions ...RouteFunction) {
 	for _, routeFunction := range routeFunctions {
 		routeBuilder := routeFunction(svc)
-		routeBuilder.Do(tag)
+		if tag != nil {
+			routeBuilder.Do(tag)
+		}
 		svc.Route(routeBuilder)
+
+		routes := svc.Routes()
+		route := routes[len(routes)-1]
+
+		logger.Infof("Registered route: %s %s", route.Method, route.Path)
 	}
 }

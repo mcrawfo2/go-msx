@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package webservice
+package webservicetest
 
 import (
 	"bytes"
@@ -10,8 +10,9 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/contexttest"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/logtest"
-	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
+	"fmt"
 	"github.com/emicklei/go-restful"
 	"io/ioutil"
 	"net/http"
@@ -37,21 +38,21 @@ type RouteBuilderTest struct {
 	Route        struct {
 		Path       string
 		Parameters []*restful.Parameter
-		Funcs      []RouteBuilderFunc
+		Funcs      []restfulcontext.RouteBuilderFunc
 		Filters    []restful.FilterFunction
 		Target     restful.RouteFunction
 	}
 	Context   context.Context
 	Injectors []types.ContextInjector
 	Checks    struct {
-		Route    webservicetest.RouteCheck
-		Request  webservicetest.RequestCheck
-		Response webservicetest.ResponseCheck
+		Route    RouteCheck
+		Request  RequestCheck
+		Response ResponseCheck
 		Context  contexttest.ContextCheck
 		Log      []logtest.Check
 	}
 	Verifiers struct {
-		Request []webservicetest.RequestVerifier
+		Request []RequestVerifier
 	}
 	Errors struct {
 		Context  []error
@@ -104,7 +105,7 @@ func (r *RouteBuilderTest) WithRoutePath(p string) *RouteBuilderTest {
 	return r
 }
 
-func (r *RouteBuilderTest) WithRouteBuilderDo(fn RouteBuilderFunc) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithRouteBuilderDo(fn restfulcontext.RouteBuilderFunc) *RouteBuilderTest {
 	r.Route.Funcs = append(r.Route.Funcs, fn)
 	return r
 }
@@ -149,6 +150,39 @@ func (r *RouteBuilderTest) WithRequestQueryParameter(name, value string) *RouteB
 	return r
 }
 
+func (r *RouteBuilderTest) WithRequestFormFileParameter(s string, filename, contents string) *RouteBuilderTest {
+	r.WithRequestHeader("Content-Type", "multipart/form-data; boundary=boundary")
+	if len(r.Request.Body) > 0 {
+		r.Request.Body = append(r.Request.Body[:len(r.Request.Body)-2], []byte("\n")...)
+	} else {
+		r.Request.Body = append(r.Request.Body, []byte("--boundary\n")...)
+	}
+
+	r.Request.Body = append(r.Request.Body,
+		[]byte(fmt.Sprintf(`Content-Disposition: form-data; name="%s"; filename="%s"`+"\n\n",
+			s, filename))...)
+	r.Request.Body = append(r.Request.Body, []byte(contents)...)
+	r.Request.Body = append(r.Request.Body, []byte("\n--boundary--")...)
+
+	return r
+}
+
+func (r *RouteBuilderTest) WithRequestFormFieldParameter(s string, contents string) *RouteBuilderTest {
+	r.WithRequestHeader("Content-Type", "multipart/form-data; boundary=boundary")
+	if len(r.Request.Body) > 0 {
+		r.Request.Body = append(r.Request.Body[:len(r.Request.Body)-2], []byte("\n")...)
+	} else {
+		r.Request.Body = append(r.Request.Body, []byte("--boundary\n")...)
+	}
+
+	r.Request.Body = append(r.Request.Body,
+		[]byte(fmt.Sprintf(`Content-Disposition: form-data; name="%s"	`+"\n\n", s))...)
+	r.Request.Body = append(r.Request.Body, []byte(contents)...)
+	r.Request.Body = append(r.Request.Body, []byte("\n--boundary--")...)
+
+	return r
+}
+
 func (r *RouteBuilderTest) WithRequestHeader(name, value string) *RouteBuilderTest {
 	if r.Request.Headers == nil {
 		r.Request.Headers = make(http.Header)
@@ -157,7 +191,14 @@ func (r *RouteBuilderTest) WithRequestHeader(name, value string) *RouteBuilderTe
 	return r
 }
 
-func (r *RouteBuilderTest) WithRoutePredicate(p ...webservicetest.RoutePredicate) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithoutRequestHeader(name string) *RouteBuilderTest {
+	if r.Request.Headers != nil {
+		r.Request.Headers.Del(name)
+	}
+	return r
+}
+
+func (r *RouteBuilderTest) WithRoutePredicate(p ...RoutePredicate) *RouteBuilderTest {
 	r.Checks.Route.Validators = append(r.Checks.Route.Validators, p...)
 	return r
 }
@@ -167,17 +208,17 @@ func (r *RouteBuilderTest) WithContextPredicate(c contexttest.ContextPredicate) 
 	return r
 }
 
-func (r *RouteBuilderTest) WithRequestPredicate(p webservicetest.RequestPredicate) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithRequestPredicate(p RequestPredicate) *RouteBuilderTest {
 	r.Checks.Request.Validators = append(r.Checks.Request.Validators, p)
 	return r
 }
 
-func (r *RouteBuilderTest) WithRequestVerifier(fn webservicetest.RequestVerifier) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithRequestVerifier(fn RequestVerifier) *RouteBuilderTest {
 	r.Verifiers.Request = append(r.Verifiers.Request, fn)
 	return r
 }
 
-func (r *RouteBuilderTest) WithResponsePredicate(p webservicetest.ResponsePredicate) *RouteBuilderTest {
+func (r *RouteBuilderTest) WithResponsePredicate(p ResponsePredicate) *RouteBuilderTest {
 	r.Checks.Response.Validators = append(r.Checks.Response.Validators, p)
 	return r
 }
@@ -204,7 +245,7 @@ func (r *RouteBuilderTest) checkRequest(req *restful.Request, resp *restful.Resp
 	chain.ProcessFilter(req, resp)
 }
 
-func (r RouteBuilderTest) defaultTarget(_ *restful.Request, resp *restful.Response) {
+func (r RouteBuilderTest) DefaultTarget(_ *restful.Request, resp *restful.Response) {
 	// No body required
 }
 
@@ -223,7 +264,7 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 	if rb == nil {
 		target := r.Route.Target
 		if target == nil {
-			target = r.defaultTarget
+			target = r.DefaultTarget
 		}
 
 		method := r.Request.Method
@@ -266,8 +307,8 @@ func (r *RouteBuilderTest) Test(t *testing.T) {
 
 	ctx = context.WithValue(ctx, routeBuilderContextKeyTesting, t)
 
-	ctx = ContextWithRoute(ctx, &route)
-	ctx = ContextWithRouteOperation(ctx, route.Operation)
+	ctx = restfulcontext.ContextRoute().Set(ctx, &route)
+	ctx = restfulcontext.ContextOperationName().Set(ctx, route.Operation)
 	for _, injector := range r.Injectors {
 		ctx = injector(ctx)
 	}

@@ -21,12 +21,15 @@ const (
 	FieldShapeFileArray = "fileArray" // Input
 	FieldShapeContent   = "content"   // Input, Output
 	FieldShapeUnknown   = "unknown"   // Ignored
+	FieldShapeAny       = "any"       // Input, Output
 )
 
 var ErrIncorrectShape = errors.New("Port field has mismatched shape")
 
 var TextUnmarshalerInstance types.TextUnmarshaler
 var TextUnmarshalerType = reflect.TypeOf(&TextUnmarshalerInstance).Elem()
+var TextMarshalerInstance types.TextMarshaler
+var TextMarshalerType = reflect.TypeOf(&TextMarshalerInstance).Elem()
 var MultipartFileHeaderInstance multipart.FileHeader
 var MultipartFileHeaderType = reflect.TypeOf(MultipartFileHeaderInstance)
 var MultipartFileHeaderPtrType = reflect.PtrTo(MultipartFileHeaderType)
@@ -41,12 +44,22 @@ var JsonRawMessageInstance json.RawMessage
 var JsonRawMessageType = reflect.TypeOf(&JsonRawMessageInstance).Elem()
 var OptionalOfStringInstance types.Optional[string]
 var OptionalOfStringType = reflect.TypeOf(&OptionalOfStringInstance).Elem()
+var AnyInstance any
+var AnyType = reflect.TypeOf(&AnyInstance).Elem()
 
 type PortFieldTypeReflector interface {
 	ReflectPortFieldType(reflect.Type) (PortFieldType, bool)
 }
 
-type DefaultPortFieldTypeReflector struct{}
+type PortFieldTypeReflectorFunc func(reflect.Type) (PortFieldType, bool)
+
+func (f PortFieldTypeReflectorFunc) ReflectPortFieldType(t reflect.Type) (PortFieldType, bool) {
+	return f(t)
+}
+
+type DefaultPortFieldTypeReflector struct {
+	Direction PortDirection
+}
 
 func (r DefaultPortFieldTypeReflector) ReflectPortFieldType(t reflect.Type) (PortFieldType, bool) {
 	if t.Kind() == reflect.Ptr {
@@ -94,9 +107,13 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 	// Interfaces
 	pt := reflect.PtrTo(t)
 	switch {
-	case pt.Implements(TextUnmarshalerType):
+	case r.Direction == PortDirectionIn && pt.Implements(TextUnmarshalerType):
 		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
 		portFieldType.WithHandlerType(TextUnmarshalerType)
+		return
+	case r.Direction == PortDirectionOut && pt.Implements(TextMarshalerType):
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		portFieldType.WithHandlerType(TextMarshalerType)
 		return
 	case pt.Implements(IoReadCloserType):
 		portFieldType = PortFieldTypeFromType(t, FieldShapeContent)
@@ -108,14 +125,43 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 	switch t.Kind() {
 	case reflect.Slice:
 		te := t.Elem()
+
 		if te == MultipartFileHeaderPtrType || te == Base64BytesType {
 			return PortFieldTypeFromType(t, FieldShapeFileArray), true
 		}
-		return PortFieldTypeFromType(t, FieldShapeArray), true
+
+		portFieldType = PortFieldTypeFromType(t, FieldShapeArray)
+
+		elemPortFieldType, elemOptional := r.ReflectPortFieldType(te)
+		portFieldType.Items = &PortFieldElementType{
+			Optional:      elemOptional,
+			PortFieldType: elemPortFieldType,
+		}
+		return portFieldType, true
+
 	case reflect.Map:
-		return PortFieldTypeFromType(t, FieldShapeObject), true
+		portFieldType = PortFieldTypeFromType(t, FieldShapeObject)
+
+		keyPortFieldType, keyOptional := r.ReflectPortFieldType(t.Key())
+		portFieldType.Keys = &PortFieldElementType{
+			Optional:      keyOptional,
+			PortFieldType: keyPortFieldType,
+		}
+
+		valuePortFieldType, valueOptional := r.ReflectPortFieldType(t.Elem())
+		portFieldType.Values = &PortFieldElementType{
+			Optional:      valueOptional,
+			PortFieldType: valuePortFieldType,
+		}
+		return portFieldType, true
+
 	case reflect.Struct:
-		return PortFieldTypeFromType(t, FieldShapeObject), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapeObject)
+		visitor := newPortFieldTypeReflectorFieldVisitor(r)
+		_ = WalkStruct(t, visitor)
+		portFieldType.Fields = visitor.Fields
+
+		return portFieldType, false
 	case reflect.Float64, reflect.Float32:
 		return PortFieldTypeFromType(t, FieldShapePrimitive), false
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -128,6 +174,39 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 		return PortFieldTypeFromType(t, FieldShapePrimitive), false
 	}
 
+	if t == AnyType {
+		return PortFieldTypeFromType(t, FieldShapeAny), true
+	}
+
 	logger.Warnf("Cannot determine field shape '%+v'", t)
 	return PortFieldTypeFromType(t, FieldShapeUnknown), true
+}
+
+type PortFieldTypeReflectorFieldVisitor struct {
+	Reflector PortFieldTypeReflector
+	Fields    []PortFieldElementType
+	*FieldVisitor
+}
+
+func (v *PortFieldTypeReflectorFieldVisitor) VisitField(f reflect.StructField) error {
+	pft, optional := v.Reflector.ReflectPortFieldType(f.Type)
+
+	pfet := PortFieldElementType{
+		Indices:       f.Index,
+		Optional:      optional,
+		PortFieldType: pft,
+	}
+
+	v.Fields = append(v.Fields, pfet)
+
+	v.incrementIndex()
+	return nil
+}
+
+func newPortFieldTypeReflectorFieldVisitor(r PortFieldTypeReflector) *PortFieldTypeReflectorFieldVisitor {
+	return &PortFieldTypeReflectorFieldVisitor{
+		Reflector:    r,
+		Fields:       []PortFieldElementType{},
+		FieldVisitor: newFieldVisitor(),
+	}
 }

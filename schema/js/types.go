@@ -12,6 +12,7 @@ const (
 	FormatDateTime = "date-time"
 	FormatUuid     = "uuid"
 	FormatDuration = "duration"
+	FormatBinary   = "binary"
 )
 
 type DefNameExposer interface {
@@ -63,5 +64,19 @@ func (s StringFormatDuration) JSONSchema() (jsonschema.Schema, error) {
 		WithFormat(FormatDuration).
 		WithPattern(`^(\d+(\.\d+)?h)?(\d+(\.\d+)m)?(\d+(\.\d+)?s)?(\d+(\.\d+)?ms)?(\d+(\.\d+)?us)?(\d+ns)?$`).
 		WithExamples("30s", "10m", "1h", "15d").
+		JSONSchema()
+}
+
+type StringFormatBinary struct{}
+
+func (s StringFormatBinary) JSONSchemaDefName() string {
+	return "Binary"
+}
+
+func (s StringFormatBinary) JSONSchema() (jsonschema.Schema, error) {
+	return NewSchemaPtr(jsonschema.String).
+		WithID("Binary").
+		WithTitle("Binary").
+		WithFormat(FormatBinary).
 		JSONSchema()
 }

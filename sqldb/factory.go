@@ -5,14 +5,16 @@
 package sqldb
 
 type CrudRepositoryFactoryApi interface {
-	// NewCrudRepository Deprecated
+	// NewCrudRepository
+	// Deprecated
 	NewCrudRepository(tableName string) CrudRepositoryApi
 	NewCrudPreparedRepository(tableName string) CrudRepositoryApi
 }
 
 type ProductionCrudRepositoryFactory struct{}
 
-// NewCrudRepository Deprecated
+// NewCrudRepository
+// Deprecated
 func (f *ProductionCrudRepositoryFactory) NewCrudRepository(tableName string) CrudRepositoryApi {
 	return newCrudRepository(tableName)
 }

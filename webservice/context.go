@@ -6,6 +6,7 @@ package webservice
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
 	"github.com/emicklei/go-restful"
 )
 
@@ -17,13 +18,7 @@ type webServerContextKey int
 
 const (
 	contextKeyWebServer webServerContextKey = iota
-	contextKeyContainer
-	contextKeyRouter
-	contextKeyService
-	contextKeyRoute
-	contextKeyOperation
 	contextKeySecurityProvider
-	contextKeyFilters
 )
 
 func ContextWithWebServer(ctx context.Context) context.Context {
@@ -44,74 +39,54 @@ func WebServerFromContext(ctx context.Context) *WebServer {
 	return nil
 }
 
+// Deprecated.
 func ContextWithContainer(ctx context.Context, container *restful.Container) context.Context {
-	return context.WithValue(ctx, contextKeyContainer, container)
+	return restfulcontext.ContextContainer().Set(ctx, container)
 }
 
+// Deprecated.
 func ContainerFromContext(ctx context.Context) *restful.Container {
-	if v := ctx.Value(contextKeyContainer); v != nil {
-		if r, ok := v.(*restful.Container); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid container in context: %+v", v)
-	}
-	return nil
+	return restfulcontext.ContextContainer().Get(ctx)
 }
 
+// Deprecated.
 func ContextWithRouter(ctx context.Context, router restful.RouteSelector) context.Context {
-	return context.WithValue(ctx, contextKeyRouter, router)
+	return restfulcontext.ContextRouteSelector().Set(ctx, router)
 }
 
+// Deprecated.
 func RouterFromContext(ctx context.Context) restful.RouteSelector {
-	if v := ctx.Value(contextKeyRouter); v != nil {
-		if r, ok := v.(restful.RouteSelector); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid router in context: %+v", v)
-	}
-	return nil
+	return restfulcontext.ContextRouteSelector().Get(ctx)
 }
 
+// Deprecated.
 func ContextWithService(ctx context.Context, service *restful.WebService) context.Context {
-	return context.WithValue(ctx, contextKeyService, service)
+	return restfulcontext.ContextWebService().Set(ctx, service)
 }
 
+// Deprecated.
 func ServiceFromContext(ctx context.Context) *restful.WebService {
-	if v := ctx.Value(contextKeyService); v != nil {
-		if r, ok := v.(*restful.WebService); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid web service in context: %+v", v)
-	}
-	return nil
+	return restfulcontext.ContextWebService().Get(ctx)
 }
 
+// Deprecated.
 func ContextWithRoute(ctx context.Context, route *restful.Route) context.Context {
-	return context.WithValue(ctx, contextKeyRoute, route)
+	return restfulcontext.ContextRoute().Set(ctx, route)
 }
 
+// Deprecated.
 func RouteFromContext(ctx context.Context) *restful.Route {
-	if v := ctx.Value(contextKeyRoute); v != nil {
-		if r, ok := v.(*restful.Route); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid route in context: %+v", v)
-	}
-	return nil
+	return restfulcontext.ContextRoute().Get(ctx)
 }
 
+// Deprecated.
 func ContextWithRouteOperation(ctx context.Context, operation string) context.Context {
-	return context.WithValue(ctx, contextKeyOperation, operation)
+	return restfulcontext.ContextOperationName().Set(ctx, operation)
 }
 
+// Deprecated.
 func RouteOperationFromContext(ctx context.Context) string {
-	if v := ctx.Value(contextKeyOperation); v != nil {
-		if r, ok := v.(string); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid route operation in context: %+v", v)
-	}
-	return ""
+	return restfulcontext.ContextOperationName().Get(ctx)
 }
 
 func ContextWithSecurityProvider(ctx context.Context, provider AuthenticationProvider) context.Context {
@@ -128,16 +103,12 @@ func AuthenticationProviderFromContext(ctx context.Context) AuthenticationProvid
 	return nil
 }
 
+// Deprecated.
 func ContextWithFilters(ctx context.Context, filters ...restful.FilterFunction) context.Context {
-	return context.WithValue(ctx, contextKeyFilters, filters)
+	return restfulcontext.ContextFilterFunctions().Set(ctx, filters)
 }
 
+// Deprecated.
 func FiltersFromContext(ctx context.Context) []restful.FilterFunction {
-	if v := ctx.Value(contextKeyFilters); v != nil {
-		if r, ok := v.([]restful.FilterFunction); ok {
-			return r
-		}
-		logger.WithContext(ctx).Errorf("Invalid filters in context: %+v", v)
-	}
-	return nil
+	return restfulcontext.ContextFilterFunctions().Get(ctx)
 }

@@ -6,6 +6,7 @@ package swaggerprovider
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
@@ -30,6 +31,8 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 				Enabled:     false,
 				ApiPath:     "/apidocs.json",
 				SwaggerPath: "/swagger-resources",
+				ApiYamlPath: "/apidocs.yml",
+				Version:     "2.0",
 				Security: DocumentationSecurityConfig{
 					Sso: DocumentationSecuritySsoConfig{
 						BaseUrl:       "http://localhost:9103/idm",
@@ -43,6 +46,11 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					Enabled:  true,
 					Endpoint: "/swagger",
 					View:     "/swagger-ui.html",
+				},
+				Server: DocumentationServerConfig{
+					Host:        "localhost",
+					Port:        0,
+					ContextPath: "/",
 				},
 			},
 		},
@@ -57,6 +65,8 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 				Enabled:     true,
 				ApiPath:     "/apidocs.json",
 				SwaggerPath: "/swagger-resources",
+				ApiYamlPath: "/apidocs.yml",
+				Version:     "2.0",
 				Security: DocumentationSecurityConfig{
 					Sso: DocumentationSecuritySsoConfig{
 						BaseUrl:       "http://localhost:9103/idm",
@@ -71,6 +81,11 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					Endpoint: "/swagger",
 					View:     "/swagger-ui.html",
 				},
+				Server: DocumentationServerConfig{
+					Host:        "localhost",
+					Port:        0,
+					ContextPath: "/",
+				},
 			},
 		},
 	}
@@ -82,7 +97,7 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DocumentationConfigFromConfig() got = %v, want %v", got, tt.want)
+				t.Errorf(testhelpers.Diff(tt.want, got))
 			}
 		})
 	}

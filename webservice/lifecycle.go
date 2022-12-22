@@ -31,7 +31,7 @@ func Stop(ctx context.Context) error {
 	return service.StopServing(ctx)
 }
 
-// ConfigureWebServer creates a new WebServer from the supplied configuration
+// NewWebServerFromConfig creates a new WebServer from the supplied configuration
 func NewWebServerFromConfig(cfg *config.Config, ctx context.Context) (*WebServer, error) {
 	webServerConfig, err := NewWebServerConfig(cfg)
 	if err != nil {

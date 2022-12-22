@@ -48,7 +48,10 @@ func (h *Provider) generateEndpoints(container *restful.Container) {
 
 	for _, ws := range container.RegisteredWebServices() {
 		for _, route := range ws.Routes() {
-			permissions, _ := route.Metadata[webservice.MetadataPermissions].([]string)
+			permissions, ok := webservice.PermissionsFromRoute(route)
+			if !ok {
+				logger.Warnf("Route has no permissions defined: %s %s", route.Method, route.Path)
+			}
 			if len(permissions) == 0 {
 				permissions = []string{"NO_PERMISSION"}
 			}

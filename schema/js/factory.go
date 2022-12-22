@@ -4,7 +4,9 @@
 
 package js
 
-import "github.com/swaggest/jsonschema-go"
+import (
+	"github.com/swaggest/jsonschema-go"
+)
 
 func NewType(simpleType jsonschema.SimpleType) *jsonschema.Type {
 	val := simpleType.Type()
@@ -34,12 +36,16 @@ func IntegerSchema() *jsonschema.Schema {
 func ArraySchema(items jsonschema.Schema) *jsonschema.Schema {
 	return NewSchemaPtr(jsonschema.Array).
 		WithItems(*(&jsonschema.Items{}).
-			WithSchemaArray(items.
+			WithSchemaOrBool(items.
 				ToSchemaOrBool()))
 }
 
 func ObjectSchema() *jsonschema.Schema {
 	return NewSchemaPtr(jsonschema.Object)
+}
+
+func AnySchema() *jsonschema.Schema {
+	return &jsonschema.Schema{}
 }
 
 func MapSchema(additionalProperties *jsonschema.Schema) *jsonschema.Schema {

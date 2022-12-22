@@ -5,6 +5,9 @@
 package ops
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/sanitize"
+	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/swaggest/jsonschema-go"
 	"reflect"
@@ -65,11 +68,26 @@ func PortFieldHasPeer(peer string) PortFieldPredicate {
 	}
 }
 
+type PortFieldElementType struct {
+	Indices  []int
+	Optional bool
+	PortFieldType
+}
+
+func (t PortFieldElementType) WithIndirections(n int) PortFieldElementType {
+	t.PortFieldType.Indirections = n
+	return t
+}
+
 type PortFieldType struct {
 	Shape        string // Primitive, Array, Object, File, FileArray, Reader, Unknown
 	Type         reflect.Type
 	Indirections int
 	HandlerType  reflect.Type
+	Items        *PortFieldElementType  // array/slice elements
+	Keys         *PortFieldElementType  // map keys
+	Values       *PortFieldElementType  // map values
+	Fields       []PortFieldElementType // struct fields
 }
 
 func PortFieldTypeFromType(t reflect.Type, shape string) PortFieldType {
@@ -97,9 +115,14 @@ type PortField struct {
 	Peer     string
 	Group    string
 	Optional bool
+	PortType string
 	Type     PortFieldType
 	Options  map[string]string
 	Baggage  map[interface{}]interface{}
+}
+
+func (p *PortField) SanitizeOptions() sanitize.Options {
+	return sanitize.NewOptions(p.Options["san"])
 }
 
 func (p *PortField) WithOptional(optional bool) *PortField {
@@ -167,7 +190,7 @@ func (p *PortField) ExpectShape(shape string) error {
 	return nil
 }
 
-func (p *PortField) optionToShapedValue(optionName string) interface{} {
+func (p *PortField) optionToShapedValue(optionName string) (value interface{}) {
 	d, ok := p.Options[optionName]
 	if !ok {
 		return nil
@@ -175,12 +198,15 @@ func (p *PortField) optionToShapedValue(optionName string) interface{} {
 
 	switch p.Type.Shape {
 	case FieldShapePrimitive:
-		return d
+		value = d
 	case FieldShapeArray:
-		return strings.Split(d, ",")
+		value = strings.Split(d, ",")
+	case FieldShapeObject, FieldShapeAny:
+		_ = json.Unmarshal([]byte(d), &value)
+		return
 	}
 
-	return nil
+	return
 
 }
 
@@ -192,13 +218,31 @@ func (p *PortField) Const() interface{} {
 	return p.optionToShapedValue("const")
 }
 
-func NewPortField(name, peer, group string, optional bool, typ PortFieldType, indices []int) *PortField {
+func (p *PortField) Tags() reflect.StructTag {
+	sb := strings.Builder{}
+
+	sb.WriteString(fmt.Sprintf("%s:%q ", p.PortType, fmt.Sprintf("%s=%s", p.Group, p.Peer)))
+	for k, v := range p.Options {
+		sb.WriteString(fmt.Sprintf("%s:%q ", k, fmt.Sprintf("%v", v)))
+	}
+
+	if p.Optional {
+		sb.WriteString(`optional="true"`)
+	} else {
+		sb.WriteString(`optional="false"`)
+	}
+
+	return reflect.StructTag(sb.String())
+}
+
+func NewPortField(name, peer, group string, optional bool, portType string, typ PortFieldType, indices []int) *PortField {
 	return &PortField{
 		Name:     name,
 		Indices:  indices,
 		Peer:     peer,
 		Group:    group,
 		Optional: optional,
+		PortType: portType,
 		Type:     typ,
 		Options:  make(map[string]string),
 		Baggage:  make(map[interface{}]interface{}),

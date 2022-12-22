@@ -16,7 +16,7 @@ type MsxEnvelope struct {
 	HttpStatus string                 `json:"httpStatus"`
 	Message    string                 `json:"message"`
 	Params     map[string]interface{} `json:"params"`
-	Payload    interface{}            `json:"responseObject"`
+	Payload    interface{}            `json:"responseObject" inject:"Envelope"`
 	Success    bool                   `json:"success"`
 	Throwable  *Throwable             `json:"throwable,omitempty"`
 }

@@ -18,7 +18,7 @@ func TestActivateCors(t *testing.T) {
 	corsConfig := CorsConfig{Enabled: true}
 	ActivateCors(container, corsConfig)
 
-	new(RouteBuilderTest).
+	new(webservicetest.RouteBuilderTest).
 		WithRequestMethod("OPTIONS").
 		WithRequestPath("/api/v1/service").
 		WithRequestHeader("Origin", "localhost").
@@ -43,7 +43,7 @@ func Test_corsFilter(t *testing.T) {
 	}{
 		{
 			name: "Root",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/service").
 				WithRequestHeader("Origin", "localhost").
@@ -58,7 +58,7 @@ func Test_corsFilter(t *testing.T) {
 		},
 		{
 			name: "Parameter",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/service/my-service-id").
 				WithRequestHeader("Origin", "localhost").
@@ -73,7 +73,7 @@ func Test_corsFilter(t *testing.T) {
 		},
 		{
 			name: "NoEndpoints",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/services").
 				WithRequestHeader("Origin", "localhost").
@@ -83,7 +83,7 @@ func Test_corsFilter(t *testing.T) {
 		},
 		{
 			name: "NonOptions",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("POST").
 				WithRequestPath("/api/v1/services").
 				WithRequestHeader("Origin", "localhost").
@@ -93,7 +93,7 @@ func Test_corsFilter(t *testing.T) {
 		},
 		{
 			name: "NonCors",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/service/my-service-id").
 				WithRequestHeader("Origin", "localhost").
@@ -240,7 +240,7 @@ func Test_optionsHandler(t *testing.T) {
 	}{
 		{
 			name: "Root",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/service").
 				WithRouteFilter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
@@ -251,7 +251,7 @@ func Test_optionsHandler(t *testing.T) {
 		},
 		{
 			name: "Parameter",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/service/my-service-id").
 				WithRouteFilter(func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
@@ -262,7 +262,7 @@ func Test_optionsHandler(t *testing.T) {
 		},
 		{
 			name: "NoEndpoints",
-			test: new(RouteBuilderTest).
+			test: new(webservicetest.RouteBuilderTest).
 				WithRequestMethod("OPTIONS").
 				WithRequestPath("/api/v1/services").
 				WithRequestHeader("Origin", "localhost").
@@ -329,11 +329,11 @@ func testCorsContainer() *restful.Container {
 	container := restful.NewContainer()
 	ws := new(restful.WebService)
 	ws.Path("/api/v1/service")
-	ws.Route(ws.GET("").To(RouteBuilderTest{}.defaultTarget))
-	ws.Route(ws.GET("/{serviceId}").To(RouteBuilderTest{}.defaultTarget))
-	ws.Route(ws.POST("").To(RouteBuilderTest{}.defaultTarget))
-	ws.Route(ws.PUT("/{serviceId}").To(RouteBuilderTest{}.defaultTarget))
-	ws.Route(ws.DELETE("/{serviceId}").To(RouteBuilderTest{}.defaultTarget))
+	ws.Route(ws.GET("").To(webservicetest.RouteBuilderTest{}.DefaultTarget))
+	ws.Route(ws.GET("/{serviceId}").To(webservicetest.RouteBuilderTest{}.DefaultTarget))
+	ws.Route(ws.POST("").To(webservicetest.RouteBuilderTest{}.DefaultTarget))
+	ws.Route(ws.PUT("/{serviceId}").To(webservicetest.RouteBuilderTest{}.DefaultTarget))
+	ws.Route(ws.DELETE("/{serviceId}").To(webservicetest.RouteBuilderTest{}.DefaultTarget))
 	container.Add(ws)
 	return container
 }

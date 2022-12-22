@@ -36,8 +36,16 @@ func Diff(expected interface{}, actual interface{}) string {
 		return fmt.Sprintf("Types do not match: expected %q, actual %q", et.String(), at.String())
 	}
 
-	if ek != reflect.Struct && ek != reflect.Map && ek != reflect.Slice && ek != reflect.Array {
+	switch ek {
+	case reflect.String, reflect.Bool, reflect.Float32, reflect.Float64,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Struct, reflect.Map, reflect.Slice, reflect.Array:
+		break
+
+	default:
 		return ""
+
 	}
 
 	e := spewConfig.Sdump(expected)
