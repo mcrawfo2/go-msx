@@ -21,9 +21,6 @@ resources:
 #if REPOSITORY_COCKROACH
     - "/**/*.sql"
 #endif REPOSITORY_COCKROACH
-#if REPOSITORY_CASSANDRA
-    - "/**/*.cql"
-#endif REPOSITORY_CASSANDRA
     - "/internal/populate/**/*"
 
 populate:

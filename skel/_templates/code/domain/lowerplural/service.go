@@ -4,8 +4,6 @@ import (
 	"context"
 	//#if REPOSITORY_COCKROACH
 	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
-	//#else REPOSITORY_COCKROACH
-	db "cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	//#endif REPOSITORY_COCKROACH
 
 	//#if TENANT_DOMAIN

@@ -110,7 +110,6 @@ func NewRenderOptions() RenderOptions {
 			"server.contextpath.noroot":    strings.TrimPrefix(path.Clean(skeletonConfig.ServerContextPath), "/"),
 			"kubernetes.group":             skeletonConfig.KubernetesGroup,
 			"target.dir":                   skeletonConfig.TargetDirectory(),
-			"repository.cassandra.enabled": strconv.FormatBool(skeletonConfig.Repository == "cassandra"),
 			"repository.cockroach.enabled": strconv.FormatBool(skeletonConfig.Repository == "cockroach"),
 			"jenkins.publish.trunk":        strconv.FormatBool(skeletonConfig.KubernetesGroup != "platformms"),
 			"generator":                    skeletonConfig.Archetype,
@@ -121,7 +120,6 @@ func NewRenderOptions() RenderOptions {
 		},
 		Conditions: map[string]bool{
 			"REPOSITORY_COCKROACH":   skeletonConfig.Repository == "cockroach",
-			"REPOSITORY_CASSANDRA":   skeletonConfig.Repository == "cassandra",
 			"GENERATOR_APP":          skeletonConfig.Archetype == archetypeKeyApp,
 			"NOT_GENERATOR_BEAT":     skeletonConfig.Archetype != archetypeKeyBeat,
 			"GENERATOR_BEAT":         skeletonConfig.Archetype == archetypeKeyBeat,
