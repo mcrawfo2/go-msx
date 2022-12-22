@@ -8,6 +8,8 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
 )
 
 type contextKey string
@@ -54,6 +56,14 @@ func ContextGoquRepository() types.ContextKeyAccessor[GoquRepositoryApi] {
 }
 
 func ContextTypedRepository[I any](table string) types.ContextKeyAccessor[TypedRepositoryApi[I]] {
-	contextKey := contextKey(contextKeyRepositoryTypedPrefix + table)
-	return types.NewContextKeyAccessor[TypedRepositoryApi[I]](contextKey)
+	var def I
+	var contextKeyName = strings.Join(
+		[]string{
+			contextKeyRepositoryTypedPrefix,
+			table,
+			reflect.TypeOf(def).Name(),
+		},
+		".",
+	)
+	return types.NewContextKeyAccessor[TypedRepositoryApi[I]](contextKey(contextKeyName))
 }

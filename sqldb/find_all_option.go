@@ -28,7 +28,7 @@ func Keys(keys KeysOption) FindAllOption {
 	}
 }
 
-func Distinct(distinct []string) FindAllOption {
+func Distinct(distinct ...string) FindAllOption {
 	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
 		ds = ds.Distinct(strings.Join(distinct, ","))
 		return ds, pgReq
