@@ -93,49 +93,16 @@
         </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
         <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
             <triggers>
-                <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.42.1">
-                    <spec>H/5 * * * *</spec>
-                    <configVersion>3</configVersion>
-                    <adminlist>nfv-admin-gen
-                    </adminlist>
-                    <allowMembersOfWhitelistedOrgsAsAdmin>false</allowMembersOfWhitelistedOrgsAsAdmin>
-                    <orgslist/>
-                    <cron>H/5 * * * *</cron>
-                    <buildDescTemplate/>
-                    <onlyTriggerPhrase>false</onlyTriggerPhrase>
-                    <useGitHubHooks>false</useGitHubHooks>
-                    <permitAll>true</permitAll>
-                    <whitelist/>
-                    <autoCloseFailedPullRequests>false</autoCloseFailedPullRequests>
-                    <displayBuildErrorsOnDownstreamBuilds>false</displayBuildErrorsOnDownstreamBuilds>
-                    <whiteListTargetBranches>
-                        <org.jenkinsci.plugins.ghprb.GhprbBranch>
-                            <branch/>
-                        </org.jenkinsci.plugins.ghprb.GhprbBranch>
-                    </whiteListTargetBranches>
-                    <blackListTargetBranches>
-                        <org.jenkinsci.plugins.ghprb.GhprbBranch>
-                            <branch/>
-                        </org.jenkinsci.plugins.ghprb.GhprbBranch>
-                    </blackListTargetBranches>
-                    <gitHubAuthId>5eb29d4c-e6a0-4971-8a60-3cc5ea9fcf3b</gitHubAuthId>
-                    <triggerPhrase/>
-                    <skipBuildPhrase>.*\[skip\W+ci\].*</skipBuildPhrase>
-                    <blackListCommitAuthor/>
-                    <blackListLabels/>
-                    <whiteListLabels/>
-                    <includedRegions/>
-                    <excludedRegions/>
-                    <extensions>
-                        <org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
-                            <commitStatusContext/>
-                            <triggeredStatus/>
-                            <startedStatus/>
-                            <statusUrl/>
-                            <addTestResults>false</addTestResults>
-                        </org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
-                    </extensions>
-                </org.jenkinsci.plugins.ghprb.GhprbTrigger>
+                <org.jfrog.hudson.trigger.ArtifactoryTrigger plugin="artifactory@3.16.1">
+                    <spec>H 2 * * *</spec>
+                    <lastModified>1671634284851</lastModified>
+                    <details>
+                        <artifactoryName>engci-maven-master.cisco.com</artifactoryName>
+                        <stagingPlugin/>
+                    </details>
+                    <branches/>
+                    <paths>symphony-release/com/cisco/vms/manifest/stage1-stable/msxbase-amazon-manifest/</paths>
+                </org.jfrog.hudson.trigger.ArtifactoryTrigger>
                 <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.5">
                     <spec/>
                 </com.cloudbees.jenkins.GitHubPushTrigger>
@@ -154,6 +121,9 @@
             <branches>
                 <hudson.plugins.git.BranchSpec>
                     <name>*/${trunk}</name>
+                </hudson.plugins.git.BranchSpec>
+                <hudson.plugins.git.BranchSpec>
+                    <name>*/release/*</name>
                 </hudson.plugins.git.BranchSpec>
             </branches>
             <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
