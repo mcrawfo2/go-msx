@@ -135,7 +135,7 @@ func (r EndpointResponse) WithOutputs(portStruct interface{}) EndpointResponse {
 
 	port, err := PortReflector{}.ReflectOutputPort(portStructType)
 	if err != nil {
-		logger.WithError(err).Error("Failed to reflect request input port")
+		logger.WithError(err).Error("Failed to reflect response output port")
 		return result
 	}
 
