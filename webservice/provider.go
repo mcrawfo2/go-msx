@@ -12,6 +12,7 @@ package webservice
 import (
 	"github.com/emicklei/go-restful"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -34,11 +35,37 @@ type HttpHandler interface {
 }
 
 type StaticAlias struct {
-	Path string
-	File string
+	ContextPath string
+	Path        string
+	File        string
 }
 
-func (a StaticAlias) Alias(path string) string {
-	p := strings.TrimSuffix(path, a.Path)
-	return p + a.File
+func (a StaticAlias) Alias(originalPath string) string {
+	patternParts := strings.Split(strings.Trim(a.Path, "/"), "/")
+
+	originalPath = strings.TrimPrefix(originalPath, a.ContextPath)
+	originalPathParts := strings.Split(strings.Trim(originalPath, "/"), "/")
+
+	// consume originalPathParts
+	originalIndex := 0
+	for patternIndex := 0; patternIndex < len(patternParts); patternIndex++ {
+		patternPart := patternParts[patternIndex]
+
+		switch {
+		case len(patternPart) == 0:
+			continue
+
+		case patternPart[0] == '{':
+			if strings.Index(patternPart, ":*") != -1 {
+				originalIndex = len(originalPathParts)
+			}
+
+		default:
+			originalIndex++
+		}
+	}
+
+	originalPathParts = originalPathParts[originalIndex:]
+	subPath := path.Join(originalPathParts...)
+	return path.Join(a.ContextPath, subPath, a.File)
 }
