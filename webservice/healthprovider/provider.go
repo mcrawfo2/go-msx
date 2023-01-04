@@ -18,12 +18,22 @@ import (
 
 const endpointName = "health"
 
-type HealthProvider struct{}
+const showDetailsAlways = "ALWAYS"
+const showDetailsNever = "NEVER"
+const showDetailsWhenAuthorized = "WHEN_AUTHORIZED"
+
+type HealthProvider struct {
+	cfg *webservice.ManagementEndpointConfig
+}
 
 func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) {
 	ctx := req.Request.Context()
 	userContext := security.UserContextFromContext(ctx)
-	if userContext != nil && userContext.Token != "" {
+
+	details := (h.cfg.ShowDetails == showDetailsAlways) ||
+		(h.cfg.ShowDetails == showDetailsWhenAuthorized && (userContext != nil && userContext.Token != ""))
+
+	if details {
 		return health.GenerateReport(ctx), nil
 	} else {
 		return health.GenerateSummary(ctx), nil
@@ -104,7 +114,15 @@ func (h HealthProvider) Actuate(healthService *restful.WebService) error {
 func RegisterProvider(ctx context.Context) error {
 	server := webservice.WebServerFromContext(ctx)
 	if server != nil {
-		server.RegisterActuator(new(HealthProvider))
+		cfg, err := webservice.NewManagementEndpointConfig(ctx, "health")
+		if err != nil {
+			return err
+		}
+
+		provider := new(HealthProvider)
+		provider.cfg = cfg
+
+		server.RegisterActuator(provider)
 		adminprovider.RegisterLink("health", "health", false)
 		adminprovider.RegisterLink("health-component", "health/{component}", true)
 	}
