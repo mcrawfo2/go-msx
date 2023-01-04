@@ -132,9 +132,27 @@ func ExampleInterceptor() ReflectContextOptionFunc {
 	})
 }
 
+func NullabilityInterceptor(in jsonschema.InterceptNullabilityParams) {
+	if in.Schema.Type == nil {
+		return
+	}
+
+	if len(in.Schema.AnyOf) != 2 {
+		return
+	}
+
+	if in.OrigSchema.HasType(jsonschema.Object) &&
+		in.Schema.AnyOf[0].IsTrivial() &&
+		in.Schema.AnyOf[0].TypeObject != nil &&
+		in.Schema.AnyOf[0].TypeObject.HasType(jsonschema.Null) {
+		in.Schema.Type = nil
+	}
+}
+
 func EnvelopNullability() ReflectContextOptionFunc {
 	return func(rc *jsonschema.ReflectContext) {
 		rc.EnvelopNullability = true
+		rc.InterceptNullability = NullabilityInterceptor
 	}
 }
 
