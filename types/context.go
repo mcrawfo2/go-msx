@@ -19,6 +19,11 @@ func (a ContextKeyAccessor[T]) Get(ctx context.Context) T {
 	return value
 }
 
+func (a ContextKeyAccessor[T]) TryGet(ctx context.Context) (def T, ok bool) {
+	def, ok = ctx.Value(a.key).(T)
+	return
+}
+
 func (a ContextKeyAccessor[T]) Set(ctx context.Context, value T) context.Context {
 	return context.WithValue(ctx, a.key, value)
 }
