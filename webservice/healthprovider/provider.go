@@ -30,10 +30,10 @@ func (h HealthProvider) healthReport(req *restful.Request) (interface{}, error) 
 	ctx := req.Request.Context()
 	userContext := security.UserContextFromContext(ctx)
 
-	details := (h.cfg.ShowDetails == showDetailsAlways) ||
+	isReport := (h.cfg.ShowDetails == showDetailsAlways) ||
 		(h.cfg.ShowDetails == showDetailsWhenAuthorized && (userContext != nil && userContext.Token != ""))
 
-	if details {
+	if isReport {
 		return health.GenerateReport(ctx), nil
 	} else {
 		return health.GenerateSummary(ctx), nil
