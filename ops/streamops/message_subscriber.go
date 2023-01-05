@@ -338,7 +338,10 @@ func (m *MessageSubscriberHandlerContext) GenerateArgument(ctx context.Context, 
 func (m *MessageSubscriberHandlerContext) HandleResult(t types.HandlerValueType, v reflect.Value) (err error) {
 	switch t.ValueType {
 	case errorType:
-		err = v.Interface().(error)
+		erri := v.Interface()
+		if erri != nil {
+			err = erri.(error)
+		}
 	default:
 		err = errors.Wrapf(types.ErrUnknownValueType, "%v", t)
 	}
