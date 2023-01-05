@@ -1,3 +1,7 @@
+// Copyright © 2023, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 package v2
 
 import (
@@ -141,27 +145,26 @@ func NewEndpointBuilder(archetype string, pathParts ...string) *EndpointBuilder 
 	}
 }
 
-func NewListEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeList, path)
+func NewListEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeList, path...)
 }
 
-func NewRetrieveEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeRetrieve, path)
-
+func NewRetrieveEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeRetrieve, path...)
 }
 
-func NewCreateEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeCreate, path)
+func NewCreateEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeCreate, path...)
 }
 
-func NewUpdateEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeUpdate, path)
+func NewUpdateEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeUpdate, path...)
 }
 
-func NewDeleteEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeDelete, path)
+func NewDeleteEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeDelete, path...)
 }
 
-func NewCommandEndpointBuilder(path string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeCommand, path)
+func NewCommandEndpointBuilder(path ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeCommand, path...)
 }

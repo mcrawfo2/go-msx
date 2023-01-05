@@ -117,8 +117,9 @@ func (s *WebServer) RegisterInjector(injector types.ContextInjector) {
 // RegisterAlias registers a static file alias
 func (s *WebServer) RegisterAlias(path, file string) {
 	s.aliases = append(s.aliases, StaticAlias{
-		Path: path,
-		File: file,
+		ContextPath: s.cfg.ContextPath,
+		Path:        path,
+		File:        file,
 	})
 }
 

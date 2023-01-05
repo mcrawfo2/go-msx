@@ -94,11 +94,16 @@ func (o *MessageSubscriberBuilder) Build() (ms *MessageSubscriber, err error) {
 		return nil, errors.Wrap(err, "Failed to create handler")
 	}
 
+	call := types.
+		NewOperation(handler.Call).
+		WithDecorator(types.RecoverErrorDecorator).
+		Run
+
 	result := &MessageSubscriber{
 		name:                 o.Name,
 		channelSubscriber:    o.ChannelSubscriber,
 		inputPort:            inputPort,
-		handler:              handler.Call,
+		handler:              call,
 		filters:              o.Filters,
 		documentors:          o.Documentors,
 		metadataFilterValues: o.MetadataFilterValues,
@@ -338,7 +343,10 @@ func (m *MessageSubscriberHandlerContext) GenerateArgument(ctx context.Context, 
 func (m *MessageSubscriberHandlerContext) HandleResult(t types.HandlerValueType, v reflect.Value) (err error) {
 	switch t.ValueType {
 	case errorType:
-		err = v.Interface().(error)
+		erri := v.Interface()
+		if erri != nil {
+			err = erri.(error)
+		}
 	default:
 		err = errors.Wrapf(types.ErrUnknownValueType, "%v", t)
 	}

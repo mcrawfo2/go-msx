@@ -41,6 +41,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/lib/pq v1.10.6
+	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1
 	github.com/mcrawfo2/go-jsonschema v1.0.4
 	github.com/mcrawfo2/jennifer v1.5.2
@@ -66,8 +67,8 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
-	github.com/swaggest/jsonschema-go v0.3.37
-	github.com/swaggest/openapi-go v0.2.10
+	github.com/swaggest/jsonschema-go v0.3.43
+	github.com/swaggest/openapi-go v0.2.26
 	github.com/swaggest/refl v1.1.0
 	github.com/thejerf/abtime v1.0.3
 	github.com/tidwall/gjson v1.9.3
@@ -81,8 +82,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	moul.io/banner v1.0.1
 )
-
-require github.com/lithammer/dedent v1.1.0
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
@@ -113,6 +112,7 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -143,6 +143,7 @@ require (
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

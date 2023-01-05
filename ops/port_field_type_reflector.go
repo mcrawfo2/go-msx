@@ -58,7 +58,9 @@ func (f PortFieldTypeReflectorFunc) ReflectPortFieldType(t reflect.Type) (PortFi
 }
 
 type DefaultPortFieldTypeReflector struct {
-	Direction PortDirection
+	Direction         PortDirection
+	OnReflectIndirect PortFieldTypeReflector
+	OnReflectDirect   PortFieldTypeReflector
 }
 
 func (r DefaultPortFieldTypeReflector) ReflectPortFieldType(t reflect.Type) (PortFieldType, bool) {
@@ -71,6 +73,13 @@ func (r DefaultPortFieldTypeReflector) ReflectPortFieldType(t reflect.Type) (Por
 
 // reflectIndirect identifies types that are required to be pointers.
 func (r DefaultPortFieldTypeReflector) reflectIndirect(t reflect.Type) (portFieldType PortFieldType, optional bool) {
+	if r.OnReflectIndirect != nil {
+		portFieldType, optional = r.OnReflectIndirect.ReflectPortFieldType(t)
+		if portFieldType.Shape != "" {
+			return
+		}
+	}
+
 	switch t {
 	case MultipartFileHeaderPtrType:
 		portFieldType = PortFieldTypeFromType(t, FieldShapeFile)
@@ -86,6 +95,13 @@ func (r DefaultPortFieldTypeReflector) reflectIndirect(t reflect.Type) (portFiel
 
 // reflectDirect identifies types that are not pointers.
 func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldType PortFieldType, optional bool) {
+	if r.OnReflectDirect != nil {
+		portFieldType, optional = r.OnReflectDirect.ReflectPortFieldType(t)
+		if portFieldType.Shape != "" {
+			return
+		}
+	}
+
 	// Concrete Types
 	switch t {
 	case Base64BytesType:

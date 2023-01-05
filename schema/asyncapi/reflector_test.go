@@ -5,6 +5,7 @@
 package asyncapi
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/jsonschema-go"
 	"testing"
@@ -16,6 +17,11 @@ type TestStructA struct {
 
 type TestStructB struct {
 	C TestEnum `json:"c"`
+}
+
+type TestStructD struct {
+	One *TestStructB `json:"one"`
+	Two *TestStructB `json:"two"`
 }
 
 type TestEnum string
@@ -48,4 +54,16 @@ func TestReflect(t *testing.T) {
 	schema, err = Reflect(TestEnum(""))
 	assert.NoError(t, err)
 	assert.NotNil(t, schema.Ref)
+}
+
+func TestReflect2(t *testing.T) {
+	schema, err := Reflect(TestStructD{})
+	assert.NoError(t, err)
+	assert.NotNil(t, schema.Ref)
+
+	refSchema, ok := LookupSchema("asyncapi.TestStructD")
+	assert.True(t, ok)
+
+	refSchemaBytes, _ := json.MarshalIndent(refSchema, "", " ")
+	t.Log(string(refSchemaBytes))
 }
