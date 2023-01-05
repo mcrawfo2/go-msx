@@ -27,10 +27,12 @@
 package lru
 
 import (
-	"github.com/benbjohnson/clock"
+	"github.com/thejerf/abtime"
 	"sync"
 	"time"
 )
+
+const sleeperId = 0xa83b1927ade939
 
 type Cache interface {
 	Get(key string) (any, bool)
@@ -40,15 +42,17 @@ type Cache interface {
 
 type HeapMapCache struct {
 	sync.RWMutex
-	ttl             time.Duration     // period before expiry
-	index           map[string]*entry // entries indexed by key
-	collected       []string          // temp garbage collection space
-	expireFrequency time.Duration     // garbage collection frequency
-	deAgeOnAccess   bool              // reset TTL on access or update
-	timeSource      clock.Clock       // for test double
-	metrics         bool              // enable metrics collection
-	metricsPrefix   string            // prefix for metrics
-	metricsObs      metricsObserver   // the metrics for the cache
+	ttl             time.Duration       // period before expiry
+	index           map[string]*entry   // entries indexed by key
+	collected       []string            // temp garbage collection space
+	expireFrequency time.Duration       // garbage collection frequency
+	deAgeOnAccess   bool                // reset TTL on access or update
+	timeSource      abtime.AbstractTime // for test double
+	metrics         bool                // enable metrics collection
+	metricsPrefix   string              // prefix for metrics
+	metricsObs      metricsObserver     // the metrics for the cache
+	shutdown        bool                // stop running the ticker since the test has completed
+	expired         chan struct{}       // await the expiry ticker completion
 }
 
 // entry is an individual entry in the cache.
@@ -62,7 +66,7 @@ type entry struct {
 // metrics and metricsPrefix settings
 // New uses should call this constructor instead of NewCache
 func NewCache2(ttl time.Duration, expireLimit int, expireFrequency time.Duration,
-	deageonaccess bool, timeSource clock.Clock,
+	deageonaccess bool, timeSource abtime.AbstractTime,
 	metrics bool, metricsPrefix string) *HeapMapCache {
 
 	c := &HeapMapCache{
@@ -156,8 +160,15 @@ func (c *HeapMapCache) Clear() {
 
 func (c *HeapMapCache) tick() {
 	for {
-		c.timeSource.Sleep(c.expireFrequency)
+		c.timeSource.Sleep(c.expireFrequency, sleeperId)
 		c.expire()
+		if c.expired != nil {
+			c.expired <- struct{}{}
+		}
+		if c.shutdown {
+			close(c.expired)
+			return
+		}
 	}
 }
 
@@ -192,12 +203,12 @@ func (c *HeapMapCache) collect() int {
 
 // NewCache creates a new cache with the given TTL, ExpireLimit & ExpireFrequency
 func NewCache(ttl time.Duration, expireLimit int,
-	expireFrequency time.Duration, timeSource clock.Clock) *HeapMapCache {
+	expireFrequency time.Duration, timeSource abtime.AbstractTime) *HeapMapCache {
 	return NewCache2(ttl, expireLimit, expireFrequency, false, timeSource, false, "")
 }
 
 // NewCacheFromConfig creates a new cache with the given config.
 func NewCacheFromConfig(cfg *CacheConfig) *HeapMapCache {
 	return NewCache2(cfg.Ttl, cfg.ExpireLimit, cfg.ExpireFrequency,
-		cfg.DeAgeOnAccess, clock.New(), cfg.Metrics, cfg.MetricsPrefix)
+		cfg.DeAgeOnAccess, abtime.NewRealTime(), cfg.Metrics, cfg.MetricsPrefix)
 }
