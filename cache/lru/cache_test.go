@@ -5,21 +5,26 @@
 package lru
 
 import (
-	"github.com/benbjohnson/clock"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/thejerf/abtime"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
 
-func testCache(ttl time.Duration, expireLimit int, age bool,
-	metrics bool, prefix string) (*HeapMapCache, *clock.Mock) {
-	mockClock := clock.NewMock()
-	return NewCache2(ttl, expireLimit, 500*time.Millisecond, age, mockClock, metrics, prefix), mockClock
+func advanceCache(cache *HeapMapCache, clock *abtime.ManualTime, period time.Duration) {
+	clock.Advance(period)
+	ticks := period
+	for ticks >= 0 {
+		clock.Trigger(sleeperId)
+		<-cache.expired
+		ticks -= cache.expireFrequency
+	}
 }
 
 func TestHeapMapCache(t *testing.T) {
-
 	type kvpair struct {
 		key   string
 		value interface{}
@@ -78,7 +83,6 @@ func TestHeapMapCache(t *testing.T) {
 			want:   "value2",
 			wantOk: true,
 		},
-
 		{
 			name: "Missing",
 			setArgs: kvpair{
@@ -98,30 +102,107 @@ func TestHeapMapCache(t *testing.T) {
 			advance: time.Second + time.Millisecond,
 			wantOk:  false,
 		},
+		{
+			name: "DeageClean",
+			setArgs: kvpair{
+				key:   "key1",
+				value: "value1",
+			},
+			getKey: "key1",
+			want:   "value1",
+			wantOk: true,
+		},
+		{
+			name: "DeageOverwrite",
+			preset: []kvpair{
+				{
+					key:   "key1",
+					value: "value2",
+				},
+				{
+					key:   "key2",
+					value: "value3",
+				},
+			},
+			setArgs: kvpair{
+				key:   "key1",
+				value: "value1",
+			},
+			getKey: "key1",
+			want:   "value1",
+			wantOk: true,
+		},
+		{
+			name: "DeageExpand",
+			preset: []kvpair{{
+				key:   "key1",
+				value: "value1",
+			}},
+			setArgs: kvpair{
+				key:   "key2",
+				value: "value2",
+			},
+			getKey: "key2",
+			want:   "value2",
+			wantOk: true,
+		},
+		{
+			name: "DeageMissing",
+			setArgs: kvpair{
+				key:   "key1",
+				value: "value1",
+			},
+			getKey: "key2",
+			wantOk: false,
+		},
+		{
+			name: "DeageExpired",
+			setArgs: kvpair{
+				key:   "key1",
+				value: "value1",
+			},
+			getKey:  "key1",
+			advance: time.Second + time.Millisecond,
+			wantOk:  false,
+		},
 	}
 
-	for _, age := range []bool{false, true} {
-		cache, mockClock := testCache(1*time.Second, 1, age, false, "")
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				cache.Clear()
-				assert.Empty(t, cache.index)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClock := types.NewMockClock()
+			ttl := 1 * time.Second
+			expireLimit := 1
+			expireFrequency := 500 * time.Millisecond
+			deage := strings.HasPrefix("Deage", tt.name)
 
-				for _, preset := range tt.preset {
-					cache.Set(preset.key, preset.value)
-				}
-				mockClock.Add(500 * time.Millisecond)
-				cache.Set(tt.setArgs.key, tt.setArgs.value)
-				mockClock.Add(tt.advance)
-				got, gotOk := cache.Get(tt.getKey)
-				if gotOk != tt.wantOk || !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Get() = (%v,%v) want (%v,%v)", got, gotOk, tt.want, tt.wantOk)
-				}
+			cache := NewCache2(ttl, expireLimit, expireFrequency, deage, mockClock, false, "")
+			cache.expired = make(chan struct{})
 
-				// Allow everything to expire
-				mockClock.Add(2 * time.Second)
-				assert.Empty(t, cache.index)
-			})
-		}
+			// Load the cache initial state with
+			for _, preset := range tt.preset {
+				cache.Set(preset.key, preset.value)
+			}
+
+			// Expire once
+			advanceCache(cache, mockClock, 500*time.Millisecond)
+
+			// Apply our test
+			cache.Set(tt.setArgs.key, tt.setArgs.value)
+
+			// Apply our wait
+			advanceCache(cache, mockClock, tt.advance)
+
+			// Check our result
+			got, gotOk := cache.Get(tt.getKey)
+			if gotOk != tt.wantOk || !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Get() = (%v,%v) want (%v,%v)", got, gotOk, tt.want, tt.wantOk)
+			}
+
+			// Allow everything to expire
+			advanceCache(cache, mockClock, 2*time.Second)
+			assert.Empty(t, cache.index)
+
+			cache.shutdown = true
+		})
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/security"
-	"github.com/benbjohnson/clock"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"time"
 )
 
@@ -102,7 +102,7 @@ func newCertificateProvider(ctx context.Context) (*Provider, error) {
 
 	return &Provider{
 		provider: certProvider,
-		cache:    lru.NewCache(1*time.Minute, 10, 1*time.Minute, clock.New()),
+		cache:    lru.NewCache(1*time.Minute, 10, 1*time.Minute, types.NewClock(ctx)),
 	}, nil
 }
 
