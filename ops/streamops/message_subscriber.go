@@ -94,11 +94,16 @@ func (o *MessageSubscriberBuilder) Build() (ms *MessageSubscriber, err error) {
 		return nil, errors.Wrap(err, "Failed to create handler")
 	}
 
+	call := types.
+		NewOperation(handler.Call).
+		WithDecorator(types.RecoverErrorDecorator).
+		Run
+
 	result := &MessageSubscriber{
 		name:                 o.Name,
 		channelSubscriber:    o.ChannelSubscriber,
 		inputPort:            inputPort,
-		handler:              handler.Call,
+		handler:              call,
 		filters:              o.Filters,
 		documentors:          o.Documentors,
 		metadataFilterValues: o.MetadataFilterValues,
