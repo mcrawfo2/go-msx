@@ -1,7 +1,6 @@
 # Summary
 
-[Introduction](README.md)
-[Contributing](CONTRIBUTING.md)
+- [Introduction](README.md)
 
 ---
 
@@ -17,9 +16,15 @@
 
 ---
 
-# Application Components
+# Application Patterns
+- [Operations](types/docs/operations.md)
+  - [Middleware](types/docs/middleware.md)
+  - [Decorators](types/docs/decorators.md)
+  - [Filters](types/docs/filters.md)
+  - [Traced Operations](trace/docs/operations.md)
+  - [Handlers]()
 
-## Web Service 
+## Web Service
 - [Controller](webservice/controller.md)
 - [Filter]()
 
@@ -112,6 +117,7 @@
 # For Developers of `go-msx`
 
 - [Introduction]()
+- [Contributing](CONTRIBUTING.md)
 - [`skel`: Code Generation]()
   - [Execution Sequence](skel/docs/sequence.md)
   - [Making templates](skel/docs/templating.md)
