@@ -82,10 +82,12 @@
 - [Stream Services]()
   - [Channels](skel/asyncapi/channels.md)
   - [AsyncAPI](skel/asyncapi/spec.md)
-
+- [Deployment]()
+  - [Kubernetes]()
+    - [Skaffold](skel/docs/skaffold.md)
 ---
 
-# Builds 🎉
+# Builds
 
 - [Introduction]()
 - [Makefile Usage](build/docs/usage-make.md)
