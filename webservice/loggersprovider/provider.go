@@ -60,21 +60,29 @@ func (h Provider) Report(req *restful.Request) (interface{}, error) {
 }
 
 func (h Provider) Configure(req *restful.Request) (interface{}, error) {
-	var logger Logger
-	err := req.ReadEntity(&logger)
+	var targetLogger Logger
+	err := req.ReadEntity(&targetLogger)
 	if err != nil {
 		return nil, err
 	}
+
 	loggerName := req.PathParameter("loggerName")
-	currentLevel := log.GetLoggerLevels()[loggerName]
 	if loggerName == "" {
 		return nil, errors.New("Logger name must not be empty")
 	}
-	log.SetLoggerLevel(loggerName, log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)))
-	if log.LevelFromName(strings.ToUpper(currentLevel.String())) != log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)) {
-		description := fmt.Sprintf(logLevelModified, currentLevel.String(), log.LevelFromName(strings.ToUpper(logger.ConfiguredLevel)))
+
+	currentLevel := log.GetLoggerLevels()[loggerName]
+	desiredLevel := log.LevelFromName(strings.ToUpper(targetLogger.ConfiguredLevel))
+
+	log.SetLoggerLevel(loggerName, desiredLevel)
+
+	if currentLevel != desiredLevel {
+		description := fmt.Sprintf(logLevelModified, currentLevel.String(), desiredLevel.String())
+		logger.WithContext(req.Request.Context()).WithField("target", loggerName).
+			Warn(description)
 		h.sendAuditLog(req.Request.Context(), loggerName, loggerObjectType, description)
 	}
+
 	return nil, nil
 }
 

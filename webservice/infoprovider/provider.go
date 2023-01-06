@@ -11,6 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
 	"github.com/emicklei/go-restful"
+	"runtime/debug"
 )
 
 const (
@@ -18,31 +19,50 @@ const (
 	endpointName  = "info"
 )
 
+type GoModule struct {
+	Path    string    `json:"path"`     // module path
+	Version string    `json:"version"`  // module version
+	Sum     string    `json:"checksum"` // checksum
+	Replace *GoModule `json:"replace,omitempty"`
+}
+
+type GoInfo struct {
+	GoVersion string            `json:"version"`        // Version of Go that produced this binary.
+	Path      string            `json:"path"`           // The main package path
+	Main      *GoModule         `json:"main,omitempty"` // The module containing the main package
+	Settings  map[string]string `json:"settings"`
+}
+
+type AppInfo struct {
+	Name        string `json:"name"`
+	Version     string `json:"version" config:"default="`
+	Description string `json:"description"`
+	Attributes  struct {
+		DisplayName string `json:"displayName"`
+		Parent      string `json:"parent"`
+		Type        string `json:"type"`
+	} `json:"attributes"`
+}
+
+type BuildInfo struct {
+	Version       string       `json:"version"`
+	BuildNumber   string       `json:"number" config:"buildNumber"`
+	BuildDateTime string       `json:"-"`
+	Artifact      string       `json:"artifact"`
+	Name          string       `json:"name"`
+	Time          epochSeconds `json:"time" config:"default=0"`
+	Group         string       `json:"group"`
+	CommitHash    string       `json:"commitHash" config:"default="`
+	DiffHash      string       `json:"diffHash" config:"default="`
+}
+
 type InfoProvider struct{}
 
 func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	type Info struct {
-		App struct {
-			Name        string `json:"name"`
-			Version     string `json:"version" config:"default="`
-			Description string `json:"description"`
-			Attributes  struct {
-				DisplayName string `json:"displayName"`
-				Parent      string `json:"parent"`
-				Type        string `json:"type"`
-			} `json:"attributes"`
-		} `json:"app"`
-		Build struct {
-			Version       string       `json:"version"`
-			BuildNumber   string       `json:"number" config:"buildNumber"`
-			BuildDateTime string       `json:"-"`
-			Artifact      string       `json:"artifact"`
-			Name          string       `json:"name"`
-			Time          epochSeconds `json:"time" config:"default=0"`
-			Group         string       `json:"group"`
-			CommitHash    string       `json:"commitHash" config:"default="`
-			DiffHash      string       `json:"diffHash" config:"default="`
-		} `json:"build"`
+		App   AppInfo   `json:"app"`
+		Build BuildInfo `json:"build"`
+		Go    *GoInfo   `json:"go,omitempty" config:"-"`
 	}
 
 	i := Info{}
@@ -54,6 +74,25 @@ func (h InfoProvider) infoReport(req *restful.Request) (interface{}, error) {
 	buildTime, err := types.ParseTime(i.Build.BuildDateTime)
 	if err == nil {
 		i.Build.Time = newEpochSeconds(buildTime.ToTimeTime())
+	}
+
+	goBuildInfo, ok := debug.ReadBuildInfo()
+	if ok {
+		i.Go = new(GoInfo)
+		i.Go.GoVersion = goBuildInfo.GoVersion
+		i.Go.Path = goBuildInfo.Path
+		if goBuildInfo.Main.Path != "" {
+			i.Go.Main = &GoModule{
+				Path:    goBuildInfo.Main.Path,
+				Version: goBuildInfo.Main.Version,
+				Sum:     goBuildInfo.Main.Sum,
+			}
+		}
+
+		i.Go.Settings = make(map[string]string)
+		for _, setting := range goBuildInfo.Settings {
+			i.Go.Settings[setting.Key] = setting.Value
+		}
 	}
 
 	return i, nil

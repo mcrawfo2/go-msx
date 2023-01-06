@@ -18,14 +18,28 @@ import (
 
 const (
 	configRootManagementSecurity = "management.security"
+	configRootManagementEndpoint = "management.endpoint"
 )
+
+type ManagementEndpointConfig struct {
+	ShowDetails string `config:"default=WHEN_AUTHORIZED"`
+}
+
+func NewManagementEndpointConfig(ctx context.Context, endpoint string) (*ManagementEndpointConfig, error) {
+	var cfg ManagementEndpointConfig
+	if err := config.FromContext(ctx).Populate(&cfg, config.NormalizeKey(configRootManagementEndpoint+"."+endpoint)); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
 
 type ManagementSecurityConfig struct {
 	EnabledByDefault  bool     `config:"default=true"`
 	SilencedByDefault bool     `config:"default=false"`
 	Permissions       []string `config:"default=IS_API_ADMIN"`
 	Roles             []string `config:"default=ROLE_CLIENT"`
-	Endpoint          map[string]EndpointConfig
+	Endpoint          map[string]EndpointSecurityConfig
 }
 
 func (s ManagementSecurityConfig) EndpointSecurityEnabled(endpoint string) bool {
@@ -48,7 +62,7 @@ func (s ManagementSecurityConfig) EndpointSilenced(endpoint string) bool {
 	}
 }
 
-type EndpointConfig struct {
+type EndpointSecurityConfig struct {
 	Enabled  string `config:"default="`
 	Silenced string `config:"default="`
 }
@@ -69,14 +83,18 @@ type ManagementSecurityFilter struct {
 func (s ManagementSecurityFilter) Filter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	ctx := request.Request.Context()
 
-	if err := s.roles(ctx); err != nil {
-		WriteError(request, response, http.StatusUnauthorized, err)
-		return
+	if len(s.cfg.Roles) > 0 {
+		if err := s.roles(ctx); err != nil {
+			WriteError(request, response, http.StatusUnauthorized, err)
+			return
+		}
 	}
 
-	if err := rbac.HasPermission(ctx, s.cfg.Permissions); err != nil {
-		WriteError(request, response, http.StatusUnauthorized, err)
-		return
+	if len(s.cfg.Permissions) > 0 {
+		if err := rbac.HasPermission(ctx, s.cfg.Permissions); err != nil {
+			WriteError(request, response, http.StatusUnauthorized, err)
+			return
+		}
 	}
 
 	chain.ProcessFilter(request, response)
