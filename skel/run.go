@@ -143,6 +143,9 @@ func configure(cmd *cobra.Command, _ []string) error {
 		os.Exit(1)
 	}
 
+	// See if we are outside the Wall
+	DetectExternal()
+
 	// only makes sense to check for dirty git if we are in a project, and
 	// the allow-dirty cli flag is not set
 	if !allowDirty && project {

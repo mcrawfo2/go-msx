@@ -15,6 +15,7 @@ type Archetype struct {
 	Key         string
 	DisplayName string
 	Generators  []string
+	External    bool
 }
 
 type Archetypes []Archetype
@@ -23,10 +24,12 @@ func (a Archetypes) Key(index int) string {
 	return a[index].Key
 }
 
-func (a Archetypes) DisplayNames() []string {
+func (a Archetypes) DisplayNames(external bool) []string {
 	var result []string
 	for _, archetype := range a {
-		result = append(result, archetype.DisplayName)
+		if external && archetype.External {
+			result = append(result, archetype.DisplayName)
+		}
 	}
 	return result
 }
@@ -49,6 +52,7 @@ var archetypes = Archetypes{
 			"generate-kubernetes",
 			"generate-harness",
 		},
+		External: true,
 	},
 	{
 		Key:         archetypeKeyBeat,

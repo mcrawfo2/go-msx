@@ -55,7 +55,9 @@ func loadConfig(cmd *cobra.Command, args []string) error {
 	logger.Infof("Required Go version: %s", BuildConfig.Module.MinGoVersion)
 	logger.Infof("Current Go version: %s", currentGoVersion)
 
-	if !strings.HasSuffix(BuildConfig.Module.ModulePath, "go-msx") {
+	// go-msx-build should be used for internal builds
+	if strings.HasPrefix(BuildConfig.Module.ModulePath, "cto-github.cisco.com/") &&
+		!strings.HasSuffix(BuildConfig.Module.ModulePath, "/go-msx") {
 		logger.Error("NOTE: cto-github.cisco.com/NFV-BU/go-msx/build package is deprecated.")
 		logger.Fatal("NOTE: please switch to cto-github.cisco.com/NFV-BU/go-msx-build/pkg")
 	}
