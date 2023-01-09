@@ -5,6 +5,7 @@
 ---
 
 # Cross-Cutting Concerns
+- [Context]()
 - [Logging](log/README.md)
 - [Errors](types/docs/errors.md)
 - [Configuration](config/README.md)
@@ -27,6 +28,7 @@
   - [Input Ports](ops/docs/input-ports.md) 
   - [Output Ports](ops/docs/output-ports.md) 
   - [Validation](ops/docs/validation.md)
+- [Services](types/docs/services.md)
 
 ## Web Service
 - [Controller](webservice/controller.md)
