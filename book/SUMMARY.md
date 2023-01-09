@@ -5,7 +5,6 @@
 ---
 
 # Cross-Cutting Concerns
-- [Context]()
 - [Logging](log/README.md)
 - [Errors](types/docs/errors.md)
 - [Configuration](config/README.md)
@@ -31,19 +30,25 @@
 - [Services](types/docs/services.md)
 
 ## Web Service
-<!--- [Controller](webservice/controller.md)-->
-- [Controller](ops/restops/docs/controller.md)
-- [Filter]()
+- [REST Controller Mk I ](webservice/controller.md) 💀
+- [REST Controller Mk II](ops/restops/docs/controller.md) 🎉
+  - [REST Input Ports](ops/restops/docs/input-ports.md)
+  - [REST Output Ports](ops/restops/docs/output-ports.md)
+- [Filter](ops/restops/docs/middleware.md)
+
 
 ## Persistence
-- [Repository](sqldb/repository.md)
+- [CRUD Repository](sqldb/repository.md) 💀
+- [Model Repository]()
+- [GoQu Repository]()
+- [SQL Repository]()
 - [Migration]()
 
 ## Communication
 - [Integration]()
-  - [OpenAPI Client 🎉](integration/docs/openapi.md) 
+  - [OpenAPI Client](integration/docs/openapi.md) 🎉
 - [Streaming]()
-  - [Stream Operations 🎉](ops/streamops/README.md)
+  - [Stream Operations](ops/streamops/README.md) 🎉
     - [Ports](ops/streamops/ports.md) 
     - [Publishers](ops/streamops/publishers.md)
     - [Subscribers](ops/streamops/subscribers.md)
