@@ -7,6 +7,7 @@ package types
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 )
 
 var ErrNoSuchDetailsKey = errors.New("Object key does not exist")
@@ -20,17 +21,11 @@ func (p Pojo) StringValue(key string) (string, error) {
 		return "", errors.Wrapf(ErrNoSuchDetailsKey, "Key %q not found", key)
 	}
 
-	var vs string
-	switch vt := v.(type) {
-	case string:
-		vs = vt
-	case json.Number:
-		vs = string(vt)
-	default:
-		return "", errors.Wrapf(ErrValueWrongType, "Key %q does not contain a string: %T found", key, v)
+	result, err := cast.ToStringE(v)
+	if err != nil {
+		return result, errors.Wrap(ErrValueWrongType, err.Error())
 	}
-
-	return vs, nil
+	return result, nil
 }
 
 func (p Pojo) PojoValue(key string) (Pojo, error) {

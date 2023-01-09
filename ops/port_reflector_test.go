@@ -837,6 +837,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 							HandlerType: reflect.TypeOf(embeddedStruct{}),
 							Fields: []PortFieldElementType{
 								{
+									Peer:    "anotherField",
 									Indices: []int{0},
 									PortFieldType: PortFieldType{
 										Shape:       FieldShapePrimitive,
@@ -902,6 +903,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 							HandlerType:  reflect.TypeOf(embeddedStruct{}),
 							Fields: []PortFieldElementType{
 								{
+									Peer:    "anotherField",
 									Indices: []int{0},
 									PortFieldType: PortFieldType{
 										Shape:       FieldShapePrimitive,

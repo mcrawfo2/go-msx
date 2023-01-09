@@ -355,6 +355,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				HandlerType:  reflect.TypeOf(nestedStruct{}),
 				Fields: []PortFieldElementType{
 					{
+						Peer:     "singleField",
 						Indices:  []int{0},
 						Optional: false,
 						PortFieldType: PortFieldType{
@@ -364,6 +365,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 						},
 					},
 					{
+						Peer:     "secondField",
 						Indices:  []int{1},
 						Optional: false,
 						PortFieldType: PortFieldType{
@@ -372,6 +374,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 							HandlerType: reflect.TypeOf(embeddedStruct{}),
 							Fields: []PortFieldElementType{
 								{
+									Peer:    "anotherField",
 									Indices: []int{0},
 									PortFieldType: PortFieldType{
 										Shape:       FieldShapePrimitive,

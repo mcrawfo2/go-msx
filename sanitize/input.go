@@ -78,8 +78,11 @@ func String(originalValue string, options Options) string {
 // Input sanitizes values in-place
 func Input(value interface{}, options Options) error {
 	v := reflect.ValueOf(value)
-	vt := v.Type()
+	return InputValue(v, options)
+}
 
+func InputValue(v reflect.Value, options Options) error {
+	vt := v.Type()
 	return newSanitizer(options).walk(vt, v)
 }
 
@@ -241,10 +244,12 @@ func (s *sanitizer) getStructFieldOptions(vt reflect.Type, name string) Options 
 	return structFieldOptions[vt][name]
 }
 
-func (s *sanitizer) walkString(_ reflect.Type, v reflect.Value) error {
-	originalValue := v.Interface().(string)
+var stringType = reflect.TypeOf("")
+
+func (s *sanitizer) walkString(vt reflect.Type, v reflect.Value) error {
+	originalValue := v.Convert(stringType).Interface().(string)
 	sanitizedValue := String(originalValue, s.optionsStack.Active())
-	v.SetString(sanitizedValue)
+	v.Set(reflect.ValueOf(sanitizedValue).Convert(vt))
 	return nil
 }
 
