@@ -1,6 +1,6 @@
 # Validation
 
-Stream operations use struct tags to declare JSON Schema
+Port structures use struct tags to declare JSON Schema
 constraints for fields within the port and data transfer objects.
 
 ```go

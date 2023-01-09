@@ -23,6 +23,10 @@
   - [Filters](types/docs/filters.md)
   - [Traced Operations](trace/docs/operations.md)
   - [Handlers]()
+- [Ports](ops/docs/ports.md)
+  - [Input Ports](ops/docs/input-ports.md) 
+  - [Output Ports](ops/docs/output-ports.md) 
+  - [Validation](ops/docs/validation.md)
 
 ## Web Service
 - [Controller](webservice/controller.md)
@@ -37,8 +41,7 @@
   - [OpenAPI Client 🎉](integration/docs/openapi.md) 
 - [Streaming]()
   - [Stream Operations 🎉](ops/streamops/README.md)
-    - [Ports](ops/streamops/ports.md)
-    - [Validation](ops/streamops/validation.md)
+    - [Ports](ops/streamops/ports.md) 
     - [Publishers](ops/streamops/publishers.md)
     - [Subscribers](ops/streamops/subscribers.md)
     - [AsyncApi](schema/asyncapi/README.md)
