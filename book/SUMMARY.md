@@ -1,11 +1,11 @@
 # Summary
 
-[Introduction](README.md)
-[Contributing](CONTRIBUTING.md)
+- [Introduction](README.md)
 
 ---
 
 # Cross-Cutting Concerns
+- [Context]()
 - [Logging](log/README.md)
 - [Errors](types/docs/errors.md)
 - [Configuration](config/README.md)
@@ -17,10 +17,22 @@
 
 ---
 
-# Application Components
+# Application Patterns
+- [Operations](types/docs/operations.md)
+  - [Middleware](types/docs/middleware.md)
+  - [Decorators](types/docs/decorators.md)
+  - [Filters](types/docs/filters.md)
+  - [Traced Operations](trace/docs/operations.md)
+  - [Handlers]()
+- [Ports](ops/docs/ports.md)
+  - [Input Ports](ops/docs/input-ports.md) 
+  - [Output Ports](ops/docs/output-ports.md) 
+  - [Validation](ops/docs/validation.md)
+- [Services](types/docs/services.md)
 
-## Web Service 
-- [Controller](webservice/controller.md)
+## Web Service
+<!--- [Controller](webservice/controller.md)-->
+- [Controller](ops/restops/docs/controller.md)
 - [Filter]()
 
 ## Persistence
@@ -32,8 +44,7 @@
   - [OpenAPI Client 🎉](integration/docs/openapi.md) 
 - [Streaming]()
   - [Stream Operations 🎉](ops/streamops/README.md)
-    - [Ports](ops/streamops/ports.md)
-    - [Validation](ops/streamops/validation.md)
+    - [Ports](ops/streamops/ports.md) 
     - [Publishers](ops/streamops/publishers.md)
     - [Subscribers](ops/streamops/subscribers.md)
     - [AsyncApi](schema/asyncapi/README.md)
@@ -112,6 +123,7 @@
 # For Developers of `go-msx`
 
 - [Introduction]()
+- [Contributing](CONTRIBUTING.md)
 - [`skel`: Code Generation]()
   - [Execution Sequence](skel/docs/sequence.md)
   - [Making templates](skel/docs/templating.md)

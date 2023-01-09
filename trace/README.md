@@ -1,4 +1,4 @@
-# MSX Distributed Tracing
+# Distributed Tracing
 
 MSX Distributed Tracing allows the collection of an operational flow graph. Based
 on [OpenTracing](https://opentracing.io/docs/overview/), tracing helps pinpoint where failures occur and what causes

@@ -1,30 +1,13 @@
-# Ports
+# Stream Ports
 
-_Ports_ describe the various components of an incoming or outgoing message.  
-An early incarnation of Ports is currently used to describe REST Controller 
-Endpoint inputs, so hopefully they seem familiar.
+Stream Ports are structures used to describe the parts of incoming and outgoing Stream Messages.
+For an introduction to Ports, please see [Ports](../docs/ports.md).
 
 ## Input Ports
 
-Input Ports specify fields to be extracted from an incoming stream message.
-For example:
+Input Ports specify fields to be extracted from an incoming stream message or HTTP request.
 
-```go
-type driftCheckResponseInput struct {
-    EventType string                 `in:"header" const:"DriftCheck"`
-    Payload   api.DriftCheckResponse `in:"body"`
-}
-```
-
-In Java these would be implemented using a hypothetical function signature:
-```java
-void OnReceiveDriftCheckResponse(
-  @Header(name="eventType") @Schema(constant="DriftCheck") String eventType, 
-  @Body DriftCheckResponse body
-)
-```
-
-### Struct Tags
+Stream Input Port struct tags must use the `in` prefix.
 
 Each field with an `in` struct tag will be automatically populated before being
 passed to your Message Subscriber.  The full syntax of the `in` struct tag is as
@@ -52,24 +35,9 @@ Valid field groups for streaming operations are:
 ## Output Ports
 
 Output ports specify parts of the published message to be populated from the
-port struct.  For example:
+port struct.  
 
-```go
-type driftCheckRequestOutput struct {
-    EventType string                `out:"header" const:"DriftCheck"`
-    Payload   api.DriftCheckRequest `out:"body"`
-}
-```
-
-In Java this would be implemented using a hypothetical function signature:
-```java
-void PublishDriftCheckRequest(
-  @Header(name="eventType") @Schema(constant="DriftCheck") String eventType, 
-  @Body DriftCheckRequest body
-)
-```
-
-### Struct Tags
+Stream Output Port struct tags must use the `out` prefix.
 
 Each field with an `out` struct tag will be automatically applied to the message
 before the message is published.  The full syntax of the `out` struct tag is as
@@ -84,6 +52,5 @@ The subcomponents of the `out` struct tag are the same as `in` struct tag, above
 Fields in a port specifying the `body` component will typically have a DTO struct
 as their underlying type (eg. `api.DriftCheckRequest` above).  
 
-By default, these are serialized using
-the Content-Type of the stream (currently defaults to `application/json`).
-
+By default, these are serialized using the Content-Type of the stream 
+(currently defaults to `application/json`).

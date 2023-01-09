@@ -98,7 +98,7 @@ subsystem checks if your error implements the LogFielder interface:
 
 ```go
 type LogFielder interface {
-  LogFields() map[string]interface{}
+  LogFields() map[string]any
 }
 ```
 

@@ -18,7 +18,7 @@ func init() {
 
 	restops.SetMappedErrorStatusCode(ops.ErrMissingRequiredValue, http.StatusBadRequest)
 
-	restops.SetMappedErrorStatusCode(rbac.ErrTenantDoesNotExist, http.StatusBadRequest)
+	restops.SetMappedErrorStatusCode(rbac.ErrTenantDoesNotExist, http.StatusUnauthorized)
 	restops.SetMappedErrorStatusCode(rbac.ErrUserDoesNotHaveTenantAccess, http.StatusBadRequest)
 
 	restops.SetMappedErrorStatusCode(repository.ErrAlreadyExists, http.StatusConflict)
