@@ -35,14 +35,14 @@ CREATE TABLE persons (
 	}
 
 	count := int64(0)
-	err = personsRepo.CountAll(ctx, &count, types.Optional[sqldb.WhereOption]{})
+	err = personsRepo.CountAll(ctx, &count, nil)
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
 	logger.WithContext(ctx).Info(count)
 
 	var destPerson Person
-	err = personsRepo.FindOne(ctx, &destPerson, types.OptionalOf(goqu.Ex(map[string]interface{}{"id": person1.Id}).Expression()))
+	err = personsRepo.FindOne(ctx, &destPerson, sqldb.And(map[string]interface{}{"id": person1.Id}).Expression())
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
@@ -52,7 +52,7 @@ CREATE TABLE persons (
 	pagingResponse, err := personsRepo.FindAll(ctx, &destPersons,
 		sqldb.Where(goqu.Ex(map[string]interface{}{"name": person1.Name})),
 		sqldb.Keys(goqu.Ex(map[string]interface{}{"id": person1.Id})),
-		sqldb.Distinct([]string{"name"}),
+		sqldb.Distinct("name"),
 		sqldb.Sort([]paging.SortOrder{paging.SortOrder{Property: "name", Direction: "ASC"}}),
 		sqldb.Paging(paging.Request{Size: 10, Page: 0}),
 	)
@@ -91,7 +91,7 @@ Do reach out if you still find a need to use GoquRepository or SqlRepository.
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	err = rgoqu.ExecuteInsert(ctx, dsInsert.Rows(person1))
+	err = rgoqu.ExecuteInsert(ctx, dsInsert.Rows(person2))
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
@@ -102,8 +102,8 @@ Do reach out if you still find a need to use GoquRepository or SqlRepository.
 		logger.WithContext(ctx).Error(err)
 	}
 
-	person1.Name = "Jonee6"
-	err = rgoqu.ExecuteUpsert(ctx, dsUpsert.Rows(person1))
+	person2.Name = "Jonee6"
+	err = rgoqu.ExecuteUpsert(ctx, dsUpsert.Rows(person2))
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
@@ -114,42 +114,42 @@ Do reach out if you still find a need to use GoquRepository or SqlRepository.
 		logger.WithContext(ctx).Error(err)
 	}
 
-	person1.Name = "Jonee7"
-	err = rgoqu.ExecuteUpdate(ctx, dsUpdate.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})).Set(person1))
+	person2.Name = "Jonee7"
+	err = rgoqu.ExecuteUpdate(ctx, dsUpdate.Where(goqu.Ex(map[string]interface{}{"id": person2.Id})).Set(person2))
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
 
 
-	var destPerson Person
+	var destPerson2 Person
 	dsGet, err := rgoqu.Get(ctx, "persons")
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	err = rgoqu.ExecuteGet(ctx, dsGet.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})), &destPerson)
+	err = rgoqu.ExecuteGet(ctx, dsGet.Where(goqu.Ex(map[string]interface{}{"id": person2.Id})), &destPerson2)
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	logger.WithContext(ctx).Info(destPerson)
+	logger.WithContext(ctx).Info(destPerson2)
 
 
-	var destPersons []Person
+	var destPersons2 []Person
 	dsSelect, err := rgoqu.Select(ctx, "persons")
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	err = rgoqu.ExecuteSelect(ctx, dsSelect.Where(goqu.Ex(map[string]interface{}{"name": person1.Name})), &destPersons)
+	err = rgoqu.ExecuteSelect(ctx, dsSelect.Where(goqu.Ex(map[string]interface{}{"name": person2.Name})), &destPersons2)
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	logger.WithContext(ctx).Info(destPersons)
+	logger.WithContext(ctx).Info(destPersons2)
 
 
 	dsDelete, err := rgoqu.Delete(ctx, "persons")
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	err = rgoqu.ExecuteDelete(ctx, dsDelete.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})))
+	err = rgoqu.ExecuteDelete(ctx, dsDelete.Where(goqu.Ex(map[string]interface{}{"id": person2.Id})))
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
@@ -176,16 +176,16 @@ Use of this is discouraged.
 		logger.WithContext(ctx).Error(err)
 	}
 
-	var dest1 []Person
-	err = rsql.SqlSelect(ctx, "SELECT * FROM persons", nil, &dest1)
+	var destPersons3 []Person
+	err = rsql.SqlSelect(ctx, "SELECT * FROM persons", nil, &destPersons3)
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	logger.WithContext(ctx).Info(dest1)
+	logger.WithContext(ctx).Info(destPersons3)
 
-	var dest Person
-	err = rsql.SqlGet(ctx, "SELECT * FROM persons WHERE id=$1", []interface{}{uuid.MustParse("437f96b0-6722-11ed-9022-0242ac120002")}, &dest)
+	var destPerson3 Person
+	err = rsql.SqlGet(ctx, "SELECT * FROM persons WHERE id=$1", []interface{}{uuid.MustParse("437f96b0-6722-11ed-9022-0242ac120002")}, &destPerson3)
 	if err != nil {
 		logger.WithContext(ctx).Error(err)
 	}
-	logger.WithContext(ctx).Info(dest)
+	logger.WithContext(ctx).Info(destPerson3)
