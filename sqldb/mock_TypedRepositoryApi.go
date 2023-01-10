@@ -103,12 +103,19 @@ func (_m *MockTypedRepositoryApi[I]) FindOne(ctx context.Context, dest *I, where
 }
 
 // Insert provides a mock function with given fields: ctx, value
-func (_m *MockTypedRepositoryApi[I]) Insert(ctx context.Context, value I) error {
-	ret := _m.Called(ctx, value)
+func (_m *MockTypedRepositoryApi[I]) Insert(ctx context.Context, value ...I) error {
+	_va := make([]interface{}, len(value))
+	for _i := range value {
+		_va[_i] = value[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, I) error); ok {
-		r0 = rf(ctx, value)
+	if rf, ok := ret.Get(0).(func(context.Context, ...I) error); ok {
+		r0 = rf(ctx, value...)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -145,12 +152,19 @@ func (_m *MockTypedRepositoryApi[I]) Update(ctx context.Context, where WhereOpti
 }
 
 // Upsert provides a mock function with given fields: ctx, value
-func (_m *MockTypedRepositoryApi[I]) Upsert(ctx context.Context, value I) error {
-	ret := _m.Called(ctx, value)
+func (_m *MockTypedRepositoryApi[I]) Upsert(ctx context.Context, value ...I) error {
+	_va := make([]interface{}, len(value))
+	for _i := range value {
+		_va[_i] = value[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, I) error); ok {
-		r0 = rf(ctx, value)
+	if rf, ok := ret.Get(0).(func(context.Context, ...I) error); ok {
+		r0 = rf(ctx, value...)
 	} else {
 		r0 = ret.Error(0)
 	}
