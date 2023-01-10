@@ -5,6 +5,7 @@
 package restops
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"path"
 )
 
@@ -53,5 +54,17 @@ func AddEndpointErrorConverter(converter ErrorConverter) EndpointTransformer {
 func AddEndpointErrorCoder(coder ErrorStatusCoder) EndpointTransformer {
 	return func(endpoint *Endpoint) {
 		endpoint.ErrorConverter = ErrorStatusCoderConverter{ErrorStatusCoder: coder}
+	}
+}
+
+func AddEndpointContextInjector(injectors ...types.ContextInjector) EndpointTransformer {
+	return func(endpoint *Endpoint) {
+		endpoint.Injectors = append(endpoint.Injectors, injectors...)
+	}
+}
+
+func AddEndpointMiddleware(middlewares ...Middleware) EndpointTransformer {
+	return func(endpoint *Endpoint) {
+		endpoint.Middleware = append(endpoint.Middleware, middlewares...)
 	}
 }
