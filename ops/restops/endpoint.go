@@ -56,6 +56,8 @@ type Endpoint struct {
 	Func           types.Optional[interface{}]
 	Inputs         types.Optional[reflect.Type]
 	Outputs        types.Optional[reflect.Type]
+	Injectors      types.ContextInjectors
+	Middleware     Middlewares
 	Request        EndpointRequest
 	Response       EndpointResponse
 	Handler        *types.Handler
@@ -145,6 +147,16 @@ func (e *Endpoint) WithResponseHeader(name string, header EndpointResponseHeader
 
 func (e *Endpoint) WithPermissionAnyOf(perms ...string) *Endpoint {
 	e.Permissions = perms
+	return e
+}
+
+func (e *Endpoint) WithInjector(injectors ...types.ContextInjector) *Endpoint {
+	e.Injectors = append(e.Injectors, injectors...)
+	return e
+}
+
+func (e *Endpoint) WithMiddleware(middlewares ...Middleware) *Endpoint {
+	e.Middleware = append(e.Middleware, middlewares...)
 	return e
 }
 

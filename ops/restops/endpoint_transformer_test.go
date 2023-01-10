@@ -5,6 +5,7 @@
 package restops
 
 import (
+	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -64,4 +65,22 @@ func TestAddEndpointErrorCoder(t *testing.T) {
 	}))
 	tf(&e)
 	assert.NotNil(t, e.ErrorConverter)
+}
+
+func TestAddEndpointMiddleware(t *testing.T) {
+	e := Endpoint{Method: http.MethodGet, Path: "a/b/c"}
+	tf := AddEndpointMiddleware(func(next http.Handler) http.Handler {
+		return next
+	})
+	tf(&e)
+	assert.NotNil(t, e.Middleware)
+}
+
+func TestAddEndpointContextInjector(t *testing.T) {
+	e := Endpoint{Method: http.MethodGet, Path: "a/b/c"}
+	tf := AddEndpointContextInjector(func(ctx context.Context) context.Context {
+		return ctx
+	})
+	tf(&e)
+	assert.NotNil(t, e.Injectors)
 }

@@ -89,6 +89,36 @@ func TestInjectEndpointResponseEncoder(t *testing.T) {
 		Test(t)
 }
 
+func TestInjectEndpointContextFilter(t *testing.T) {
+	const contextKeyTest = "test"
+	new(webservicetest.RouteBuilderTest).
+		WithRouteFilter(InjectEndpointContextFilter(types.ContextInjectors{
+			func(ctx context.Context) context.Context {
+				return context.WithValue(ctx, contextKeyTest, "test")
+			},
+		})).
+		WithRequestPredicate(webservicetest.RequestHasContextValue(contextKeyTest)).
+		Test(t)
+}
+
+func TestEndpointMiddlewaresFilter(t *testing.T) {
+	const contextKeyTest = "test"
+	new(webservicetest.RouteBuilderTest).
+		WithRouteFilter(EndpointMiddlewaresFilter(Middlewares{
+			func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+					req = req.WithContext(context.WithValue(
+						req.Context(),
+						contextKeyTest,
+						"test"))
+					next.ServeHTTP(resp, req)
+				})
+			},
+		})).
+		WithRequestPredicate(webservicetest.RequestHasContextValue(contextKeyTest)).
+		Test(t)
+}
+
 func TestEndpointController(t *testing.T) {
 	called := false
 	e, err := NewEndpoint("GET", "/api/v1/entity").

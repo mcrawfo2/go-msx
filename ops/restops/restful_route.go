@@ -77,6 +77,16 @@ func InjectRequestEndpointFilter(e *Endpoint) restful.FilterFunction {
 	}
 }
 
+// InjectEndpointContextFilter executes the injectors against the request context
+func InjectEndpointContextFilter(injectors types.ContextInjectors) restful.FilterFunction {
+	return func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+		ctx := request.Request.Context()
+		ctx = injectors.Inject(ctx)
+		request.Request = request.Request.WithContext(ctx)
+		chain.ProcessFilter(request, response)
+	}
+}
+
 // InjectEndpointRequestDecoder supplies the request data source
 func InjectEndpointRequestDecoder(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	dataSource := NewRestfulRequestDataSource(request)
@@ -91,6 +101,19 @@ func InjectEndpointResponseEncoder(request *restful.Request, response *restful.R
 	encoder := NewResponseEncoder(dataSink)
 	request = RequestWithEndpointResponseEncoder(request, encoder)
 	chain.ProcessFilter(request, response)
+}
+
+// EndpointMiddlewaresFilter executes a chain of http middleware
+func EndpointMiddlewaresFilter(m Middlewares) restful.FilterFunction {
+	return func(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+		handler := m.Compose(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			response.ResponseWriter = w
+			request.Request = req
+			chain.ProcessFilter(request, response)
+		}))
+
+		handler.ServeHTTP(response, request.Request)
+	}
 }
 
 type RequestPopulator interface {
@@ -348,10 +371,12 @@ func RouteBuilderFromEndpoint(svc *restful.WebService, e *Endpoint) *restful.Rou
 		To(EndpointController(e)).
 		Do(RouteWithEndpoint(e)).
 		Filter(InjectRequestEndpointFilter(e)).
+		Filter(InjectEndpointContextFilter(e.Injectors)).
 		Do(RouteBuilderPermissionsFromEndpoint(e)).
 		Do(RouteBuilderRequestParamsFromEndpoint(e)).
 		Do(RouteBuilderRequestBodyFromEndpoint(e)).
 		Do(RouteBuilderResponsesFromEndpoint(e)).
+		Filter(EndpointMiddlewaresFilter(e.Middleware)).
 		Filter(InjectEndpointRequestDecoder).
 		Filter(InjectEndpointResponseEncoder).
 		Filter(EndpointResponseFilter).

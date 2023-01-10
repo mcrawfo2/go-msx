@@ -70,3 +70,12 @@ func RequestHasPathParameter(name string, value interface{}) RequestPredicate {
 		},
 	}
 }
+
+func RequestHasContextValue(contextKey interface{}) RequestPredicate {
+	return RequestPredicate{
+		Description: fmt.Sprintf("request.Request.Context has key %v", contextKey),
+		Matches: func(request *restful.Request) bool {
+			return request.Request.Context().Value(contextKey) != nil
+		},
+	}
+}
