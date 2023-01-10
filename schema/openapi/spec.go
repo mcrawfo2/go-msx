@@ -108,3 +108,10 @@ func LookupSchema(schemaName string) (*openapi3.Schema, bool) {
 	}
 	return result.Schema, ok
 }
+
+func AddTag(name string, description string) {
+	tag := openapi3.Tag{}
+	tag.WithName(name)
+	tag.WithDescription(description)
+	Spec().WithTags(append(Spec().Tags, tag)...)
+}

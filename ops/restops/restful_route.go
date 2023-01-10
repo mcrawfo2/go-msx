@@ -112,7 +112,7 @@ func EndpointMiddlewaresFilter(m Middlewares) restful.FilterFunction {
 			chain.ProcessFilter(request, response)
 		}))
 
-		handler.ServeHTTP(response, request.Request)
+		handler.ServeHTTP(response.ResponseWriter, request.Request)
 	}
 }
 
