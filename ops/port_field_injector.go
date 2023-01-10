@@ -8,7 +8,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/sanitize"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
-	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"io"
@@ -63,6 +62,23 @@ func (i PortFieldInjector) injectIndirectScalar(fv reflect.Value, value string, 
 	return i.injectScalar(fv, value, pft)
 }
 
+func (i PortFieldInjector) sanitizePointer(value any) (err error) {
+	if reflect.TypeOf(value).Kind() != reflect.Ptr &&
+		reflect.TypeOf(value).Kind() != reflect.Slice &&
+		reflect.TypeOf(value).Kind() != reflect.Map {
+		return errors.Errorf("Expected pointer or reference, received %T", value)
+	}
+
+	san, _ := i.portField.Options["san"]
+	if san != "false" && san != "" {
+		if err = sanitize.Input(value, i.portField.SanitizeOptions()); err != nil {
+			return
+		}
+	}
+	return
+
+}
+
 func (i PortFieldInjector) injectScalar(fv reflect.Value, value string, pft PortFieldType) (err error) {
 	// Custom handlers
 	switch pft.HandlerType {
@@ -70,7 +86,7 @@ func (i PortFieldInjector) injectScalar(fv reflect.Value, value string, pft Port
 		fv.Set(reflect.ValueOf([]byte(value)).Convert(pft.Type))
 		return nil
 	case RuneSliceType:
-		fv.Set(reflect.ValueOf([]rune(value)))
+		fv.Set(reflect.ValueOf([]rune(value)).Convert(pft.Type))
 		return nil
 	case TextUnmarshalerType:
 		return fv.Addr().Interface().(types.TextUnmarshaler).UnmarshalText(value)
@@ -121,12 +137,6 @@ func (i PortFieldInjector) injectScalar(fv reflect.Value, value string, pft Port
 		fv.Set(reflect.ValueOf(vt))
 	case string:
 		vt, err = cast.ToStringE(value)
-		san, _ := i.portField.BoolOption("san")
-		if san {
-			if err = sanitize.Input(&vt, i.portField.SanitizeOptions()); err != nil {
-				return err
-			}
-		}
 		fv.Set(reflect.ValueOf(vt))
 
 	default:
@@ -151,7 +161,15 @@ func (i PortFieldInjector) InjectPrimitive(value string) (err error) {
 		}
 	}()
 
-	return i.injectScalar(fv, value, i.portField.Type)
+	if err = i.sanitizePointer(&value); err != nil {
+		return err
+	}
+
+	if err = i.injectScalar(fv, value, i.portField.Type); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (i PortFieldInjector) InjectArray(values []string) (err error) {
@@ -181,8 +199,12 @@ func (i PortFieldInjector) InjectArray(values []string) (err error) {
 		sliceValue = reflect.New(sliceType).Elem()
 	}
 
-	for idx, queryValue := range values {
-		err = i.injectIndirectScalar(sliceValue.Index(idx), queryValue, i.portField.Type.Items.PortFieldType)
+	for idx, elementValue := range values {
+		if err = i.sanitizePointer(&elementValue); err != nil {
+			return err
+		}
+
+		err = i.injectIndirectScalar(sliceValue.Index(idx), elementValue, i.portField.Type.Items.PortFieldType)
 		if err != nil {
 			return err
 		}
@@ -234,20 +256,31 @@ func (i PortFieldInjector) InjectObject(pojo types.Pojo) (err error) {
 
 		keyType := objectType.Key()
 		valueType := objectType.Elem()
-		for k, v := range pojo {
+		for k := range pojo {
 			entryKey := reflect.New(keyType).Elem()
 			if err = i.injectIndirectScalar(entryKey, k, i.portField.Type.Keys.PortFieldType); err != nil {
 				return err
 			}
 
 			entryValue := reflect.New(valueType).Elem()
-			if err = i.injectIndirectScalar(entryValue, cast.ToString(v), i.portField.Type.Values.PortFieldType); err != nil {
+
+			var value string
+			value, err = pojo.StringValue(k)
+			if err != nil {
+				return errors.Wrapf(err, "Cannot populate map index %q from received value", k)
+			}
+
+			if err = i.sanitizePointer(&value); err != nil {
+				return errors.Wrapf(err, "Failed to sanitize injected map element %q", k)
+			}
+
+			if err = i.injectIndirectScalar(entryValue, value, i.portField.Type.Values.PortFieldType); err != nil {
 				return err
 			}
 
 			objectValue.SetMapIndex(entryKey, entryValue)
 		}
-		break
+
 	case reflect.Struct:
 		objectRef = reflect.New(objectType)
 		objectValue = objectRef.Elem()
@@ -258,20 +291,30 @@ func (i PortFieldInjector) InjectObject(pojo types.Pojo) (err error) {
 
 			sf := objectType.FieldByIndex(pfet.Indices)
 
-			name := strcase.ToLowerCamel(sf.Name)
-			value, err = pojo.StringValue(name)
-			if err == nil {
-				entryValue := reflect.New(sf.Type).Elem()
-				if err = i.injectIndirectScalar(entryValue, cast.ToString(value), pfet.PortFieldType); err != nil {
-					return err
-				}
-				objectValue.FieldByIndex(sf.Index).Set(entryValue)
-			} else {
-				logger.WithError(err).Errorf("Failed to populate field %q", sf.Name)
-			}
-		}
-		break
+			value, err = pojo.StringValue(pfet.Peer)
 
+			if errors.Is(err, types.ErrNoSuchDetailsKey) {
+				if !pfet.Optional {
+					return errors.Wrapf(ErrMissingRequiredValue, "Failed to populate field %q from key %q", sf.Name, pfet.Peer)
+				} else {
+					continue
+				}
+			} else if errors.Is(err, types.ErrValueWrongType) {
+				return errors.Wrapf(err, "Cannot populate field %q from received value", sf.Name)
+			}
+
+			entryValue := reflect.New(sf.Type).Elem()
+			if err = i.injectIndirectScalar(entryValue, value, pfet.PortFieldType); err != nil {
+				return err
+			}
+
+			objectValue.FieldByIndex(sf.Index).Set(entryValue)
+		}
+
+		// TODO: byte slice, rune slice, non-string text unmarshaler
+		if err = i.sanitizePointer(objectRef.Interface()); err != nil {
+			return errors.Wrapf(err, "Failed to sanitize injected struct")
+		}
 	}
 
 	if isPtr {
@@ -352,7 +395,11 @@ func (i PortFieldInjector) InjectContent(content Content) (err error) {
 
 	// Marshaled Data
 	pv := fv.Addr().Interface()
-	return content.ReadEntity(pv)
+	if err = content.ReadEntity(pv); err != nil {
+		return err
+	}
+
+	return i.sanitizePointer(pv)
 }
 
 func (i PortFieldInjector) InjectAny(value any) (err error) {

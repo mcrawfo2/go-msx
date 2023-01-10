@@ -234,8 +234,11 @@ func (v RequestValidator) GetPayloadAsParsedJson(field *ops.PortField) (interfac
 	}
 
 	var parsed interface{}
-	err = content.ReadEntity(&parsed)
-	return parsed, err
+	if err = content.ReadEntity(&parsed); err != nil {
+		return nil, err
+	}
+
+	return parsed, nil
 }
 
 func (v RequestValidator) GetArray(field *ops.PortField, schema js.ValidationSchema) ([]interface{}, error) {

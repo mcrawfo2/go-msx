@@ -7,6 +7,7 @@ package ops
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
+	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
@@ -208,6 +209,7 @@ func (v *PortFieldTypeReflectorFieldVisitor) VisitField(f reflect.StructField) e
 	pft, optional := v.Reflector.ReflectPortFieldType(f.Type)
 
 	pfet := PortFieldElementType{
+		Peer:          strcase.ToLowerCamel(f.Name),
 		Indices:       f.Index,
 		Optional:      optional,
 		PortFieldType: pft,

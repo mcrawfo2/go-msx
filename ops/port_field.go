@@ -69,6 +69,7 @@ func PortFieldHasPeer(peer string) PortFieldPredicate {
 }
 
 type PortFieldElementType struct {
+	Peer     string
 	Indices  []int
 	Optional bool
 	PortFieldType

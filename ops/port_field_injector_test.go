@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -37,6 +38,16 @@ func (m MyTextType) MarshalText() (string, error) {
 func NewMyTextType(data string) *MyTextType {
 	v := MyTextType(data)
 	return &v
+}
+
+type MyIntType int
+
+func (m *MyIntType) UnmarshalText(data string) error {
+	v, err := strconv.Atoi(data)
+	if err == nil {
+		*m = MyIntType(v)
+	}
+	return err
 }
 
 type ErrorReader struct{}
@@ -949,6 +960,314 @@ func TestPortFieldInjector_InjectPrimitive_Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestPortFieldInjector_InjectPrimitive_Sanitizer(t *testing.T) {
+	type primitives struct {
+		A string     `test:"injector" san:"xss"`
+		G []byte     `test:"injector" san:"xss"`
+		I []rune     `test:"injector" san:"xss"`
+		K MyTextType `test:"injector" san:"xss"`
+	}
+
+	pr := PortReflector{
+		Direction: PortDirectionIn,
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupInjector: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
+			},
+		},
+		FieldPostProcessor: nil,
+		FieldTypeReflector: DefaultPortFieldTypeReflector{
+			Direction: PortDirectionIn,
+		},
+	}
+
+	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
+
+	tests := []struct {
+		name    string
+		field   *PortField
+		value   string
+		want    primitives
+		wantErr bool
+	}{
+		{
+			name:  "String",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: "<b>abc</b>",
+			want: primitives{
+				A: "abc",
+			},
+			wantErr: false,
+		},
+		{
+			name:  "ByteSlice",
+			field: port.Fields.First(PortFieldHasName("G")),
+			value: "<b>abc</b>",
+			want: primitives{
+				G: []byte("abc"),
+			},
+			wantErr: false,
+		},
+		{
+			name:  "RuneSlice",
+			field: port.Fields.First(PortFieldHasName("I")),
+			value: "<a>abc</a>",
+			want: primitives{
+				I: []rune("abc"),
+			},
+			wantErr: false,
+		},
+		{
+			name:  "TextUnmarshaler",
+			field: port.Fields.First(PortFieldHasName("K")),
+			value: "<blink>abc</blink>",
+			want: primitives{
+				K: "abc",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var inputs primitives
+			i := NewPortFieldInjector(tt.field, &inputs)
+
+			if err := i.InjectPrimitive(tt.value); (err != nil) != tt.wantErr {
+				t.Errorf("InjectPrimitive() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(tt.want, inputs) {
+					t.Errorf("InjectPrimitive() diff\n%s",
+						testhelpers.Diff(tt.want, &inputs))
+				}
+			}
+		})
+	}
+}
+
+func TestPortFieldInjector_InjectArray_Sanitizer(t *testing.T) {
+	type arrays struct {
+		A []string     `test:"injector" san:"xss"`
+		G [][]byte     `test:"injector" san:"xss"`
+		I [][]rune     `test:"injector" san:"xss"`
+		K []MyTextType `test:"injector" san:"xss"`
+	}
+
+	pr := PortReflector{
+		Direction: PortDirectionIn,
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupInjector: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeArray),
+			},
+		},
+		FieldPostProcessor: nil,
+		FieldTypeReflector: DefaultPortFieldTypeReflector{
+			Direction: PortDirectionIn,
+		},
+	}
+
+	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(arrays{}))
+
+	tests := []struct {
+		name    string
+		field   *PortField
+		value   []string
+		want    arrays
+		wantErr bool
+	}{
+		{
+			name:  "StringArray",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: []string{"<b>abc</b>", "<a>def</a>"},
+			want: arrays{
+				A: []string{"abc", "def"},
+			},
+			wantErr: false,
+		},
+		{
+			name:  "ByteSliceArray",
+			field: port.Fields.First(PortFieldHasName("G")),
+			value: []string{"<b>abc</b>", "<a>def</a>"},
+			want: arrays{
+				G: [][]byte{
+					[]byte("abc"),
+					[]byte("def"),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:  "RuneSlice",
+			field: port.Fields.First(PortFieldHasName("I")),
+			value: []string{"<b>abc</b>", "<a>def</a>"},
+			want: arrays{
+				I: [][]rune{
+					[]rune("abc"),
+					[]rune("def"),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:  "TextUnmarshaler",
+			field: port.Fields.First(PortFieldHasName("K")),
+			value: []string{"<b>abc</b>", "<a>def</a>"},
+			want: arrays{
+				K: []MyTextType{
+					"abc",
+					"def",
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var inputs arrays
+			i := NewPortFieldInjector(tt.field, &inputs)
+
+			if err := i.InjectArray(tt.value); (err != nil) != tt.wantErr {
+				t.Errorf("InjectPrimitive() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(tt.want, inputs) {
+					t.Errorf("InjectPrimitive() diff\n%s",
+						testhelpers.Diff(tt.want, &inputs))
+				}
+			}
+		})
+	}
+}
+
+func TestPortFieldInjector_InjectObject_Sanitizer(t *testing.T) {
+	type obj[I any] struct {
+		Aa I `san:"xss"`
+	}
+
+	type nested struct {
+		Aa string `san:"xss,accents"`
+	}
+
+	type objects struct {
+		A obj[string]    `test:"injector" san:"xss"`
+		G obj[[]byte]    `test:"injector" san:"xss"`
+		I obj[[]rune]    `test:"injector" san:"xss"`
+		K obj[MyIntType] `test:"injector" san:"xss"`
+		X nested         `test:"injector" san:"true"`
+	}
+
+	pr := PortReflector{
+		Direction: PortDirectionIn,
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupInjector: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeObject),
+			},
+		},
+		FieldPostProcessor: nil,
+		FieldTypeReflector: DefaultPortFieldTypeReflector{
+			Direction: PortDirectionIn,
+		},
+	}
+
+	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(objects{}))
+
+	tests := []struct {
+		name    string
+		field   *PortField
+		value   map[string]any
+		want    objects
+		wantErr bool
+	}{
+		{
+			name:  "StringFieldObject",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: map[string]any{
+				"aa": "<b>abc</b>",
+			},
+			want: objects{
+				A: obj[string]{
+					Aa: "abc",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:  "ByteSliceFieldObject",
+			field: port.Fields.First(PortFieldHasName("G")),
+			value: map[string]any{
+				"aa": "<b>abc</b>",
+			},
+			want: objects{
+				G: obj[[]byte]{
+					Aa: []byte("abc"),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:  "RuneSliceFieldObject",
+			field: port.Fields.First(PortFieldHasName("I")),
+			value: map[string]any{
+				"aa": "<b>abc</b>",
+			},
+			want: objects{
+				I: obj[[]rune]{
+					Aa: []rune("abc"),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:  "TextUnmarshalerFieldObject",
+			field: port.Fields.First(PortFieldHasName("K")),
+			value: map[string]any{
+				"aa": "<b>123</b>",
+			},
+			want: objects{
+				K: obj[MyIntType]{
+					Aa: MyIntType(123),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name:  "StructObject",
+			field: port.Fields.First(PortFieldHasName("X")),
+			value: map[string]any{
+				"aa": "<b>ãbç</b>",
+			},
+			want: objects{
+				X: nested{
+					Aa: "abc",
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var inputs objects
+			i := NewPortFieldInjector(tt.field, &inputs)
+
+			if err := i.InjectObject(tt.value); (err != nil) != tt.wantErr {
+				t.Errorf("InjectObject() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(tt.want, inputs) {
+					t.Errorf("InjectObject() diff\n%s",
+						testhelpers.Diff(tt.want, inputs))
+				}
+			}
+		})
+	}
+}
+
 func TestPortFieldInjector_InjectContent_Bytes(t *testing.T) {
 	type contents struct {
 		A []byte            `test:"injector"`
@@ -1409,6 +1728,65 @@ func TestPortFieldInjector_InjectContent_Error(t *testing.T) {
 				if !reflect.DeepEqual(tt.want, inputs) {
 					t.Errorf("InjectContent() diff\n%s",
 						testhelpers.Diff(tt.want, &inputs))
+				}
+			}
+		})
+	}
+}
+
+func TestPortFieldInjector_InjectContent_Entity(t *testing.T) {
+	type entity struct {
+		A string `test:"injector" san:"xss,accent"`
+	}
+
+	pr := PortReflector{
+		FieldGroups: map[string]FieldGroup{
+			FieldGroupInjector: {
+				Cardinality:   types.CardinalityZeroToMany(),
+				AllowedShapes: types.NewStringSet(FieldShapeContent),
+			},
+		},
+		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldPostProcessor: PortFieldPostProcessorFunc(func(field *PortField, sf reflect.StructField) {
+			field.Type.Shape = FieldShapeContent
+		}),
+	}
+
+	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(entity{}))
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name    string
+		field   *PortField
+		value   Content
+		want    entity
+		wantErr bool
+	}{
+		{
+			name:  "Entity",
+			field: port.Fields.First(PortFieldHasName("A")),
+			value: NewContentFromBytes(
+				NewContentOptions("application/json"),
+				[]byte(`"<b>abc</b>"`),
+			),
+			want: entity{
+				A: "abc",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var inputs entity
+			i := NewPortFieldInjector(tt.field, &inputs)
+
+			if err := i.InjectContent(tt.value); (err != nil) != tt.wantErr {
+				t.Errorf("InjectContent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if !reflect.DeepEqual(tt.want, inputs) {
+					t.Errorf("InjectContent() diff\n%s",
+						testhelpers.Diff(tt.want, inputs))
 				}
 			}
 		})
