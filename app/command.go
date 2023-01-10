@@ -29,7 +29,6 @@ const (
 	configKeyVaultEnable           = "spring.cloud.vault.enabled"
 	configKeyServerEnable          = "server.enabled"
 	configKeyLeaderEnable          = "consul.leader.election.enabled"
-	configKeyCassandraEnable       = "spring.data.cassandra.enable"
 	configKeySqlDbEnable           = "spring.datasource.enabled"
 	configKeyDisconnected          = "cli.flag.disconnected"
 
@@ -159,7 +158,6 @@ func commandVersionInit(_ context.Context) error {
 		configKeyConsulDiscoveryEnable: configValueFalse,
 		configKeyServerEnable:          configValueFalse,
 		configKeyLeaderEnable:          configValueFalse,
-		configKeyCassandraEnable:       configValueFalse,
 		configKeySqlDbEnable:           configValueFalse,
 		configKeyConsulEnable:          configValueFalse,
 		configKeyVaultEnable:           configValueFalse,

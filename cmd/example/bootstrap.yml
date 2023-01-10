@@ -20,10 +20,6 @@ server:
   contextPath: /exampleservice
   enabled: true
 
-spring.data.cassandra:
-  keyspace-name: ${info.app.name}
-  enabled: false
-
 spring.datasource:
   name: ${info.app.name}
   enabled: false
