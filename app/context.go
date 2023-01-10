@@ -6,12 +6,10 @@ package app
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/cassandra"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/consul"
 	"cto-github.cisco.com/NFV-BU/go-msx/fs"
 	"cto-github.cisco.com/NFV-BU/go-msx/health"
-	"cto-github.cisco.com/NFV-BU/go-msx/health/cassandracheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/consulcheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/kafkacheck"
 	"cto-github.cisco.com/NFV-BU/go-msx/health/redischeck"
@@ -33,8 +31,6 @@ func init() {
 	OnEvent(EventConfigure, PhaseAfter, configureHttpClientFactory)
 	OnEvent(EventConfigure, PhaseAfter, withConfig(configureConsulPool))
 	OnEvent(EventConfigure, PhaseAfter, configureVaultPool)
-	OnEvent(EventConfigure, PhaseAfter, withConfig(configureCassandraPool))
-	OnEvent(EventConfigure, PhaseAfter, configureCassandraCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbPool)
 	OnEvent(EventConfigure, PhaseAfter, configureSqlDbCrudRepositoryFactory)
 	OnEvent(EventConfigure, PhaseAfter, configureRedisPool)
@@ -71,14 +67,6 @@ func configureHttpClientFactory(ctx context.Context) error {
 	return nil
 }
 
-func configureCassandraCrudRepositoryFactory(context.Context) error {
-	crudRepositoryFactory := cassandra.NewProductionCrudRepositoryFactory()
-	RegisterContextInjector(func(ctx context.Context) context.Context {
-		return cassandra.ContextWithCrudRepositoryFactory(ctx, crudRepositoryFactory)
-	})
-	return nil
-}
-
 func configureSqlDbCrudRepositoryFactory(context.Context) error {
 	crudRepositoryFactory := sqldb.NewProductionCrudRepositoryFactory()
 	RegisterContextInjector(func(ctx context.Context) context.Context {
@@ -107,17 +95,6 @@ func configureVaultPool(ctx context.Context) error {
 			return vault.ContextWithConnection(ctx, vault.PoolFromContext(ctx).Connection())
 		})
 		health.RegisterCheck("vault", vaultcheck.Check)
-	}
-
-	return nil
-}
-
-func configureCassandraPool(cfg *config.Config) error {
-	if err := cassandra.ConfigurePool(cfg); err != nil && err != cassandra.ErrDisabled {
-		return err
-	} else if err == nil {
-		RegisterContextInjector(cassandra.ContextWithPool)
-		health.RegisterCheck("cassandra", cassandracheck.Check)
 	}
 
 	return nil
