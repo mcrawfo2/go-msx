@@ -18,9 +18,9 @@ func TestStringFormatDuration_JSONSchema(t *testing.T) {
 		ID:    types.NewStringPtr("Duration"),
 		Title: types.NewStringPtr("Duration"),
 		Examples: []interface{}{
-			"30s", "10m", "1h", "15d",
+			"30s", "10m", "1h5m", "15d",
 		},
-		Pattern: types.NewStringPtr("^(\\d+(\\.\\d+)?h)?(\\d+(\\.\\d+)m)?(\\d+(\\.\\d+)?s)?(\\d+(\\.\\d+)?ms)?(\\d+(\\.\\d+)?us)?(\\d+ns)?$"),
+		Pattern: types.NewStringPtr("^(\\d+(\\.\\d+)?h)?(\\d+(\\.\\d+)?m)?(\\d+(\\.\\d+)?s)?(\\d+(\\.\\d+)?ms)?(\\d+(\\.\\d+)?us)?(\\d+ns)?$"),
 		Type:    NewType(jsonschema.String),
 		Format:  types.NewStringPtr("duration"),
 	}

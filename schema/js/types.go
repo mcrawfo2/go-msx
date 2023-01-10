@@ -62,8 +62,8 @@ func (s StringFormatDuration) JSONSchema() (jsonschema.Schema, error) {
 		WithID("Duration").
 		WithTitle("Duration").
 		WithFormat(FormatDuration).
-		WithPattern(`^(\d+(\.\d+)?h)?(\d+(\.\d+)m)?(\d+(\.\d+)?s)?(\d+(\.\d+)?ms)?(\d+(\.\d+)?us)?(\d+ns)?$`).
-		WithExamples("30s", "10m", "1h", "15d").
+		WithPattern(`^(\d+(\.\d+)?h)?(\d+(\.\d+)?m)?(\d+(\.\d+)?s)?(\d+(\.\d+)?ms)?(\d+(\.\d+)?us)?(\d+ns)?$`).
+		WithExamples("30s", "10m", "1h5m", "15d").
 		JSONSchema()
 }
 
