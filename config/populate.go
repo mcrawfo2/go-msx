@@ -212,7 +212,7 @@ func parseStructTag(tag string) map[string]string {
 		case 0:
 			if option == "-" {
 				// No source, completely ignore
-				options[tagOptionIgnore] = ""
+				options[tagOptionIgnore] = "true"
 				return options
 			} else if option == tagOptionOptional {
 				options[tagOptionOptional] = "true"

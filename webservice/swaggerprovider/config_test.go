@@ -43,9 +43,12 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					},
 				},
 				Ui: DocumentationUiConfig{
-					Enabled:  true,
-					Endpoint: "/swagger",
-					View:     "/swagger-ui.html",
+					Enabled:     true,
+					Endpoint:    "/swagger",
+					StaticFiles: "/swagger/ui",
+					StaticView:  "/swagger/static",
+					View:        "/swagger-ui.html",
+					RootFiles:   []string{"swagger-sso-redirect.html"},
 				},
 				Server: DocumentationServerConfig{
 					Host:        "localhost",
@@ -77,9 +80,12 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					},
 				},
 				Ui: DocumentationUiConfig{
-					Enabled:  true,
-					Endpoint: "/swagger",
-					View:     "/swagger-ui.html",
+					Enabled:     true,
+					Endpoint:    "/swagger",
+					StaticFiles: "/swagger/ui",
+					StaticView:  "/swagger/static",
+					View:        "/swagger-ui.html",
+					RootFiles:   []string{"swagger-sso-redirect.html"},
 				},
 				Server: DocumentationServerConfig{
 					Host:        "localhost",

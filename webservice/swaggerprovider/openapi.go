@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/swaggest/openapi-go/openapi3"
 	yaml2 "gopkg.in/yaml.v2"
+	"path"
 )
 
 type OpenApiProvider struct {
@@ -200,10 +201,15 @@ func (p *OpenApiProvider) Actuate(container *restful.Container, webService *rest
 
 	if p.cfg.Ui.Enabled {
 		webServer := webservice.WebServerFromContext(p.ctx)
-		webServer.RegisterAlias(p.cfg.Ui.Endpoint, p.cfg.Ui.View)
+		webServer.RegisterAlias(p.cfg.Ui.StaticView+"/{subPath:*}", p.cfg.Ui.StaticFiles)
+		for _, rootFile := range p.cfg.Ui.RootFiles {
+			webServer.RegisterAlias(rootFile, path.Join(p.cfg.Ui.StaticFiles, rootFile))
+		}
+		webServer.RegisterAlias(p.cfg.Ui.Endpoint, path.Join(p.cfg.Ui.StaticFiles, p.cfg.Ui.View))
 
-		logger.Infof("Serving OpenApi %s on http://%s:%d%s%s",
+		logger.Infof("Serving OpenApi %s on %s://%s:%d%s%s",
 			p.cfg.Version,
+			p.cfg.Server.Scheme(),
 			p.cfg.Server.Host,
 			p.cfg.Server.Port,
 			contextPath,
