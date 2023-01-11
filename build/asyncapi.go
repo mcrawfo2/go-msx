@@ -5,6 +5,7 @@
 package build
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/build/npm"
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
 	"fmt"
 	"gopkg.in/pipe.v2"
@@ -15,6 +16,7 @@ import (
 func init() {
 	AddTarget("generate-asyncapi-schema", "Generates patched AsyncApi schema", GenerateAsyncApiSchema)
 	AddTarget("generate-asyncapi-entities", "Generates AsyncApi entities", GenerateAsyncApiEntities)
+	AddTarget("install-asyncapi-ui", "Installs AsyncAPI Studio package", InstallAsyncApiStudio)
 }
 
 const (
@@ -82,4 +84,12 @@ func GenerateAsyncApiEntities(_ []string) error {
 	)
 
 	return exec.ExecutePipes(jsonCliPipe)
+}
+
+func InstallAsyncApiStudio(_ []string) error {
+	return npm.InstallNodePackageContents(
+		BuildConfig.Msx.Platform.AsyncApi.Artifact,
+		BuildConfig.Msx.Platform.AsyncApi.Version,
+		"package/build",
+		filepath.Join(BuildConfig.OutputStaticPath(), "asyncapi", "studio"))
 }

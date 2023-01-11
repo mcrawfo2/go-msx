@@ -57,7 +57,7 @@ func (a StaticAlias) Alias(originalPath string) string {
 
 		case patternPart[0] == '{':
 			if strings.Index(patternPart, ":*") != -1 {
-				originalIndex = len(originalPathParts)
+				break
 			}
 
 		default:
@@ -67,5 +67,5 @@ func (a StaticAlias) Alias(originalPath string) string {
 
 	originalPathParts = originalPathParts[originalIndex:]
 	subPath := path.Join(originalPathParts...)
-	return path.Join(a.ContextPath, subPath, a.File)
+	return path.Join(a.ContextPath, a.File, subPath)
 }

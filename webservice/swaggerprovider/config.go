@@ -31,9 +31,12 @@ type DocumentationSecurityConfig struct {
 }
 
 type DocumentationUiConfig struct {
-	Enabled  bool   `config:"default=true"`
-	Endpoint string `config:"default=/swagger"`
-	View     string `config:"default=/swagger-ui.html"`
+	Enabled     bool     `config:"default=true"`
+	Endpoint    string   `config:"default=/swagger"`
+	StaticFiles string   `config:"default=/swagger/ui"`
+	StaticView  string   `config:"default=/swagger/static"`
+	View        string   `config:"default=/swagger-ui.html"`
+	RootFiles   []string `config:"default=swagger-sso-redirect.html"`
 }
 
 type DocumentationServerConfig struct {

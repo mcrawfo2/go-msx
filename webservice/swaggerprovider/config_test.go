@@ -43,9 +43,10 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					},
 				},
 				Ui: DocumentationUiConfig{
-					Enabled:  true,
-					Endpoint: "/swagger",
-					View:     "/swagger-ui.html",
+					Enabled:     true,
+					Endpoint:    "/swagger",
+					StaticFiles: "/swagger/static",
+					View:        "/swagger-ui.html",
 				},
 				Server: DocumentationServerConfig{
 					Host:        "localhost",
@@ -77,9 +78,10 @@ func TestDocumentationConfigFromConfig(t *testing.T) {
 					},
 				},
 				Ui: DocumentationUiConfig{
-					Enabled:  true,
-					Endpoint: "/swagger",
-					View:     "/swagger-ui.html",
+					Enabled:     true,
+					Endpoint:    "/swagger",
+					StaticFiles: "/swagger/static",
+					View:        "/swagger-ui.html",
 				},
 				Server: DocumentationServerConfig{
 					Host:        "localhost",

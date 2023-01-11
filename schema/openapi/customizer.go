@@ -44,15 +44,15 @@ func (c SpecificationCustomizer) PostBuildInfo(spec *openapi.Spec) error {
 			"+ API Authorization \n" +
 			"    + Authorization header is <b>required</b>. \n" +
 			"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n"),
-		TermsOfService: types.NewStringPtr("http://www.cisco.com"),
+		TermsOfService: types.NewStringPtr("https://www.cisco.com"),
 		Contact: &openapi.Contact{
 			Name:  types.NewStringPtr("Cisco Systems Inc."),
-			URL:   types.NewStringPtr("http://www.cisco.com"),
-			Email: types.NewStringPtr("somecontact@cisco.com"),
+			URL:   types.NewStringPtr("https://www.cisco.com/c/en/us/support/cloud-systems-management/managed-services-accelerator/series.html"),
+			Email: types.NewStringPtr("tac@cisco.com"),
 		},
 		License: &openapi.License{
-			Name: "Apache License Version 2.0",
-			URL:  types.NewStringPtr("http://www.apache.org/licenses/LICENSE-2.0.html"),
+			Name: "MIT",
+			URL:  types.NewStringPtr("https://opensource.org/licenses/MIT"),
 		},
 		Version: c.appInfo.Version,
 	}

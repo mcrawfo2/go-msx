@@ -15,6 +15,7 @@ import (
 	spec "github.com/go-openapi/spec"
 	"github.com/pkg/errors"
 	yaml2 "gopkg.in/yaml.v2"
+	"path"
 )
 
 var (
@@ -34,18 +35,18 @@ func (p SwaggerProvider) GetSecurity(req *restful.Request) (body interface{}, er
 }
 
 func (p SwaggerProvider) GetSwaggerResources(req *restful.Request) (body interface{}, err error) {
-	return /*[]*/ struct {
+	return []struct {
 		Name           string `json:"name"`
 		Location       string `json:"location"`
 		Url            string `json:"url"`
 		SwaggerVersion string `json:"swaggerVersion"`
 	}{
-		//{
-		Name:           "platform",
-		Location:       req.Request.URL.Path + p.cfg.ApiPath,
-		Url:            req.Request.URL.Path + p.cfg.ApiPath,
-		SwaggerVersion: p.cfg.Version,
-		//},
+		{
+			Name:           "platform",
+			Location:       path.Join(p.cfg.SwaggerPath, p.cfg.ApiPath),
+			Url:            path.Join(p.cfg.SwaggerPath, p.cfg.ApiPath),
+			SwaggerVersion: p.cfg.Version,
+		},
 	}, nil
 }
 
@@ -93,11 +94,13 @@ func (p SwaggerProvider) GetSsoSecurity(req *restful.Request) (body interface{},
 		AuthorizeUrl string `json:"authorizeUrl"`
 		ClientId     string `json:"clientId"`
 		ClientSecret string `json:"clientSecret"`
+		Enabled      bool   `json:"enabled"`
 		TokenUrl     string `json:"tokenUrl"`
 	}{
 		AuthorizeUrl: sso.BaseUrl + sso.AuthorizePath,
 		ClientId:     sso.ClientId,
 		ClientSecret: sso.ClientSecret,
+		Enabled:      true,
 		TokenUrl:     sso.BaseUrl + sso.TokenPath,
 	}, nil
 }
@@ -191,10 +194,15 @@ func (p *SwaggerProvider) Actuate(container *restful.Container, swaggerService *
 
 	if p.cfg.Ui.Enabled {
 		webServer := webservice.WebServerFromContext(p.ctx)
-		webServer.RegisterAlias(p.cfg.Ui.Endpoint, p.cfg.Ui.View)
+		webServer.RegisterAlias(p.cfg.Ui.StaticView+"/{subPath:*}", p.cfg.Ui.StaticFiles)
+		for _, rootFile := range p.cfg.Ui.RootFiles {
+			webServer.RegisterAlias(rootFile, path.Join(p.cfg.Ui.StaticFiles, rootFile))
+		}
+		webServer.RegisterAlias(p.cfg.Ui.Endpoint, path.Join(p.cfg.Ui.StaticFiles, p.cfg.Ui.View))
 
-		logger.Infof("Serving Swagger %s on http://%s:%d%s%s",
+		logger.Infof("Serving Swagger %s on %s://%s:%d%s%s",
 			p.cfg.Version,
+			p.cfg.Server.Scheme(),
 			p.cfg.Server.Host,
 			p.cfg.Server.Port,
 			contextPath,

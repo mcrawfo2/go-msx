@@ -28,8 +28,6 @@ func (c SpecificationCustomizer) PostBuildSpec(swagger *spec.Swagger) {
 	c.CustomizeTags(swagger)
 	c.CustomizeBasePath(swagger)
 	c.CustomizeTypeDefinitions(swagger)
-	c.CustomizeSecurityDefinitions(swagger)
-	c.CustomizeSecuritySchemes(swagger)
 	c.SortTags(swagger)
 }
 
@@ -42,18 +40,18 @@ func (c SpecificationCustomizer) CustomizeInfo(swagger *spec.Swagger) {
 				"+ API Authorization \n" +
 				"    + Authorization header is <b>required</b>. \n" +
 				"    + It should be in Bearer authentication scheme </br>(e.g <b> Authorization: BEARER &lt;access token&gt; </b>)\n",
-			TermsOfService: "http://www.cisco.com",
+			TermsOfService: "https://www.cisco.com",
 			Contact: &spec.ContactInfo{
 				ContactInfoProps: spec.ContactInfoProps{
 					Name:  "Cisco Systems Inc.",
-					URL:   "http://www.cisco.com",
-					Email: "somecontact@cisco.com",
+					URL:   "https://www.cisco.com/c/en/us/support/cloud-systems-management/managed-services-accelerator/series.html",
+					Email: "tac@cisco.com",
 				},
 			},
 			License: &spec.License{
 				LicenseProps: spec.LicenseProps{
-					Name: "Apache License Version 2.0",
-					URL:  "http://www.apache.org/licenses/LICENSE-2.0.html",
+					Name: "MIT",
+					URL:  "https://opensource.org/licenses/MIT",
 				},
 			},
 			Version: c.appInfo.Version,
@@ -74,33 +72,6 @@ func (c SpecificationCustomizer) CustomizeTags(swagger *spec.Swagger) {
 			}
 		}
 	}
-}
-
-func (c SpecificationCustomizer) CustomizeSecurityDefinitions(swagger *spec.Swagger) {
-	swagger.SecurityDefinitions = map[string]*spec.SecurityScheme{
-		"OAuth2": {
-			SecuritySchemeProps: spec.SecuritySchemeProps{
-				Description:      "",
-				Type:             "oauth2",
-				In:               "",
-				Flow:             "accessCode",
-				AuthorizationURL: "http://localhost:8765/oauth2/auth",
-				TokenURL:         "http://localhost:8765/oauth2/token",
-				Scopes: map[string]string{
-					"openid":  "OpenID authentication",
-					"offline": "Offline token usage",
-					"read":    "Grants read access",
-					"write":   "Grants write access",
-				},
-			},
-		},
-	}
-}
-
-func (c SpecificationCustomizer) CustomizeSecuritySchemes(swagger *spec.Swagger) {
-	swagger.Security = append(swagger.Security, map[string][]string{
-		"OAuth2": {"read", "write"},
-	})
 }
 
 func (c SpecificationCustomizer) CustomizeBasePath(swagger *spec.Swagger) {

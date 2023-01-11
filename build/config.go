@@ -57,33 +57,35 @@ const (
 
 var (
 	defaultConfigs = map[string]string{
-		"spring.application.name":      "build",
-		"msx.platform.includegroups":   "com.cisco.**",
-		"msx.platform.swaggerartifact": "com.cisco.nfv:nfv-swagger",
-		"msx.platform.swaggerwebjar":   "org.webjars:swagger-ui:3.23.11",
-		"msx.release":                  "5.0.0",
-		"msx.platform.version":         "5.0.0-STABLE",
-		"build.number":                 "SNAPSHOT",
-		"build.group":                  "com.cisco.msx",
-		"manifest.folder":              "Build-Stable",
-		"kubernetes.group":             "platformms",
-		"docker.dockerfile":            "docker/Dockerfile", // TODO: v0.2.0: switch to default 'build/package/Dockerfile'
-		"docker.baseimage":             "msx-base-buster:3.9.0-70",
-		"docker.repository":            "dockerhub.cisco.com/vms-platform-dev-docker",
-		"docker.username":              "",
-		"docker.password":              "",
-		"go.env.all.GOPRIVATE":         "cto-github.cisco.com/NFV-BU",
-		"go.env.all.GOPROXY":           "https://proxy.golang.org,direct",
-		"go.env.linux.GOFLAGS":         `-buildmode=pie -ldflags="-extldflags=-Wl,-z,now,-z,relro" -ldflags=-s -ldflags=-w`,
-		"go.env.darwin.GOFLAGS":        ``,
-		"library.name":                 "",
-		"tool.cmd":                     "",
-		"tool.name":                    "",
-		"artifactory.repository":       "",
-		"artifactory.username":         "",
-		"artifactory.password":         "",
-		"ossi.username":                "",
-		"ossi.token":                   "",
+		"spring.application.name":        "build",
+		"msx.platform.includegroups":     "com.cisco.**",
+		"msx.platform.swagger.artifact":  "@msx/nfv-swagger-ui",
+		"msx.platform.swagger.version":   "1.1.0",
+		"msx.platform.asyncapi.artifact": "@msx/asyncapi-studio",
+		"msx.platform.asyncapi.version":  "0.12.11",
+		"msx.release":                    "5.0.0",
+		"msx.platform.version":           "5.0.0-STABLE",
+		"build.number":                   "SNAPSHOT",
+		"build.group":                    "com.cisco.msx",
+		"manifest.folder":                "Build-Stable",
+		"kubernetes.group":               "platformms",
+		"docker.dockerfile":              "docker/Dockerfile", // TODO: v0.2.0: switch to default 'build/package/Dockerfile'
+		"docker.baseimage":               "msx-base-buster:3.9.0-70",
+		"docker.repository":              "dockerhub.cisco.com/vms-platform-dev-docker",
+		"docker.username":                "",
+		"docker.password":                "",
+		"go.env.all.GOPRIVATE":           "cto-github.cisco.com/NFV-BU",
+		"go.env.all.GOPROXY":             "https://proxy.golang.org,direct",
+		"go.env.linux.GOFLAGS":           `-buildmode=pie -ldflags="-extldflags=-Wl,-z,now,-z,relro" -ldflags=-s -ldflags=-w`,
+		"go.env.darwin.GOFLAGS":          ``,
+		"library.name":                   "",
+		"tool.cmd":                       "",
+		"tool.name":                      "",
+		"artifactory.repository":         "",
+		"artifactory.username":           "",
+		"artifactory.password":           "",
+		"ossi.username":                  "",
+		"ossi.token":                     "",
 	}
 	defaultConfigProvider = config.NewInMemoryProvider("defaults", defaultConfigs)
 	defaultConfigCache    = config.NewCacheProvider(defaultConfigProvider)
@@ -193,10 +195,16 @@ type MsxParams struct {
 	Release  string
 	Platform struct {
 		ParentArtifacts []string
-		SwaggerArtifact string
-		SwaggerWebJar   string
 		Version         string
 		IncludeGroups   string
+		Swagger         struct {
+			Artifact string
+			Version  string
+		}
+		AsyncApi struct {
+			Artifact string
+			Version  string
+		}
 	}
 }
 
