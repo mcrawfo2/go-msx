@@ -91,6 +91,8 @@ instances. go-msx provides builders for each active API style:
 - **v2**: Uses response envelopes and v2 pagination style
 - **v8**: Uses no response envelopes, v8 error response format, and v8 pagination style
 
+#### Endpoint Types
+
 Each API style builder provides a number of different endpoint types:
 
 - List: Return a series of entities matching a given criteria
@@ -99,6 +101,8 @@ Each API style builder provides a number of different endpoint types:
 - Update: Replaces an existing entity using the supplied payload
 - Delete: Destroys an existing entity matching a primary key
 - Command: Executes an operation specific to the entity domain
+
+#### Example
 
 Here is an example (from lanservice) of a simple "Command" endpoint:
 
@@ -139,6 +143,53 @@ Above, you can see a number of different components:
     - **handler**: called when the endpoint is activated
     - **documentation**: populates the OpenApi documentation
 
+#### Handler
+
+The Endpoint Handler accepts functions with arbitrary arguments, which it will fill out by
+matching the argument type.  These can include:
+
+- `context.Context`: The context of the request
+- `*http.Request`: The inbound HTTP request being handled, allowing for manual
+  request parsing
+- `http.ResponseWriter`: The outbound HTTP response to return, allowing for manual
+  response handling
+- `*inputs`: The Input Port structure declared by a call to `WithInputs`, containing the
+  populated inputs
+
+The Endpoint Handler also accepts functions with arbitrary return values, which it will 
+consume:
+- `outputs`: The Output Port structure declared by a call to `WithOutputs`, which you
+  can populate with response outputs.  
+- `error`: An error to be applied to the defined (or style default) error response body.
+
+If the Outptut Port structure is excluded from the declaration of
+your return values, you are expected to use an `http.ResponseWriter` to manually
+send the success response (or return an `error`).
+
+If both the Output Port structure _and_ `error` are excluded, you are expected
+to manually send a response (whether error or success).
+
+##### Standard Practice
+
+The most common format for handler function includes context, inputs, outputs, and error:
+```go
+    .WithHandler(
+        func (ctx context.Context, inp *inputs) (out outputs, err error) {
+            ...		
+        })
+```
+
+##### Manual Handling
+
+To manually handle the request/response cycle, use a standard go HTTP handler:
+
+```go
+    .WithHttpHandler(
+        func (resp http.ResponseWriter, req *http.Request){
+            ...
+        })
+```
+
 #### Custom Validation
 
 Endpoint parameter validation can be performed in two ways:
@@ -155,21 +206,29 @@ Endpoint parameter validation can be performed in two ways:
 Any non-nil errors returned by the validation function will cause an instance of `ValidationErrors`
 to be sent back to the client (with a 400 Bad Request header) detailing the errors.
 
-#### Error Mapping
+#### Response Codes
+
+##### Success Responses
+
+To use the default success status code (determined by which builder you used), no implementation is required.
+To override the success code, add a `Code int resp:"code"` field to your output port struct
+and populate it before returning from your handler.
+
+##### Error Responses
 
 REST operations have built-in default error coder, which you can override using a custom error
 mapper or error coder.
 
 Default mappings include:
 
-| Error                               | Code |
-|-------------------------------------|------|
+| Error                                 | Code |
+|---------------------------------------|------|
 | `js.ErrValidationFailed`              | 400  |
 | `ops.ErrMissingRequiredValue`         | 400  |
 | `rbac.ErrTenantDoesNotExist`          | 401  |
 | `rbac.ErrUserDoesNotHaveTenantAccess` | 401  |
 | `repository.ErrAlreadyExists`         | 409  |
-| `repository.ErrNotFound`              | 401  |
+| `repository.ErrNotFound`              | 404  |
 
 
 ## Lifecycle Registration

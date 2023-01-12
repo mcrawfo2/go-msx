@@ -6,7 +6,6 @@ MSX Application provides a `Context` object to event `Observer`s so they may inj
 
 By default, the following dependencies are added to the MSX Application context:
 - Configuration
-- Cassandra client pool
 - Cockroach client pool
 - Consul client pool
 - Vault client pool
@@ -18,35 +17,34 @@ During `migrate` execution, the Migration Manifest is also available from the co
 
 ## Accessing Dependencies
 
-To support adding a custom dependency to any context, define the standard context chaining pattern:
+Each substitutable component in go-msx requires a context accessor to allow injecting and
+inspecting overrides:
 
 ```go
-type DomainServiceApi interface {
-}
+type contextKeyNamed string
 
-type domainContextKey int
-
-const contextKeyDomainService domainContextKey = iota
-
-func ContextWithDomainService(ctx context.Context, domainService DomainServiceApi) context.Context {
-	return context.WithValue(ctx, contextKeyDomainService, domainService)
-}
-
-func DomainServiceFromContext(ctx context.Context) DomainServiceApi {
-    return ctx.Value(contextKeyDomainService).(DomainServiceApi)
+func ContextDomainService() types.ContextAccessor[DomainService] {
+	return types.NewContextAccessor[DomainService](contextKeyNamed("DomainService"))
 }
 ```
+
+Key to type safety is the external invisibility of the context key.  This is guaranteed
+by defined a module-local type (`contextKey` or `contextKeyNamed`) and using an instance of it
+to index the context inspection/injection.
 
 To inject your custom dependency to the current context:
 
 ```go
-ctx := domain.ContextWithDomainService(ctx, domainService)
+ctx = domain.ContextDomainService().Set(ctx, domainService)
 ```
 
 To retrieve a dependency from the current context:
-
 ```go
-domainServiceApi := domain.DomainServiceFromContext(ctx)
+domainServiceApi := domain.ContextDomainService().Get(ctx)
+```
+or:
+```go
+domainServiceApi, ok := domain.ContextDomainService().TryGet(ctx)
 ```
 
 ## Logging and Tracing
