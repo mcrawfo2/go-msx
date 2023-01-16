@@ -109,11 +109,13 @@ func (p *OpenApiProvider) GetSsoSecurity(_ *restful.Request) (body interface{}, 
 		AuthorizeUrl string `json:"authorizeUrl"`
 		ClientId     string `json:"clientId"`
 		ClientSecret string `json:"clientSecret"`
+		Enabled      bool   `json:"enabled"`
 		TokenUrl     string `json:"tokenUrl"`
 	}{
 		AuthorizeUrl: sso.BaseUrl + sso.AuthorizePath,
 		ClientId:     sso.ClientId,
 		ClientSecret: sso.ClientSecret,
+		Enabled:      true,
 		TokenUrl:     sso.BaseUrl + sso.TokenPath,
 	}, nil
 }
