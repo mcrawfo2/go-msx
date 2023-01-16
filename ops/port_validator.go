@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+const CodeInvalid = "INVALID"
+
 type PortFieldValidationSchemaFunc func(field *PortField) (schema js.ValidationSchema, err error)
 
 var ErrValidationFailed = errors.New("Validation failure")
@@ -23,6 +25,10 @@ type ValidationFailure struct {
 	Path     string
 	Failures []string
 	Children map[string]*ValidationFailure
+}
+
+func (e *ValidationFailure) Code() string {
+	return CodeInvalid
 }
 
 func (e *ValidationFailure) Error() string {
@@ -50,7 +56,7 @@ func (e *ValidationFailure) ToPojo() types.Pojo {
 
 func (e *ValidationFailure) LogFields() map[string]interface{} {
 	return map[string]interface{}{
-		"validation": e,
+		"validation": e.ToPojo(),
 	}
 }
 

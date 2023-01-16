@@ -57,7 +57,7 @@ func (v RequestValidator) ValidateRequest() (err error) {
 	}
 
 	if len(errs.Children) > 0 {
-		return errors.Wrap(errs, "Validation Failure")
+		return errs
 	}
 	return nil
 }
