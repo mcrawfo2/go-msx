@@ -140,7 +140,7 @@ func EndpointRequestFilter(request *restful.Request, response *restful.Response,
 	// Validate request according to the endpoint port schemas
 	validator := NewRequestValidator(e.Request.Port, decoder)
 	if err = validator.ValidateRequest(); err != nil {
-		err = webservice.NewBadRequestError(err)
+		webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 		return
 	}
 
@@ -148,14 +148,14 @@ func EndpointRequestFilter(request *restful.Request, response *restful.Response,
 	var inputs interface{}
 	populator := ops.NewInputsPopulator(e.Request.Port, decoder)
 	if inputs, err = populator.PopulateInputs(); err != nil {
-		err = webservice.NewBadRequestError(err)
+		webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 		return
 	}
 
 	// Custom validation for args
 	if e.Request.Validator != nil && inputs != nil {
 		if err = e.Request.Validator(inputs); err != nil {
-			err = webservice.NewBadRequestError(err)
+			webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 			return
 		}
 	}

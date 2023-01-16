@@ -7,6 +7,7 @@ package restops
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/swaggest/refl"
@@ -145,6 +146,11 @@ func (e *Endpoint) WithResponseHeader(name string, header EndpointResponseHeader
 	return e
 }
 
+func (e *Endpoint) WithResponseDefaultError(errorBody any) *Endpoint {
+	e.Response = e.Response.WithDefaultError(errorBody)
+	return e
+}
+
 func (e *Endpoint) WithPermissionAnyOf(perms ...string) *Endpoint {
 	e.Permissions = perms
 	return e
@@ -232,6 +238,13 @@ func (e *Endpoint) Build() (*Endpoint, error) {
 			e.WithOutputs(outputs)
 			e.Response = e.Response.WithOutputs(outputs)
 		}
+	}
+
+	if e.Response.Error.Mime == "" && !e.Response.Envelope {
+		defaultError := e.Response.DefaultError.OrElse(webservice.ErrorV8{})
+		e.Response.Error = e.Response.Error.
+			WithMime(MediaTypeJson).
+			WithPayload(defaultError)
 	}
 
 	argsTypeSet := analyzer.ArgsTypeSet()
