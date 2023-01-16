@@ -18,7 +18,7 @@ type CrudPreparedRepository struct {
 
 func (c *CrudPreparedRepository) Rebind(conn SqlExecutor, stmt string) string {
 	driver := conn.DriverName()
-	baseDriver := baseDriverName(driver)
+	baseDriver := BaseDriverName(driver)
 	bindType := sqlx.BindType(baseDriver)
 	return sqlx.Rebind(bindType, stmt)
 }

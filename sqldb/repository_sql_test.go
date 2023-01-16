@@ -24,24 +24,51 @@ type Person struct {
 }
 
 const (
-	mockName = "Jonee"
-	mockId   = "437f96b0-6722-11ed-9022-0242ac120002"
+	mockName        = "Jonee"
+	mockId          = "437f96b0-6722-11ed-9022-0242ac120002"
+	columnId        = "id"
+	columnName      = "name"
+	tableNamePerson = "person"
 )
 
 func sqlite3DBContext() context.Context {
+	return newTestDatabaseContext("sqlite3")
+}
+
+func newReposSqlMock() (context.Context, *sql.DB, sqlmock.Sqlmock, error) {
+	ctx := sqlite3DBContext()
+
+	mockDB, mock, err := sqlmock.New()
+
+	mockSqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	ctx = ContextSqlExecutor().Set(ctx, mockSqlxDB)
+
+	return ctx, mockDB, mock, err
+}
+
+func newSqlMockDependencies(driver string) (context.Context, sqlmock.Sqlmock, error) {
+	ctx := newTestDatabaseContext(driver)
+	mockDB, mock, err := sqlmock.New()
+	mockSqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+	ctx = ContextSqlExecutor().Set(ctx, mockSqlxDB)
+	return ctx, mock, err
+}
+
+func newTestDatabaseContext(driver string) context.Context {
+	ctx := configtest.ContextWithNewInMemoryConfig(
+		context.Background(),
+		map[string]string{
+			"spring.datasource.driver":           driver,
+			"spring.datasource.enabled":          "true",
+			"spring.datasource.name":             "TestUnitTest.db",
+			"spring.datasource.data-source-name": "file:${spring.datasource.name}?cache=shared&mode=memory",
+		})
+
 	// configure the file system
-	cfg := configtest.NewInMemoryConfig(map[string]string{
-		"spring.datasource.driver":           "sqlite3",
-		"spring.datasource.enabled":          "true",
-		"spring.datasource.name":             "TestUnitTest.db",
-		"spring.datasource.data-source-name": "file:${spring.datasource.name}?cache=shared&mode=memory",
-	})
-	fs.ConfigureFileSystem(cfg)
+	_ = fs.ConfigureFileSystem(config.FromContext(ctx))
 
-	mockedCtx := context.Background()
-	mockedCtx = config.ContextWithConfig(mockedCtx, cfg)
-
-	return mockedCtx
+	return ctx
 }
 
 func TestSuite_SqlRepository(t *testing.T) {
@@ -66,7 +93,8 @@ func TestSuite_SqlRepository(t *testing.T) {
 		logger.WithContext(ctx).Error(err)
 	}
 
-	rsql := NewSqlRepository(ctx)
+	rsql, err := NewSqlRepository(ctx)
+	assert.NoError(t, err)
 
 	_, err = db.Exec("DROP TABLE IF EXISTS "+table, nil)
 	assert.NoError(t, err)
@@ -92,18 +120,6 @@ func TestSuite_SqlRepository(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func newReposSqlMock() (context.Context, *sql.DB, sqlmock.Sqlmock, error) {
-	ctx := sqlite3DBContext()
-
-	mockDB, mock, err := sqlmock.New()
-
-	mockSqlxDB := sqlx.NewDb(mockDB, "sqlmock")
-
-	ctx = ContextSqlExecutor().Set(ctx, mockSqlxDB)
-
-	return ctx, mockDB, mock, err
-}
-
 func TestSqlRepository_SqlExecute(t *testing.T) {
 	ctx, mockDB, mock, err := newReposSqlMock()
 	if err != nil {
@@ -113,7 +129,9 @@ func TestSqlRepository_SqlExecute(t *testing.T) {
 
 	mock.ExpectExec("INSERT INTO persons").WithArgs(uuid.MustParse(mockId), mockName).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	rsql := NewSqlRepository(ctx)
+	rsql, err := NewSqlRepository(ctx)
+	assert.NoError(t, err)
+
 	err = rsql.SqlExecute(ctx, "INSERT INTO persons VALUES ($1, $2)", []interface{}{uuid.MustParse(mockId), mockName})
 	assert.NoError(t, err)
 }
@@ -129,7 +147,9 @@ func TestSqlRepository_SqlSelect(t *testing.T) {
 		AddRow(uuid.MustParse(mockId), mockName)
 	mock.ExpectQuery("^SELECT (.+) FROM persons$").WillReturnRows(rows)
 
-	rsql := NewSqlRepository(ctx)
+	rsql, err := NewSqlRepository(ctx)
+	assert.NoError(t, err)
+
 	var destPersons []Person
 	err = rsql.SqlSelect(ctx, "SELECT * FROM persons", nil, &destPersons)
 	assert.NoError(t, err)
@@ -148,7 +168,9 @@ func TestSqlRepository_SqlGet(t *testing.T) {
 		WithArgs(mockId).
 		WillReturnRows(sqlmock.NewRows(columns).FromCSVString(mockId + "," + mockName))
 
-	rsql := NewSqlRepository(ctx)
+	rsql, err := NewSqlRepository(ctx)
+	assert.NoError(t, err)
+
 	var destPerson Person
 	err = rsql.SqlGet(ctx, "SELECT * FROM persons WHERE id=$1", []interface{}{uuid.MustParse(mockId)}, &destPerson)
 	assert.NoError(t, err)

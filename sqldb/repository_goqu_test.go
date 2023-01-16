@@ -36,7 +36,7 @@ func TestSuite_GoquRepository(t *testing.T) {
 		logger.WithContext(ctx).Error(err)
 	}
 
-	rgoqu := NewGoquRepository(ctx)
+	rgoqu, _ := NewGoquRepository(ctx)
 
 	_, err = db.Exec("DROP TABLE IF EXISTS "+table, nil)
 	assert.NoError(t, err)
@@ -47,59 +47,47 @@ func TestSuite_GoquRepository(t *testing.T) {
 
 	person1 := Person{Id: uuid.MustParse("437f96b0-6722-11ed-9022-0242ac120005"), Name: "Jonee"}
 
-	dsInsert, err := rgoqu.Insert(ctx, table)
-	assert.NoError(t, err)
-
+	dsInsert := rgoqu.Insert(table)
 	err = rgoqu.ExecuteInsert(ctx, dsInsert.Rows(person1))
 	assert.NoError(t, err)
 
 	// no upsert for sqlite3
-	/*
-		person1.Name = "Jonee6"
-		dsUpsert, err := rgoqu.Upsert(ctx, table)
-		assert.NoError(t, err)
+	person1.Name = "Jonee6"
+	dsUpsert := rgoqu.Upsert(table)
 
-		err = rgoqu.ExecuteUpsert(ctx, dsUpsert.Rows(person1))
-		assert.NoError(t, err)
-	*/
+	err = rgoqu.ExecuteUpsert(ctx, dsUpsert.Rows(person1))
+	assert.NoError(t, err)
 
 	person1.Name = "Jonee7"
-	dsUpdate, err := rgoqu.Update(ctx, table)
-	assert.NoError(t, err)
+	dsUpdate := rgoqu.Update(table)
 
 	err = rgoqu.ExecuteUpdate(ctx, dsUpdate.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})).Set(person1))
 	assert.NoError(t, err)
 
 	var destPerson Person
-	dsGet, err := rgoqu.Get(ctx, table)
-	assert.NoError(t, err)
+	dsGet := rgoqu.Get(table)
 
 	err = rgoqu.ExecuteGet(ctx, dsGet.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})), &destPerson)
 	assert.NoError(t, err)
 	logger.WithContext(ctx).Info(destPerson)
 
 	var destPersons []Person
-	dsSelect, err := rgoqu.Select(ctx, table)
-	assert.NoError(t, err)
+	dsSelect := rgoqu.Select(table)
 
 	err = rgoqu.ExecuteSelect(ctx, dsSelect.Where(goqu.Ex(map[string]interface{}{"name": person1.Name})), &destPersons)
 	assert.NoError(t, err)
 	logger.WithContext(ctx).Info(destPersons)
 
-	dsDelete, err := rgoqu.Delete(ctx, table)
-	assert.NoError(t, err)
+	dsDelete := rgoqu.Delete(table)
 
 	err = rgoqu.ExecuteDelete(ctx, dsDelete.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})))
 	assert.NoError(t, err)
 
 	// no truncate for sqlite3
-	/*
-		dsTruncate, err := rgoqu.Truncate(ctx, table)
-		assert.NoError(t, err)
+	dsTruncate := rgoqu.Truncate(table)
 
-		err = rgoqu.ExecuteTruncate(ctx, dsTruncate)
-		assert.NoError(t, err)
-	*/
+	err = rgoqu.ExecuteTruncate(ctx, dsTruncate)
+	assert.NoError(t, err)
 
 	_, err = db.Exec("DROP TABLE "+table, nil)
 	assert.NoError(t, err)
@@ -112,15 +100,18 @@ func TestGoquRepository_ExecuteInsert(t *testing.T) {
 	}
 	defer mockDB.Close()
 
-	mock.ExpectExec(`INSERT INTO "persons"`).WithArgs(uuid.MustParse(mockId), mockName).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO `persons`").
+		WithArgs(
+			uuid.MustParse(mockId),
+			mockName).
+		WillReturnResult(
+			sqlmock.NewResult(1, 1))
 
-	rgoqu := NewGoquRepository(ctx)
+	rgoqu, _ := NewGoquRepository(ctx)
 
 	person1 := Person{Id: uuid.MustParse(mockId), Name: mockName}
 
-	dsInsert, err := rgoqu.Insert(ctx, "persons")
-	assert.NoError(t, err)
-
+	dsInsert := rgoqu.Insert("persons")
 	err = rgoqu.ExecuteInsert(ctx, dsInsert.Rows(person1))
 	assert.NoError(t, err)
 }
@@ -132,15 +123,18 @@ func TestGoquRepository_ExecuteUpsert(t *testing.T) {
 	}
 	defer mockDB.Close()
 
-	mock.ExpectExec(`UPSERT INTO "persons"`).WithArgs(uuid.MustParse(mockId), mockName).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("REPLACE INTO `persons`").
+		WithArgs(
+			uuid.MustParse(mockId),
+			mockName).
+		WillReturnResult(
+			sqlmock.NewResult(1, 1))
 
-	rgoqu := NewGoquRepository(ctx)
+	rgoqu, _ := NewGoquRepository(ctx)
 
 	person1 := Person{Id: uuid.MustParse(mockId), Name: mockName}
 
-	dsUpsert, err := rgoqu.Upsert(ctx, "persons")
-	assert.NoError(t, err)
-
+	dsUpsert := rgoqu.Upsert("persons")
 	err = rgoqu.ExecuteUpsert(ctx, dsUpsert.Rows(person1))
 	assert.NoError(t, err)
 }
@@ -152,15 +146,19 @@ func TestGoquRepository_ExecuteUpdate(t *testing.T) {
 	}
 	defer mockDB.Close()
 
-	mock.ExpectExec(`UPDATE "persons"`).WithArgs(uuid.MustParse(mockId), mockName, uuid.MustParse(mockId)).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("UPDATE `persons` SET").
+		WithArgs(
+			uuid.MustParse(mockId),
+			mockName,
+			uuid.MustParse(mockId)).
+		WillReturnResult(
+			sqlmock.NewResult(1, 1))
 
-	rgoqu := NewGoquRepository(ctx)
+	rgoqu, _ := NewGoquRepository(ctx)
 
 	person1 := Person{Id: uuid.MustParse(mockId), Name: mockName}
 
-	dsUpdate, err := rgoqu.Update(ctx, "persons")
-	assert.NoError(t, err)
-
+	dsUpdate := rgoqu.Update("persons")
 	err = rgoqu.ExecuteUpdate(ctx, dsUpdate.Where(goqu.Ex(map[string]interface{}{"id": person1.Id})).Set(person1))
 	assert.NoError(t, err)
 }
@@ -173,16 +171,16 @@ func TestGoquRepository_ExecuteGet(t *testing.T) {
 	defer mockDB.Close()
 
 	columns := []string{"id", "name"}
-	mock.ExpectQuery(`SELECT (.+) FROM "persons" WHERE`).
+	mock.ExpectQuery("SELECT (.+) FROM `persons`").
 		WithArgs(mockId).
-		WillReturnRows(sqlmock.NewRows(columns).FromCSVString(mockId + "," + mockName))
+		WillReturnRows(
+			sqlmock.NewRows(columns).FromCSVString(mockId + "," + mockName))
 
-	rgoqu := NewGoquRepository(ctx)
-
-	var destPerson Person
-	dsGet, err := rgoqu.Get(ctx, "persons")
+	rgoqu, err := NewGoquRepository(ctx)
 	assert.NoError(t, err)
 
+	var destPerson Person
+	dsGet := rgoqu.Get("persons")
 	err = rgoqu.ExecuteGet(ctx, dsGet.Where(goqu.Ex(map[string]interface{}{"id": uuid.MustParse(mockId)})), &destPerson)
 	assert.NoError(t, err)
 	logger.WithContext(ctx).Info(destPerson)
@@ -197,13 +195,13 @@ func TestGoquRepository_ExecuteSelect(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"id", "name"}).
 		AddRow(uuid.MustParse(mockId), mockName)
-	mock.ExpectQuery(`SELECT (.+) FROM "persons"`).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT (.+) FROM `persons`").WillReturnRows(rows)
 
-	rgoqu := NewGoquRepository(ctx)
+	rgoqu, err := NewGoquRepository(ctx)
+	assert.NoError(t, err)
 
 	var destPersons []Person
-	dsSelect, err := rgoqu.Select(ctx, "persons")
-	assert.NoError(t, err)
+	dsSelect := rgoqu.Select("persons")
 
 	err = rgoqu.ExecuteSelect(ctx, dsSelect.Where(goqu.Ex(map[string]interface{}{"name": mockName})), &destPersons)
 	assert.NoError(t, err)
@@ -217,12 +215,12 @@ func TestGoquRepository_ExecuteDelete(t *testing.T) {
 	}
 	defer mockDB.Close()
 
-	mock.ExpectExec(`DELETE FROM "persons"`).WithArgs(uuid.MustParse(mockId)).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("DELETE FROM `persons`").WithArgs(uuid.MustParse(mockId)).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	rgoqu := NewGoquRepository(ctx)
-
-	dsDelete, err := rgoqu.Delete(ctx, "persons")
+	rgoqu, err := NewGoquRepository(ctx)
 	assert.NoError(t, err)
+
+	dsDelete := rgoqu.Delete("persons")
 
 	err = rgoqu.ExecuteDelete(ctx, dsDelete.Where(goqu.Ex(map[string]interface{}{"id": uuid.MustParse(mockId)})))
 	assert.NoError(t, err)
@@ -235,12 +233,12 @@ func TestGoquRepository_ExecuteTruncate(t *testing.T) {
 	}
 	defer mockDB.Close()
 
-	mock.ExpectExec(`TRUNCATE "persons"`).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("DELETE FROM `persons`").WillReturnResult(sqlmock.NewResult(1, 1))
 
-	rgoqu := NewGoquRepository(ctx)
-
-	dsTruncate, err := rgoqu.Truncate(ctx, "persons")
+	rgoqu, err := NewGoquRepository(ctx)
 	assert.NoError(t, err)
+
+	dsTruncate := rgoqu.Truncate("persons")
 
 	err = rgoqu.ExecuteTruncate(ctx, dsTruncate)
 	assert.NoError(t, err)

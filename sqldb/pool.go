@@ -90,7 +90,7 @@ func (p *ConnectionPool) NewSqlConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-func baseDriverName(driverName string) string {
+func BaseDriverName(driverName string) string {
 	if !strings.HasPrefix(driverName, "observer-") {
 		return driverName
 	}

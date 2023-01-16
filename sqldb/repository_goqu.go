@@ -7,19 +7,19 @@ package sqldb
 import (
 	"context"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"strings"
 )
 
-//go:generate mockery --inpackage --name=GoquRepositoryApi --structname=MockGoquRepositoryApi
+//go:generate mockery --name=GoquRepositoryApi --inpackage --case=snake --with-expecter
 type GoquRepositoryApi interface {
-	Get(ctx context.Context, table string) (ds *goqu.SelectDataset, err error)
-	Select(ctx context.Context, table string) (ds *goqu.SelectDataset, err error)
-	Insert(ctx context.Context, table string) (ds *goqu.InsertDataset, err error)
-	Update(ctx context.Context, table string) (ds *goqu.UpdateDataset, err error)
-	Upsert(ctx context.Context, table string) (ds *goqu.InsertDataset, err error)
-	Delete(ctx context.Context, table string) (ds *goqu.DeleteDataset, err error)
-	Truncate(ctx context.Context, table string) (ds *goqu.TruncateDataset, err error)
+	Get(table string) *goqu.SelectDataset
+	Select(table string) *goqu.SelectDataset
+	Insert(table string) *goqu.InsertDataset
+	Update(table string) *goqu.UpdateDataset
+	Upsert(table string) *goqu.InsertDataset
+	Delete(table string) *goqu.DeleteDataset
+	Truncate(table string) *goqu.TruncateDataset
 
 	ExecuteGet(ctx context.Context, ds *goqu.SelectDataset, dest interface{}) error
 	ExecuteSelect(ctx context.Context, ds *goqu.SelectDataset, dest interface{}) error
@@ -31,77 +31,58 @@ type GoquRepositoryApi interface {
 }
 
 type GoquRepository struct {
-	sql SqlRepositoryApi
+	sql        SqlRepositoryApi
+	driverName string
 }
 
-func NewGoquRepository(ctx context.Context) GoquRepositoryApi {
+func NewGoquRepository(ctx context.Context) (GoquRepositoryApi, error) {
 	api := ContextGoquRepository().Get(ctx)
 	if api == nil {
+		driverName, err := SqlDriverName(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		sqlRepository, err := NewSqlRepository(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		api = &GoquRepository{
-			sql: NewSqlRepository(ctx),
+			sql:        sqlRepository,
+			driverName: BaseDriverName(driverName),
 		}
 	}
 
-	return api
+	return api, nil
 }
 
-func (c *GoquRepository) dialect(conn SqlExecutor) goqu.DialectWrapper {
-	return goqu.Dialect(conn.DriverName())
+func (c *GoquRepository) Get(table string) *goqu.SelectDataset {
+	return c.Select(table)
 }
 
-func (c *GoquRepository) Rebind(conn SqlExecutor, stmt string) string {
-	driver := conn.DriverName()
-	baseDriver := baseDriverName(driver)
-	bindType := sqlx.BindType(baseDriver)
-	return sqlx.Rebind(bindType, stmt)
+func (c *GoquRepository) Select(table string) *goqu.SelectDataset {
+	return goqu.Dialect(c.driverName).From(table).Prepared(true)
 }
 
-func (c *GoquRepository) Get(ctx context.Context, table string) (ds *goqu.SelectDataset, err error) {
-	return c.Select(ctx, table)
+func (c *GoquRepository) Insert(table string) *goqu.InsertDataset {
+	return goqu.Dialect(c.driverName).Insert(table).Prepared(true)
 }
 
-func (c *GoquRepository) Select(ctx context.Context, table string) (ds *goqu.SelectDataset, err error) {
-	err = WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		ds = c.dialect(conn).From(table).Prepared(true)
-		return nil
-	})
-	return
+func (c *GoquRepository) Update(table string) *goqu.UpdateDataset {
+	return goqu.Dialect(c.driverName).Update(table).Prepared(true)
 }
 
-func (c *GoquRepository) Insert(ctx context.Context, table string) (ds *goqu.InsertDataset, err error) {
-	err = WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		ds = c.dialect(conn).Insert(table).Prepared(true)
-		return nil
-	})
-	return
+func (c *GoquRepository) Upsert(table string) *goqu.InsertDataset {
+	return c.Insert(table)
 }
 
-func (c *GoquRepository) Update(ctx context.Context, table string) (ds *goqu.UpdateDataset, err error) {
-	err = WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		ds = c.dialect(conn).Update(table).Prepared(true)
-		return nil
-	})
-	return
+func (c *GoquRepository) Delete(table string) *goqu.DeleteDataset {
+	return goqu.Dialect(c.driverName).Delete(table).Prepared(true)
 }
 
-func (c *GoquRepository) Upsert(ctx context.Context, table string) (ds *goqu.InsertDataset, err error) {
-	return c.Insert(ctx, table)
-}
-
-func (c *GoquRepository) Delete(ctx context.Context, table string) (ds *goqu.DeleteDataset, err error) {
-	err = WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		ds = c.dialect(conn).Delete(table).Prepared(true)
-		return nil
-	})
-	return
-}
-
-func (c *GoquRepository) Truncate(ctx context.Context, table string) (ds *goqu.TruncateDataset, err error) {
-	err = WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		ds = c.dialect(conn).Truncate(table).Prepared(true)
-		return nil
-	})
-	return
+func (c *GoquRepository) Truncate(table string) *goqu.TruncateDataset {
+	return goqu.Dialect(c.driverName).Truncate(table).Prepared(true)
 }
 
 func (c *GoquRepository) ExecuteGet(ctx context.Context, ds *goqu.SelectDataset, dest interface{}) error {
@@ -141,7 +122,16 @@ func (c *GoquRepository) ExecuteUpsert(ctx context.Context, ds *goqu.InsertDatas
 	if err != nil {
 		return err
 	}
-	stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
+
+	switch c.driverName {
+	case "postgres":
+		stmt = "UPSERT" + strings.TrimPrefix(stmt, "INSERT")
+	case "sqlite", "sqlite3":
+		stmt = "REPLACE" + strings.TrimPrefix(stmt, "INSERT")
+	default:
+		return errors.Wrap(ErrNotImplemented, "Upsert not supported")
+	}
+
 	return c.sql.SqlExecute(ctx, stmt, args)
 }
 
@@ -158,5 +148,11 @@ func (c *GoquRepository) ExecuteTruncate(ctx context.Context, ds *goqu.TruncateD
 	if err != nil {
 		return err
 	}
+
+	switch c.driverName {
+	case "sqlite", "sqlite3":
+		stmt = "DELETE FROM" + strings.TrimPrefix(stmt, "TRUNCATE")
+	}
+
 	return c.sql.SqlExecute(ctx, stmt, args)
 }
