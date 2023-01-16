@@ -25,6 +25,10 @@ func typeAndKind(v interface{}) (reflect.Type, reflect.Kind) {
 // Diff returns a diff of both values as long as both are of the same type and
 // are a struct, map, slice or array. Otherwise it returns an empty string.
 func Diff(expected interface{}, actual interface{}) string {
+	return DiffWithConfig(expected, actual, spewConfig)
+}
+
+func DiffWithConfig(expected, actual any, spewConfig spew.ConfigState) string {
 	if expected == nil || actual == nil {
 		return ""
 	}
@@ -65,6 +69,10 @@ func Diff(expected interface{}, actual interface{}) string {
 }
 
 func Dump(actual interface{}) string {
+	return DumpWithConfig(actual, spewConfig)
+}
+
+func DumpWithConfig(actual any, spewConfig spew.ConfigState) string {
 	if actual == nil {
 		return "<nil>"
 	}

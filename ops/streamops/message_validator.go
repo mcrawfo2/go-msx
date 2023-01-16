@@ -27,9 +27,9 @@ func NewMessageValidator(port *ops.Port, decoder MessageDecoder) MessageValidato
 }
 
 func (v MessageValidator) ValidateMessage() (err error) {
-	errs := &js.ValidationFailure{
+	errs := &ops.ValidationFailure{
 		Path:     "message",
-		Children: make(map[string]*js.ValidationFailure),
+		Children: make(map[string]*ops.ValidationFailure),
 	}
 
 	for _, field := range v.port.Fields {
@@ -64,7 +64,7 @@ func (v MessageValidator) ValidateMessage() (err error) {
 		if err != nil {
 			switch typedErr := err.(type) {
 			case *jsv.ValidationError:
-				errs.Children[field.Name] = js.NewValidationFailure(typedErr.InstanceLocation).Apply(typedErr)
+				errs.Children[field.Name] = ops.NewValidationFailure(typedErr.InstanceLocation).Apply(typedErr)
 			default:
 				return err
 			}
