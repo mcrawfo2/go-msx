@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/trace"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
 	"github.com/swaggest/refl"
@@ -108,14 +109,18 @@ func (o MessagePublisher) Publish(ctx context.Context, outputs interface{}) erro
 		Encoder:         encoder,
 	}
 
+	// Execute custom outputs struct validation if defined
+	if err := o.ValidateOutputs(outputs); err != nil {
+		return err
+	}
+
 	// Populate message from outputs
 	if err := populator.PopulateOutputs(); err != nil {
 		return errors.Wrap(err, "Failed to populate stream message")
 	}
 
 	// Validate output message matches schema
-	err := o.ValidateMessage(sink.Message(ctx))
-	if err != nil {
+	if err := o.ValidateMessage(sink.Message(ctx)); err != nil {
 		return err
 	}
 
@@ -143,6 +148,21 @@ func (o MessagePublisher) ValidateMessage(channelName types.Optional[string], ms
 	messageValidator := NewMessageValidator(o.outputPort, messageDecoder)
 
 	return messageValidator.ValidateMessage()
+}
+
+func (o MessagePublisher) ValidateOutputs(outputs any) error {
+	// Auto-validation for validatable Port Struct
+	portStructValue := reflect.ValueOf(outputs)
+	if err := validate.ValidateValue(portStructValue); err != nil {
+		errs := &ops.ValidationFailure{
+			Path:     "message",
+			Children: make(map[string]*ops.ValidationFailure),
+		}
+
+		return errs.Apply(err)
+	}
+
+	return nil
 }
 
 func (o MessagePublisher) Documentor(pred ops.DocumentorPredicate[MessagePublisher]) ops.Documentor[MessagePublisher] {
