@@ -39,6 +39,11 @@ func (v RequestValidator) ValidateRequest() (err error) {
 	}
 
 	for _, field := range v.port.Fields {
+		// Skip validation if disabled for this field
+		if do, ok := field.BoolOption(ops.PortFieldTagValidate); ok && !do {
+			continue
+		}
+
 		validationErr := v.ValidateField(field)
 		if validationErr != nil {
 			switch typedErr := validationErr.(type) {

@@ -33,6 +33,11 @@ func (v MessageValidator) ValidateMessage() (err error) {
 	}
 
 	for _, field := range v.port.Fields {
+		// Skip validation if disabled for this field
+		if do, ok := field.BoolOption(ops.PortFieldTagValidate); ok && !do {
+			continue
+		}
+
 		var validationSchema js.ValidationSchema
 		validationSchema, err = GetPortFieldValidationSchema(field)
 		if err != nil {
