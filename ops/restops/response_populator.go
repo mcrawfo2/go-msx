@@ -111,7 +111,7 @@ func (p *OutputsPopulator) EvaluateResponseCode() (code int, err error) {
 		return
 	}
 
-	if !p.Endpoint.Response.HasBody() && !p.Endpoint.Response.Envelope {
+	if p.Endpoint.Response.Success.Mime == "" && !p.Endpoint.Response.Envelope {
 		code = http.StatusNoContent
 	}
 
@@ -236,6 +236,9 @@ func (p *OutputsPopulator) EvaluateErrorBody(code int) (interface{}, error) {
 		if payloadType.Kind() != reflect.Ptr {
 			payload = reflect.New(payloadType).Interface()
 		}
+	} else {
+		// Last chance
+		payload = new(webservice.ErrorV8)
 	}
 
 	switch payload.(type) {
