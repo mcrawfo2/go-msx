@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
 	"github.com/emicklei/go-restful"
@@ -195,6 +196,19 @@ func EndpointResponseFilter(request *restful.Request, response *restful.Response
 	if outputs == nil && responseError == nil {
 		// Already handled by the controller
 		//return
+	}
+
+	// Auto-validation for validatable Port Struct
+	if outputs != nil && responseError == nil {
+		portStructValue := reflect.ValueOf(outputs)
+		if err := validate.ValidateValue(portStructValue); err != nil {
+			errs := &ops.ValidationFailure{
+				Path:     "response",
+				Children: make(map[string]*ops.ValidationFailure),
+			}
+
+			responseError = errs.Apply(err)
+		}
 	}
 
 	// Retrieve the response encoder
