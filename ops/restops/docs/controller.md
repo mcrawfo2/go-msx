@@ -71,10 +71,7 @@ and path manipulation:
 
 ```go
 func (c *applicationController) EndpointTransformers() restops.EndpointTransformers {
-    openapi.Spec().Tags = append(openapi.Spec().Tags, openapi3.Tag{
-        Name:        "Applications",
-        Description: types.NewStringPtr("Configuration Applications Controller"),
-    })
+    openapi.AddTag("Applications", "Configuration Applications Controller")
     
     return restops.EndpointTransformers{
         restops.AddEndpointPathPrefix(pathPrefixConfiguration),
@@ -82,6 +79,15 @@ func (c *applicationController) EndpointTransformers() restops.EndpointTransform
     }
 }
 ```
+
+Current transformers are:
+
+- `AddEndpointTag`: Adds a tag to each endpoint
+- `AddEndpointPathPrefix`: Adds a prefix to the path of each endpoint
+- `AddEndpointErrorConverter`: Sets a custom ErrorConverter for each endpoint
+- `AddEndpointErrorCoder`: Sets a custom ErrorCoder for each endpoint
+- `AddEndpointContextInjector`: Adds a Context injector to each endpoint
+- `AddEndpointMiddleware`: Adds an HTTP [Middleware](middleware.md) to each endpoint
 
 ### `EndpointBuilder`
 
@@ -162,7 +168,7 @@ consume:
   can populate with response outputs.  
 - `error`: An error to be applied to the defined (or style default) error response body.
 
-If the Outptut Port structure is excluded from the declaration of
+If the Output Port structure is excluded from the declaration of
 your return values, you are expected to use an `http.ResponseWriter` to manually
 send the success response (or return an `error`).
 

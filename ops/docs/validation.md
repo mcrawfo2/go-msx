@@ -177,6 +177,15 @@ within a port struct or a data transfer object:
 The underlying jsonschema-go library provides a few more constraints,
 which you can view at the package [GoDoc](https://pkg.go.dev/github.com/swaggest/jsonschema-go#readme-field-tags)
 
+### Special Tags
+
+Ports have a few special tags which can be applied at the top level:
+
+* `validation`
+
+  Boolean enabling or disabling validation.  Documentation will still be generated as if
+  validation is enabled.
+
 ### Constraints on Named Types
 
 Fields in Port structures and DTOs with simple and anonymous types may be augmented using the JSON schema
