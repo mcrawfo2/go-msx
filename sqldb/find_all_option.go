@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-type FindAllOption = func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request)
+type FindAllOption = func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request)
 
 func Where(where ...WhereOption) FindAllOption {
-	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
+	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		for _, w := range where {
 			ds = ds.Where(w.Expression())
 		}
@@ -22,21 +22,21 @@ func Where(where ...WhereOption) FindAllOption {
 }
 
 func Keys(keys KeysOption) FindAllOption {
-	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
+	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		ds = ds.Where(keys)
 		return ds, pgReq
 	}
 }
 
 func Distinct(distinct ...string) FindAllOption {
-	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
+	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		ds = ds.Distinct(strings.Join(distinct, ","))
 		return ds, pgReq
 	}
 }
 
 func Sort(sortOrders []paging.SortOrder) FindAllOption {
-	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
+	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		for _, sortOrder := range sortOrders {
 			ident := goqu.I(sortOrder.Property)
 			switch sortOrder.Direction {
@@ -54,7 +54,7 @@ func Sort(sortOrders []paging.SortOrder) FindAllOption {
 }
 
 func Paging(pagingRequest paging.Request) FindAllOption {
-	return func(ds *goqu.SelectDataset, pgReq *paging.Request) (*goqu.SelectDataset, *paging.Request) {
+	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		if pagingRequest.Size > 0 {
 			ds = ds.
 				Limit(pagingRequest.Size).

@@ -93,50 +93,50 @@ func (c *TypedRepository[I]) CountAll(ctx context.Context, dest *int64, where Wh
 }
 
 func (c *TypedRepository[I]) FindAll(ctx context.Context, dest *[]I, options ...FindAllOption) (pagingResponse paging.Response, err error) {
-	// sub query
-	sub := c.goqu.Select(c.table)
+	// row query
+	rowsQuery := c.goqu.Select(c.table)
+	pgReq := paging.Request{}
 
-	pgReq := &paging.Request{}
-
+	// Apply each option to the query and paging request
 	for _, option := range options {
-		sub, pgReq = option(sub, pgReq)
+		rowsQuery, pgReq = option(rowsQuery, pgReq)
 	}
 
-	sub = sub.ClearLimit().ClearOffset()
-
-	// total items
-	count := int64(0)
-	countDs := c.goqu.Select(c.table)
-	countDs = countDs.From(sub).Select(goqu.COUNT("*"))
-
-	err = c.goqu.ExecuteGet(ctx, countDs, &count)
-	if err != nil {
-		return
-	}
-
-	totalItems := uint(count)
-
-	// with paging
-	pagedDs := c.goqu.Select(c.table)
-	pagedDs = pagedDs.From(sub)
-
+	// Apply limit and offset when pagination is requested
 	if pgReq.Size > 0 {
-		pagedDs = pagedDs.
+		rowsQuery = rowsQuery.
 			Limit(pgReq.Size).
 			Offset(pgReq.Page * pgReq.Size)
 	}
 
-	err = c.goqu.ExecuteSelect(ctx, pagedDs, dest)
+	// Retrieve the matching rows
+	err = c.goqu.ExecuteSelect(ctx, rowsQuery, dest)
 	if err != nil {
 		return
 	}
 
+	// Fill in default (uncounted) paging response
 	pagingResponse = paging.Response{
-		Content:    dest,
-		Size:       pgReq.Size,
-		Number:     pgReq.Page,
-		Sort:       pgReq.Sort,
-		TotalItems: &totalItems,
+		Content: dest,
+		Size:    pgReq.Size,
+		Number:  pgReq.Page,
+		Sort:    pgReq.Sort,
+	}
+
+	if pgReq.Size > 0 {
+		// Remove extraneous clauses from original query
+		rowsQuery = rowsQuery.ClearLimit().ClearOffset().ClearOrder()
+
+		// total items
+		count := int64(0)
+		countQuery := c.goqu.Select(c.table).From(rowsQuery).Select(goqu.COUNT("*"))
+
+		err = c.goqu.ExecuteGet(ctx, countQuery, &count)
+		if err != nil {
+			return
+		}
+
+		pagingResponse.TotalItems = types.NewUintPtr(uint(count))
 	}
 
 	return

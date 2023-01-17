@@ -202,8 +202,10 @@ func TestTypedRepository_FindAll(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"id", "name"}).
 		AddRow(uuid.MustParse(mockId), mockName)
-	mock.ExpectQuery(`SELECT COUNT(.+) FROM`).WillReturnRows(sqlmock.NewRows([]string{"COUNT"}).FromCSVString("5"))
-	mock.ExpectQuery(`SELECT (.+) FROM`).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT \\* FROM `persons` WHERE \\(\\(`name` = \\?\\) AND \\(`id` = \\?\\)\\) ORDER BY `name` ASC LIMIT \\?").
+		WillReturnRows(rows)
+	mock.ExpectQuery("SELECT COUNT\\(\\*\\) FROM \\(SELECT \\* FROM `persons` WHERE \\(\\(`name` = \\?\\) AND \\(`id` = \\?\\)\\)\\) AS `t1`").
+		WillReturnRows(sqlmock.NewRows([]string{"COUNT"}).FromCSVString("5"))
 
 	personsRepo, _ := NewTypedRepository[Person](ctx, "persons")
 
@@ -212,7 +214,7 @@ func TestTypedRepository_FindAll(t *testing.T) {
 		Where(goqu.Ex(map[string]interface{}{"name": mockName})),
 		Keys(goqu.Ex(map[string]interface{}{"id": uuid.MustParse(mockId)})),
 		//Distinct("name"),
-		Sort([]paging.SortOrder{paging.SortOrder{Property: "name", Direction: "ASC"}}),
+		Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
 		Paging(paging.Request{Size: 10, Page: 0}),
 	)
 	assert.NoError(t, err)
@@ -381,8 +383,8 @@ func TestQueryGeneration(t *testing.T) {
 				mockApi.EXPECT().
 					SqlSelect(
 						mock.Anything,
-						"SELECT * FROM (SELECT * FROM `person` WHERE ((`id` = ?) AND (`name` = ?))) AS `t1`",
-						[]any{mockId, mockName},
+						"SELECT * FROM `person` WHERE ((`id` = ?) AND (`name` = ?)) LIMIT ? OFFSET ?",
+						[]any{mockId, mockName, int64(10), int64(100)},
 						mock.Anything).
 					Return(nil)
 
@@ -401,7 +403,11 @@ func TestQueryGeneration(t *testing.T) {
 					Where(And(map[string]any{
 						columnId:   mockId,
 						columnName: mockName,
-					})))
+					})),
+					Paging(paging.Request{
+						Size: 10,
+						Page: 10,
+					}))
 				return err
 			},
 			wantErr: false,
@@ -413,7 +419,7 @@ func TestQueryGeneration(t *testing.T) {
 				mockApi.EXPECT().
 					SqlSelect(
 						mock.AnythingOfType("*context.valueCtx"),
-						"SELECT * FROM (SELECT DISTINCT ON (\"name\") * FROM \"person\" WHERE ((\"name\" = $1) AND (\"id\" = $2)) ORDER BY \"name\" ASC) AS \"t1\" LIMIT $3 OFFSET $4",
+						"SELECT DISTINCT ON (\"name\") * FROM \"person\" WHERE ((\"name\" = $1) AND (\"id\" = $2)) ORDER BY \"name\" ASC LIMIT $3 OFFSET $4",
 						[]any{mockName, mockId, int64(2), int64(2)},
 						mock.AnythingOfType("*[]sqldb.Person")).
 					Return(nil)
@@ -421,7 +427,7 @@ func TestQueryGeneration(t *testing.T) {
 				mockApi.EXPECT().
 					SqlGet(
 						mock.AnythingOfType("*context.valueCtx"),
-						"SELECT COUNT(*) FROM (SELECT DISTINCT ON (\"name\") * FROM \"person\" WHERE ((\"name\" = $1) AND (\"id\" = $2)) ORDER BY \"name\" ASC) AS \"t1\"",
+						"SELECT COUNT(*) FROM (SELECT DISTINCT ON (\"name\") * FROM \"person\" WHERE ((\"name\" = $1) AND (\"id\" = $2))) AS \"t1\"",
 						[]any{mockName, mockId},
 						mock.Anything).
 					Return(nil)
