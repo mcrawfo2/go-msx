@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration"
 	"cto-github.cisco.com/NFV-BU/go-msx/ops"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
 	"github.com/emicklei/go-restful"
@@ -139,7 +140,7 @@ func EndpointRequestFilter(request *restful.Request, response *restful.Response,
 	// Validate request according to the endpoint port schemas
 	validator := NewRequestValidator(e.Request.Port, decoder)
 	if err = validator.ValidateRequest(); err != nil {
-		err = webservice.NewBadRequestError(err)
+		webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 		return
 	}
 
@@ -147,14 +148,14 @@ func EndpointRequestFilter(request *restful.Request, response *restful.Response,
 	var inputs interface{}
 	populator := ops.NewInputsPopulator(e.Request.Port, decoder)
 	if inputs, err = populator.PopulateInputs(); err != nil {
-		err = webservice.NewBadRequestError(err)
+		webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 		return
 	}
 
 	// Custom validation for args
 	if e.Request.Validator != nil && inputs != nil {
 		if err = e.Request.Validator(inputs); err != nil {
-			err = webservice.NewBadRequestError(err)
+			webservice.RequestWithError(request, webservice.NewBadRequestError(err))
 			return
 		}
 	}
@@ -195,6 +196,19 @@ func EndpointResponseFilter(request *restful.Request, response *restful.Response
 	if outputs == nil && responseError == nil {
 		// Already handled by the controller
 		//return
+	}
+
+	// Auto-validation for validatable Port Struct
+	if outputs != nil && responseError == nil {
+		portStructValue := reflect.ValueOf(outputs)
+		if err := validate.ValidateValue(portStructValue); err != nil {
+			errs := &ops.ValidationFailure{
+				Path:     "response",
+				Children: make(map[string]*ops.ValidationFailure),
+			}
+
+			responseError = errs.Apply(err)
+		}
 	}
 
 	// Retrieve the response encoder

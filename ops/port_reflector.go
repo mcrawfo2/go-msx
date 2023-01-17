@@ -28,6 +28,11 @@ type PortDirection bool
 const (
 	PortDirectionIn  = PortDirection(true)
 	PortDirectionOut = PortDirection(false)
+
+	PortFieldTagOptional = "optional"
+	PortFieldTagRequired = "required"
+	PortFieldTagSan      = "san"
+	PortFieldTagValidate = "validate"
 )
 
 type PortFieldPostProcessorFunc func(*PortField, reflect.StructField)
@@ -212,14 +217,14 @@ func (v *PortReflectorFieldVisitor) reflectPortField(field reflect.StructField) 
 
 	// Apply all tag to the options set
 	v.reflectPrimaryTag(f, portTag)
-	if requiredTag, _ := tags.Get("required"); requiredTag != nil && requiredTag.Name != "" {
+	if requiredTag, _ := tags.Get(PortFieldTagRequired); requiredTag != nil && requiredTag.Name != "" {
 		v.reflectSupplementalTag(f, requiredTag)
 	}
-	if optionalTag, _ := tags.Get("optional"); optionalTag != nil && optionalTag.Name != "" {
+	if optionalTag, _ := tags.Get(PortFieldTagOptional); optionalTag != nil && optionalTag.Name != "" {
 		v.reflectSupplementalTag(f, optionalTag)
 	}
 	for _, tag := range tags.Tags() {
-		if tag.Key != v.Port.Type && tag.Key != "required" && tag.Key != "optional" {
+		if tag.Key != v.Port.Type && tag.Key != PortFieldTagRequired && tag.Key != PortFieldTagOptional {
 			v.reflectSupplementalTag(f, tag)
 		}
 	}
@@ -247,11 +252,11 @@ func (v PortReflectorFieldVisitor) reflectPrimaryTag(p *PortField, tag *structta
 			value = optionParts[1]
 		}
 
-		if optionParts[0] == "optional" {
+		if optionParts[0] == PortFieldTagOptional {
 			p.WithOptional(value == "true")
 			name = "required"
 			value = strconv.FormatBool(!p.Optional)
-		} else if optionParts[0] == "required" {
+		} else if optionParts[0] == PortFieldTagRequired {
 			p.WithOptional(value != "true")
 		}
 
@@ -263,12 +268,10 @@ func (v PortReflectorFieldVisitor) reflectPrimaryTag(p *PortField, tag *structta
 
 func (v PortReflectorFieldVisitor) reflectSupplementalTag(p *PortField, tag *structtag.Tag) *PortField {
 	switch tag.Key {
-	case "required":
+	case PortFieldTagRequired:
 		p.WithOptional(tag.Value() != "true")
-	case "optional":
+	case PortFieldTagOptional:
 		p.WithOptional(tag.Value() == "true")
-	case "san":
-		p.WithBoolOptionDefault("san", true)
 	}
 
 	p.WithOption(tag.Key, tag.Value())

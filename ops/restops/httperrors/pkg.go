@@ -9,13 +9,11 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
 	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
 	"cto-github.cisco.com/NFV-BU/go-msx/repository"
-	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
 	"net/http"
 )
 
 func init() {
-	restops.SetMappedErrorStatusCode(js.ErrValidationFailed, http.StatusBadRequest)
-
+	restops.SetMappedErrorStatusCode(ops.ErrValidationFailed, http.StatusBadRequest)
 	restops.SetMappedErrorStatusCode(ops.ErrMissingRequiredValue, http.StatusBadRequest)
 
 	restops.SetMappedErrorStatusCode(rbac.ErrTenantDoesNotExist, http.StatusUnauthorized)

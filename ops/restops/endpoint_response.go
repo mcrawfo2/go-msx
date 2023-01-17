@@ -15,11 +15,12 @@ import (
 )
 
 type EndpointResponse struct {
-	Codes    EndpointResponseCodes
-	Envelope bool
-	Success  EndpointResponseContent
-	Error    EndpointResponseContent
-	Port     *ops.Port
+	Codes        EndpointResponseCodes
+	Envelope     bool
+	Success      EndpointResponseContent
+	Error        EndpointResponseContent
+	DefaultError types.Optional[interface{}]
+	Port         *ops.Port
 	ops.Documentors[EndpointResponse]
 }
 
@@ -34,6 +35,12 @@ func (r EndpointResponse) WithEnvelope(envelope bool) EndpointResponse {
 		// Error is rendered as part of the envelope
 		r.Error.Payload = types.OptionalEmpty[interface{}]()
 	}
+	return r
+}
+
+// WithDefaultError defines the payload from the style builder
+func (r EndpointResponse) WithDefaultError(errorBody interface{}) EndpointResponse {
+	r.DefaultError = types.OptionalOf(errorBody)
 	return r
 }
 

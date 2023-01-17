@@ -482,7 +482,7 @@ func TestOutputsPopulator_EvaluateErrorBody(t *testing.T) {
 				Describer: tt.fields.Describer,
 			}
 			gotBody, err := p.EvaluateErrorBody(tt.code)
-			assert.Equal(t, tt.wantErr, err != nil)
+			assert.Equal(t, tt.wantErr, err != nil, err)
 			if !tt.wantErr {
 				if wantDtoBody, ok := tt.wantBody.(*integration.ErrorDTO); ok {
 					if gotDtoBody, ok := gotBody.(*integration.ErrorDTO); ok {

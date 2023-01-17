@@ -33,17 +33,22 @@ func (v RequestValidator) ValidateRequest() (err error) {
 		return nil
 	}
 
-	errs := &js.ValidationFailure{
+	errs := &ops.ValidationFailure{
 		Path:     "request",
-		Children: make(map[string]*js.ValidationFailure),
+		Children: make(map[string]*ops.ValidationFailure),
 	}
 
 	for _, field := range v.port.Fields {
+		// Skip validation if disabled for this field
+		if do, ok := field.BoolOption(ops.PortFieldTagValidate); ok && !do {
+			continue
+		}
+
 		validationErr := v.ValidateField(field)
 		if validationErr != nil {
 			switch typedErr := validationErr.(type) {
 			case *jsv.ValidationError:
-				errs.Children[field.Name] = js.NewValidationFailure(typedErr.InstanceLocation).Apply(typedErr)
+				errs.Children[field.Name] = ops.NewValidationFailure(typedErr.InstanceLocation).Apply(typedErr)
 			default:
 				return validationErr
 			}
@@ -52,7 +57,7 @@ func (v RequestValidator) ValidateRequest() (err error) {
 	}
 
 	if len(errs.Children) > 0 {
-		return errors.Wrap(errs, "Validation Failure")
+		return errs
 	}
 	return nil
 }

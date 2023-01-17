@@ -4,13 +4,19 @@
 
 package v8
 
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/pkg/errors"
+)
+
 type ErrorCoder interface {
 	Code() string
 }
 
 type Error struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 func (e Error) Example() interface{} {
@@ -20,11 +26,21 @@ func (e Error) Example() interface{} {
 	}
 }
 
+type pojoer interface {
+	ToPojo() types.Pojo
+}
+
 func (e *Error) ApplyError(err error) {
-	if errorCoder, ok := err.(ErrorCoder); ok {
+	var errorCoder ErrorCoder
+	if errors.As(err, &errorCoder) {
 		e.Code = errorCoder.Code()
 	} else {
 		e.Code = "UNKNOWN"
+	}
+
+	var pojoErr pojoer
+	if errors.As(err, &pojoErr) {
+		e.Details = pojoErr.ToPojo()
 	}
 
 	e.Message = err.Error()

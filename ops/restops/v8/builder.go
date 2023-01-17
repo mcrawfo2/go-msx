@@ -119,7 +119,8 @@ func (b *EndpointBuilder) Build() (*restops.Endpoint, error) {
 		WithDocumentor(b.Documentation.Build()).
 		WithHandler(b.Handler).
 		WithPermissionAnyOf(b.Permissions...).
-		WithResponseCodes(arch.Codes)
+		WithResponseCodes(arch.Codes).
+		WithResponseDefaultError(Error{})
 
 	if b.Inputs.IsPresent() {
 		e.WithInputs(b.Inputs.ValueInterface())

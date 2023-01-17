@@ -8,6 +8,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/go-stack/stack"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -312,7 +313,8 @@ type GlobalFormatter struct{}
 
 func (g GlobalFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	if logErr, ok := e.Data[logrus.ErrorKey]; ok {
-		if logFielderErr, ok := logErr.(LogFielder); ok {
+		var logFielderErr LogFielder
+		if logErr != nil && errors.As(logErr.(error), &logFielderErr) {
 			logFields := logFielderErr.LogFields()
 			if logFields != nil {
 				e.WithFields(logFields)

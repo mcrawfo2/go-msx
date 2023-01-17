@@ -111,7 +111,7 @@ func (p *OutputsPopulator) EvaluateResponseCode() (code int, err error) {
 		return
 	}
 
-	if !p.Endpoint.Response.HasBody() && !p.Endpoint.Response.Envelope {
+	if p.Endpoint.Response.Success.Mime == "" && !p.Endpoint.Response.Envelope {
 		code = http.StatusNoContent
 	}
 
@@ -230,14 +230,15 @@ func (p *OutputsPopulator) EvaluateErrorBody(code int) (interface{}, error) {
 
 	if p.Endpoint.Response.Envelope {
 		payload = new(integration.MsxEnvelope)
-	} else if !p.Endpoint.Response.Error.Payload.IsPresent() {
-		payload = new(webservice.ErrorV8)
-	} else {
+	} else if p.Endpoint.Response.Error.Payload.IsPresent() {
 		payload = p.Endpoint.Response.Error.Payload.Value()
 		payloadType := reflect.TypeOf(payload)
 		if payloadType.Kind() != reflect.Ptr {
 			payload = reflect.New(payloadType).Interface()
 		}
+	} else {
+		// Last chance
+		payload = new(webservice.ErrorV8)
 	}
 
 	switch payload.(type) {
@@ -339,7 +340,9 @@ func (p *OutputsPopulator) PopulateHeaders() (err error) {
 }
 
 func (p *OutputsPopulator) EvaluateMediaType(code int) (mediaType string, err error) {
-	if code <= 399 {
+	if p.Endpoint.Response.Envelope {
+		return MediaTypeJson, nil
+	} else if code <= 399 {
 		return p.Endpoint.Response.Success.Mime, nil
 	} else {
 		return p.Endpoint.Response.Error.Mime, nil

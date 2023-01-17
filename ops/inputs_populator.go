@@ -32,7 +32,12 @@ func (p InputsPopulator) PopulateInputs() (interface{}, error) {
 	if p.portStruct != nil {
 		portStructValue := reflect.ValueOf(*p.portStruct)
 		if err = validate.ValidateValue(portStructValue); err != nil {
-			return nil, errors.Wrap(err, "Failed to validate inputs")
+			errs := &ValidationFailure{
+				Path:     "inputs",
+				Children: make(map[string]*ValidationFailure),
+			}
+
+			return nil, errs.Apply(err)
 		}
 
 		return *p.portStruct, nil
