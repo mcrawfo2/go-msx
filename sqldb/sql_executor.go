@@ -6,6 +6,7 @@ package sqldb
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"database/sql"
 	"github.com/jmoiron/sqlx"
@@ -41,4 +42,13 @@ func WithSqlExecutor(ctx context.Context, action SqlExecutorAction) error {
 		// connection should have been established
 		return action(ctx, sqlExecutor)
 	}
+}
+
+func SqlDriverName(ctx context.Context) (string, error) {
+	driverName, err := config.FromContext(ctx).String(
+		config.PrefixWithName(configRootSpringDatasourceConfig, "driver"))
+	if err != nil {
+		return "", err
+	}
+	return driverName, nil
 }

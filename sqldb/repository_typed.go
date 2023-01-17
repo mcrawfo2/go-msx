@@ -10,7 +10,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/jmoiron/sqlx"
 )
 
 type WhereOption interface {
@@ -49,7 +48,7 @@ func Or(exp goqu.ExOr) WhereOption {
 	return exp
 }
 
-//go:generate mockery --inpackage --name=TypedRepositoryApi --structname=MockTypedRepositoryApi
+//go:generate mockery --name=TypedRepositoryApi --inpackage --case=snake --with-expecter
 type TypedRepositoryApi[I any] interface {
 	CountAll(ctx context.Context, dest *int64, where WhereOption) error
 	FindAll(ctx context.Context, dest *[]I, options ...FindAllOption) (pagingResponse paging.Response, err error)
@@ -67,33 +66,24 @@ type TypedRepository[I any] struct {
 	goqu  GoquRepositoryApi
 }
 
-func NewTypedRepository[I any](ctx context.Context, table string) TypedRepositoryApi[I] {
+func NewTypedRepository[I any](ctx context.Context, table string) (TypedRepositoryApi[I], error) {
 	api := ContextTypedRepository[I](table).Get(ctx)
 	if api == nil {
+		goquRepository, err := NewGoquRepository(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		api = &TypedRepository[I]{
 			table: table,
-			goqu:  NewGoquRepository(ctx),
+			goqu:  goquRepository,
 		}
 	}
-	return api
-}
-
-func (c *TypedRepository[I]) dialect(conn SqlExecutor) goqu.DialectWrapper {
-	return goqu.Dialect(conn.DriverName())
-}
-
-func (c *TypedRepository[I]) Rebind(conn SqlExecutor, stmt string) string {
-	driver := conn.DriverName()
-	baseDriver := baseDriverName(driver)
-	bindType := sqlx.BindType(baseDriver)
-	return sqlx.Rebind(bindType, stmt)
+	return api, nil
 }
 
 func (c *TypedRepository[I]) CountAll(ctx context.Context, dest *int64, where WhereOption) error {
-	ds, err := c.goqu.Select(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Select(c.table)
 
 	if where != nil {
 		ds = ds.Where(where.Expression())
@@ -103,69 +93,57 @@ func (c *TypedRepository[I]) CountAll(ctx context.Context, dest *int64, where Wh
 }
 
 func (c *TypedRepository[I]) FindAll(ctx context.Context, dest *[]I, options ...FindAllOption) (pagingResponse paging.Response, err error) {
-	// sub query
-	sub, err := c.goqu.Select(ctx, c.table)
-	if err != nil {
-		return
-	}
+	// row query
+	rowsQuery := c.goqu.Select(c.table)
+	pgReq := paging.Request{}
 
-	pgReq := &paging.Request{}
-
+	// Apply each option to the query and paging request
 	for _, option := range options {
-		sub, pgReq = option(sub, pgReq)
+		rowsQuery, pgReq = option(rowsQuery, pgReq)
 	}
 
-	sub = sub.ClearLimit().ClearOffset()
-
-	// total items
-	count := int64(0)
-	countDs, err := c.goqu.Select(ctx, c.table)
-	if err != nil {
-		return
-	}
-	countDs = countDs.From(sub).Select(goqu.COUNT("*"))
-
-	err = c.goqu.ExecuteGet(ctx, countDs, &count)
-	if err != nil {
-		return
-	}
-
-	totalItems := uint(count)
-
-	// with paging
-	pagedDs, err := c.goqu.Select(ctx, c.table)
-	if err != nil {
-		return
-	}
-	pagedDs = pagedDs.From(sub)
-
+	// Apply limit and offset when pagination is requested
 	if pgReq.Size > 0 {
-		pagedDs = pagedDs.
+		rowsQuery = rowsQuery.
 			Limit(pgReq.Size).
 			Offset(pgReq.Page * pgReq.Size)
 	}
 
-	err = c.goqu.ExecuteSelect(ctx, pagedDs, dest)
+	// Retrieve the matching rows
+	err = c.goqu.ExecuteSelect(ctx, rowsQuery, dest)
 	if err != nil {
 		return
 	}
 
+	// Fill in default (uncounted) paging response
 	pagingResponse = paging.Response{
-		Content:    dest,
-		Size:       pgReq.Size,
-		Number:     pgReq.Page,
-		Sort:       pgReq.Sort,
-		TotalItems: &totalItems,
+		Content: dest,
+		Size:    pgReq.Size,
+		Number:  pgReq.Page,
+		Sort:    pgReq.Sort,
+	}
+
+	if pgReq.Size > 0 {
+		// Remove extraneous clauses from original query
+		rowsQuery = rowsQuery.ClearLimit().ClearOffset().ClearOrder()
+
+		// total items
+		count := int64(0)
+		countQuery := c.goqu.Select(c.table).From(rowsQuery).Select(goqu.COUNT("*"))
+
+		err = c.goqu.ExecuteGet(ctx, countQuery, &count)
+		if err != nil {
+			return
+		}
+
+		pagingResponse.TotalItems = types.NewUintPtr(uint(count))
 	}
 
 	return
 }
 
 func (c *TypedRepository[I]) FindOne(ctx context.Context, dest *I, where WhereOption) error {
-	ds, err := c.goqu.Get(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Get(c.table)
 
 	if where != nil {
 		ds = ds.Where(where.Expression())
@@ -175,18 +153,12 @@ func (c *TypedRepository[I]) FindOne(ctx context.Context, dest *I, where WhereOp
 }
 
 func (c *TypedRepository[I]) Insert(ctx context.Context, value ...I) error {
-	ds, err := c.goqu.Insert(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Insert(c.table)
 	return c.goqu.ExecuteInsert(ctx, ds.Rows(types.Slice[I](value).AnySlice()...))
 }
 
 func (c *TypedRepository[I]) Update(ctx context.Context, where WhereOption, value I) error {
-	ds, err := c.goqu.Update(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Update(c.table)
 
 	if where != nil {
 		ds = ds.Where(where.Expression())
@@ -196,26 +168,17 @@ func (c *TypedRepository[I]) Update(ctx context.Context, where WhereOption, valu
 }
 
 func (c *TypedRepository[I]) Upsert(ctx context.Context, value ...I) error {
-	ds, err := c.goqu.Upsert(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Upsert(c.table)
 	return c.goqu.ExecuteUpsert(ctx, ds.Rows(types.Slice[I](value).AnySlice()...))
 }
 
 func (c *TypedRepository[I]) DeleteOne(ctx context.Context, keys KeysOption) error {
-	ds, err := c.goqu.Delete(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Delete(c.table)
 	return c.goqu.ExecuteDelete(ctx, ds.Where(keys))
 }
 
 func (c *TypedRepository[I]) DeleteAll(ctx context.Context, where WhereOption) error {
-	ds, err := c.goqu.Delete(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Delete(c.table)
 
 	if where != nil {
 		ds = ds.Where(where.Expression())
@@ -225,9 +188,6 @@ func (c *TypedRepository[I]) DeleteAll(ctx context.Context, where WhereOption) e
 }
 
 func (c *TypedRepository[I]) Truncate(ctx context.Context) error {
-	ds, err := c.goqu.Truncate(ctx, c.table)
-	if err != nil {
-		return err
-	}
+	ds := c.goqu.Truncate(c.table)
 	return c.goqu.ExecuteTruncate(ctx, ds)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//go:generate mockery --inpackage --name=SqlRepositoryApi --structname=MockSqlRepositoryApi
+//go:generate mockery --name=SqlRepositoryApi --inpackage --case=snake --with-expecter
 type SqlRepositoryApi interface {
 	// SqlGet retrieves one row using raw parameterized sql
 	SqlGet(ctx context.Context, stmt string, args []interface{}, dest interface{}) error
@@ -20,27 +20,34 @@ type SqlRepositoryApi interface {
 }
 
 type SqlRepository struct {
+	driverName string
 }
 
-func NewSqlRepository(ctx context.Context) SqlRepositoryApi {
+func NewSqlRepository(ctx context.Context) (SqlRepositoryApi, error) {
 	api := ContextSqlRepository().Get(ctx)
 	if api == nil {
-		api = &SqlRepository{}
+
+		driverName, err := SqlDriverName(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		api = &SqlRepository{
+			driverName: BaseDriverName(driverName),
+		}
 	}
 
-	return api
+	return api, nil
 }
 
-func (c *SqlRepository) Rebind(conn SqlExecutor, stmt string) string {
-	driver := conn.DriverName()
-	baseDriver := baseDriverName(driver)
-	bindType := sqlx.BindType(baseDriver)
+func (c *SqlRepository) rebind(stmt string) string {
+	bindType := sqlx.BindType(c.driverName)
 	return sqlx.Rebind(bindType, stmt)
 }
 
 func (c *SqlRepository) SqlGet(ctx context.Context, stmt string, args []interface{}, dest interface{}) error {
 	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		stmt = c.Rebind(conn, stmt)
+		stmt = c.rebind(stmt)
 		statements.Printf(queryLogFormat, stmt, args)
 		return conn.GetContext(ctx, dest, stmt, args...)
 	})
@@ -48,7 +55,7 @@ func (c *SqlRepository) SqlGet(ctx context.Context, stmt string, args []interfac
 
 func (c *SqlRepository) SqlSelect(ctx context.Context, stmt string, args []interface{}, dest interface{}) error {
 	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		stmt = c.Rebind(conn, stmt)
+		stmt = c.rebind(stmt)
 		statements.Printf(queryLogFormat, stmt, args)
 		return conn.SelectContext(ctx, dest, stmt, args...)
 	})
@@ -56,7 +63,7 @@ func (c *SqlRepository) SqlSelect(ctx context.Context, stmt string, args []inter
 
 func (c *SqlRepository) SqlExecute(ctx context.Context, stmt string, args []interface{}) error {
 	return WithSqlExecutor(ctx, func(ctx context.Context, conn SqlExecutor) error {
-		stmt = c.Rebind(conn, stmt)
+		stmt = c.rebind(stmt)
 		statements.Printf(queryLogFormat, stmt, args)
 		_, err := conn.ExecContext(ctx, stmt, args...)
 		return err
