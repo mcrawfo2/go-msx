@@ -135,6 +135,38 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="middleware"><a class="header" href="#middleware">Middleware</a></h1>
+<p>You can use a Mediator/Middleware component to augment the functionality of 
+go-msx components such as endpoints:</p>
+<blockquote>
+<p>Middleware is software that's assembled into an app pipeline to handle requests and responses.
+Each component:</p>
+<ul>
+<li>chooses whether to pass execution to the next component in the pipeline.</li>
+<li>can perform work before and after the next component in the pipeline.</li>
+</ul>
+<p>-- <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?tabs=aspnetcore2x&amp;view=aspnetcore-7.0">ASP.NET Core Middleware</a>, Microsoft</p>
+</blockquote>
+<p>Go HTTP Middleware factories implement a de facto function signature:</p>
+<pre><code class="language-go">type Middleware func(next http.Handler) http.Handler
+
+func myMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Middleware BEFORE logic goes here...
+        next.ServeHTTP(w, r)
+        // Middleware AFTER logic goes here...
+    })
+}
+</code></pre>
+<p>The factory accepts the subsequent Handler in the middleware chain, and returns a new
+Handler which wraps it with the desired added functionality.  You can find more details and
+examples on <a href="https://www.alexedwards.net/blog/making-and-using-middleware">this blog post</a>.</p>
+<h2 id="available-http-middleware"><a class="header" href="#available-http-middleware">Available HTTP Middleware</a></h2>
+<p>go-msx does not currently define any HTTP Middleware, however there are many libraries available,
+including:</p>
+<ul>
+<li><a href="https://github.com/gorilla/handlers">github.com/gorilla/handlers</a></li>
+<li><a href="https://github.com/throttled/throttled">github.com/throttled/throttled/v2</a></li>
+</ul>
 
                     </main>
 

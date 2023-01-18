@@ -184,10 +184,7 @@ the <code>Endpoints</code> function. These are then aggregated and returned as a
 in order to apply transformations to each of the registered endpoints, including tagging
 and path manipulation:</p>
 <pre><code class="language-go">func (c *applicationController) EndpointTransformers() restops.EndpointTransformers {
-    openapi.Spec().Tags = append(openapi.Spec().Tags, openapi3.Tag{
-        Name:        &quot;Applications&quot;,
-        Description: types.NewStringPtr(&quot;Configuration Applications Controller&quot;),
-    })
+    openapi.AddTag(&quot;Applications&quot;, &quot;Configuration Applications Controller&quot;)
     
     return restops.EndpointTransformers{
         restops.AddEndpointPathPrefix(pathPrefixConfiguration),
@@ -195,6 +192,15 @@ and path manipulation:</p>
     }
 }
 </code></pre>
+<p>Current transformers are:</p>
+<ul>
+<li><code>AddEndpointTag</code>: Adds a tag to each endpoint</li>
+<li><code>AddEndpointPathPrefix</code>: Adds a prefix to the path of each endpoint</li>
+<li><code>AddEndpointErrorConverter</code>: Sets a custom ErrorConverter for each endpoint</li>
+<li><code>AddEndpointErrorCoder</code>: Sets a custom ErrorCoder for each endpoint</li>
+<li><code>AddEndpointContextInjector</code>: Adds a Context injector to each endpoint</li>
+<li><code>AddEndpointMiddleware</code>: Adds an HTTP <a href="middleware.html">Middleware</a> to each endpoint</li>
+</ul>
 <h3 id="endpointbuilder"><a class="header" href="#endpointbuilder"><code>EndpointBuilder</code></a></h3>
 <p>Each endpoint in the controller can be generated using one of the provided <code>EndpointBuilder</code>
 instances. go-msx provides builders for each active API style:</p>
@@ -271,7 +277,7 @@ consume:</p>
 can populate with response outputs.</li>
 <li><code>error</code>: An error to be applied to the defined (or style default) error response body.</li>
 </ul>
-<p>If the Outptut Port structure is excluded from the declaration of
+<p>If the Output Port structure is excluded from the declaration of
 your return values, you are expected to use an <code>http.ResponseWriter</code> to manually
 send the success response (or return an <code>error</code>).</p>
 <p>If both the Output Port structure <em>and</em> <code>error</code> are excluded, you are expected

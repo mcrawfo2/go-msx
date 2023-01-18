@@ -1557,6 +1557,15 @@ to <code>array</code> fields (slices).  Must be integers if specified.</p>
 </ul>
 <p>The underlying jsonschema-go library provides a few more constraints,
 which you can view at the package <a href="https://pkg.go.dev/github.com/swaggest/jsonschema-go#readme-field-tags">GoDoc</a></p>
+<h3 id="special-tags"><a class="header" href="#special-tags">Special Tags</a></h3>
+<p>Ports have a few special tags which can be applied at the top level:</p>
+<ul>
+<li>
+<p><code>validation</code></p>
+<p>Boolean enabling or disabling validation.  Documentation will still be generated as if
+validation is enabled.</p>
+</li>
+</ul>
 <h3 id="constraints-on-named-types"><a class="header" href="#constraints-on-named-types">Constraints on Named Types</a></h3>
 <p>Fields in Port structures and DTOs with simple and anonymous types may be augmented using the JSON schema
 tags above.  However, named types are shared across many fields and therefore cannot be augmented in-place.
@@ -2013,10 +2022,7 @@ the <code>Endpoints</code> function. These are then aggregated and returned as a
 in order to apply transformations to each of the registered endpoints, including tagging
 and path manipulation:</p>
 <pre><code class="language-go">func (c *applicationController) EndpointTransformers() restops.EndpointTransformers {
-    openapi.Spec().Tags = append(openapi.Spec().Tags, openapi3.Tag{
-        Name:        &quot;Applications&quot;,
-        Description: types.NewStringPtr(&quot;Configuration Applications Controller&quot;),
-    })
+    openapi.AddTag(&quot;Applications&quot;, &quot;Configuration Applications Controller&quot;)
     
     return restops.EndpointTransformers{
         restops.AddEndpointPathPrefix(pathPrefixConfiguration),
@@ -2024,6 +2030,15 @@ and path manipulation:</p>
     }
 }
 </code></pre>
+<p>Current transformers are:</p>
+<ul>
+<li><code>AddEndpointTag</code>: Adds a tag to each endpoint</li>
+<li><code>AddEndpointPathPrefix</code>: Adds a prefix to the path of each endpoint</li>
+<li><code>AddEndpointErrorConverter</code>: Sets a custom ErrorConverter for each endpoint</li>
+<li><code>AddEndpointErrorCoder</code>: Sets a custom ErrorCoder for each endpoint</li>
+<li><code>AddEndpointContextInjector</code>: Adds a Context injector to each endpoint</li>
+<li><code>AddEndpointMiddleware</code>: Adds an HTTP <a href="ops/restops/docs/middleware.html">Middleware</a> to each endpoint</li>
+</ul>
 <h3 id="endpointbuilder"><a class="header" href="#endpointbuilder"><code>EndpointBuilder</code></a></h3>
 <p>Each endpoint in the controller can be generated using one of the provided <code>EndpointBuilder</code>
 instances. go-msx provides builders for each active API style:</p>
@@ -2100,7 +2115,7 @@ consume:</p>
 can populate with response outputs.</li>
 <li><code>error</code>: An error to be applied to the defined (or style default) error response body.</li>
 </ul>
-<p>If the Outptut Port structure is excluded from the declaration of
+<p>If the Output Port structure is excluded from the declaration of
 your return values, you are expected to use an <code>http.ResponseWriter</code> to manually
 send the success response (or return an <code>error</code>).</p>
 <p>If both the Output Port structure <em>and</em> <code>error</code> are excluded, you are expected
@@ -2257,6 +2272,38 @@ by default.</p>
 they will be ignored if specified; there is only one of each of these in any 
 generated response.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="middleware-1"><a class="header" href="#middleware-1">Middleware</a></h1>
+<p>You can use a Mediator/Middleware component to augment the functionality of 
+go-msx components such as endpoints:</p>
+<blockquote>
+<p>Middleware is software that's assembled into an app pipeline to handle requests and responses.
+Each component:</p>
+<ul>
+<li>chooses whether to pass execution to the next component in the pipeline.</li>
+<li>can perform work before and after the next component in the pipeline.</li>
+</ul>
+<p>-- <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?tabs=aspnetcore2x&amp;view=aspnetcore-7.0">ASP.NET Core Middleware</a>, Microsoft</p>
+</blockquote>
+<p>Go HTTP Middleware factories implement a de facto function signature:</p>
+<pre><code class="language-go">type Middleware func(next http.Handler) http.Handler
+
+func myMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Middleware BEFORE logic goes here...
+        next.ServeHTTP(w, r)
+        // Middleware AFTER logic goes here...
+    })
+}
+</code></pre>
+<p>The factory accepts the subsequent Handler in the middleware chain, and returns a new
+Handler which wraps it with the desired added functionality.  You can find more details and
+examples on <a href="https://www.alexedwards.net/blog/making-and-using-middleware">this blog post</a>.</p>
+<h2 id="available-http-middleware"><a class="header" href="#available-http-middleware">Available HTTP Middleware</a></h2>
+<p>go-msx does not currently define any HTTP Middleware, however there are many libraries available,
+including:</p>
+<ul>
+<li><a href="https://github.com/gorilla/handlers">github.com/gorilla/handlers</a></li>
+<li><a href="https://github.com/throttled/throttled">github.com/throttled/throttled/v2</a></li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sql-database-repository"><a class="header" href="#sql-database-repository">SQL Database Repository</a></h1>
 <p>MSX promotes the usage of the common Controller &gt; Service &gt; Repository layered architecture within microservices.</p>
 <p>The role of the Repository is to query and mutate the persistent storage of Models.</p>

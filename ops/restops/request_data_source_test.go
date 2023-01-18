@@ -220,13 +220,13 @@ Content-Disposition: form-data; name="field2"; filename="example.txt"
 
 value2
 --boundary--`,
-				)),
+			)),
 		}),
 	}
 
 	wantValues := url.Values{
-		"a": {"1"},
-		"b": {"2"},
+		"a":      {"1"},
+		"b":      {"2"},
 		"field1": {"value1"},
 	}
 
@@ -246,8 +246,6 @@ value2
 			},
 		},
 	}
-
-
 
 	gotValues, gotForm, err := r.Form()
 
