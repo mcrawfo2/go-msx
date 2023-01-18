@@ -5,7 +5,6 @@
 package skel
 
 import (
-	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -14,8 +13,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"golang.org/x/text/cases"
 )
-
-var ErrUserCancelled = errors.New("user cancelled")
 
 type SkeletonConfig struct {
 	Archetype         string `survey:"generator" json:"generator"`
@@ -37,6 +34,7 @@ type SkeletonConfig struct {
 	SlackChannel      string `survey:"slackChannel" json:"slackChannel"`
 	Trunk             string `survey:"trunk" json:"trunk"`
 	ImageFile         string `survey:"imageFile" json:"imageFile"`
+	noOverwrite       bool   // prevent the renderer from overwriting existing files
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -380,11 +378,6 @@ func ConfigureInteractive() error {
 
 	target := skeletonConfig.TargetDirectory()
 	logger.Debugf("Target directory: %s", target)
-
-	carryOn, err := GitCheckAsk(target)
-	if err != nil || carryOn == false {
-		return ErrUserCancelled
-	}
 
 	// Configure the archetype using the questions for it
 	skeletonConfig.Archetype = archetypes.Key(archetypeIndex)

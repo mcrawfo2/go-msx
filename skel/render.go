@@ -54,41 +54,54 @@ var (
 	ErrFileDoesNotExist  = errors.New("file does not exist, it should")
 )
 
+var printOptionsDeltas = false // only need to print the NewRenderOptions() values once
+
 type RenderOptions struct {
-	Variables  map[string]string
-	Conditions map[string]bool
-	Strings    map[string]string
-	IncFiles   []string // glob patterns of files to consider (empty=all)
-	ExcFiles   []string // glob patterns of files to exclude (empty=none)
+	Variables   map[string]string // key is var name
+	Conditions  map[string]bool   // key is condition name
+	Strings     map[string]string // key is string name
+	IncFiles    []string          // glob patterns of files to consider (empty=all)
+	ExcFiles    []string          // glob patterns of files to exclude (empty=none)
+	NoOverwrite bool              // RenderTo will not alter existing files, no matter what
+
+	printDeltas             bool              // print the changed items only
+	deltaVars, deltaStrings map[string]string // the changed items
+	deltaConds              map[string]bool
 }
 
 func (r RenderOptions) AddString(source, dest string) {
 	r.Strings[source] = dest
+	r.deltaStrings[source] = dest
 }
 
 func (r RenderOptions) AddStrings(strings map[string]string) {
 	for k, v := range strings {
 		r.Strings[k] = v
+		r.deltaStrings[k] = v
 	}
 }
 
 func (r RenderOptions) AddVariable(source, dest string) {
 	r.Variables[source] = dest
+	r.deltaVars[source] = dest
 }
 
 func (r RenderOptions) AddVariables(variables map[string]string) {
 	for k, v := range variables {
 		r.Variables[k] = v
+		r.deltaVars[k] = v
 	}
 }
 
 func (r RenderOptions) AddCondition(condition string, value bool) {
 	r.Conditions[condition] = value
+	r.deltaConds[condition] = value
 }
 
 func (r RenderOptions) AddConditions(conditions map[string]bool) {
 	for k, v := range conditions {
 		r.Conditions[k] = v
+		r.deltaConds[k] = v
 	}
 }
 
@@ -128,24 +141,59 @@ func NewRenderOptions() RenderOptions {
 			"UI":                     hasUI(),
 			"K8S_GROUP_DATAPLATFORM": skeletonConfig.KubernetesGroup == "dataplatform",
 		},
-		Strings:  make(map[string]string),
-		IncFiles: incFiles,
-		ExcFiles: excFiles,
+		Strings:      map[string]string{},
+		IncFiles:     incFiles,
+		ExcFiles:     excFiles,
+		deltaStrings: map[string]string{},
+		deltaVars:    map[string]string{},
+		deltaConds:   map[string]bool{},
 	}
 }
 
 func (r RenderOptions) String() string {
-	return fmt.Sprintf("Variables: \n%s\nConditions: \n%s\nStrings: %s\nInclude: %s\nExclude: %s\n",
-		mapStr(r.Variables), mapStr(r.Conditions), mapStr(r.Strings),
-		r.IncFiles, r.ExcFiles)
+	if printOptionsDeltas {
+		if len(r.deltaStrings) > 0 || len(r.deltaVars) > 0 || len(r.deltaConds) > 0 {
+			return fmt.Sprintf("Changed\n%s%s%s\n",
+				mapStr("Variables", r.deltaVars), mapStr("Conditions", r.deltaConds), mapStr("Strings", r.deltaStrings))
+		}
+		return ""
+	}
+	printOptionsDeltas = true
+	return fmt.Sprintf("%s%s%s%s%s\n",
+		mapStr("Variables", r.Variables), mapStr("Conditions", r.Conditions), mapStr("Strings", r.Strings),
+		sliceStr("Include", r.IncFiles), sliceStr("Exclude: ", r.ExcFiles))
 }
 
-func mapStr[t interface{ string | bool }](m map[string]t) string {
-	var buf bytes.Buffer
-	for k, v := range m {
-		buf.WriteString(fmt.Sprintf("%s = %v\n", k, v))
+// renders a map as a string with a title but returns "" if the map is empty
+func mapStr[t interface{ string | bool }](name string, m map[string]t) string {
+
+	if len(m) == 0 {
+		return ""
 	}
-	return buf.String()
+
+	var buf bytes.Buffer
+	buf.WriteString(name + ":\n")
+	for k, v := range m {
+		buf.WriteString(fmt.Sprintf("  %s = %v\n", k, v))
+	}
+
+	return buf.String() + "\n"
+}
+
+// renders a slice of strings as a string with a title but returns "" if the slice is empty
+func sliceStr(name string, s []string) string {
+
+	if len(s) == 0 {
+		return ""
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString(name + ":")
+	for _, v := range s {
+		buf.WriteString(fmt.Sprintf("%s  ", v))
+	}
+
+	return buf.String() + "\n"
 }
 
 type TemplateOp int
@@ -228,8 +276,6 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 	targetFileName := path.Join(directory, destFile)
 	targetDirectory := path.Dir(targetFileName)
 
-	logger.Tracef("Considering file %s against (inc/exc) %s %s", destFile, options.IncFiles, options.ExcFiles)
-
 	includeIt, err := shouldInclude(destFile, options)
 	if err != nil {
 		return err
@@ -250,6 +296,11 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		}
 	}
 
+	if options.NoOverwrite && targetExists {
+		logger.Infof("  🔒️ (skip) %s (%s) in no-overwrite mode", t.Name, targetFileName)
+		return nil
+	}
+
 	switch t.Operation {
 
 	case OpGone: // remove if it exists
@@ -258,7 +309,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 			if err != nil {
 				return errors.Wrapf(err, "removing old target %q failed", targetFileName)
 			}
-			logger.Infof("  ♻️️ %s (%s)", t.Name, targetFileName)
+			logger.Infof("  ♻️️ (removed) %s (%s)", t.Name, targetFileName)
 		}
 		return nil
 
@@ -270,7 +321,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		if err != nil {
 			return errors.Wrapf(err, "unable to remove %q", targetFileName)
 		}
-		logger.Infof("  🗑️ %s (%s)", t.Name, targetFileName)
+		logger.Infof("  🗑️ (removed) %s (%s)", t.Name, targetFileName)
 		return nil
 
 	case OpAdd: // exists? we care not
@@ -322,7 +373,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		}
 	}
 
-	logger.Infof("  💾 Wrote %s", targetFileName)
+	logger.Infof("+ %s (%s)", t.Name, targetFileName)
 
 	return nil
 }
@@ -370,6 +421,10 @@ func shouldInclude(destination string, options RenderOptions) (includeIt bool, e
 	includeIt = true
 	excludeIt := false
 
+	if len(options.IncFiles) > 0 || len(options.ExcFiles) > 0 {
+		logger.Tracef("Considering file %s against (inc/exc) %s %s", destination, options.IncFiles, options.ExcFiles)
+	}
+
 	if len(options.IncFiles) > 0 {
 		includeIt = false
 		for _, m := range options.IncFiles {
@@ -404,7 +459,10 @@ func shouldInclude(destination string, options RenderOptions) (includeIt bool, e
 }
 
 func (t TemplateSet) RenderTo(directory string, options RenderOptions) (err error) {
-	logger.Debugf("Template rendering options: \n%s\n", options)
+	optionsStr := options.String()
+	if len(optionsStr) > 0 {
+		logger.Debugf("Template rendering options: \n%s\n", optionsStr)
+	}
 	for _, template := range t {
 
 		if err := template.RenderTo(directory, options); err != nil {
