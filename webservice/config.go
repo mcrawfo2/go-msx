@@ -5,25 +5,23 @@
 package webservice
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"strconv"
 )
 
 type WebServerConfig struct {
-	Enabled        bool   `config:"default=false"`
-	Host           string `config:"default=${network.outbound.address:0.0.0.0}"`
-	Port           int    `config:"default=8080"`
-	Tls            certificate.TLSConfig
-	Cors           CorsConfig
-	ContextPath    string `config:"default=/app"`
-	StaticPath     string `config:"default=/www"`
-	StaticEnabled  bool   `config:"default=true"`
-	TraceEnabled   bool   `config:"default=false"`
-	DebugEnabled   bool   `config:"default=false"`
-	Disconnected   bool   `config:"default=${cli.flag.disconnected:false}"`
-	RecordingCache lru.CacheConfig
+	Enabled       bool   `config:"default=false"`
+	Host          string `config:"default=${network.outbound.address:0.0.0.0}"`
+	Port          int    `config:"default=8080"`
+	Tls           certificate.TLSConfig
+	Cors          CorsConfig
+	ContextPath   string `config:"default=/app"`
+	StaticPath    string `config:"default=/www"`
+	StaticEnabled bool   `config:"default=true"`
+	TraceEnabled  bool   `config:"default=false"`
+	DebugEnabled  bool   `config:"default=false"`
+	Disconnected  bool   `config:"default=${cli.flag.disconnected:false}"`
 }
 
 type CorsConfig struct {
@@ -52,5 +50,6 @@ func NewWebServerConfig(cfg *config.Config) (*WebServerConfig, error) {
 	if err := cfg.Populate(&webServerConfig, configRootWebServer); err != nil {
 		return nil, err
 	}
+
 	return &webServerConfig, nil
 }

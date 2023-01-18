@@ -6,7 +6,9 @@ package app
 
 import (
 	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
+	redisCache "cto-github.cisco.com/NFV-BU/go-msx/redis/cache"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/adminprovider"
@@ -17,6 +19,8 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/debugprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency"
+	idempotencyCache "cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency/cache"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/loggersprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/maintenanceprovider"
@@ -43,7 +47,13 @@ func registerRegistrations(cfg *config.Config) error {
 		OnEvent(EventStart, PhaseBefore, registerSwaggerWebService)
 		OnEvent(EventStart, PhaseBefore, registerApiListWebService)
 		OnEvent(EventStart, PhaseBefore, registerAsyncApiWebService)
+
 		OnEvent(EventStart, PhaseAfter, webservice.Start)
+
+		OnEvent(EventStart, PhaseAfter, registerIdempotencyCacheRedis)
+		OnEvent(EventStart, PhaseAfter, registerIdempotencyCacheInMemory)
+		OnEvent(EventStart, PhaseAfter, idempotency.ApplyIdempotencyKeyFilter)
+
 		OnEvent(EventStop, PhaseBefore, webservice.Stop)
 	}
 
@@ -115,3 +125,35 @@ func registerAsyncApiWebService(ctx context.Context) error {
 		return err
 	}
 }
+
+func registerIdempotencyCacheRedis(ctx context.Context) error {
+	cfg := config.MustFromContext(ctx)
+
+	lru.RegisterCacheProvider(idempotency.CacheProviderInMemory, func(ctx context.Context, configRoot string) (lru.ContextCache, error) {
+		lruConfig, err := lru.NewCacheConfig(cfg, idempotency.ConfigRootIdempotencyKeyInMemory)
+		if err != nil {
+			logger.WithContext(ctx).Error(err)
+			return nil, err
+		}
+		return lru.ContextCacheAdapter{Lru: lru.NewCacheFromConfig(lruConfig)}, nil
+	})
+
+	return nil
+}
+
+func registerIdempotencyCacheInMemory(ctx context.Context) error {
+	cfg := config.MustFromContext(ctx)
+
+	lru.RegisterCacheProvider(idempotency.CacheProviderRedis, func(ctx context.Context, configRoot string) (lru.ContextCache, error) {
+		redisConfig, err := redisCache.NewContextCacheConfig(cfg, idempotency.ConfigRootIdempotencyKeyRedis)
+		if err != nil {
+			logger.WithContext(ctx).Error(err)
+			return nil, err
+		}
+		return redisCache.NewContextCacheFromConfig[idempotencyCache.CachedWebData](redisConfig), nil
+	})
+
+	return nil
+}
+
+

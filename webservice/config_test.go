@@ -5,14 +5,12 @@
 package webservice
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/certificate"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestWebServerConfig_Address(t *testing.T) {
@@ -124,14 +122,6 @@ func TestNewWebServerConfig(t *testing.T) {
 				StaticEnabled: true,
 				TraceEnabled:  false,
 				DebugEnabled:  false,
-				RecordingCache: lru.CacheConfig{ // default lru.CacheConfig settings
-					Ttl:             300 * time.Second,
-					ExpireLimit:     100,
-					ExpireFrequency: 30 * time.Second,
-					DeAgeOnAccess:   false,
-					Metrics:         false,
-					MetricsPrefix:   "cache",
-				},
 			},
 		},
 		{
@@ -180,14 +170,6 @@ func TestNewWebServerConfig(t *testing.T) {
 				StaticEnabled: true,
 				TraceEnabled:  false,
 				DebugEnabled:  false,
-				RecordingCache: lru.CacheConfig{ // default lru.CacheConfig settings
-					Ttl:             300 * time.Second,
-					ExpireLimit:     100,
-					ExpireFrequency: 30 * time.Second,
-					DeAgeOnAccess:   false,
-					Metrics:         false,
-					MetricsPrefix:   "cache",
-				},
 			},
 		},
 	}
