@@ -64,7 +64,6 @@ func (d *EndpointRequestBodyDocumentor) documentFormField(formField restops.Endp
 		}
 	}
 
-
 	schemaOrRef = formFieldSchemaOrRef
 	return
 }

@@ -38,9 +38,9 @@
 
 ## Persistence
 - [💀 CRUD Repository ](sqldb/repository.md) 
-- [Model Repository]()
-- [GoQu Repository]()
-- [SQL Repository]()
+- [🎉Typed Repository](sqldb/docs/new_repositories_typed.md)
+- [🎉Goqu Repository](sqldb/docs/new_repositories_goqu.md)
+- [🎉SQL Repository](sqldb/docs/new_repositories_sql.md)
 - [Migration]()
 
 ## Communication

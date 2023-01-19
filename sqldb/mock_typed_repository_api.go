@@ -142,7 +142,7 @@ func (_c *MockTypedRepositoryApi_DeleteOne_Call[I]) Return(_a0 error) *MockTyped
 }
 
 // FindAll provides a mock function with given fields: ctx, dest, options
-func (_m *MockTypedRepositoryApi[I]) FindAll(ctx context.Context, dest *[]I, options ...func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request)) (paging.Response, error) {
+func (_m *MockTypedRepositoryApi[I]) FindAll(ctx context.Context, dest *[]I, options ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request)) (paging.Response, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -153,14 +153,14 @@ func (_m *MockTypedRepositoryApi[I]) FindAll(ctx context.Context, dest *[]I, opt
 	ret := _m.Called(_ca...)
 
 	var r0 paging.Response
-	if rf, ok := ret.Get(0).(func(context.Context, *[]I, ...func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request)) paging.Response); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *[]I, ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request)) paging.Response); ok {
 		r0 = rf(ctx, dest, options...)
 	} else {
 		r0 = ret.Get(0).(paging.Response)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *[]I, ...func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request)) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *[]I, ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request)) error); ok {
 		r1 = rf(ctx, dest, options...)
 	} else {
 		r1 = ret.Error(1)
@@ -177,18 +177,18 @@ type MockTypedRepositoryApi_FindAll_Call[I interface{}] struct {
 // FindAll is a helper method to define mock.On call
 //  - ctx context.Context
 //  - dest *[]I
-//  - options ...func(*goqu.SelectDataset , *paging.Request)(*goqu.SelectDataset , *paging.Request)
+//  - options ...func(*goqu.SelectDataset , paging.Request)(*goqu.SelectDataset , paging.Request)
 func (_e *MockTypedRepositoryApi_Expecter[I]) FindAll(ctx interface{}, dest interface{}, options ...interface{}) *MockTypedRepositoryApi_FindAll_Call[I] {
 	return &MockTypedRepositoryApi_FindAll_Call[I]{Call: _e.mock.On("FindAll",
 		append([]interface{}{ctx, dest}, options...)...)}
 }
 
-func (_c *MockTypedRepositoryApi_FindAll_Call[I]) Run(run func(ctx context.Context, dest *[]I, options ...func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request))) *MockTypedRepositoryApi_FindAll_Call[I] {
+func (_c *MockTypedRepositoryApi_FindAll_Call[I]) Run(run func(ctx context.Context, dest *[]I, options ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request))) *MockTypedRepositoryApi_FindAll_Call[I] {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request), len(args)-2)
+		variadicArgs := make([]func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request), len(args)-2)
 		for i, a := range args[2:] {
 			if a != nil {
-				variadicArgs[i] = a.(func(*goqu.SelectDataset, *paging.Request) (*goqu.SelectDataset, *paging.Request))
+				variadicArgs[i] = a.(func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request))
 			}
 		}
 		run(args[0].(context.Context), args[1].(*[]I), variadicArgs...)

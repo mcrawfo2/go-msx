@@ -91,7 +91,7 @@ func (s *SecureData) Field(ctx context.Context, name string) (value *string, err
 	if s == nil {
 		return nil, nil
 	}
-	
+
 	// Lazy decrypt on first read
 	s.ctx = ctx
 	if s.payload == nil {
