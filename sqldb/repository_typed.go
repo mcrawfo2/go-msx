@@ -27,6 +27,9 @@ type KeysOption = goqu.Ex
 func All(exps ...WhereOption) WhereOption {
 	var expressions []exp.Expression
 	for _, expressioner := range exps {
+		if expressioner == nil {
+			continue
+		}
 		expressions = append(expressions, expressioner.Expression())
 	}
 	return exp.NewExpressionList(exp.AndType, expressions...)
@@ -35,6 +38,9 @@ func All(exps ...WhereOption) WhereOption {
 func Any(exps ...WhereOption) WhereOption {
 	var expressions []exp.Expression
 	for _, expressioner := range exps {
+		if expressioner == nil {
+			continue
+		}
 		expressions = append(expressions, expressioner.Expression())
 	}
 	return exp.NewExpressionList(exp.OrType, expressions...)

@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package asyncapi
+package payloads
 
 import (
 	"github.com/swaggest/jsonschema-go"
@@ -136,7 +136,7 @@ func walkMapJsonSchemaOrBool(iterable map[string]jsonschema.SchemaOrBool, visito
 }
 
 func walkSliceJsonSchemaOrBool(iterable []jsonschema.SchemaOrBool, visitor JsonSchemaVisitor) bool {
-	var results = make([]*jsonschema.SchemaOrBool, 0, len(iterable))
+	var results = make([]*jsonschema.SchemaOrBool, len(iterable))
 	var done = false
 	for i, v := range iterable {
 		tv := v

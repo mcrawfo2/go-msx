@@ -18,6 +18,18 @@ func ParameterRefName(reference *openapi3.ParameterReference) string {
 	return path.Base(reference.Ref)
 }
 
+func RequestBodyRefName(reference *openapi3.RequestBodyReference) string {
+	return path.Base(reference.Ref)
+}
+
+func ResponseRefName(reference *openapi3.ResponseReference) string {
+	return path.Base(reference.Ref)
+}
+
+func HeaderRefName(reference *openapi3.HeaderReference) string {
+	return path.Base(reference.Ref)
+}
+
 func NewSchemaOrRef(s *openapi3.Schema) openapi3.SchemaOrRef {
 	return openapi3.SchemaOrRef{
 		Schema: s,

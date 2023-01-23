@@ -12,24 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gedex/inflector"
-	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
-	"golang.org/x/text/cases"
-)
-
-const (
-	inflectionTitleSingular          = "Title Singular"
-	inflectionTitlePlural            = "Title Plural"
-	inflectionUpperCamelSingular     = "UpperCamelSingular"
-	inflectionUpperCamelPlural       = "UpperCamelPlural"
-	inflectionLowerCamelSingular     = "lowerCamelSingular"
-	inflectionLowerCamelPlural       = "lowerCamelPlural"
-	inflectionLowerSnakeSingular     = "lower_snake_singular"
-	inflectionScreamingSnakePlural   = "SCREAMING_SNAKE_PLURAL"
-	inflectionScreamingSnakeSingular = "SCREAMING_SNAKE_SINGULAR"
-	inflectionLowerSingular          = "lowersingular"
-	inflectionLowerPlural            = "lowerplural"
 )
 
 func init() {
@@ -71,7 +54,7 @@ func GenerateTopicPublisher(args []string) error {
 		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
 	}
 	topicName := strings.Join(args, " ")
-	inflections := inflect(topicName)
+	inflections := NewInflector(topicName)
 
 	topicPackageName := inflections[inflectionLowerPlural]
 	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
@@ -126,7 +109,7 @@ func GenerateTopicSubscriber(args []string) error {
 		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
 	}
 	topicName := strings.Join(args, " ")
-	inflections := inflect(topicName)
+	inflections := NewInflector(topicName)
 
 	topicPackageName := inflections[inflectionLowerPlural]
 	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
@@ -186,7 +169,7 @@ func GenerateTimer(args []string) error {
 		return errors.New("No Timer Name specified.  Please provide singular timer name.  Examples: 'employee' or 'device connection'")
 	}
 	timerName := strings.Join(args, " ")
-	inflections := inflect(timerName)
+	inflections := NewInflector(timerName)
 
 	timerPackageName := inflections[inflectionLowerPlural]
 	timerPackageSource := path.Join("code", "timer", "lowerplural")
@@ -244,37 +227,8 @@ func GenerateTimer(args []string) error {
 	return GoGenerate(timerPackageAbsPath)
 }
 
-func inflect(title string) map[string]string {
-	caser := cases.Title(TitlingLanguage)
-	titleSingular := caser.String(inflector.Singularize(title))
-	titlePlural := caser.String(inflector.Pluralize(titleSingular))
-	upperCamelSingular := strcase.ToCamel(titleSingular)
-	upperCamelPlural := strcase.ToCamel(titlePlural)
-	lowerCamelSingular := strcase.ToLowerCamel(titleSingular)
-	lowerCamelPlural := strcase.ToLowerCamel(titlePlural)
-	lowerSingular := strings.ToLower(lowerCamelSingular)
-	lowerPlural := strings.ToLower(lowerCamelPlural)
-	lowerSnakeSingular := strcase.ToSnake(titleSingular)
-	screamingSnakeSingular := strcase.ToScreamingSnake(titleSingular)
-	screamingSnakePlural := strcase.ToScreamingSnake(titlePlural)
-
-	return map[string]string{
-		inflectionTitleSingular:          titleSingular,
-		inflectionTitlePlural:            titlePlural,
-		inflectionUpperCamelSingular:     upperCamelSingular,
-		inflectionUpperCamelPlural:       upperCamelPlural,
-		inflectionLowerCamelSingular:     lowerCamelSingular,
-		inflectionLowerCamelPlural:       lowerCamelPlural,
-		inflectionLowerSingular:          lowerSingular,
-		inflectionLowerPlural:            lowerPlural,
-		inflectionLowerSnakeSingular:     lowerSnakeSingular,
-		inflectionScreamingSnakeSingular: screamingSnakeSingular,
-		inflectionScreamingSnakePlural:   screamingSnakePlural,
-	}
-}
-
 func generateDomain(name string, conditions map[string]bool) error {
-	inflections := inflect(name)
+	inflections := NewInflector(name)
 
 	domainPackageName := inflections[inflectionLowerPlural]
 	domainPackageSource := path.Join("code", "domain", inflectionLowerPlural)

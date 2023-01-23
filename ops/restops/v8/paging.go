@@ -12,6 +12,7 @@ import (
 )
 
 var ErrUnknownSortOrder = errors.New("Unknown sort order")
+var ErrUnknownSortBy = errors.New("Unknown sort by")
 
 type PagingSortingInputs struct {
 	PagingInputs
@@ -70,7 +71,43 @@ const (
 	SortDirectionDesc = "DESC"
 )
 
-type PagingConverter struct{}
+type PagingConverter struct {
+	SortByOptions types.StringPairSlice
+}
+
+// FromPagingSortOrder maps input sort names to their respective db column names
+func (c PagingConverter) FromPagingSortOrder(sort []paging.SortOrder) ([]paging.SortOrder, error) {
+	if len(c.SortByOptions) == 0 {
+		// No sort options defined, free-for-all
+		return sort, nil
+	}
+
+	for i, sortOrder := range sort {
+		mappedProperty, ok := c.SortByOptions.MapToRight(sortOrder.Property)
+		if !ok {
+			return nil, errors.Wrap(ErrUnknownSortBy, sortOrder.Property)
+		}
+		sort[i].Property = mappedProperty
+	}
+	return sort, nil
+}
+
+// ToPagingSortOrder maps db column names to their respective input sort names
+func (c PagingConverter) ToPagingSortOrder(sort []paging.SortOrder) ([]paging.SortOrder, error) {
+	if len(c.SortByOptions) == 0 {
+		// No sort options defined, free-for-all
+		return sort, nil
+	}
+
+	for i, sortOrder := range sort {
+		mappedProperty, ok := c.SortByOptions.MapToLeft(sortOrder.Property)
+		if !ok {
+			return nil, errors.Wrap(ErrUnknownSortBy, sortOrder.Property)
+		}
+		sort[i].Property = mappedProperty
+	}
+	return sort, nil
+}
 
 func (c PagingConverter) FromPagingInputs(pageReq PagingInputs) (result paging.Request) {
 	result.Page = uint(pageReq.Page)
@@ -78,33 +115,28 @@ func (c PagingConverter) FromPagingInputs(pageReq PagingInputs) (result paging.R
 	return
 }
 
-func (c PagingConverter) FromPagingSortingInputs(pageReq PagingSortingInputs) (result paging.Request) {
-	result = c.FromSortingInputs(pageReq.SortingInputs)
+func (c PagingConverter) FromPagingSortingInputs(pageReq PagingSortingInputs) (result paging.Request, err error) {
+	result, err = c.FromSortingInputs(pageReq.SortingInputs)
 	result.Page = uint(pageReq.Page)
 	result.Size = uint(pageReq.PageSize)
 	return
 }
 
-func (c PagingConverter) FromSortingInputs(sortReq SortingInputs) (result paging.Request) {
+func (c PagingConverter) FromSortingInputs(sortReq SortingInputs) (result paging.Request, err error) {
 	if sortReq.SortBy != "" {
 		sortResult := paging.SortOrder{
 			Property:  sortReq.SortBy,
 			Direction: paging.SortDirection(strings.ToUpper(sortReq.SortOrder)),
 		}
 		result.Sort = append(result.Sort, sortResult)
+		result.Sort, err = c.ToPagingSortOrder(result.Sort)
 	}
 	return
 }
 
 func (c PagingConverter) FromPageSortQuery(page, pageSize int, sortBy, sortOrder string) (request paging.Request, err error) {
 	request = c.FromPageQuery(page, pageSize)
-
-	sortIn, err := c.FromSortQuery(sortBy, sortOrder)
-	if err != nil {
-		return
-	}
-	request.Sort = []paging.SortOrder{sortIn}
-
+	request.Sort, err = c.FromSortQuery(sortBy, sortOrder)
 	return
 }
 
@@ -115,9 +147,9 @@ func (c PagingConverter) FromPageQuery(page, pageSize int) paging.Request {
 	}
 }
 
-func (c PagingConverter) FromSortQuery(sortBy, sortOrder string) (paging.SortOrder, error) {
+func (c PagingConverter) FromSortQuery(sortBy, sortOrder string) ([]paging.SortOrder, error) {
 	if sortBy == "" {
-		return paging.SortOrder{}, nil
+		return nil, nil
 	}
 
 	if sortOrder == "" {
@@ -131,17 +163,19 @@ func (c PagingConverter) FromSortQuery(sortBy, sortOrder string) (paging.SortOrd
 	case paging.SortDirectionAsc:
 		sortDirection = paging.SortDirectionAsc
 	default:
-		return paging.SortOrder{}, errors.Wrap(ErrUnknownSortOrder, sortOrder)
+		return nil, errors.Wrap(ErrUnknownSortOrder, sortOrder)
 	}
 
-	return paging.SortOrder{
+	result := []paging.SortOrder{{
 		Property:  sortBy,
 		Direction: sortDirection,
-	}, nil
+	}}
+
+	return c.ToPagingSortOrder(result)
 }
 
-func (c PagingConverter) ToPagingResponse(pout paging.Response) PagingResponse {
-	presp := PagingResponse{
+func (c PagingConverter) ToPagingResponse(pout paging.Response) (presp PagingResponse, err error) {
+	presp = PagingResponse{
 		Page:        int(pout.Number),
 		PageSize:    int(pout.Size),
 		HasNext:     pout.HasNext(),
@@ -154,10 +188,15 @@ func (c PagingConverter) ToPagingResponse(pout paging.Response) PagingResponse {
 		presp.TotalItems = &localTotalItems
 	}
 
+	pout.Sort, err = c.ToPagingSortOrder(pout.Sort)
+	if err != nil {
+		return
+	}
+
 	if pout.Sort != nil && len(pout.Sort) == 1 {
 		presp.SortBy = pout.Sort[0].Property
 		presp.SortOrder = string(pout.Sort[0].Direction)
 	}
 
-	return presp
+	return
 }

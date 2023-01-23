@@ -194,3 +194,5 @@ require (
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
 )
+
+replace github.com/mcrawfo2/go-jsonschema v1.0.4 => ../go-jsonschema

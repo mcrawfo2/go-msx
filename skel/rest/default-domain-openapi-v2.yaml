@@ -1,0 +1,574 @@
+openapi: 3.0.3
+info:
+  title: Default Domain v2
+  version: "5.0.0"
+paths:
+  /api/v1/entities:
+    get:
+      tags:
+        - Entity
+      summary: List all the Entities
+      operationId: listEntities
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v2.EntityResponse.List.Envelope'
+              example:
+                command: listEntities
+                httpStatus: OK
+                message: Successfully executed listEntities
+                params: {}
+                responseObject: []
+                success: true
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: listEntities
+                errors:
+                  - Service returned Bad Request
+                httpStatus: BAD_REQUEST
+                message: Failed to execute listEntities
+                params: {}
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Bad Request
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: listEntities
+                errors:
+                  - Service returned Unauthorized
+                httpStatus: UNAUTHORIZED
+                message: Failed to execute listEntities
+                params: {}
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Unauthorized
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: listEntities
+                errors:
+                  - Service returned Forbidden
+                httpStatus: FORBIDDEN
+                message: Failed to execute listEntities
+                params: {}
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Forbidden
+      x-msx-permissions:
+        - VIEW_ENTITIES
+    post:
+      tags:
+        - Entity
+      summary: Create a new Entity
+      operationId: createEntity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v2.EntityCreateRequest'
+            example:
+              data: ""
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v2.EntityResponse'
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v2.EntityResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+      x-msx-permissions:
+        - MANAGE_ENTITIES
+  /api/v1/entities/{entityId}:
+    delete:
+      tags:
+        - Entity
+      summary: Delete the specified Entity
+      operationId: deleteEntity
+      parameters:
+        - name: entityId
+          in: path
+          description: Entity Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/types.Empty'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+      x-msx-permissions:
+        - MANAGE_ENTITIES
+    get:
+      tags:
+        - Entity
+      summary: Retrieve the specified Entity
+      operationId: getEntity
+      parameters:
+        - name: entityId
+          in: path
+          description: Entity Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v2.EntityResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+      x-msx-permissions:
+        - VIEW_ENTITIES
+    put:
+      tags:
+        - Entity
+      summary: Update the specified Entity
+      operationId: updateEntity
+      parameters:
+        - name: entityId
+          in: path
+          description: Entity Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v2.EntityUpdateRequest'
+            example:
+              data: ""
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v2.EntityResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/integration.ErrorDTO'
+      x-msx-permissions:
+        - MANAGE_ENTITIES
+components:
+  schemas:
+    Binary:
+      title: Binary
+      type: string
+      format: binary
+    UUID:
+      title: UUID
+      pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
+      type: string
+      format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+    integration.ErrorDTO:
+      required:
+        - code
+        - message
+        - path
+        - httpStatus
+        - timestamp
+      type: object
+      properties:
+        code:
+          type: string
+        httpStatus:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+    integration.MsxEnvelope:
+      required:
+        - command
+        - httpStatus
+        - message
+        - responseObject
+        - success
+      type: object
+      properties:
+        command:
+          type: string
+        debug:
+          type: object
+          additionalProperties: {}
+        errors:
+          type: array
+          items:
+            type: string
+        httpStatus:
+          type: string
+        message:
+          type: string
+        params:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        responseObject: {}
+        success:
+          type: boolean
+        throwable:
+          $ref: '#/components/schemas/integration.Throwable'
+    integration.Throwable:
+      required:
+        - message
+      type: object
+      properties:
+        cause:
+          $ref: '#/components/schemas/integration.Throwable'
+        message:
+          type: string
+        stackTrace:
+          type: array
+          items:
+            $ref: '#/components/schemas/types.BackTraceFrame'
+    scripts.ScriptResponse:
+      title: ScriptResponse
+      required:
+        - scriptId
+        - name
+        - content
+      type: object
+      properties:
+        content:
+          type: string
+        name:
+          type: string
+        scriptId:
+          $ref: '#/components/schemas/UUID'
+    types.BackTraceFrame:
+      title: BackTraceFrame
+      required:
+        - methodName
+        - fullMethodName
+        - fullFileName
+        - fileName
+        - lineNumber
+      type: object
+      properties:
+        fileName:
+          type: string
+        fullFileName:
+          type: string
+        fullMethodName:
+          type: string
+        lineNumber:
+          type: integer
+        methodName:
+          type: string
+    types.Empty:
+      title: Empty
+      type: object
+    types.Void.Envelope:
+      title: types.Void.Envelope
+      allOf:
+        - $ref: '#/components/schemas/integration.MsxEnvelope'
+    v2.EntityCreateRequest:
+      title: EntityCreateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+    v2.EntityResponse:
+      title: EntityResponse
+      required:
+        - entityId
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+        entityId:
+          $ref: '#/components/schemas/UUID'
+    v2.EntityResponse.List:
+      title: v2.EntityResponse.List
+      type: array
+      items:
+        $ref: '#/components/schemas/v2.EntityResponse'
+    v2.EntityResponse.List.Envelope:
+      title: v2.EntityResponse.List.Envelope
+      allOf:
+        - $ref: '#/components/schemas/integration.MsxEnvelope'
+        - type: object
+          properties:
+            responseObject:
+              $ref: '#/components/schemas/v2.EntityResponse.List'
+    v2.EntityUpdateRequest:
+      title: EntityUpdateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+    v8.EntityCreateRequest:
+      title: EntityCreateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          minLength: 1
+          type: string
+    v8.EntityResponse:
+      title: EntityResponse
+      required:
+        - entityId
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+        entityId:
+          $ref: '#/components/schemas/UUID'
+    v8.EntityResponse.List:
+      title: v8.EntityResponse.List
+      type: array
+      items:
+        $ref: '#/components/schemas/v8.EntityResponse'
+    v8.EntityResponse.List.Page:
+      title: v8.EntityResponse.List.Page
+      allOf:
+        - $ref: '#/components/schemas/v8.PagingResponse'
+        - type: object
+          properties:
+            contents:
+              $ref: '#/components/schemas/v8.EntityResponse.List'
+    v8.EntityUpdateRequest:
+      title: EntityUpdateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+    v8.Error:
+      title: Error
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+        details:
+          type: object
+          additionalProperties: {}
+        message:
+          type: string
+      example:
+        code: BIZ001
+        message: Entity in busy state
+    v8.PagingResponse:
+      title: PagingResponse
+      required:
+        - page
+        - pageSize
+        - hasNext
+        - hasPrevious
+        - sortBy
+        - sortOrder
+        - contents
+      type: object
+      properties:
+        contents: {}
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        sortBy:
+          type: string
+        sortOrder:
+          enum:
+            - asc
+            - desc
+          type: string
+        totalItems:
+          type: integer
+          nullable: true
+      example:
+        page: 0
+        pageSize: 10
+        totalItems: 100
+        hasNext: true
+        hasPrevious: false
+        sortBy: tenantId
+        sortOrder: ASC
+        contents: []
+  parameters:
+    entityId:
+      name: entityId
+      in: path
+      description: Retrieve the entity with the specified id
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/UUID'
+    page:
+      name: page
+      in: query
+      required: true
+      style: form
+      explode: false
+      schema:
+        minimum: 0
+        type: integer
+        format: int32
+        default: 0
+      example: "0"
+    pageSize:
+      name: pageSize
+      in: query
+      required: true
+      style: form
+      explode: false
+      schema:
+        minimum: 1
+        type: integer
+        format: int32
+        default: 100
+      example: "100"
+    parentEntityId:
+      name: parentId
+      in: query
+      description: Filter by children of specified parent
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/UUID'
+    sortBy:
+      name: sortBy
+      in: query
+      style: form
+      explode: false
+      schema:
+        type: string
+        default: ""
+    sortOrder:
+      name: sortOrder
+      in: query
+      style: form
+      explode: false
+      schema:
+        enum:
+          - asc
+          - desc
+        type: string
+        default: asc
+  headers:
+    randomHeader:
+      style: simple
+      required: true
+      explode: false
+      schema:
+        type: integer

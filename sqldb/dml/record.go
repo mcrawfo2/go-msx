@@ -57,7 +57,7 @@ type RecordFunc func(ctx context.Context, db *sqlx.DB, record interface{}) error
 func ScanTable(ctx context.Context, db *sqlx.DB, table string, columns []string, record interface{}, action RecordFunc) error {
 	dialect := goqu.Dialect(db.DriverName())
 
-	stmt, _, err := dialect.Select(types.StringSlice(columns).ToInterfaceSlice()...).From(table).ToSQL()
+	stmt, _, err := dialect.Select(types.Slice[string](columns).AnySlice()...).From(table).ToSQL()
 	if err != nil {
 		return err
 	}

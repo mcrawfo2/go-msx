@@ -146,7 +146,6 @@ func FilterItem(v error) error {
 // intended for calls where we don't care about the error but want to inline the fn call
 // note: this form is possible because of the special case of passing back matching
 // return values from a function call
-func May[vtype any](v vtype, err error) vtype {
-	_ = err
+func May[T any](v T, _ error) T {
 	return v
 }

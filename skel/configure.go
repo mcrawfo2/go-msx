@@ -64,6 +64,7 @@ func (c SkeletonConfig) AppMigrateVersion() string {
 }
 
 func (c SkeletonConfig) AppPackageUrl() string {
+	// TODO: honor go.mod package url
 	return path.Join("cto-github.cisco.com", "NFV-BU", c.AppName)
 }
 
