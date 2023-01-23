@@ -240,35 +240,6 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		return nil
 	}
 
-	if t.Operation == OpDelete || t.Operation == OpGone {
-		if t.Operation == OpDelete { // we *must* delete
-			_, err := os.Stat(targetFileName)
-			if errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("- %s - erroneously gone - (%s)", t.Name, targetFileName)
-			}
-		}
-		err := os.Remove(targetFileName)
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) { // ok if not there already
-				logger.Infof("- %s - already gone - (%s)", t.Name, targetFileName)
-				return nil
-			} else {
-				return fmt.Errorf("unable to remove %s: %w", targetFileName, err)
-			}
-		}
-		logger.Infof("- %s (%s)", t.Name, targetFileName)
-		return nil
-	}
-
-	if t.Operation == OpReplace { // we insist it exists before we replace it
-		_, err := os.Stat(targetFileName)
-		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("target to be replaced does not exist %s: %w", targetFileName, err)
-		} else if err != nil {
-			return fmt.Errorf("error checking target file %s: %w", targetFileName, err)
-		}
-	}
-
 	targetExists := true
 	_, err = os.Stat(targetFileName)
 	if err != nil {
@@ -287,7 +258,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 			if err != nil {
 				return errors.Wrapf(err, "removing old target %q failed", targetFileName)
 			}
-			logger.Infof("X %s (%s)", t.Name, targetFileName)
+			logger.Infof("  ♻️️ %s (%s)", t.Name, targetFileName)
 		}
 		return nil
 
@@ -299,7 +270,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		if err != nil {
 			return errors.Wrapf(err, "unable to remove %q", targetFileName)
 		}
-		logger.Infof("- %s (%s)", t.Name, targetFileName)
+		logger.Infof("  🗑️ %s (%s)", t.Name, targetFileName)
 		return nil
 
 	case OpAdd: // exists? we care not
@@ -316,7 +287,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 
 	case OpAddNoOverwrite: // it may exist or not, but we don't overwrite it
 		if targetExists {
-			logger.Infof("= (skip) %s (%s)", t.Name, targetFileName)
+			logger.Infof("  🔒️ (skip) %s (%s)", t.Name, targetFileName)
 			return nil
 		}
 	}
@@ -343,15 +314,15 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 	}
 
 	if t.Format == FileFormatGo {
-		err = exec.ExecutePipesStderr(
-			exec.Info("  - Reformatting %q", path.Base(destFile)),
-			exec.ExecSimple("go", "fmt", targetFileName))
+		logger.Infof("  🎨 Reformatting %q", path.Base(destFile))
+		err = exec.ExecutePipes(
+			exec.ExecQuiet("go", []string{"fmt", targetFileName}))
 		if err != nil {
 			return errors.Wrapf(err, "reformatting %q failed", targetFileName)
 		}
 	}
 
-	logger.Infof("+ %s (%s)", t.Name, targetFileName)
+	logger.Infof("  💾 Wrote %s", targetFileName)
 
 	return nil
 }

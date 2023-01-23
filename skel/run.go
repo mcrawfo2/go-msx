@@ -244,6 +244,7 @@ var buildNumber int
 // it is called from cmd/skel.go
 func Run(build int) {
 	buildNumber = build
+	log.SetFormat(log.LogFormatLogFmt)
 	log.SetLoggerLevel("msx.config", logrus.ErrorLevel)
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
 

@@ -29,6 +29,13 @@ func Exec(name string, args []string, moreArgs ...[]string) pipe.Pipe {
 	return pipe.Exec(name, args...)
 }
 
+func ExecQuiet(name string, args []string, moreArgs ...[]string) pipe.Pipe {
+	for _, moreArg := range moreArgs {
+		args = append(args, moreArg...)
+	}
+	return pipe.Exec(name, args...)
+}
+
 func ExecSimple(command ...string) pipe.Pipe {
 	return Exec(command[0], command[1:])
 }

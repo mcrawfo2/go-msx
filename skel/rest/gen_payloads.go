@@ -11,6 +11,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
+	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"github.com/mcrawfo2/go-jsonschema/pkg/generator"
 	"path"
 )
@@ -65,7 +66,7 @@ func (g DomainPayloadsGenerator) createPayloadSnippets() error {
 
 		payloadSchema := g.Spec.GetJsonSchema(payload.Schema)
 
-		logger.Infof("Analyzing schema %s", schemaName)
+		logger.Infof("  🥽 Analyzing schema %s", schemaName)
 
 		// Grab all the transitive schemas
 		collectedSchema, err := g.Spec.CollectJsonSchema(schemaName, *payloadSchema)
@@ -76,7 +77,7 @@ func (g DomainPayloadsGenerator) createPayloadSnippets() error {
 		// Skip types that are resolved outside of this module (error, paging, uuid, time, etc)
 		optionalType := payloads.GoJsonSchemaForSchema(&collectedSchema).Type()
 		if optionalType.IsPresent() {
-			logger.Infof("Skipping external schema %s", optionalType.Value())
+			logger.Infof("  ⏭️ Skipping external schema %s", optionalType.Value())
 			continue
 		}
 
@@ -109,10 +110,13 @@ func (g DomainPayloadsGenerator) createPayloadSnippets() error {
 
 	// Convert the returned file to templates
 	for _, file := range g.Generator.Files() {
+		logger.Infof("  📇 Collecting %s", file.FileName)
 		for _, decl := range file.Package.Decls {
+			namedDecl := decl.(codegen.Named)
+
 			err := g.File.AddNewDecl(
 				"Payloads",
-				"payload",
+				namedDecl.GetName(),
 				decl,
 				file.Package.Imports)
 			if err != nil {

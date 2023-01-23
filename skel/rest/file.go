@@ -115,7 +115,7 @@ func NewStatementSnippet(section, name string, stmt *jen.Statement, transforms T
 	}
 
 	fset := token.NewFileSet()
-	af, err := parser.ParseFile(fset, name+".go", w.String(), parser.ImportsOnly)
+	af, err := parser.ParseFile(fset, name+".go", w.Bytes(), parser.ImportsOnly)
 	if err != nil {
 		return
 	}
@@ -155,8 +155,9 @@ func (c Constants) Generate(out *codegen.Emitter) {
 	out.Indent(1)
 
 	for _, constant := range c {
-		out.Print("%s ", constant.Name)
+		out.Print("%s", constant.Name)
 		if constant.Type != nil {
+			out.Print(" ")
 			constant.Type.Generate(out)
 		}
 		out.Print(" = %s", litter.Sdump(constant.Value))
@@ -281,6 +282,7 @@ func (f *File) AddImport(qualified, alias string) {
 }
 
 func (f *File) AddSnippet(snippet Snippet) {
+	logger.Infof("  📃 Adding snippet %q to section %q", snippet.Name, snippet.Section)
 	section := f.FindSection(snippet.Section)
 	section.AddSnippet(snippet)
 

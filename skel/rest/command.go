@@ -11,6 +11,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"path"
 	"regexp"
 	"strings"
@@ -244,13 +246,16 @@ func GenerateDomain(_ []string) (err error) {
 
 	for _, scopedGenerator := range generators {
 		generator := scopedGenerator.Factory(spec)
+		logger.Infof("📎 %s", cases.Title(language.English).String(scopedGenerator.Component))
+
+		logger.Infof("  📖 Generating %s", path.Base(generator.Filename()))
 
 		if err = generator.Generate(); err != nil {
 			return err
 		}
 
 		template := skel.Template{
-			Name:       scopedGenerator.Component,
+			Name:       cases.Title(language.English).String(scopedGenerator.Component),
 			DestFile:   generator.Filename(),
 			SourceData: []byte(generator.Render()),
 			Format:     skel.FileFormatGo,
