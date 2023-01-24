@@ -105,6 +105,19 @@ func (r RenderOptions) AddConditions(conditions map[string]bool) {
 	}
 }
 
+func NewEmptyRenderOptions() RenderOptions {
+	return RenderOptions{
+		Variables:    map[string]string{},
+		Conditions:   map[string]bool{},
+		Strings:      map[string]string{},
+		IncFiles:     incFiles,
+		ExcFiles:     excFiles,
+		deltaStrings: map[string]string{},
+		deltaVars:    map[string]string{},
+		deltaConds:   map[string]bool{},
+	}
+}
+
 func NewRenderOptions() RenderOptions {
 	return RenderOptions{
 		Variables: map[string]string{
