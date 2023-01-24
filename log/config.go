@@ -37,7 +37,7 @@ func SetFormat(format string) {
 	default:
 		logrus.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp:   true,
-			TimestampFormat: time.RFC3339Nano,
+			TimestampFormat: "2006-01-02T15:04:05.000000Z07:00",
 		})
 	}
 }

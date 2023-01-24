@@ -20,12 +20,3 @@ func RandString(length int) string {
 	}
 	return string(b)
 }
-
-type StringSlice []string
-
-func (ss StringSlice) ToInterfaceSlice() (target []interface{}) {
-	for _, s := range ss {
-		target = append(target, s)
-	}
-	return
-}

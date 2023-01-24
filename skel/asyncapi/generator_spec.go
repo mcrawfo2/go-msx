@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
@@ -24,7 +25,6 @@ import (
 
 const PrefixComponentsMessages = "#/components/messages/"
 const PrefixComponentsSchemas = "#/components/schemas/"
-const PrefixDefinitions = "#/definitions/"
 const PrefixPackageApi = "Api"
 
 const OperationSubscribe = "subscribe"
@@ -362,7 +362,7 @@ func (g *Generator) GeneratePortStructCode(emitter *codegen.Emitter, pkg codegen
 	// inject imports into message operation template
 	var imports []string
 	for _, imp := range pkg.Imports {
-		imports = append(imports, fmt.Sprintf(`%s "%s"`, imp.Name, imp.QualifiedName))
+		imports = append(imports, fmt.Sprintf(`%s %q`, imp.Name, imp.QualifiedName))
 	}
 
 	// generate port struct concrete code
@@ -608,7 +608,7 @@ func (g *Generator) convertSchema(schema map[string]interface{}) (result jsonsch
 func (g *Generator) resolveSchema(schema map[string]interface{}) (result jsonschema.Schema, err error) {
 	if ref, ok := schema["$ref"]; ok {
 		refName := strings.TrimPrefix(ref.(string), PrefixComponentsSchemas)
-		result = g.spec.ComponentsEns().Schemas[refName]
+		result = g.resolveSchemaRefByName(refName)
 		if result.ID == nil {
 			result.ID = &refName
 		}
@@ -619,115 +619,12 @@ func (g *Generator) resolveSchema(schema map[string]interface{}) (result jsonsch
 	return g.convertSchema(schema)
 }
 
+func (g *Generator) resolveSchemaRefByName(ref string) jsonschema.Schema {
+	return g.spec.ComponentsEns().Schemas[ref]
+}
+
 func (g *Generator) collectSchema(schemaName string, schema jsonschema.Schema) (result jsonschema.Schema, err error) {
-	var collectedRefs = types.StringSet{}
-	var refsToCollect []string
-	var schemaWithRefs SchemaWithRefs
-
-	if schemaWithRefs, err = g.convertRefs(schemaName, schema); err != nil {
-		return
-	}
-
-	collectedRefs.Add(schemaName)
-	refsToCollect = schemaWithRefs.Refs
-	sp := &schemaWithRefs.Schema
-
-	// Collect all references
-	for len(refsToCollect) > 0 {
-		var refSchemaWithRefs SchemaWithRefs
-		var ref string
-
-		ref, refsToCollect = refsToCollect[0], refsToCollect[1:]
-		if collectedRefs.Contains(ref) {
-			continue
-		}
-
-		refSchema := g.spec.ComponentsEns().Schemas[ref]
-		refSchemaWithRefs, err = g.convertRefs(ref, refSchema)
-
-		collectedRefs.Add(ref)
-		refsToCollect = append(refsToCollect, refSchemaWithRefs.Refs...)
-
-		sp.WithDefinitionsItem(ref, refSchemaWithRefs.Schema.ToSchemaOrBool())
-	}
-
-	// Rename all references
-	definitions := map[string]jsonschema.SchemaOrBool{}
-	for k, v := range sp.Definitions {
-		k = strings.TrimPrefix(k, "Api")
-		definitions[k] = v
-	}
-	sp.WithDefinitions(definitions)
-
-	WalkJsonSchema(sp, VisitJsonSchemaWhen(
-		JsonSchemaHasRefPrefix(PrefixDefinitions),
-		func(s *jsonschema.Schema) bool {
-			schemaRefName := strings.TrimPrefix(*s.Ref, PrefixDefinitions)
-			schemaRefName = strings.TrimPrefix(schemaRefName, PrefixPackageApi)
-			s.Ref = types.NewStringPtr(PrefixDefinitions + schemaRefName)
-			return false
-		}))
-
-	result = *sp
-	return
-}
-
-var typeOverrideMap = map[string]map[string]interface{}{
-	"UUID": {
-		"type": "types.UUID",
-		"imports": []string{
-			"cto-github.cisco.com/NFV-BU/go-msx/types",
-		},
-	},
-	"Time": {
-		"type": "types.Time",
-		"imports": []string{
-			"cto-github.cisco.com/NFV-BU/go-msx/types",
-		},
-	},
-	"Duration": {
-		"type": "types.Duration",
-		"imports": []string{
-			"cto-github.cisco.com/NFV-BU/go-msx/types",
-		},
-	},
-}
-
-func (g *Generator) convertRefs(refName string, schema jsonschema.Schema) (result SchemaWithRefs, err error) {
-	sp := &schema
-	namedRefs := types.StringSet{}
-
-	// Move all schema references from #/components/schemas to #/definitions
-	WalkJsonSchema(sp, VisitJsonSchemaWhen(
-		JsonSchemaHasRefPrefix(PrefixComponentsSchemas),
-		func(s *jsonschema.Schema) bool {
-			schemaRefName := strings.TrimPrefix(*s.Ref, PrefixComponentsSchemas)
-			s.Ref = types.NewStringPtr(PrefixDefinitions + schemaRefName)
-			return false
-		}))
-
-	// Override type handling for built-in types
-	WalkJsonSchema(sp, VisitJsonSchemaWhen(
-		JsonSchemaHasRefPrefix(PrefixDefinitions),
-		func(s *jsonschema.Schema) bool {
-			schemaRefName := strings.TrimPrefix(*s.Ref, PrefixDefinitions)
-			if typeOverride, ok := typeOverrideMap[schemaRefName]; ok {
-				if cur, ok := s.ExtraProperties["goJSONSchema"].(map[string]interface{}); ok && cur != nil {
-					for k, v := range typeOverride {
-						cur[k] = v
-					}
-					typeOverride = cur
-				}
-				s.WithExtraPropertiesItem("goJSONSchema", typeOverride)
-			} else {
-				namedRefs.Add(schemaRefName)
-			}
-			return false
-		}))
-
-	result.Schema = *sp
-	result.Refs = namedRefs.Values()
-	return
+	return payloads.CollectSchema(schemaName, schema, g.resolveSchemaRefByName)
 }
 
 func (g *Generator) generateMessageId(channelName string, operation string, index int) *string {
@@ -768,11 +665,6 @@ func NewGenerator(spec asyncapi.Spec) *Generator {
 		packages: map[string]Package{},
 		dirs:     make(types.StringSet),
 	}
-}
-
-type SchemaWithRefs struct {
-	Schema jsonschema.Schema
-	Refs   []string
 }
 
 type Package struct {

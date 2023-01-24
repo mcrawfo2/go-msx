@@ -5,6 +5,8 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
@@ -55,9 +57,10 @@ func Test_inflect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := inflect(tt.args.title); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("inflect() = %v, want %v", got, tt.want)
-			}
+			got := NewInflector(tt.args.title).Inflections()
+			assert.True(t,
+				reflect.DeepEqual(tt.want, got),
+				testhelpers.Diff(tt.want, got))
 		})
 	}
 }

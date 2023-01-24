@@ -13,3 +13,25 @@ func (s Slice[I]) AnySlice() (results []any) {
 	}
 	return results
 }
+
+type ComparableSlice[I comparable] []I
+
+func (s ComparableSlice[I]) Contains(value I) bool {
+	for _, item := range s {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
+func (s ComparableSlice[I]) ContainsAny(values ...I) bool {
+	for _, item := range s {
+		for _, value := range values {
+			if item == value {
+				return true
+			}
+		}
+	}
+	return false
+}

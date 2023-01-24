@@ -1,0 +1,399 @@
+openapi: 3.0.3
+info:
+  title: Default Domain v8
+  version: "5.0.0"
+paths:
+  /api/v8/lowerplural:
+    get:
+      tags:
+        - UpperCamelSingular
+      summary: List all Title Plural
+      operationId: v8.listUpperCamelPlural
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/sortBy'
+        - $ref: '#/components/parameters/sortOrder'
+        - $ref: '#/components/parameters/parentUpperCamelSingularId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.UpperCamelSingularResponse.List.Page'
+              example:
+                page: 0
+                pageSize: 0
+                hasNext: false
+                hasPrevious: false
+                contents:
+                  - lowerCamelSingularId: null
+                    data: ""
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+      x-msx-permissions:
+        - VIEW_SCREAMING_SNAKE_PLURAL
+      x-msx-action: list
+    post:
+      tags:
+        - UpperCamelSingular
+      summary: Create a new Title Singular
+      operationId: v8.createUpperCamelSingular
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v8.UpperCamelSingularCreateRequest'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.UpperCamelSingularResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+      x-msx-permissions:
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: create
+  /api/v8/lowerplural/{lowerCamelSingularId}:
+    delete:
+      tags:
+        - UpperCamelSingular
+      summary: Delete the specified Title Singular
+      operationId: v8.deleteUpperCamelSingular
+      parameters:
+        - $ref: '#/components/parameters/lowerCamelSingularId'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+      x-msx-permissions:
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: delete
+    get:
+      tags:
+        - UpperCamelSingular
+      summary: Retrieve the specified Title Singular
+      operationId: v8.getUpperCamelSingular
+      parameters:
+        - $ref: '#/components/parameters/lowerCamelSingularId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.UpperCamelSingularResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+      x-msx-permissions:
+        - VIEW_SCREAMING_SNAKE_PLURAL
+      x-msx-action: retrieve
+    put:
+      tags:
+        - UpperCamelSingular
+      summary: Update the specified Title Singular
+      operationId: v8.updateUpperCamelSingular
+      parameters:
+        - $ref: '#/components/parameters/lowerCamelSingularId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v8.UpperCamelSingularUpdateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.UpperCamelSingularResponse'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v8.Error'
+      x-msx-permissions:
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: update
+components:
+  schemas:
+    UUID:
+      title: UUID
+      pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
+      type: string
+      format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+    v8.UpperCamelSingularCreateRequest:
+      title: UpperCamelSingularCreateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          minLength: 1
+          type: string
+    v8.UpperCamelSingularResponse:
+      title: UpperCamelSingularResponse
+      required:
+        - lowerCamelSingularId
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+        lowerCamelSingularId:
+          $ref: '#/components/schemas/UUID'
+    v8.UpperCamelSingularResponse.List:
+      title: v8.UpperCamelSingularResponse.List
+      type: array
+      items:
+        $ref: '#/components/schemas/v8.UpperCamelSingularResponse'
+    v8.UpperCamelSingularResponse.List.Page:
+      title: v8.UpperCamelSingularResponse.List.Page
+      allOf:
+        - $ref: '#/components/schemas/v8.PagingResponse'
+        - type: object
+          properties:
+            contents:
+              $ref: '#/components/schemas/v8.UpperCamelSingularResponse.List'
+    v8.UpperCamelSingularUpdateRequest:
+      title: UpperCamelSingularUpdateRequest
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: string
+    v8.Error:
+      title: Error
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+        details:
+          type: object
+          additionalProperties: {}
+        message:
+          type: string
+      example:
+        code: BIZ001
+        message: Title Singular in busy state
+    v8.PagingResponse:
+      title: PagingResponse
+      required:
+        - page
+        - pageSize
+        - hasNext
+        - hasPrevious
+        - sortBy
+        - sortOrder
+        - contents
+      type: object
+      properties:
+        contents: {}
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        sortBy:
+          type: string
+        sortOrder:
+          enum:
+            - asc
+            - desc
+          type: string
+        totalItems:
+          type: integer
+          nullable: true
+      example:
+        page: 0
+        pageSize: 10
+        totalItems: 100
+        hasNext: true
+        hasPrevious: false
+        sortBy: tenantId
+        sortOrder: ASC
+        contents: []
+  parameters:
+    lowerCamelSingularId:
+      name: lowerCamelSingularId
+      in: path
+      description: Retrieve the Title Singular with the specified id
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/UUID'
+    page:
+      name: page
+      in: query
+      required: true
+      style: form
+      explode: false
+      schema:
+        minimum: 0
+        type: integer
+        format: int32
+        default: 0
+      example: "0"
+    pageSize:
+      name: pageSize
+      in: query
+      required: true
+      style: form
+      explode: false
+      schema:
+        minimum: 1
+        type: integer
+        format: int32
+        default: 100
+      example: "100"
+    parentUpperCamelSingularId:
+      name: parentUpperCamelSingularId
+      in: query
+      description: Filter by children of specified parent
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/UUID'
+    sortBy:
+      name: sortBy
+      in: query
+      style: form
+      explode: false
+      schema:
+        type: string
+        default: ""
+    sortOrder:
+      name: sortOrder
+      in: query
+      style: form
+      explode: false
+      schema:
+        enum:
+          - asc
+          - desc
+        type: string
+        default: asc

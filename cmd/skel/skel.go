@@ -7,6 +7,7 @@ package main
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	_ "cto-github.cisco.com/NFV-BU/go-msx/skel/asyncapi"
+	_ "cto-github.cisco.com/NFV-BU/go-msx/skel/rest"
 	"strconv"
 )
 

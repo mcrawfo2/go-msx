@@ -148,6 +148,13 @@ func (o Optional[I]) OrElse(v I) I {
 	return v
 }
 
+func (o Optional[I]) OrElseOptionalPtr(v *I) Optional[I] {
+	if o.valid {
+		return o
+	}
+	return OptionalOfPtr(v)
+}
+
 func (o Optional[I]) Project(v func(I) Optional[I]) Optional[I] {
 	if o.valid {
 		return v(o.value)

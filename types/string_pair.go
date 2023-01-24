@@ -10,3 +10,21 @@ type StringPair struct {
 }
 
 type StringPairSlice []StringPair
+
+func (s StringPairSlice) MapToRight(left string) (string, bool) {
+	for _, pair := range s {
+		if pair.Left == left {
+			return pair.Right, true
+		}
+	}
+	return left, false
+}
+
+func (s StringPairSlice) MapToLeft(right string) (string, bool) {
+	for _, pair := range s {
+		if pair.Right == right {
+			return pair.Left, true
+		}
+	}
+	return right, false
+}
