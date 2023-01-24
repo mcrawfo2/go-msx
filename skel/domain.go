@@ -6,6 +6,7 @@ package skel
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -16,11 +17,29 @@ import (
 )
 
 func init() {
-	AddTarget("generate-domain-system", "Generate system domain implementation", GenerateSystemDomain)
-	AddTarget("generate-domain-tenant", "Generate tenant domain implementation", GenerateTenantDomain)
-	AddTarget("generate-topic-publisher", "Generate publisher topic implementation", GenerateTopicPublisher)
-	AddTarget("generate-topic-subscriber", "Generate subscriber topic implementation", GenerateTopicSubscriber)
-	AddTarget("generate-timer", "Generate timer implementation", GenerateTimer)
+	cmd := AddTarget("generate-domain-system", "Generate system domain implementation", GenerateSystemDomain)
+	cmd.Args = cobra.MinimumNArgs(1)
+	cmd.Use = "generate-domain-system <domain name>"
+	cmd.Aliases = []string{"sysdom"}
+
+	cmd = AddTarget("generate-domain-tenant", "Generate tenant domain implementation", GenerateTenantDomain)
+	cmd.Args = cobra.MinimumNArgs(1)
+	cmd.Use = "generate-domain-tenant <domain name>"
+	cmd.Aliases = []string{"tendom"}
+
+	cmd = AddTarget("generate-topic-publisher", "Generate publisher topic implementation", GenerateTopicPublisher)
+	cmd.Args = cobra.MinimumNArgs(1)
+	cmd.Use = "generate-topic-publisher <topic name>"
+	cmd.Aliases = []string{"toppub"}
+
+	cmd = AddTarget("generate-topic-subscriber", "Generate subscriber topic implementation", GenerateTopicSubscriber)
+	cmd.Args = cobra.MinimumNArgs(1)
+	cmd.Use = "generate-topic-subscriber <topic name>"
+	cmd.Aliases = []string{"topsub"}
+
+	cmd = AddTarget("generate-timer", "Generate timer implementation", GenerateTimer)
+	cmd.Aliases = []string{"timer"}
+
 }
 
 func GenerateSystemDomain(args []string) error {

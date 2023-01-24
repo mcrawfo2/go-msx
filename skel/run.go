@@ -11,6 +11,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,6 +34,9 @@ var logLevel logrus.Level
 var logLevelName string
 var incFiles []string
 var excFiles []string
+
+var ErrUserCancel = errors.New("user cancelled skel run")
+var ErrNoProjects = errors.New("no projects found")
 
 var TitlingLanguage = language.English
 
@@ -66,54 +70,124 @@ func configure(cmd *cobra.Command, _ []string) error {
 		return nil
 	}
 
+	// set the log level
 	logLevelName = strings.ToUpper(logLevelName)
 	if log.CheckLevel(logLevelName) != nil {
 		logger.Fatalf("invalid log level: %s", logLevelName)
 	}
 	logLevel = log.LevelFromName(logLevelName)
 	logger.SetLevel(logLevel)
-	if logLevel <= log.InfoLevel {
-		fmt.Printf("Log level set to %s (%d)\n",
-			log.LoggerLevel(logLevel).Name(), logLevel)
-	}
-	logger.Printf("Log level set to %s (%d)",
-		log.LoggerLevel(logLevel).Name(), logLevel)
+	logger.Debugf("Log level set to %s (%d)", log.LoggerLevel(logLevel).Name(), logLevel)
 
-	if loaded, err := loadProjectConfig(); err != nil {
+	// compute some flags:
+	//   root -- are we running the root command?
+	//   project -- are we in a project subdir?
+	//   subProjs -- are there project subdirs in the dir?
+	//   dirtyGit -- are there uncommitted files in this git repo?
+	// then load the project or generator config
+
+	root := cmd == cli.RootCmd()
+	project := false
+
+	loaded, err := loadProjectConfig()
+	if err != nil {
 		return err
-	} else if loaded {
-		return nil
+	}
+	if loaded {
+		project = true
+		logger.Info("Loaded project config")
 	}
 
-	if loaded, err := loadGenerateConfig(); err != nil {
-		return err
-	} else if loaded {
-		return nil
+	if !loaded {
+		loaded, err := loadGenerateConfig()
+		if err != nil {
+			return err
+		}
+		if loaded {
+			project = false
+			logger.Info("Loaded generator config")
+		}
 	}
+
+	subProjs := false
+	var projs []DirName
+	dir := types.May(os.Getwd())
+	if !loaded { // FindProjects can be expensive
+		projs, _ = FindProjects(dir, 4) // 4 seems like a good cutoff
+		subProjs = len(projs) > 0
+	}
+
+	logger.Debugf("configure: root:%t, project:%t, #projects:%d",
+		root, project, len(projs))
+
+	// flags now set
 
 	printErr := color.New(color.FgRed).PrintfFunc()
-	dir := types.May(os.Getwd())
+	printInfo := color.New(color.FgBlue).PrintfFunc()
 
-	if cmd != cli.RootCmd() {
-
-		// checks and warnings before starting
-
-		// warn if there are existing projects
-		projs, _ := FindProjects(dir, 4) // 4 seems like a good cutoff
-		if len(projs) > 0 {
-			printErr("We found %d possible project(s) in this dir:\n", len(projs))
-			for _, proj := range projs {
-				fmt.Println("  " + proj + "\n")
-			}
-			printErr("Please switch to one of these folders first.\n")
-		} else {
-			printErr("No projects found in parent or child folders.  Please create a project first using `skel`.\n")
+	if subProjs {
+		printErr("We found %d possible project(s) in this dir:\n", len(projs))
+		for _, proj := range projs {
+			fmt.Println("  " + proj + "\n")
 		}
+		printErr("Please switch to one of these folders first.\n")
 		os.Exit(1)
 	}
 
-	// Configure a new project via the survey menus if no project was found
-	return ConfigureInteractive()
+	if project { // only makes sense to check for dirty git if we are in a project
+		ok, err := GitCheckAsk(dir)
+		if err != nil {
+			logger.WithError(err).Errorf("configure(%s) error ask:", dir)
+			return err
+		}
+
+		if !ok {
+			logger.WithError(ErrUserCancel).Errorf("configure(%s) user cancels, uncommitted files", dir)
+			os.Exit(1)
+		}
+	}
+
+	// root cmd in empty dir generates from scratch using menus
+	if root && !project {
+		return ConfigureInteractive()
+	}
+
+	// root cmd in dir containing .skel.json (project dir) uses those settings,
+	// explains it will regenerate and confirms
+	if root && project {
+		printErr("\n\nThere is already a project in this directory\n")
+		printInfo("Did you, perhaps, mean to run a skel subcommand?\n")
+		printErr("Do you want to continue, which will regenerate the project, and may overwrite files?\n\n")
+		keepGoing := false
+		contQ := &survey.Confirm{
+			Message: "Continue and regenerate?",
+		}
+		err = survey.AskOne(contQ, &keepGoing)
+		if err != nil {
+			logger.WithError(err).Errorf("configure(%s) error ask:", dir)
+			return err
+		}
+		if !keepGoing {
+			logger.WithError(ErrUserCancel).Errorf("configure(%s) user cancels, no regen:", dir)
+			os.Exit(1)
+		}
+
+		skeletonConfig.noOverwrite = false // ovewriting still allowed
+
+		return nil // regenerate using the loaded settings
+	}
+
+	// !root so should be in a project dir, if not, we error out
+	if !project {
+		printErr("No projects found in parent or child folders.  Please create a project first using `skel`.\n")
+		logger.WithError(ErrNoProjects).Errorf("Non-root with no projects: %s", dir)
+		os.Exit(1)
+	}
+
+	// subcommands do not overwrite files
+	skeletonConfig.noOverwrite = true // no overwriting allowed
+
+	return nil
 }
 
 func loadConfig(configFile string) error {
@@ -195,45 +269,58 @@ func loadGenerateConfig() (bool, error) {
 	return true, nil
 }
 
-// GitCheckAsk determines if there are vulnerable modifications in the given dir
-// if so, it asks whether to continue
-func GitCheckAsk(dir string) (ok bool, err error) {
-
-	printErr := color.New(color.FgRed).PrintfFunc()
-
-	logger.Tracef("GitCheckAsk(%s)", dir)
-
-	// warn if git is dirty
+// GitDirtyCheck determines if there are vulnerable modifications in the given directory
+func GitDirtyCheck(dir string) (dirty bool, err error) {
 	r, err := git.PlainOpenWithOptions(dir, &git.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
-		logger.Tracef("GitCheckAsk(%s) not a git repo: %s", dir, err)
+		logger.Tracef("GitDirtyCheck(%s) not a git repo: %s", dir, err)
 		return true, nil
 	}
 	wt, err := r.Worktree()
 	if err != nil {
-		logger.Tracef("GitCheckAsk(%s) error wt: %s", dir, err)
+		logger.Tracef("GitDirtyCheck(%s) error wt: %s", dir, err)
 		return true, nil
 	}
 	status, err := wt.Status()
 	if err != nil {
-		logger.Tracef("GitCheckAsk(%s) error status: %s", dir, err)
+		logger.Tracef("GitDirtyCheck(%s) error status: %s", dir, err)
 		return true, nil
 	}
 	if !status.IsClean() {
-		printErr("\n\nThere are some uncommited modified files in this repo\n")
-		printErr("You may want to commit them before running this command\n\n")
-		keepCalm := false
-		carryOn := &survey.Confirm{
-			Message: "Continue anyway?",
-		}
-		err = survey.AskOne(carryOn, &keepCalm)
-		if err != nil {
-			logger.Tracef("GitCheckAsk(%s) error ask: %s", dir, err)
-			return false, err
-		}
-		if !keepCalm {
-			return false, nil
-		}
+		return true, nil
+	}
+	return false, nil
+}
+
+// GitCheckAsk determines if there are vulnerable modifications in the given directory
+// and if so, it asks whether to continue and returns an ok flag if so directed
+func GitCheckAsk(dir string) (ok bool, err error) {
+
+	logger.Tracef("GitCheckAsk(%s)", dir)
+	dirty, err := GitDirtyCheck(dir)
+	if err != nil {
+		logger.WithError(err).Debugf("Config(%s) error ask:", dir)
+		return false, err
+	}
+	if !dirty {
+		return true, nil
+	}
+
+	printErr := color.New(color.FgRed).PrintfFunc()
+
+	printErr("\n\nThere are some uncommited modified files in this repo\n")
+	printErr("You may want to commit them before running this command\n\n")
+	keepGoing := false
+	contQ := &survey.Confirm{
+		Message: "Continue anyway?",
+	}
+	err = survey.AskOne(contQ, &keepGoing)
+	if err != nil {
+		logger.WithError(err).Debugf("GitCheckAsk(%s) error ask:", dir)
+		return false, err
+	}
+	if !keepGoing {
+		return false, nil
 	}
 	return true, nil
 }

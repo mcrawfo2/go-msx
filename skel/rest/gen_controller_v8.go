@@ -90,11 +90,10 @@ func (g DomainControllerGeneratorV8) createEndpointsConstructionSnippet(methods 
 		operations.WriteString(",\n")
 	}
 
-	renderOptions := skel.RenderOptions{
-		Variables: map[string]string{
-			"operations": operations.String(),
-		},
-	}
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(map[string]string{
+		"operations": operations.String(),
+	})
 
 	template, err := skel.Template{
 		SourceData: []byte(`
@@ -156,14 +155,13 @@ func (g DomainControllerGeneratorV8) cleanOperationId(operationId string) string
 }
 
 func (g DomainControllerGeneratorV8) createEndpointActionListSnippet(operation Operation) error {
-	renderOptions := skel.RenderOptions{
-		Variables: map[string]string{
-			"snippet.outputs.content.tag": "`resp:\"body\"`",
-			"operation.id":                *operation.Operation.ID,
-			"operation.id.clean":          g.cleanOperationId(*operation.Operation.ID),
-			"operation.summary":           types.OptionalOfPtr(operation.Operation.Summary).OrElse(""),
-		},
-	}
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(map[string]string{
+		"snippet.outputs.content.tag": "`resp:\"body\"`",
+		"operation.id":                *operation.Operation.ID,
+		"operation.id.clean":          g.cleanOperationId(*operation.Operation.ID),
+		"operation.summary":           types.OptionalOfPtr(operation.Operation.Summary).OrElse(""),
+	})
 
 	template, err := skel.Template{
 		SourceData: []byte(`
@@ -222,10 +220,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionRetrieveSnippet(operati
 		return err
 	}
 
-	renderOptions := skel.RenderOptions{
-		Variables: portStructVariables,
-	}
-
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(portStructVariables)
 	renderOptions.AddVariables(map[string]string{
 		"operation.id":       *operation.Operation.ID,
 		"operation.id.clean": g.cleanOperationId(*operation.Operation.ID),
@@ -276,10 +272,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionCreateSnippet(operation
 		return err
 	}
 
-	renderOptions := skel.RenderOptions{
-		Variables: portStructVariables,
-	}
-
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(portStructVariables)
 	renderOptions.AddVariables(map[string]string{
 		"operation.id":       *operation.Operation.ID,
 		"operation.id.clean": g.cleanOperationId(*operation.Operation.ID),
@@ -330,10 +324,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionUpdateSnippet(operation
 		return err
 	}
 
-	renderOptions := skel.RenderOptions{
-		Variables: portStructVariables,
-	}
-
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(portStructVariables)
 	renderOptions.AddVariables(map[string]string{
 		"operation.id":       *operation.Operation.ID,
 		"operation.id.clean": g.cleanOperationId(*operation.Operation.ID),
@@ -384,10 +376,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionDeleteSnippet(operation
 		return err
 	}
 
-	renderOptions := skel.RenderOptions{
-		Variables: portStructVariables,
-	}
-
+	renderOptions := skel.NewEmptyRenderOptions()
+	renderOptions.AddVariables(portStructVariables)
 	renderOptions.AddVariables(map[string]string{
 		"operation.id":       *operation.Operation.ID,
 		"operation.id.clean": g.cleanOperationId(*operation.Operation.ID),
