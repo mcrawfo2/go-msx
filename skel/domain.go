@@ -239,7 +239,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 	populatePackage := path.Join("internal", "populate", "usermanagement", "permission", "templates")
 	migratePackageSource := path.Join("code", "domain", "migrate", "version")
 	migratePackagePath := path.Join("internal", "migrate", "V"+strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_"))
-	migratePrefix, err := nextMigrationPrefix(migratePackagePath)
+	migratePrefix, err := NextMigrationPrefix(migratePackagePath)
 	if err != nil {
 		return err
 	}
@@ -320,9 +320,9 @@ func generateDomain(name string, conditions map[string]bool) error {
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", domainPackageName))
 }
 
-func nextMigrationPrefix(folder string) (string, error) {
+func NextMigrationPrefix(folder string) (string, error) {
 	prefix := "V" + strings.ReplaceAll(skeletonConfig.AppVersion, ".", "_")
-	for i := 0; i < 128; i++ {
+	for i := 0; i < 100; i++ {
 		glob := fmt.Sprintf("%s_%d__*.%s",
 			prefix,
 			i,
@@ -333,5 +333,5 @@ func nextMigrationPrefix(folder string) (string, error) {
 		}
 	}
 
-	return "", errors.Errorf("More than 128 migrations found for %q", prefix)
+	return "", errors.Errorf("More than 100 migrations found for %q", prefix)
 }

@@ -32,6 +32,7 @@ const (
 	ComponentService    = "service"
 	ComponentRepository = "repository"
 	ComponentModel      = "model"
+	ComponentMigration  = "migration"
 
 	TenantNone      = ""
 	TenantSingle    = "single"
@@ -60,6 +61,7 @@ var (
 		ComponentService,
 		ComponentRepository,
 		ComponentModel,
+		ComponentMigration,
 	}
 
 	TenantOptions = []string{
@@ -110,6 +112,13 @@ func (c GeneratorConfig) PackagePath() string {
 	return path.Join(skel.Config().AppPackageUrl(), c.Folder)
 }
 
+func (c GeneratorConfig) Apply(opts skel.RenderOptions) skel.RenderOptions {
+	opts.AddConditions(map[string]bool{
+		"TENANT_DOMAIN": types.ComparableSlice[string]{TenantSingle, TenantHierarchy}.Contains(c.Tenant),
+	})
+	return opts
+}
+
 var generatorConfig GeneratorConfig
 
 func init() {
@@ -149,8 +158,11 @@ type ComponentGenerator interface {
 	Generate() error
 	Render() string
 	Filename() string
-	Variables() map[string]string
-	Conditions() map[string]bool
+	FileFormat() skel.FileFormat
+}
+
+type RenderOptionsTransformer interface {
+	Apply(options skel.RenderOptions) skel.RenderOptions
 }
 
 type ScopedComponentGenerator struct {
@@ -203,6 +215,12 @@ var componentGenerators = []ScopedComponentGenerator{
 		Component: ComponentRepository,
 		Factory:   NewDomainRepositoryGenerator,
 	},
+	{
+		Style:     MatchesAny,
+		Tenant:    MatchesAny,
+		Component: ComponentMigration,
+		Factory:   NewDomainMigrationGenerator,
+	},
 }
 
 func findGenerator(style, tenant, component string) *ScopedComponentGenerator {
@@ -246,9 +264,10 @@ func GenerateDomain(_ []string) (err error) {
 
 	for _, scopedGenerator := range generators {
 		generator := scopedGenerator.Factory(spec)
+		filename := generator.Filename()
 		logger.Infof("📎 %s", cases.Title(language.English).String(scopedGenerator.Component))
 
-		logger.Infof("  📖 Generating %s", path.Base(generator.Filename()))
+		logger.Infof("  📖 Generating %s", path.Base(filename))
 
 		if err = generator.Generate(); err != nil {
 			return err
@@ -256,15 +275,18 @@ func GenerateDomain(_ []string) (err error) {
 
 		template := skel.Template{
 			Name:       cases.Title(language.English).String(scopedGenerator.Component),
-			DestFile:   generator.Filename(),
+			DestFile:   filename,
 			SourceData: []byte(generator.Render()),
-			Format:     skel.FileFormatGo,
+			Format:     generator.FileFormat(),
 			Operation:  skel.OpAdd,
 		}
 
 		var opts = skel.NewRenderOptions()
-		opts.AddVariables(generator.Variables())
-		opts.AddConditions(generator.Conditions())
+		opts = generatorConfig.Apply(opts)
+		if optionsSource, ok := generator.(RenderOptionsTransformer); ok {
+			opts = optionsSource.Apply(opts)
+		}
+
 		if err = template.Render(opts); err != nil {
 			return err
 		}

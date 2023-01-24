@@ -9,6 +9,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
@@ -32,14 +33,11 @@ type DomainControllerGeneratorV8 struct {
 
 	Spec Spec
 
-	OutputVariables  map[string]string
-	OutputConditions map[string]bool
-
-	*File
+	*text.GoFile
 }
 
 func (g DomainControllerGeneratorV8) createConstantsSnippet() error {
-	constants := Constants{
+	constants := text.GoConstants{
 		{
 			Name:  "pathSuffixUpperCamelSingularId",
 			Value: "{lowerCamelSingularId}",
@@ -49,18 +47,18 @@ func (g DomainControllerGeneratorV8) createConstantsSnippet() error {
 	if g.Actions.ContainsAny(ActionList, ActionRetrieve) {
 		constants = append(constants, &codegen.Constant{
 			Name:  "permissionViewUpperCamelPlural",
-			Value: g.File.Inflector.Inflect("VIEW_SCREAMING_SNAKE_PLURAL"),
+			Value: g.GoFile.Inflector.Inflect("VIEW_SCREAMING_SNAKE_PLURAL"),
 		})
 	}
 
 	if g.Actions.ContainsAny(ActionCreate, ActionUpdate, ActionDelete) {
 		constants = append(constants, &codegen.Constant{
 			Name:  "permissionManageUpperCamelPlural",
-			Value: g.File.Inflector.Inflect("MANAGE_SCREAMING_SNAKE_PLURAL"),
+			Value: g.GoFile.Inflector.Inflect("MANAGE_SCREAMING_SNAKE_PLURAL"),
 		})
 	}
 
-	return g.AddNewDecl(
+	return g.AddNewGenerator(
 		"Constants",
 		"pathConstants",
 		constants,
@@ -119,7 +117,7 @@ func (g DomainControllerGeneratorV8) createEndpointsConstructionSnippet(methods 
 		"endpoints",
 		template,
 		[]codegen.Import{
-			importRestOps,
+			text.ImportRestOps,
 		})
 }
 
@@ -143,8 +141,8 @@ func (g DomainControllerGeneratorV8) createEndpointTransformationSnippet() error
 			}
 			`,
 		[]codegen.Import{
-			importRestOps,
-			importOpenapi,
+			text.ImportRestOps,
+			text.ImportOpenapi,
 		})
 }
 
@@ -211,10 +209,10 @@ func (g DomainControllerGeneratorV8) createEndpointActionListSnippet(operation O
 		"list",
 		template,
 		[]codegen.Import{
-			importRestOps,
-			importRestOpsV8,
-			importOpenApi3,
-			importContext,
+			text.ImportRestOps,
+			text.ImportRestOpsV8,
+			text.ImportOpenApi3,
+			text.ImportContext,
 		})
 }
 
@@ -265,10 +263,10 @@ func (g DomainControllerGeneratorV8) createEndpointActionRetrieveSnippet(operati
 		"retrieve",
 		template,
 		[]codegen.Import{
-			importRestOps,
-			importRestOpsV8,
-			importOpenApi3,
-			importContext,
+			text.ImportRestOps,
+			text.ImportRestOpsV8,
+			text.ImportOpenApi3,
+			text.ImportContext,
 		})
 }
 
@@ -319,10 +317,10 @@ func (g DomainControllerGeneratorV8) createEndpointActionCreateSnippet(operation
 		"create",
 		template,
 		[]codegen.Import{
-			importRestOps,
-			importRestOpsV8,
-			importOpenApi3,
-			importContext,
+			text.ImportRestOps,
+			text.ImportRestOpsV8,
+			text.ImportOpenApi3,
+			text.ImportContext,
 		})
 }
 
@@ -373,10 +371,10 @@ func (g DomainControllerGeneratorV8) createEndpointActionUpdateSnippet(operation
 		"update",
 		template,
 		[]codegen.Import{
-			importRestOps,
-			importRestOpsV8,
-			importOpenApi3,
-			importContext,
+			text.ImportRestOps,
+			text.ImportRestOpsV8,
+			text.ImportOpenApi3,
+			text.ImportContext,
 		})
 }
 
@@ -426,10 +424,10 @@ func (g DomainControllerGeneratorV8) createEndpointActionDeleteSnippet(operation
 		"delete",
 		template,
 		[]codegen.Import{
-			importRestOps,
-			importRestOpsV8,
-			importOpenApi3,
-			importContext,
+			text.ImportRestOps,
+			text.ImportRestOpsV8,
+			text.ImportOpenApi3,
+			text.ImportContext,
 		})
 }
 
@@ -515,8 +513,8 @@ func (g DomainControllerGeneratorV8) generatePortStructSnippet(portStructSchema 
 			continue
 		}
 
-		snippet = Decls(file.Package.Decls).Render(1)
-		g.File.AddImports(file.Package.Imports)
+		snippet = text.Decls(file.Package.Decls).Render(1)
+		g.GoFile.AddImports(file.Package.Imports)
 	}
 
 	return snippet, nil
@@ -681,8 +679,8 @@ func (g DomainControllerGeneratorV8) createContextAccessorSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importTypes,
-			importRestOps,
+			text.ImportTypes,
+			text.ImportRestOps,
 		})
 }
 
@@ -709,8 +707,8 @@ func (g DomainControllerGeneratorV8) createConstructorSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importContext,
-			importRestOps,
+			text.ImportContext,
+			text.ImportRestOps,
 		})
 }
 
@@ -738,9 +736,9 @@ func (g DomainControllerGeneratorV8) createLifecycleSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importRestOps,
-			importContext,
-			importApp,
+			text.ImportRestOps,
+			text.ImportContext,
+			text.ImportApp,
 		})
 }
 
@@ -787,15 +785,7 @@ func (g DomainControllerGeneratorV8) Generate() error {
 
 func (g DomainControllerGeneratorV8) Filename() string {
 	target := path.Join(g.Folder, "controller_lowersingular_v8.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainControllerGeneratorV8) Variables() map[string]string {
-	return g.OutputVariables
-}
-
-func (g DomainControllerGeneratorV8) Conditions() map[string]bool {
-	return g.OutputConditions
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainControllerGeneratorV8(spec Spec) ComponentGenerator {
@@ -812,34 +802,32 @@ func NewDomainControllerGeneratorV8(spec Spec) ComponentGenerator {
 		// Sources
 		Spec: spec,
 
-		// Results
-		OutputVariables:  make(map[string]string),
-		OutputConditions: make(map[string]bool),
-
-		File: &File{
-			Comment:   "V8 API REST Controller for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: inflector,
-			Sections: NewSections(
-				"Constants",
-				"Components",
-				"Controller",
-				"Endpoint Construction",
-				"Endpoint Transformation",
-				&Section{
-					Name: "Endpoints",
-					Sections: NewSections(
-						"List",
-						"Retrieve",
-						"Create",
-						"Update",
-						"Delete",
-					),
-				},
-				"Context",
-				"Constructor",
-				"Lifecycle",
-			),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "V8 API REST Controller for " + generatorConfig.Domain,
+				Inflector: inflector,
+				Sections: text.NewGoSections(
+					"Constants",
+					"Components",
+					"Controller",
+					"Endpoint Construction",
+					"Endpoint Transformation",
+					&text.Section[text.GoSnippet]{
+						Name: "Endpoints",
+						Sections: text.NewGoSections(
+							"List",
+							"Retrieve",
+							"Create",
+							"Update",
+							"Delete",
+						),
+					},
+					"Context",
+					"Constructor",
+					"Lifecycle",
+				),
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

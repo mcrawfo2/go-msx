@@ -6,6 +6,7 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
@@ -29,14 +30,14 @@ type DomainRepositoryGenerator struct {
 	Actions types.ComparableSlice[string]
 	Methods []RepositoryMethod
 	Spec    Spec
-	*File
+	*text.GoFile
 }
 
 func (g DomainRepositoryGenerator) createConstantsSnippet() error {
-	return g.AddNewDecl(
+	return g.AddNewGenerator(
 		"Constants",
 		"constants",
-		Constants{
+		text.GoConstants{
 			{
 				Name:  "tableNameUpperCamelSingular",
 				Value: "lower_snake_singular",
@@ -66,9 +67,9 @@ func (g DomainRepositoryGenerator) createApiSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importContext,
-			importPaging,
-			importUuid,
+			text.ImportContext,
+			text.ImportPaging,
+			text.ImportUuid,
 		})
 }
 
@@ -83,7 +84,7 @@ func (g DomainRepositoryGenerator) createRepositorySnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importSqldb,
+			text.ImportSqldb,
 		})
 }
 
@@ -101,9 +102,9 @@ func (g DomainRepositoryGenerator) createFindAllSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importPaging,
-			importSqldb,
+			text.ImportContext,
+			text.ImportPaging,
+			text.ImportSqldb,
 		})
 }
 
@@ -125,9 +126,9 @@ func (g DomainRepositoryGenerator) createFindOneSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importSqldb,
-			importRepository,
+			text.ImportContext,
+			text.ImportSqldb,
+			text.ImportRepository,
 		})
 }
 
@@ -143,7 +144,7 @@ func (g DomainRepositoryGenerator) createSaveSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
+			text.ImportContext,
 		})
 }
 
@@ -165,10 +166,10 @@ func (g DomainRepositoryGenerator) createDeleteSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importUuid,
-			importSqldb,
-			importRepository,
+			text.ImportContext,
+			text.ImportUuid,
+			text.ImportSqldb,
+			text.ImportRepository,
 		})
 }
 
@@ -185,7 +186,7 @@ func (g DomainRepositoryGenerator) createContextSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importTypes,
+			text.ImportTypes,
 		})
 }
 
@@ -212,8 +213,8 @@ func (g DomainRepositoryGenerator) createConstructorSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importSqldb,
+			text.ImportContext,
+			text.ImportSqldb,
 		})
 }
 
@@ -251,15 +252,7 @@ func (g DomainRepositoryGenerator) Generate() error {
 
 func (g DomainRepositoryGenerator) Filename() string {
 	target := path.Join(g.Folder, "repository_lowersingular.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainRepositoryGenerator) Variables() map[string]string {
-	return nil
-}
-
-func (g DomainRepositoryGenerator) Conditions() map[string]bool {
-	return nil
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainRepositoryGenerator(spec Spec) ComponentGenerator {
@@ -286,25 +279,27 @@ func NewDomainRepositoryGenerator(spec Spec) ComponentGenerator {
 			},
 		},
 		Spec: spec,
-		File: &File{
-			Comment:   "Repository for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: skel.NewInflector(generatorConfig.Domain),
-			Sections: NewSections(
-				"Constants",
-				"API",
-				"Repository",
-				&Section{
-					Name: "Actions",
-					Sections: NewSections(
-						"List",
-						"Retrieve",
-						"Save",
-						"Delete"),
-				},
-				"Context",
-				"Constructor",
-			),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "Repository for " + generatorConfig.Domain,
+				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Sections: text.NewGoSections(
+					"Constants",
+					"API",
+					"Repository",
+					&text.Section[text.GoSnippet]{
+						Name: "Actions",
+						Sections: text.NewGoSections(
+							"List",
+							"Retrieve",
+							"Save",
+							"Delete"),
+					},
+					"Context",
+					"Constructor",
+				),
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

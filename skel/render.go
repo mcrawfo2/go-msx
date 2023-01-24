@@ -437,17 +437,22 @@ func SubstituteVariables(source string, variableValues map[string]string) string
 	return rendered
 }
 
-func conditionalMarkers(format FileFormat) (string, string) {
+func CommentMarkers(format FileFormat) (string, string) {
 	switch format {
 	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker, FileFormatBash:
-		return "#", ""
+		return "", ""
 	case FileFormatSql:
-		return "--#", ""
+		return "--", ""
 	case FileFormatXml, FileFormatMarkdown:
-		return "<--#", "-->"
+		return "<--", "-->"
 	default:
-		return "//#", ""
+		return "//", ""
 	}
+}
+
+func conditionalMarkers(format FileFormat) (string, string) {
+	prefix, suffix := CommentMarkers(format)
+	return prefix + "#", suffix
 }
 
 func processConditionalBlocks(data string, format FileFormat, condition string, output bool) (result string, err error) {

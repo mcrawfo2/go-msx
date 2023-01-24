@@ -6,6 +6,7 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
@@ -16,7 +17,7 @@ type DomainServiceGeneratorV8 struct {
 	Folder  string
 	Actions types.ComparableSlice[string]
 	Spec    Spec
-	*File
+	*text.GoFile
 }
 
 func (g DomainServiceGeneratorV8) createApiSnippet() error {
@@ -37,9 +38,9 @@ func (g DomainServiceGeneratorV8) createApiSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importContext,
-			importRestOpsV8,
-			importTypes,
+			text.ImportContext,
+			text.ImportRestOpsV8,
+			text.ImportTypes,
 		})
 }
 
@@ -57,8 +58,8 @@ func (g DomainServiceGeneratorV8) createServiceSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importRestOpsV8,
-			importSqldb,
+			text.ImportRestOpsV8,
+			text.ImportSqldb,
 		})
 
 }
@@ -89,8 +90,8 @@ func (g DomainServiceGeneratorV8) createActionListSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importRestOpsV8,
+			text.ImportContext,
+			text.ImportRestOpsV8,
 		})
 }
 
@@ -109,8 +110,8 @@ func (g DomainServiceGeneratorV8) createActionRetrieveSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importTypes,
+			text.ImportContext,
+			text.ImportTypes,
 		})
 }
 
@@ -135,7 +136,7 @@ func (g DomainServiceGeneratorV8) createActionCreateSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
+			text.ImportContext,
 		})
 }
 
@@ -166,9 +167,9 @@ func (g DomainServiceGeneratorV8) createActionUpdateSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importTypes,
-			importPrepared,
+			text.ImportContext,
+			text.ImportTypes,
+			text.ImportPrepared,
 		})
 }
 
@@ -185,9 +186,9 @@ func (g DomainServiceGeneratorV8) createActionDeleteSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importContext,
-			importTypes,
-			importPrepared,
+			text.ImportContext,
+			text.ImportTypes,
+			text.ImportPrepared,
 		})
 }
 
@@ -203,7 +204,7 @@ func (g DomainServiceGeneratorV8) createContextSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importTypes,
+			text.ImportTypes,
 		})
 }
 
@@ -240,8 +241,8 @@ func (g DomainServiceGeneratorV8) createConstructorSnippet() error {
 			}
 		`,
 		[]codegen.Import{
-			importContext,
-			importSqldb,
+			text.ImportContext,
+			text.ImportSqldb,
 		})
 }
 
@@ -282,15 +283,7 @@ func (g DomainServiceGeneratorV8) Generate() error {
 
 func (g DomainServiceGeneratorV8) Filename() string {
 	target := path.Join(g.Folder, "service_lowersingular_v8.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainServiceGeneratorV8) Variables() map[string]string {
-	return nil
-}
-
-func (g DomainServiceGeneratorV8) Conditions() map[string]bool {
-	return nil
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainServiceGeneratorV8(spec Spec) ComponentGenerator {
@@ -299,25 +292,27 @@ func NewDomainServiceGeneratorV8(spec Spec) ComponentGenerator {
 		Folder:  generatorConfig.Folder,
 		Actions: generatorConfig.Actions,
 		Spec:    spec,
-		File: &File{
-			Comment:   "V8 API Service for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: skel.NewInflector(generatorConfig.Domain),
-			Sections: NewSections(
-				"API",
-				"Service",
-				&Section{
-					Name: "Actions",
-					Sections: NewSections(
-						"List",
-						"Retrieve",
-						"Create",
-						"Update",
-						"Delete"),
-				},
-				"Context",
-				"Constructor",
-			),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "V8 API Service for " + generatorConfig.Domain,
+				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Sections: text.NewGoSections(
+					"API",
+					"Service",
+					&text.Section[text.GoSnippet]{
+						Name: "Actions",
+						Sections: text.NewGoSections(
+							"List",
+							"Retrieve",
+							"Create",
+							"Update",
+							"Delete"),
+					},
+					"Context",
+					"Constructor",
+				),
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

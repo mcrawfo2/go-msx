@@ -6,6 +6,7 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
@@ -27,7 +28,7 @@ type DomainModelGenerator struct {
 	Actions types.ComparableSlice[string]
 	Models  []DomainModel
 	Spec    Spec
-	*File
+	*text.GoFile
 }
 
 func (g DomainModelGenerator) createFilterSnippet() error {
@@ -42,15 +43,15 @@ func (g DomainModelGenerator) createFilterSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importSqldb,
+			text.ImportSqldb,
 		})
 }
 
 func (g DomainModelGenerator) createInstanceSnippet() error {
-	return g.AddNewDecl(
+	return g.AddNewGenerator(
 		"Instance",
 		"instance",
-		&codegen.TypeDecl{
+		text.Decls{&codegen.TypeDecl{
 			Name: "UpperCamelSingular",
 			Type: &codegen.StructType{
 				Fields: []codegen.StructField{
@@ -58,7 +59,7 @@ func (g DomainModelGenerator) createInstanceSnippet() error {
 						Name: "UpperCamelSingularId",
 						Type: codegen.NamedType{
 							Package: &codegen.Package{
-								QualifiedName: PkgUuid,
+								QualifiedName: text.PkgUuid,
 							},
 							Decl: &codegen.TypeDecl{
 								Name: "UUID",
@@ -79,9 +80,9 @@ func (g DomainModelGenerator) createInstanceSnippet() error {
 					},
 				},
 			},
-		},
+		}},
 		[]codegen.Import{
-			importUuid,
+			text.ImportUuid,
 		})
 }
 
@@ -109,15 +110,7 @@ func (g DomainModelGenerator) Generate() error {
 
 func (g DomainModelGenerator) Filename() string {
 	target := path.Join(g.Folder, "model_lowersingular.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainModelGenerator) Variables() map[string]string {
-	return nil
-}
-
-func (g DomainModelGenerator) Conditions() map[string]bool {
-	return nil
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainModelGenerator(spec Spec) ComponentGenerator {
@@ -136,14 +129,16 @@ func NewDomainModelGenerator(spec Spec) ComponentGenerator {
 			},
 		},
 		Spec: spec,
-		File: &File{
-			Comment:   "Model for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: skel.NewInflector(generatorConfig.Domain),
-			Sections: NewSections(
-				"Filter",
-				"Instance",
-			),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "Model for " + generatorConfig.Domain,
+				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Sections: text.NewGoSections(
+					"Filter",
+					"Instance",
+				),
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

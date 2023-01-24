@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/openapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
@@ -31,30 +32,11 @@ type DomainPayloadsGenerator struct {
 
 	Spec Spec
 
-	*File
-}
-
-func (g DomainPayloadsGenerator) Generate() error {
-	return types.ErrorList{
-		g.createPayloadSnippets(),
-	}.Filter()
-}
-
-func (g DomainPayloadsGenerator) Filename() string {
-	target := path.Join(g.Folder, "payloads_lowersingular.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainPayloadsGenerator) Variables() map[string]string {
-	return nil
-}
-
-func (g DomainPayloadsGenerator) Conditions() map[string]bool {
-	return nil
+	*text.GoFile
 }
 
 func (g DomainPayloadsGenerator) createPayloadSnippets() error {
-	packageName := g.File.Inflector.Inflect(skel.InflectionLowerPlural)
+	packageName := g.GoFile.Inflector.Inflect(skel.InflectionLowerPlural)
 	generatedSchemas := make(types.StringSet)
 
 	for _, payload := range g.Spec.Payloads.ForActions(g.Actions...) {
@@ -114,7 +96,7 @@ func (g DomainPayloadsGenerator) createPayloadSnippets() error {
 		for _, decl := range file.Package.Decls {
 			namedDecl := decl.(codegen.Named)
 
-			err := g.File.AddNewDecl(
+			err := g.GoFile.AddNewDecl(
 				"Payloads",
 				namedDecl.GetName(),
 				decl,
@@ -126,6 +108,17 @@ func (g DomainPayloadsGenerator) createPayloadSnippets() error {
 	}
 
 	return nil
+}
+
+func (g DomainPayloadsGenerator) Generate() error {
+	return types.ErrorList{
+		g.createPayloadSnippets(),
+	}.Filter()
+}
+
+func (g DomainPayloadsGenerator) Filename() string {
+	target := path.Join(g.Folder, "payloads_lowersingular.go")
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainPayloadsGenerator(spec Spec) ComponentGenerator {
@@ -141,11 +134,13 @@ func NewDomainPayloadsGenerator(spec Spec) ComponentGenerator {
 			},
 		})),
 		Spec: spec,
-		File: &File{
-			Comment:   "Payloads for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: inflector,
-			Sections:  NewSections("Payloads"),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "Payloads for " + generatorConfig.Domain,
+				Sections:  text.NewGoSections("Payloads"),
+				Inflector: inflector,
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

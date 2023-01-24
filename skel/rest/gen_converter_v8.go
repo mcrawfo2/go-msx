@@ -6,6 +6,7 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
@@ -17,7 +18,7 @@ type DomainConverterGeneratorV8 struct {
 	Actions    types.ComparableSlice[string]
 	Converters []DomainConversion
 	Spec       Spec
-	*File
+	*text.GoFile
 }
 
 const (
@@ -72,7 +73,7 @@ func (g DomainConverterGeneratorV8) createConverterCreateRequestSnippet() error 
 			}
 			`,
 		[]codegen.Import{
-			importUuid,
+			text.ImportUuid,
 		})
 }
 
@@ -90,7 +91,7 @@ func (g DomainConverterGeneratorV8) createConverterUpdateRequestSnippet() error 
 			}
 			`,
 		[]codegen.Import{
-			importUuid,
+			text.ImportUuid,
 		})
 }
 
@@ -124,7 +125,7 @@ func (g DomainConverterGeneratorV8) createConverterResponseSnippet() error {
 			}
 			`,
 		[]codegen.Import{
-			importPrepared,
+			text.ImportPrepared,
 		})
 }
 
@@ -141,7 +142,7 @@ func (g DomainConverterGeneratorV8) createConverterSortByOptionsSnippet() error 
 			}
 			`,
 		[]codegen.Import{
-			importTypes,
+			text.ImportTypes,
 		})
 }
 
@@ -179,15 +180,7 @@ func (g DomainConverterGeneratorV8) Generate() error {
 
 func (g DomainConverterGeneratorV8) Filename() string {
 	target := path.Join(g.Folder, "converter_lowersingular_v8.go")
-	return g.File.Inflector.Inflect(target)
-}
-
-func (g DomainConverterGeneratorV8) Variables() map[string]string {
-	return nil
-}
-
-func (g DomainConverterGeneratorV8) Conditions() map[string]bool {
-	return nil
+	return g.GoFile.Inflector.Inflect(target)
 }
 
 func NewDomainConverterGeneratorV8(spec Spec) ComponentGenerator {
@@ -221,23 +214,25 @@ func NewDomainConverterGeneratorV8(spec Spec) ComponentGenerator {
 				Actions:   []string{ActionList},
 			},
 		},
-		File: &File{
-			Comment:   "V8 API Converter for " + generatorConfig.Domain,
-			Package:   generatorConfig.PackageName(),
-			Inflector: skel.NewInflector(generatorConfig.Domain),
-			Sections: NewSections(
-				"Service",
-				&Section{
-					Name: "Converters",
-					Sections: NewSections(
-						"List Query Filter",
-						"Create",
-						"Update",
-						"List Response",
-						"Response"),
-				},
-				"Sort",
-			),
+		GoFile: &text.GoFile{
+			File: &text.File[text.GoSnippet]{
+				Comment:   "V8 API Converter for " + generatorConfig.Domain,
+				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Sections: text.NewGoSections(
+					"Service",
+					&text.Section[text.GoSnippet]{
+						Name: "Converters",
+						Sections: text.NewGoSections(
+							"List Query Filter",
+							"Create",
+							"Update",
+							"List Response",
+							"Response"),
+					},
+					"Sort",
+				),
+			},
+			Package: generatorConfig.PackageName(),
 		},
 	}
 }

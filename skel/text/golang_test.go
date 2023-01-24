@@ -1,4 +1,8 @@
-package rest
+// Copyright © 2023, Cisco Systems Inc.
+// Use of this source code is governed by an MIT-style license that can be
+// found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
+package text
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
@@ -15,16 +19,16 @@ func (t TestDecl) Generate(out *codegen.Emitter) {
 	out.Println("%s", string(t))
 }
 
-func testEmit(decl codegen.Decl) string {
-	emitter := codegen.NewEmitter(maxLineLength)
-	decl.Generate(emitter)
+func testGoEmit(generator Generator) string {
+	emitter := NewGoEmitter()
+	generator.Generate(emitter)
 	return emitter.String()
 }
 
 func TestDecls_Generate(t *testing.T) {
 	tests := []struct {
 		name string
-		d    Decls
+		d    Generator
 		want string
 	}{
 		{
@@ -45,7 +49,7 @@ func TestDecls_Generate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := testEmit(tt.d)
+			got := testGoEmit(tt.d)
 
 			assert.True(t,
 				tt.want == got,
@@ -124,45 +128,14 @@ func TestTransformers_Transform(t *testing.T) {
 	}
 }
 
-func TestSnippet_GetName(t *testing.T) {
-	snippet := Snippet{Name: "snippet"}
-	assert.Equal(t, "snippet", snippet.GetName())
-}
-
-func TestSnippet_Generate(t *testing.T) {
-	tests := []struct {
-		name  string
-		lines []string
-		want  string
-	}{
-		{
-			name:  "OneLine",
-			lines: []string{"abc"},
-			want:  "abc\n",
-		},
-		{
-			name:  "TwoLines",
-			lines: []string{"abc", "def"},
-			want:  "abc\ndef\n",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := Snippet{Lines: tt.lines}
-			got := testEmit(s)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
 func TestNewDeclSnippet(t *testing.T) {
-	snippet := NewDeclSnippet(
+	snippet := NewGoGeneratorSnippet(
 		"section",
 		"name",
-		TestDecl("  content  "),
+		Decls{TestDecl("  content  ")},
 		[]codegen.Import{
-			importContext,
-			importTypes,
+			ImportContext,
+			ImportTypes,
 		},
 		Transformers{
 			strings.TrimSpace,
@@ -171,20 +144,20 @@ func TestNewDeclSnippet(t *testing.T) {
 	assert.Equal(t, "section", snippet.Section)
 	assert.Equal(t, "name", snippet.Name)
 	assert.Equal(t, []string{"content"}, snippet.Lines)
-	assert.Equal(t, []codegen.Import{importContext, importTypes}, snippet.Imports)
+	assert.Equal(t, []codegen.Import{ImportContext, ImportTypes}, snippet.Imports)
 
-	got := testEmit(snippet)
+	got := testGoEmit(snippet)
 	assert.Equal(t, "content\n", got)
 }
 
 func TestNewTextSnippet(t *testing.T) {
-	snippet := NewTextSnippet(
+	snippet := NewGoTextSnippet(
 		"section",
 		"name",
 		"  content  ",
 		[]codegen.Import{
-			importContext,
-			importTypes,
+			ImportContext,
+			ImportTypes,
 		},
 		Transformers{
 			strings.TrimSpace,
@@ -193,14 +166,14 @@ func TestNewTextSnippet(t *testing.T) {
 	assert.Equal(t, "section", snippet.Section)
 	assert.Equal(t, "name", snippet.Name)
 	assert.Equal(t, []string{"content"}, snippet.Lines)
-	assert.Equal(t, []codegen.Import{importContext, importTypes}, snippet.Imports)
+	assert.Equal(t, []codegen.Import{ImportContext, ImportTypes}, snippet.Imports)
 
-	got := testEmit(snippet)
+	got := testGoEmit(snippet)
 	assert.Equal(t, "content\n", got)
 }
 
 func TestNewStatementSnippet(t *testing.T) {
-	snippet, err := NewStatementSnippet(
+	snippet, err := NewGoStatementSnippet(
 		"section",
 		"name",
 		jen.Var().Id("content").Id("string"),
@@ -214,19 +187,19 @@ func TestNewStatementSnippet(t *testing.T) {
 	assert.Equal(t, []string{"var content string"}, snippet.Lines)
 	assert.Len(t, snippet.Imports, 0)
 
-	got := testEmit(snippet)
+	got := testGoEmit(snippet)
 	assert.Equal(t, "var content string\n", got)
 }
 
 func TestConstants_Generate(t *testing.T) {
 	tests := []struct {
 		name string
-		c    Constants
+		c    GoConstants
 		want string
 	}{
 		{
 			name: "OneConstant",
-			c: Constants{
+			c: GoConstants{
 				&codegen.Constant{
 					Type:  codegen.PrimitiveType{Type: "string"},
 					Name:  "single",
@@ -237,7 +210,7 @@ func TestConstants_Generate(t *testing.T) {
 		},
 		{
 			name: "TwoConstants",
-			c: Constants{
+			c: GoConstants{
 				&codegen.Constant{
 					Type:  codegen.PrimitiveType{Type: "string"},
 					Name:  "single",
@@ -253,7 +226,7 @@ func TestConstants_Generate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := testEmit(tt.c)
+			got := testGoEmit(tt.c)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -262,64 +235,64 @@ func TestConstants_Generate(t *testing.T) {
 func TestComment_Generate(t *testing.T) {
 	tests := []struct {
 		name string
-		c    Comment
+		c    GoComment
 		want string
 	}{
 		{
 			name: "Standard",
-			c:    Comment("a single line comment"),
+			c:    GoComment("a single line comment"),
 			want: "// a single line comment\n",
 		},
 		{
 			name: "Generate",
-			c:    Comment("go:generate this"),
+			c:    GoComment("go:generate this"),
 			want: "//go:generate this\n",
 		},
 		{
 			name: "Conditional",
-			c:    Comment("#if REPOSITORY_COCKROACH"),
+			c:    GoComment("#if REPOSITORY_COCKROACH"),
 			want: "//#if REPOSITORY_COCKROACH\n",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := testEmit(tt.c)
+			got := testGoEmit(tt.c)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestSection_AddSnippet(t *testing.T) {
-	section := Section{Name: "section"}
-	section.AddSnippet(Snippet{Section: "section", Name: "snippet"})
+	section := Section[GoSnippet]{Name: "section"}
+	section.AddSnippet(GoSnippet{Snippet: Snippet{Section: "section", Name: "snippet"}})
 	assert.Len(t, section.Snippets, 1)
 }
 
 func TestSection_Generate(t *testing.T) {
 	tests := []struct {
 		name string
-		c    *Section
+		c    *Section[GoSnippet]
 		want string
 	}{
 		{
 			name: "Flat",
-			c: &Section{
+			c: &Section[GoSnippet]{
 				Name: "section",
-				Snippets: []Snippet{
-					{Name: "first", Lines: []string{"one line"}},
-					{Name: "second", Lines: []string{"two line"}},
+				Snippets: []GoSnippet{
+					{Snippet: Snippet{Name: "first", Lines: []string{"one line"}}},
+					{Snippet: Snippet{Name: "second", Lines: []string{"two line"}}},
 				},
 			},
 			want: "// section\n\none line\n\ntwo line\n\n",
 		},
 		{
 			name: "Nested",
-			c: &Section{
+			c: &Section[GoSnippet]{
 				Name:     "section",
-				Snippets: []Snippet{{Lines: []string{"one line"}}},
-				Sections: Sections{{
+				Snippets: []GoSnippet{{Snippet: Snippet{Lines: []string{"one line"}}}},
+				Sections: Sections[GoSnippet]{{
 					Name:     "subsection",
-					Snippets: []Snippet{{Lines: []string{"two line"}}},
+					Snippets: []GoSnippet{{Snippet: Snippet{Lines: []string{"two line"}}}},
 				}},
 			},
 			want: "// section\n\none line\n\n// subsection\n\ntwo line\n\n",
@@ -327,7 +300,7 @@ func TestSection_Generate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := testEmit(tt.c)
+			got := testGoEmit(tt.c)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -337,29 +310,29 @@ func TestSection_Generate(t *testing.T) {
 func TestSection_Empty(t *testing.T) {
 	tests := []struct {
 		name string
-		c    *Section
+		c    *Section[GoSnippet]
 		want bool
 	}{
 		{
 			name: "FlatEmpty",
-			c:    &Section{},
+			c:    &Section[GoSnippet]{},
 			want: true,
 		},
 		{
 			name: "FlatNotEmpty",
-			c: &Section{
+			c: &Section[GoSnippet]{
 				Name: "section",
-				Snippets: []Snippet{
-					{Name: "first", Lines: []string{"one line"}},
+				Snippets: []GoSnippet{
+					{Snippet: Snippet{Name: "first", Lines: []string{"one line"}}},
 				},
 			},
 			want: false,
 		},
 		{
 			name: "NestedEmpty",
-			c: &Section{
+			c: &Section[GoSnippet]{
 				Name: "section",
-				Sections: Sections{{
+				Sections: Sections[GoSnippet]{{
 					Name: "subsection",
 				}},
 			},
@@ -367,12 +340,12 @@ func TestSection_Empty(t *testing.T) {
 		},
 		{
 			name: "NestedNotEmpty",
-			c: &Section{
+			c: &Section[GoSnippet]{
 				Name: "section",
-				Sections: Sections{{
+				Sections: Sections[GoSnippet]{{
 					Name: "subsection",
-					Snippets: []Snippet{
-						{Name: "second", Lines: []string{"two line"}},
+					Snippets: []GoSnippet{
+						{Snippet: Snippet{Name: "second", Lines: []string{"two line"}}},
 					},
 				}},
 			},
