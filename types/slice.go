@@ -14,6 +14,26 @@ func (s Slice[I]) AnySlice() (results []any) {
 	return results
 }
 
+func (s Slice[I]) RemoveAll(indices ...int) (results Slice[I]) {
+	results = make([]I, len(s)-len(indices), len(s))
+
+	var out = 0
+	var in = 0
+
+	for _, removal := range indices {
+		if removal > in {
+			copy(results[out:], s[in:removal])
+			out = out + removal - in
+		}
+		in = removal + 1
+	}
+	if in < len(s) {
+		copy(results[out:], s[in:])
+	}
+
+	return
+}
+
 type ComparableSlice[I comparable] []I
 
 func (s ComparableSlice[I]) Contains(value I) bool {

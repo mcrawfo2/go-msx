@@ -252,6 +252,14 @@ func InvalidateZero[I comparable](v I) Optional[I] {
 	return OptionalOf(v)
 }
 
+func NewPtr[I any](v I) *I {
+	return &v
+}
+
+func PtrTo[I any](v I) *I {
+	return &v
+}
+
 func NewRuneSlicePtr(value []rune) *[]rune {
 	return &value
 }

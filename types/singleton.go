@@ -9,34 +9,43 @@ import (
 	"sync"
 )
 
-type Singleton[VT any] struct {
-	value     *VT
-	mtx       sync.Mutex
-	construct func(context.Context) (*VT, error)
+type Constructor[I any] func(context.Context) (I, error)
+type Accessor[I any] func() ContextKeyAccessor[I]
+
+type Singleton[I any] struct {
+	mtx         sync.Mutex
+	value       Optional[I]
+	constructor Constructor[I]
+	accessor    Accessor[I]
 }
 
-func (s *Singleton[VT]) Factory(ctx context.Context) (*VT, error) {
+func (s *Singleton[I]) Factory(ctx context.Context) (value I, err error) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if s.value != nil {
-		return s.value, nil
+	if s.value.IsPresent() {
+		value = s.value.Value()
+		return
 	}
 
-	value, err := s.construct(ctx)
+	value, ok := s.accessor().TryGet(ctx)
+	if ok {
+		return
+	}
+
+	value, err = s.constructor(ctx)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	s.value = value
+	s.value = OptionalOf(value)
 
-	return value, nil
+	return
 }
 
-func NewSingleton[VT any](constructor func(context.Context) (*VT, error)) *Singleton[VT] {
-	return &Singleton[VT]{
-		value:     nil,
-		mtx:       sync.Mutex{},
-		construct: constructor,
+func NewSingleton[I any](constructor Constructor[I], accessor Accessor[I]) *Singleton[I] {
+	return &Singleton[I]{
+		constructor: constructor,
+		accessor:    accessor,
 	}
 }
