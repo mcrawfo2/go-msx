@@ -191,12 +191,12 @@ func EndpointResponseFilter(request *restful.Request, response *restful.Response
 		}
 	}
 
-	// Retrieve the output port struct
-	outputs := OutputsFromRequest(request)
-	if outputs == nil && responseError == nil {
-		// Already handled by the controller
-		//return
+	// Response handled by the controller?
+	if e.Unmanaged {
+		return
 	}
+
+	outputs := OutputsFromRequest(request)
 
 	// Auto-validation for validatable Port Struct
 	if outputs != nil && responseError == nil {
@@ -429,6 +429,18 @@ func (i *EndpointHandlerTypesAnalyzer) getOutputsType(resultsTypes types.TypeSet
 	}
 
 	return nil
+}
+
+func (i *EndpointHandlerTypesAnalyzer) hasErrorReturnValue() bool {
+	handlerFuncType := reflect.ValueOf(i.handlerFunc).Type()
+	for n := 0; n < handlerFuncType.NumOut(); n++ {
+		resultType := handlerFuncType.Out(n)
+		if resultType == errorType {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (i *EndpointHandlerTypesAnalyzer) ArgsTypeSet() types.TypeSet {

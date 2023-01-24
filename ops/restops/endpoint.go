@@ -63,6 +63,7 @@ type Endpoint struct {
 	Response       EndpointResponse
 	Handler        *types.Handler
 	ErrorConverter ErrorConverter
+	Unmanaged      bool
 	ops.Documentors[Endpoint]
 }
 
@@ -237,6 +238,9 @@ func (e *Endpoint) Build() (*Endpoint, error) {
 			outputs := reflect.New(portStructType).Elem().Interface()
 			e.WithOutputs(outputs)
 			e.Response = e.Response.WithOutputs(outputs)
+		} else if !analyzer.hasErrorReturnValue() {
+			// no output or error return found, handler will deal with HTTP
+			e.Unmanaged = true
 		}
 	}
 
