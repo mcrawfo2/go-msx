@@ -95,7 +95,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 	}
 	if loaded {
 		project = true
-		logger.Info("Loaded project config")
+		logger.Debug("Loaded project config")
 	}
 
 	if !loaded {
@@ -105,7 +105,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 		}
 		if loaded {
 			project = false
-			logger.Info("Loaded generator config")
+			logger.Debug("Loaded generator config")
 		}
 	}
 
