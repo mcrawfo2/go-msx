@@ -186,16 +186,16 @@ var componentGenerators = []ScopedComponentGenerator{
 		Factory:   NewDomainPayloadsGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    MatchesAny,
 		Component: ComponentController,
-		Factory:   NewDomainControllerGeneratorV8,
+		Factory:   NewDomainControllerGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    TenantNone,
 		Component: ComponentService,
-		Factory:   NewDomainServiceGeneratorV8,
+		Factory:   NewDomainServiceGenerator,
 	},
 	{
 		Style:     StyleV8,

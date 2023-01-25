@@ -8,19 +8,21 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
 )
 
-type DomainServiceGeneratorV8 struct {
+type DomainServiceGenerator struct {
 	Domain  string
 	Folder  string
+	Style   string
 	Actions types.ComparableSlice[string]
 	Spec    Spec
 	*text.GoFile
 }
 
-func (g DomainServiceGeneratorV8) createApiSnippet() error {
+func (g DomainServiceGenerator) createApiSnippet() error {
 	return g.AddNewText(
 		"API",
 		"interface",
@@ -30,7 +32,7 @@ func (g DomainServiceGeneratorV8) createApiSnippet() error {
 			// UpperCamelSingularServiceApi declares the interface for the UpperCamelSingularService.  This can be used
             // to interchange implementations, such as during testing. 
 			type UpperCamelSingularServiceApi interface {
-				ListUpperCamelPlural(ctx context.Context, pageReq v8.PagingSortingInputs, freq lowerCamelSingularFilterQueryInputs) (pageResp v8.PagingResponse, payload []UpperCamelSingularResponse, err error)
+				ListUpperCamelPlural(ctx context.Context, pageReq ${domain.style}.PagingSortingInputs, freq lowerCamelSingularFilterQueryInputs) (pageResp ${domain.style}.PagingResponse, payload []UpperCamelSingularResponse, err error)
 				GetUpperCamelSingular(ctx context.Context, id types.UUID) (UpperCamelSingularResponse, error)
 				CreateUpperCamelSingular(ctx context.Context, request UpperCamelSingularCreateRequest) (UpperCamelSingularResponse, error)
 				UpdateUpperCamelSingular(ctx context.Context, id types.UUID, request UpperCamelSingularUpdateRequest) (UpperCamelSingularResponse, error)
@@ -39,12 +41,12 @@ func (g DomainServiceGeneratorV8) createApiSnippet() error {
 		`,
 		[]codegen.Import{
 			text.ImportContext,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportTypes,
 		})
 }
 
-func (g DomainServiceGeneratorV8) createServiceSnippet() error {
+func (g DomainServiceGenerator) createServiceSnippet() error {
 	return g.AddNewText(
 		"Service",
 		"implementation",
@@ -53,24 +55,24 @@ func (g DomainServiceGeneratorV8) createServiceSnippet() error {
 			type lowerCamelSingularService struct {
 				lowerCamelSingularRepository   UpperCamelSingularRepositoryApi
 				lowerCamelSingularConverter    lowerCamelSingularConverter
-				pagingConverter    v8.PagingConverter
+				pagingConverter    ${domain.style}.PagingConverter
 				transactionManager sqldb.TransactionManager
 			}
 			`,
 		[]codegen.Import{
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportSqldb,
 		})
 
 }
 
-func (g DomainServiceGeneratorV8) createActionListSnippet() error {
+func (g DomainServiceGenerator) createActionListSnippet() error {
 	return g.AddNewText(
 		"Actions/List",
 		"list",
 		`
 			// ListUpperCamelPlural returns a paginated series of UpperCamelSingular instances matching the supplied criteria. 
-			func (s *lowerCamelSingularService) ListUpperCamelPlural(ctx context.Context, pageReq v8.PagingSortingInputs, freq lowerCamelSingularFilterQueryInputs) (pageResp v8.PagingResponse, payload []UpperCamelSingularResponse, err error) {
+			func (s *lowerCamelSingularService) ListUpperCamelPlural(ctx context.Context, pageReq ${domain.style}.PagingSortingInputs, freq lowerCamelSingularFilterQueryInputs) (pageResp ${domain.style}.PagingResponse, payload []UpperCamelSingularResponse, err error) {
 				pin, err := s.pagingConverter.FromPagingSortingInputs(pageReq)
 				if err != nil {
 					return
@@ -91,11 +93,11 @@ func (g DomainServiceGeneratorV8) createActionListSnippet() error {
 			`,
 		[]codegen.Import{
 			text.ImportContext,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 		})
 }
 
-func (g DomainServiceGeneratorV8) createActionRetrieveSnippet() error {
+func (g DomainServiceGenerator) createActionRetrieveSnippet() error {
 	return g.AddNewText(
 		"Actions/Retrieve",
 		"retrieve",
@@ -115,7 +117,7 @@ func (g DomainServiceGeneratorV8) createActionRetrieveSnippet() error {
 		})
 }
 
-func (g DomainServiceGeneratorV8) createActionCreateSnippet() error {
+func (g DomainServiceGenerator) createActionCreateSnippet() error {
 	return g.AddNewText(
 		"Actions/Create",
 		"create",
@@ -140,7 +142,7 @@ func (g DomainServiceGeneratorV8) createActionCreateSnippet() error {
 		})
 }
 
-func (g DomainServiceGeneratorV8) createActionUpdateSnippet() error {
+func (g DomainServiceGenerator) createActionUpdateSnippet() error {
 	return g.AddNewText(
 		"Actions/Update",
 		"update",
@@ -173,7 +175,7 @@ func (g DomainServiceGeneratorV8) createActionUpdateSnippet() error {
 		})
 }
 
-func (g DomainServiceGeneratorV8) createActionDeleteSnippet() error {
+func (g DomainServiceGenerator) createActionDeleteSnippet() error {
 	return g.AddNewText(
 		"Actions/Delete",
 		"delete",
@@ -192,7 +194,7 @@ func (g DomainServiceGeneratorV8) createActionDeleteSnippet() error {
 		})
 }
 
-func (g DomainServiceGeneratorV8) createContextSnippet() error {
+func (g DomainServiceGenerator) createContextSnippet() error {
 	return g.AddNewText(
 		"Context",
 		"contextAccessor",
@@ -208,7 +210,7 @@ func (g DomainServiceGeneratorV8) createContextSnippet() error {
 		})
 }
 
-func (g DomainServiceGeneratorV8) createConstructorSnippet() error {
+func (g DomainServiceGenerator) createConstructorSnippet() error {
 	return g.AddNewText(
 		"Constructor",
 		"constructor",
@@ -231,7 +233,7 @@ func (g DomainServiceGeneratorV8) createConstructorSnippet() error {
 					svc = &lowerCamelSingularService{
 						lowerCamelSingularRepository:   repo,
 						transactionManager: transactionManager,
-						pagingConverter: v8.PagingConverter{
+						pagingConverter: ${domain.style}.PagingConverter{
 							SortByOptions: lowerCamelSingularSortByOptions,
 						},
 					}
@@ -243,10 +245,16 @@ func (g DomainServiceGeneratorV8) createConstructorSnippet() error {
 		[]codegen.Import{
 			text.ImportContext,
 			text.ImportSqldb,
+			g.importStyle(),
 		})
 }
 
-func (g DomainServiceGeneratorV8) Generate() error {
+func (g DomainServiceGenerator) Apply(options skel.RenderOptions) skel.RenderOptions {
+	options.AddVariable("domain.style", g.Style)
+	return options
+}
+
+func (g DomainServiceGenerator) Generate() error {
 	errs := types.ErrorList{
 		g.createApiSnippet(),
 		g.createServiceSnippet(),
@@ -281,16 +289,26 @@ func (g DomainServiceGeneratorV8) Generate() error {
 	return errs.Filter()
 }
 
-func (g DomainServiceGeneratorV8) Filename() string {
-	target := path.Join(g.Folder, "service_lowersingular_v8.go")
+func (g DomainServiceGenerator) Filename() string {
+	target := path.Join(g.Folder, fmt.Sprintf("service_lowersingular_%s.go", g.Style))
 	return g.GoFile.Inflector.Inflect(target)
 }
 
-func NewDomainServiceGeneratorV8(spec Spec) ComponentGenerator {
-	return DomainServiceGeneratorV8{
+func (g DomainServiceGenerator) importStyle() codegen.Import {
+	switch g.Style {
+	case StyleV2:
+		return text.ImportRestOpsV2
+	default:
+		return text.ImportRestOpsV8
+	}
+}
+
+func NewDomainServiceGenerator(spec Spec) ComponentGenerator {
+	return DomainServiceGenerator{
 		Domain:  generatorConfig.Domain,
 		Folder:  generatorConfig.Folder,
 		Actions: generatorConfig.Actions,
+		Style:   generatorConfig.Style,
 		Spec:    spec,
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{

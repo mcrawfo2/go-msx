@@ -66,7 +66,13 @@ func (e *textEmitter) Raw() *codegen.Emitter {
 // Comment outputs a single line comment using the
 func (e *textEmitter) Comment(s string) {
 	startMarker, endMarker := skel.CommentMarkers(e.format)
-	e.Print("%s %s %s", startMarker, s, endMarker)
+	if startMarker != "" {
+		startMarker = startMarker + " "
+	}
+	if endMarker != "" {
+		endMarker = " " + endMarker
+	}
+	e.Println("%s%s%s", startMarker, s, endMarker)
 }
 
 func NewEmitter(format skel.FileFormat) Emitter {

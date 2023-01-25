@@ -130,7 +130,6 @@ func TestTransformers_Transform(t *testing.T) {
 
 func TestNewDeclSnippet(t *testing.T) {
 	snippet := NewGoGeneratorSnippet(
-		"section",
 		"name",
 		Decls{TestDecl("  content  ")},
 		[]codegen.Import{
@@ -141,7 +140,6 @@ func TestNewDeclSnippet(t *testing.T) {
 			strings.TrimSpace,
 		})
 
-	assert.Equal(t, "section", snippet.Section)
 	assert.Equal(t, "name", snippet.Name)
 	assert.Equal(t, []string{"content"}, snippet.Lines)
 	assert.Equal(t, []codegen.Import{ImportContext, ImportTypes}, snippet.Imports)
@@ -152,7 +150,6 @@ func TestNewDeclSnippet(t *testing.T) {
 
 func TestNewTextSnippet(t *testing.T) {
 	snippet := NewGoTextSnippet(
-		"section",
 		"name",
 		"  content  ",
 		[]codegen.Import{
@@ -163,7 +160,6 @@ func TestNewTextSnippet(t *testing.T) {
 			strings.TrimSpace,
 		})
 
-	assert.Equal(t, "section", snippet.Section)
 	assert.Equal(t, "name", snippet.Name)
 	assert.Equal(t, []string{"content"}, snippet.Lines)
 	assert.Equal(t, []codegen.Import{ImportContext, ImportTypes}, snippet.Imports)
@@ -174,21 +170,27 @@ func TestNewTextSnippet(t *testing.T) {
 
 func TestNewStatementSnippet(t *testing.T) {
 	snippet, err := NewGoStatementSnippet(
-		"section",
 		"name",
-		jen.Var().Id("content").Id("string"),
+		jen.Var().
+			Id("content").
+			Id("string").
+			Op("=").
+			Qual(PkgUuid, "NewUUID").
+			Call().
+			Dot("String").
+			Call(),
 		Transformers{
 			strings.TrimSpace,
 		})
 	assert.NoError(t, err)
 
-	assert.Equal(t, "section", snippet.Section)
 	assert.Equal(t, "name", snippet.Name)
-	assert.Equal(t, []string{"var content string"}, snippet.Lines)
-	assert.Len(t, snippet.Imports, 0)
+	assert.Equal(t, []string{"var content string = uuid.NewUUID().String()"}, snippet.Lines)
+	assert.Len(t, snippet.Imports, 1)
+	assert.Equal(t, PkgUuid, snippet.Imports[0].QualifiedName)
 
 	got := testGoEmit(snippet)
-	assert.Equal(t, "var content string\n", got)
+	assert.Equal(t, "var content string = uuid.NewUUID().String()\n", got)
 }
 
 func TestConstants_Generate(t *testing.T) {
@@ -264,7 +266,7 @@ func TestComment_Generate(t *testing.T) {
 
 func TestSection_AddSnippet(t *testing.T) {
 	section := Section[GoSnippet]{Name: "section"}
-	section.AddSnippet(GoSnippet{Snippet: Snippet{Section: "section", Name: "snippet"}})
+	section.AddSnippet(GoSnippet{Snippet: Snippet{Name: "snippet"}})
 	assert.Len(t, section.Snippets, 1)
 }
 
