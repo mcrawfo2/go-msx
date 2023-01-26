@@ -271,6 +271,10 @@ func loadGenerateConfig() (bool, error) {
 
 // GitDirtyCheck determines if there are vulnerable modifications in the given directory
 func GitDirtyCheck(dir string) (dirty bool, err error) {
+	if os.Getenv("JENKINS_URL") != "" {
+		return false, nil
+	}
+
 	r, err := git.PlainOpenWithOptions(dir, &git.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
 		logger.Tracef("GitDirtyCheck(%s) not a git repo: %s", dir, err)
