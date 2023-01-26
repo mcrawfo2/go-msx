@@ -10,7 +10,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
-	"cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency/cache"
 	"github.com/emicklei/go-restful"
 	"net/http"
 )
@@ -40,7 +39,7 @@ func IdempotencyCacheFilter(idempotencyCache lru.ContextCache) restful.FilterFun
 		}
 
 		if exists {
-			cVal := val.(cache.CachedWebData)
+			cVal := val.(CachedWebData)
 
 			if isValidCaching(req, cVal) { // quick checks for same method and api
 				serveFromCache(resp, cVal)
@@ -63,7 +62,7 @@ func IdempotencyCacheFilter(idempotencyCache lru.ContextCache) restful.FilterFun
 
 		} else {
 			// wrapping the ResponseWriter so the data could be retrieved later
-			rRespWriter := &cache.RecordingHttpResponseWriter{
+			rRespWriter := &RecordingHttpResponseWriter{
 				ResponseWriter: resp.ResponseWriter,
 				Body:           bytes.Buffer{},
 			}
@@ -81,21 +80,21 @@ func IdempotencyCacheFilter(idempotencyCache lru.ContextCache) restful.FilterFun
 func saveToCache(req *restful.Request, resp *restful.Response, idempotencyCache lru.ContextCache, cacheId string) {
 	respStatusCode := resp.StatusCode()
 	if respStatusCode >= 200 && respStatusCode < 400 {
-		recordingRW := resp.ResponseWriter.(*cache.RecordingHttpResponseWriter)
+		recordingRW := resp.ResponseWriter.(*RecordingHttpResponseWriter)
 		body := recordingRW.Body.String()
 
-		creq := cache.CachedRequest{
+		creq := CachedRequest{
 			Method:     req.Request.Method,
 			RequestURI: req.Request.RequestURI,
 		}
 
-		cresp := cache.CachedResponse{
+		cresp := CachedResponse{
 			StatusCode: respStatusCode,
 			Data:       []byte(body),
 			Header:     resp.Header(),
 		}
 
-		err := idempotencyCache.Set(req.Request.Context(), cacheId, cache.CachedWebData{
+		err := idempotencyCache.Set(req.Request.Context(), cacheId, CachedWebData{
 			Req:  creq,
 			Resp: cresp,
 		})
@@ -105,11 +104,11 @@ func saveToCache(req *restful.Request, resp *restful.Response, idempotencyCache 
 	}
 }
 
-func isValidCaching(req *restful.Request, cVal cache.CachedWebData) bool {
+func isValidCaching(req *restful.Request, cVal CachedWebData) bool {
 	return cVal.Req.Method == req.Request.Method && cVal.Req.RequestURI == req.Request.RequestURI
 }
 
-func serveFromCache(resp *restful.Response, cVal cache.CachedWebData) {
+func serveFromCache(resp *restful.Response, cVal CachedWebData) {
 	resp.WriteHeader(cVal.Resp.StatusCode)
 	resp.Write(cVal.Resp.Data)
 

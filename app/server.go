@@ -20,7 +20,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/envprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/healthprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency"
-	idempotencyCache "cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency/cache"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/infoprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/loggersprovider"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice/maintenanceprovider"
@@ -150,10 +149,8 @@ func registerIdempotencyCacheInMemory(ctx context.Context) error {
 			logger.WithContext(ctx).Error(err)
 			return nil, err
 		}
-		return redisCache.NewContextCacheFromConfig[idempotencyCache.CachedWebData](redisConfig), nil
+		return redisCache.NewContextCacheFromConfig[idempotency.CachedWebData](redisConfig), nil
 	})
 
 	return nil
 }
-
-

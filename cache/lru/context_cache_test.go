@@ -7,13 +7,11 @@ package lru
 import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	"cto-github.cisco.com/NFV-BU/go-msx/webservice/idempotency/cache"
 	"github.com/stretchr/testify/assert"
-	"net/http"
 	"testing"
 )
 
-func setupMocks() (ContextCache, context.Context, string, cache.CachedWebData) {
+func setupMocks() (ContextCache, context.Context, string, string) {
 	mockClock := types.NewMockClock()
 	cconfig := CacheConfig{}
 	heap := NewCache2(cconfig.Ttl, cconfig.ExpireLimit, cconfig.ExpireFrequency, cconfig.DeAgeOnAccess, mockClock, false, "")
@@ -25,38 +23,26 @@ func setupMocks() (ContextCache, context.Context, string, cache.CachedWebData) {
 	ctx := context.Background()
 
 	mockKeyId := "somekeyid"
-	mockCreq := cache.CachedRequest{
-		Method:     "somemethod",
-		RequestURI: "somerequesturi",
-	}
-	mockCresp := cache.CachedResponse{
-		StatusCode: 999,
-		Data:       []byte("some contents"),
-		Header:     http.Header{},
-	}
-	mockCData := cache.CachedWebData{
-		Req:  mockCreq,
-		Resp: mockCresp,
-	}
-	return cwc, ctx, mockKeyId, mockCData
+	mockData := "somevalue"
+	return cwc, ctx, mockKeyId, mockData
 }
 
 func TestContextCache_SetGet(t *testing.T) {
-	cwc, ctx, mockKeyId, mockCData := setupMocks()
+	cwc, ctx, mockKeyId, mockData := setupMocks()
 
-	err := cwc.Set(ctx, mockKeyId, mockCData)
+	err := cwc.Set(ctx, mockKeyId, mockData)
 	assert.NoError(t, err)
 
 	val, exists, err := cwc.Get(ctx, mockKeyId)
 	assert.NoError(t, err)
 	assert.Equal(t, exists, true)
-	assert.Equal(t, mockCData, val)
+	assert.Equal(t, mockData, val)
 }
 
 func TestContextCache_Clear(t *testing.T) {
-	cwc, ctx, mockKeyId, mockCData := setupMocks()
+	cwc, ctx, mockKeyId, mockData := setupMocks()
 
-	err := cwc.Set(ctx, mockKeyId, mockCData)
+	err := cwc.Set(ctx, mockKeyId, mockData)
 	assert.NoError(t, err)
 
 	err = cwc.Clear(ctx)
