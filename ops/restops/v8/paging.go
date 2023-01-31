@@ -72,18 +72,25 @@ const (
 )
 
 type PagingConverter struct {
-	SortByOptions types.StringPairSlice
+	SortByOptions paging.SortByOptions
 }
 
 // FromPagingSortOrder maps input sort names to their respective db column names
 func (c PagingConverter) FromPagingSortOrder(sort []paging.SortOrder) ([]paging.SortOrder, error) {
-	if len(c.SortByOptions) == 0 {
+	if len(sort) == 0 && c.SortByOptions.DefaultProperty != "" {
+		sort = []paging.SortOrder{{
+			Property:  c.SortByOptions.DefaultProperty,
+			Direction: SortDirectionAsc,
+		}}
+	}
+
+	if len(c.SortByOptions.Mapping) == 0 {
 		// No sort options defined, free-for-all
 		return sort, nil
 	}
 
 	for i, sortOrder := range sort {
-		mappedProperty, ok := c.SortByOptions.MapToRight(sortOrder.Property)
+		mappedProperty, ok := c.SortByOptions.Mapping.MapToRight(sortOrder.Property)
 		if !ok {
 			return nil, errors.Wrap(ErrUnknownSortBy, sortOrder.Property)
 		}
@@ -94,13 +101,13 @@ func (c PagingConverter) FromPagingSortOrder(sort []paging.SortOrder) ([]paging.
 
 // ToPagingSortOrder maps db column names to their respective input sort names
 func (c PagingConverter) ToPagingSortOrder(sort []paging.SortOrder) ([]paging.SortOrder, error) {
-	if len(c.SortByOptions) == 0 {
+	if len(c.SortByOptions.Mapping) == 0 {
 		// No sort options defined, free-for-all
 		return sort, nil
 	}
 
 	for i, sortOrder := range sort {
-		mappedProperty, ok := c.SortByOptions.MapToLeft(sortOrder.Property)
+		mappedProperty, ok := c.SortByOptions.Mapping.MapToLeft(sortOrder.Property)
 		if !ok {
 			return nil, errors.Wrap(ErrUnknownSortBy, sortOrder.Property)
 		}
@@ -117,6 +124,9 @@ func (c PagingConverter) FromPagingInputs(pageReq PagingInputs) (result paging.R
 
 func (c PagingConverter) FromPagingSortingInputs(pageReq PagingSortingInputs) (result paging.Request, err error) {
 	result, err = c.FromSortingInputs(pageReq.SortingInputs)
+	if err != nil {
+		return
+	}
 	result.Page = uint(pageReq.Page)
 	result.Size = uint(pageReq.PageSize)
 	return
@@ -174,8 +184,8 @@ func (c PagingConverter) FromSortQuery(sortBy, sortOrder string) ([]paging.SortO
 	return c.ToPagingSortOrder(result)
 }
 
-func (c PagingConverter) ToPagingResponse(pout paging.Response) (presp PagingResponse, err error) {
-	presp = PagingResponse{
+func (c PagingConverter) ToPagingResponse(pout paging.Response) (response PagingResponse, err error) {
+	response = PagingResponse{
 		Page:        int(pout.Number),
 		PageSize:    int(pout.Size),
 		HasNext:     pout.HasNext(),
@@ -185,7 +195,7 @@ func (c PagingConverter) ToPagingResponse(pout paging.Response) (presp PagingRes
 	totalItems := pout.TotalItems
 	if pout.TotalItems != nil {
 		localTotalItems := int(*totalItems)
-		presp.TotalItems = &localTotalItems
+		response.TotalItems = &localTotalItems
 	}
 
 	pout.Sort, err = c.ToPagingSortOrder(pout.Sort)
@@ -194,8 +204,8 @@ func (c PagingConverter) ToPagingResponse(pout paging.Response) (presp PagingRes
 	}
 
 	if pout.Sort != nil && len(pout.Sort) == 1 {
-		presp.SortBy = pout.Sort[0].Property
-		presp.SortOrder = string(pout.Sort[0].Direction)
+		response.SortBy = pout.Sort[0].Property
+		response.SortOrder = string(pout.Sort[0].Direction)
 	}
 
 	return
