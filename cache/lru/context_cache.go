@@ -50,4 +50,3 @@ func (r ContextCacheAdapter) Clear(ctx context.Context) (err error) {
 	r.Lru.Clear()
 	return nil
 }
-

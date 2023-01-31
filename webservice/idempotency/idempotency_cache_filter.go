@@ -10,6 +10,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/cache/lru"
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice/restfulcontext"
 	"github.com/emicklei/go-restful"
 	"net/http"
 )
@@ -21,6 +22,9 @@ const (
 	ConfigRootIdempotencyKey         = "server.idempotency-key"
 	ConfigRootIdempotencyKeyRedis    = ConfigRootIdempotencyKey + "." + CacheProviderRedis
 	ConfigRootIdempotencyKeyInMemory = ConfigRootIdempotencyKey + "." + CacheProviderInMemory
+	IdempotencyDocsLink              = "https://cto-github.cisco.com/NFV-BU/go-msx/blob/main/idempotency.md"
+	ValidateIdempotencyRequire       = "REQUIRE"
+	ValidateIdempotencyRecommend     = "RECOMMEND"
 )
 
 func IdempotencyCacheFilter(idempotencyCache lru.ContextCache) restful.FilterFunction {
@@ -157,4 +161,30 @@ func IdempotencyCacheProviderFactory(ctx context.Context) (lru.ContextCache, err
 	configRoot := config.PrefixWithName(ConfigRootIdempotencyKey, cacheProvider)
 
 	return lru.NewContextCache(ctx, cacheProvider, configRoot)
+}
+
+func ValidateIdempotency(mode string) restfulcontext.RouteBuilderFunc {
+	return func(builder *restful.RouteBuilder) {
+		builder.Filter(func(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+			cacheId := req.Request.Header.Get(CacheIdExpectedHeader)
+			if cacheId == "" {
+				if mode == ValidateIdempotencyRequire {
+					resp.WriteHeader(http.StatusBadRequest)
+					resp.Write([]byte(`{
+						"type": "` + IdempotencyDocsLink + `",
+						"title": "Idempotency-Key is missing",
+						"detail": "This operation is idempotent and it requires correct usage of Idempotency Key."
+					}`))
+
+					return
+
+				} else if mode == ValidateIdempotencyRecommend {
+					resp.Header()["Link"] = []string{IdempotencyDocsLink}
+					resp.Header()["go-msx-idempotency"] = []string{"This operation is idempotent and it requires correct usage of Idempotency Key."}
+				}
+			}
+
+			chain.ProcessFilter(req, resp)
+		})
+	}
 }
