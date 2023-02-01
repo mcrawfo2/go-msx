@@ -82,6 +82,7 @@ func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 			},
 		},
 		FieldPostProcessor: r.postProcessField,
+		FieldTypeReflector: ops.NewDefaultPortFieldTypeReflector(ops.PortDirectionIn),
 	}
 
 	return reflector.ReflectPortStruct(PortTypeRequest, st)
@@ -119,6 +120,7 @@ func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
 			},
 		},
 		FieldPostProcessor: r.postProcessField,
+		FieldTypeReflector: ops.NewDefaultPortFieldTypeReflector(ops.PortDirectionOut),
 	}
 
 	return reflector.ReflectPortStruct(PortTypeResponse, st)

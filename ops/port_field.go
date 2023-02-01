@@ -69,13 +69,15 @@ func PortFieldHasPeer(peer string) PortFieldPredicate {
 }
 
 type PortFieldElementType struct {
-	Peer     string
-	Indices  []int
-	Optional bool
-	PortFieldType
+	Peer    string
+	Indices []int
+	*PortFieldType
 }
 
 func (t PortFieldElementType) WithIndirections(n int) PortFieldElementType {
+	pft := new(PortFieldType)
+	*pft = *t.PortFieldType
+	t.PortFieldType = pft
 	t.PortFieldType.Indirections = n
 	return t
 }
@@ -85,14 +87,15 @@ type PortFieldType struct {
 	Type         reflect.Type
 	Indirections int
 	HandlerType  reflect.Type
+	Optional     bool
 	Items        *PortFieldElementType  // array/slice elements
 	Keys         *PortFieldElementType  // map keys
 	Values       *PortFieldElementType  // map values
 	Fields       []PortFieldElementType // struct fields
 }
 
-func PortFieldTypeFromType(t reflect.Type, shape string) PortFieldType {
-	return PortFieldType{
+func PortFieldTypeFromType(t reflect.Type, shape string) *PortFieldType {
+	return &PortFieldType{
 		Shape:        shape,
 		Type:         t,
 		Indirections: 0,
@@ -107,6 +110,11 @@ func (p *PortFieldType) IncIndirections() *PortFieldType {
 
 func (p *PortFieldType) WithHandlerType(t reflect.Type) *PortFieldType {
 	p.HandlerType = t
+	return p
+}
+
+func (p *PortFieldType) SetOptional(b bool) *PortFieldType {
+	p.Optional = b
 	return p
 }
 
@@ -236,7 +244,7 @@ func (p *PortField) Tags() reflect.StructTag {
 	return reflect.StructTag(sb.String())
 }
 
-func NewPortField(name, peer, group string, optional bool, portType string, typ PortFieldType, indices []int) *PortField {
+func NewPortField(name, peer, group string, optional bool, portType string, typ *PortFieldType, indices []int) *PortField {
 	return &PortField{
 		Name:     name,
 		Indices:  indices,
@@ -244,7 +252,7 @@ func NewPortField(name, peer, group string, optional bool, portType string, typ 
 		Group:    group,
 		Optional: optional,
 		PortType: portType,
-		Type:     typ,
+		Type:     *typ,
 		Options:  make(map[string]string),
 		Baggage:  make(map[interface{}]interface{}),
 	}

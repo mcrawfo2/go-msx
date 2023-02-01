@@ -204,7 +204,7 @@ func (i PortFieldInjector) InjectArray(values []string) (err error) {
 			return err
 		}
 
-		err = i.injectIndirectScalar(sliceValue.Index(idx), elementValue, i.portField.Type.Items.PortFieldType)
+		err = i.injectIndirectScalar(sliceValue.Index(idx), elementValue, *i.portField.Type.Items.PortFieldType)
 		if err != nil {
 			return err
 		}
@@ -258,7 +258,7 @@ func (i PortFieldInjector) InjectObject(pojo types.Pojo) (err error) {
 		valueType := objectType.Elem()
 		for k := range pojo {
 			entryKey := reflect.New(keyType).Elem()
-			if err = i.injectIndirectScalar(entryKey, k, i.portField.Type.Keys.PortFieldType); err != nil {
+			if err = i.injectIndirectScalar(entryKey, k, *i.portField.Type.Keys.PortFieldType); err != nil {
 				return err
 			}
 
@@ -274,7 +274,7 @@ func (i PortFieldInjector) InjectObject(pojo types.Pojo) (err error) {
 				return errors.Wrapf(err, "Failed to sanitize injected map element %q", k)
 			}
 
-			if err = i.injectIndirectScalar(entryValue, value, i.portField.Type.Values.PortFieldType); err != nil {
+			if err = i.injectIndirectScalar(entryValue, value, *i.portField.Type.Values.PortFieldType); err != nil {
 				return err
 			}
 
@@ -304,7 +304,7 @@ func (i PortFieldInjector) InjectObject(pojo types.Pojo) (err error) {
 			}
 
 			entryValue := reflect.New(sf.Type).Elem()
-			if err = i.injectIndirectScalar(entryValue, value, pfet.PortFieldType); err != nil {
+			if err = i.injectIndirectScalar(entryValue, value, *pfet.PortFieldType); err != nil {
 				return err
 			}
 

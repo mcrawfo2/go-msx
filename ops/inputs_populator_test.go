@@ -89,9 +89,7 @@ func TestInputsPopulator_PopulateInputs_Primitives(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive, FieldShapeContent),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(inputs{}))
@@ -188,9 +186,7 @@ func TestInputsPopulator_PopulateInputs_Arrays(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeArray),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(inputs{}))
@@ -303,7 +299,7 @@ func TestInputsPopulator_PopulateInputs_Objects(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeObject),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(inputs{}))
@@ -407,7 +403,7 @@ func TestInputsPopulator_PopulateInputs_Content(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive, FieldShapeContent),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(inputs{}))

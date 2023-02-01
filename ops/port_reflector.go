@@ -206,14 +206,15 @@ func (v *PortReflectorFieldVisitor) reflectPortField(field reflect.StructField) 
 	// Parse shape
 	var shapeReflector = v.Reflector.FieldTypeReflector
 	if shapeReflector == nil {
-		shapeReflector = DefaultPortFieldTypeReflector{
-			Direction: v.Reflector.Direction,
-		}
+		shapeReflector = NewDefaultPortFieldTypeReflector(v.Reflector.Direction)
 	}
-	fieldType, optional := shapeReflector.ReflectPortFieldType(field.Type)
+	fieldType, err := shapeReflector.ReflectPortFieldType(field.Type)
+	if err != nil {
+		return nil, err
+	}
 
 	indices := append([]int{}, v.Indices...)
-	f := NewPortField(name, peer, group, optional, v.Port.Type, fieldType, indices)
+	f := NewPortField(name, peer, group, fieldType.Optional, v.Port.Type, fieldType, indices)
 
 	// Apply all tag to the options set
 	v.reflectPrimaryTag(f, portTag)

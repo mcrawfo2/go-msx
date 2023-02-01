@@ -98,6 +98,7 @@ func TestPortReflector_ReflectPortStruct_Type(t *testing.T) {
 							Shape:       FieldShapeAny,
 							Type:        AnyType,
 							HandlerType: AnyType,
+							Optional:    true,
 						},
 						Options: map[string]string{
 							"extra": "test2",
@@ -839,7 +840,7 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 								{
 									Peer:    "anotherField",
 									Indices: []int{0},
-									PortFieldType: PortFieldType{
+									PortFieldType: &PortFieldType{
 										Shape:       FieldShapePrimitive,
 										Type:        reflect.TypeOf(""),
 										HandlerType: reflect.TypeOf(""),
@@ -901,11 +902,12 @@ func TestPortReflector_ReflectPortStruct_Indices(t *testing.T) {
 							Type:         reflect.TypeOf(embeddedStruct{}),
 							Indirections: 1,
 							HandlerType:  reflect.TypeOf(embeddedStruct{}),
+							Optional:     true,
 							Fields: []PortFieldElementType{
 								{
 									Peer:    "anotherField",
 									Indices: []int{0},
-									PortFieldType: PortFieldType{
+									PortFieldType: &PortFieldType{
 										Shape:       FieldShapePrimitive,
 										Type:        reflect.TypeOf(""),
 										HandlerType: reflect.TypeOf(""),

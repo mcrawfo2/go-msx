@@ -49,12 +49,12 @@ var AnyInstance any
 var AnyType = reflect.TypeOf(&AnyInstance).Elem()
 
 type PortFieldTypeReflector interface {
-	ReflectPortFieldType(reflect.Type) (PortFieldType, bool)
+	ReflectPortFieldType(reflect.Type) (*PortFieldType, error)
 }
 
-type PortFieldTypeReflectorFunc func(reflect.Type) (PortFieldType, bool)
+type PortFieldTypeReflectorFunc func(reflect.Type) (*PortFieldType, error)
 
-func (f PortFieldTypeReflectorFunc) ReflectPortFieldType(t reflect.Type) (PortFieldType, bool) {
+func (f PortFieldTypeReflectorFunc) ReflectPortFieldType(t reflect.Type) (*PortFieldType, error) {
 	return f(t)
 }
 
@@ -62,21 +62,43 @@ type DefaultPortFieldTypeReflector struct {
 	Direction         PortDirection
 	OnReflectIndirect PortFieldTypeReflector
 	OnReflectDirect   PortFieldTypeReflector
+	Placeholders      map[reflect.Type]*PortFieldType
 }
 
-func (r DefaultPortFieldTypeReflector) ReflectPortFieldType(t reflect.Type) (PortFieldType, bool) {
-	if t.Kind() == reflect.Ptr {
-		return r.reflectIndirect(t)
+func NewDefaultPortFieldTypeReflector(direction PortDirection) DefaultPortFieldTypeReflector {
+	return DefaultPortFieldTypeReflector{
+		Direction:    direction,
+		Placeholders: make(map[reflect.Type]*PortFieldType),
+	}
+}
+
+func (r DefaultPortFieldTypeReflector) ReflectPortFieldType(t reflect.Type) (portFieldType *PortFieldType, err error) {
+	if pft, ok := r.Placeholders[t]; ok {
+		return pft, nil
 	}
 
-	return r.reflectDirect(t)
+	pft := new(PortFieldType)
+	r.Placeholders[t] = pft
+
+	if t.Kind() == reflect.Ptr {
+		portFieldType, err = r.reflectIndirect(t)
+	} else {
+		portFieldType, err = r.reflectDirect(t)
+	}
+
+	if err == nil {
+		*pft = *portFieldType
+		r.Placeholders[t] = pft
+	}
+
+	return
 }
 
 // reflectIndirect identifies types that are required to be pointers.
-func (r DefaultPortFieldTypeReflector) reflectIndirect(t reflect.Type) (portFieldType PortFieldType, optional bool) {
+func (r DefaultPortFieldTypeReflector) reflectIndirect(t reflect.Type) (portFieldType *PortFieldType, err error) {
 	if r.OnReflectIndirect != nil {
-		portFieldType, optional = r.OnReflectIndirect.ReflectPortFieldType(t)
-		if portFieldType.Shape != "" {
+		portFieldType, err = r.OnReflectIndirect.ReflectPortFieldType(t)
+		if err != nil || portFieldType.Shape != "" {
 			return
 		}
 	}
@@ -88,17 +110,19 @@ func (r DefaultPortFieldTypeReflector) reflectIndirect(t reflect.Type) (portFiel
 	}
 
 	t = t.Elem()
-	portFieldType, _ = r.ReflectPortFieldType(t)
-	portFieldType.IncIndirections()
-	optional = true
+	portFieldType, err = r.ReflectPortFieldType(t)
+	if err == nil {
+		portFieldType = portFieldType.IncIndirections().SetOptional(true)
+	}
+
 	return
 }
 
 // reflectDirect identifies types that are not pointers.
-func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldType PortFieldType, optional bool) {
+func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldType *PortFieldType, err error) {
 	if r.OnReflectDirect != nil {
-		portFieldType, optional = r.OnReflectDirect.ReflectPortFieldType(t)
-		if portFieldType.Shape != "" {
+		portFieldType, err = r.OnReflectDirect.ReflectPortFieldType(t)
+		if err != nil || portFieldType.Shape != "" {
 			return
 		}
 	}
@@ -106,19 +130,23 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 	// Concrete Types
 	switch t {
 	case Base64BytesType:
-		return PortFieldTypeFromType(t, FieldShapeFile), false
+		return PortFieldTypeFromType(t, FieldShapeFile), nil
 	case ByteSliceType, JsonRawMessageType:
 		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
 		portFieldType.WithHandlerType(ByteSliceType)
-		return portFieldType, false
+		return
 	case RuneSliceType:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	case OptionalOfStringType:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), true
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive).SetOptional(true)
+		return
 	case ContentType:
-		return PortFieldTypeFromType(t, FieldShapeContent), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapeContent)
+		return
 	case IoReadCloserType:
-		return PortFieldTypeFromType(t, FieldShapeContent), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapeContent)
+		return
 	}
 
 	// Interfaces
@@ -144,59 +172,79 @@ func (r DefaultPortFieldTypeReflector) reflectDirect(t reflect.Type) (portFieldT
 		te := t.Elem()
 
 		if te == MultipartFileHeaderPtrType || te == Base64BytesType {
-			return PortFieldTypeFromType(t, FieldShapeFileArray), true
+			portFieldType = PortFieldTypeFromType(t, FieldShapeFileArray).SetOptional(true)
+			return
 		}
 
 		portFieldType = PortFieldTypeFromType(t, FieldShapeArray)
 
-		elemPortFieldType, elemOptional := r.ReflectPortFieldType(te)
+		elemPortFieldType, err := r.ReflectPortFieldType(te)
+		if err != nil {
+			return nil, err
+		}
+
 		portFieldType.Items = &PortFieldElementType{
-			Optional:      elemOptional,
 			PortFieldType: elemPortFieldType,
 		}
-		return portFieldType, true
+
+		portFieldType = portFieldType.SetOptional(true)
+		return portFieldType, nil
 
 	case reflect.Map:
 		portFieldType = PortFieldTypeFromType(t, FieldShapeObject)
 
-		keyPortFieldType, keyOptional := r.ReflectPortFieldType(t.Key())
+		keyPortFieldType, err := r.ReflectPortFieldType(t.Key())
+		if err != nil {
+			return nil, err
+		}
 		portFieldType.Keys = &PortFieldElementType{
-			Optional:      keyOptional,
 			PortFieldType: keyPortFieldType,
 		}
 
-		valuePortFieldType, valueOptional := r.ReflectPortFieldType(t.Elem())
+		valuePortFieldType, err := r.ReflectPortFieldType(t.Elem())
+		if err != nil {
+			return nil, err
+		}
 		portFieldType.Values = &PortFieldElementType{
-			Optional:      valueOptional,
 			PortFieldType: valuePortFieldType,
 		}
-		return portFieldType, true
+		portFieldType = portFieldType.SetOptional(true)
+		return portFieldType, nil
 
 	case reflect.Struct:
 		portFieldType = PortFieldTypeFromType(t, FieldShapeObject)
 		visitor := newPortFieldTypeReflectorFieldVisitor(r)
-		_ = WalkStruct(t, visitor)
-		portFieldType.Fields = visitor.Fields
+		err = WalkStruct(t, visitor)
+		if err != nil {
+			return nil, err
+		}
 
-		return portFieldType, false
+		portFieldType.Fields = visitor.Fields
+		return
 	case reflect.Float64, reflect.Float32:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	case reflect.String:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	case reflect.Bool:
-		return PortFieldTypeFromType(t, FieldShapePrimitive), false
+		portFieldType = PortFieldTypeFromType(t, FieldShapePrimitive)
+		return
 	}
 
 	if t == AnyType {
-		return PortFieldTypeFromType(t, FieldShapeAny), true
+		portFieldType = PortFieldTypeFromType(t, FieldShapeAny).SetOptional(true)
+		return
 	}
 
-	logger.Warnf("Cannot determine field shape '%+v'", t)
-	return PortFieldTypeFromType(t, FieldShapeUnknown), true
+	err = errors.Wrapf(ErrInvalidShape, "%+v", t)
+	return
 }
 
 type PortFieldTypeReflectorFieldVisitor struct {
@@ -206,12 +254,14 @@ type PortFieldTypeReflectorFieldVisitor struct {
 }
 
 func (v *PortFieldTypeReflectorFieldVisitor) VisitField(f reflect.StructField) error {
-	pft, optional := v.Reflector.ReflectPortFieldType(f.Type)
+	pft, err := v.Reflector.ReflectPortFieldType(f.Type)
+	if err != nil {
+		return err
+	}
 
 	pfet := PortFieldElementType{
 		Peer:          strcase.ToLowerCamel(f.Name),
 		Indices:       f.Index,
-		Optional:      optional,
 		PortFieldType: pft,
 	}
 

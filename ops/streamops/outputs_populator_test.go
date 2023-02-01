@@ -127,6 +127,9 @@ func TestOutputsPopulator_PopulateOutputs(t *testing.T) {
 
 			err = p.PopulateOutputs()
 			assert.Equal(t, tt.wantErr, err != nil)
+			if err != nil {
+				assert.Fail(t, err.Error())
+			}
 
 			if !tt.wantErr {
 				gotChannel, gotMessage := sink.Message(nil)
