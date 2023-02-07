@@ -53,11 +53,11 @@ func init() {
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return GenerateSkeleton(args)
 	}
-	rootCmd.PersistentFlags().StringVarP(&logLevelName, "loglevel", "l",
+	rootCmd.PersistentFlags().StringVar(&logLevelName, "loglevel",
 		"INFO", "Set logging level: TRACE, DEBUG, INFO, WARN, ERROR or FATAL")
-	rootCmd.PersistentFlags().StringSliceVarP(&incFiles, "include", "i",
+	rootCmd.PersistentFlags().StringSliceVar(&incFiles, "include",
 		[]string{}, "eg: i=\"**/*.go,**/*.ts\"\nOnly output file operations matching these quoted doublestar patterns will be done\nAlt syntax {alt1,...} not supported\nIf you don't include a file that a subsequent generation step needs, it may fail")
-	rootCmd.PersistentFlags().StringSliceVarP(&excFiles, "exclude", "e",
+	rootCmd.PersistentFlags().StringSliceVar(&excFiles, "exclude",
 		[]string{}, "eg: e=\"**/*.mod,**/*.sum\"\nOutput file operations matching these doublestar quoted patterns will not be done\nAlt syntax {alt1,...} not supported\nIf you exclude a file that a subsequent generation step needs, it may fail")
 
 	rootCmd.PersistentPreRunE = configure
