@@ -24,7 +24,10 @@ func TransactionDecorator(action types.ActionFunc) types.ActionFunc {
 			}
 
 			ctx = ContextSqlExecutor().Set(ctx, tx)
-			actionErr := action(ctx)
+
+			actionErr := types.RecoverErrorDecorator(func(ctx context.Context) error {
+				return action(ctx)
+			})(ctx)
 
 			if actionErr == nil {
 				err = tx.Commit()
