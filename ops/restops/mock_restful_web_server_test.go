@@ -49,7 +49,7 @@ type MockRestfulWebServer_NewService_Call struct {
 }
 
 // NewService is a helper method to define mock.On call
-//  - root string
+//   - root string
 func (_e *MockRestfulWebServer_Expecter) NewService(root string) *MockRestfulWebServer_NewService_Call {
 	return &MockRestfulWebServer_NewService_Call{Call: _e.mock.On("NewService", root)}
 }

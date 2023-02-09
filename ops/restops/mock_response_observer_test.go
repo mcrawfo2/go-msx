@@ -28,8 +28,8 @@ type MockResponseObserver_Error_Call struct {
 }
 
 // Error is a helper method to define mock.On call
-//  - code int
-//  - responseError error
+//   - code int
+//   - responseError error
 func (_e *MockResponseObserver_Expecter) Error(code interface{}, responseError interface{}) *MockResponseObserver_Error_Call {
 	return &MockResponseObserver_Error_Call{Call: _e.mock.On("Error", code, responseError)}
 }
@@ -57,7 +57,7 @@ type MockResponseObserver_Success_Call struct {
 }
 
 // Success is a helper method to define mock.On call
-//  - code int
+//   - code int
 func (_e *MockResponseObserver_Expecter) Success(code interface{}) *MockResponseObserver_Success_Call {
 	return &MockResponseObserver_Success_Call{Call: _e.mock.On("Success", code)}
 }

@@ -23,6 +23,9 @@ in during build via `ldflags` from `build-tool`'s `BuildConfig` (`build-tool` is
 
 In general, `skel` simply creates new files, overwriting any that might exist before them; however, most of the targets do not overlap, and may be freely run in any order, or, in the case of Domain and AsyncAPI may be run mutiple times to build up additional variants.
 
+## Completion Scripts Oddity
+
+The completion script target is an oddity in that it sends its output to <stdout>. If you happen to send logs to <stdout> before this target has finished, the scripts will contain log lines, which, at best, will result in the scripts failing when users try to run them :(. Be sure that all early logging is at the 'DEBUG' or 'TRACE' levels therefore.
 
 ## Domain generation
 

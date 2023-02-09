@@ -46,9 +46,9 @@ type MockTypedRepositoryApi_CountAll_Call[I interface{}] struct {
 }
 
 // CountAll is a helper method to define mock.On call
-//  - ctx context.Context
-//  - dest *int64
-//  - where WhereOption
+//   - ctx context.Context
+//   - dest *int64
+//   - where WhereOption
 func (_e *MockTypedRepositoryApi_Expecter[I]) CountAll(ctx interface{}, dest interface{}, where interface{}) *MockTypedRepositoryApi_CountAll_Call[I] {
 	return &MockTypedRepositoryApi_CountAll_Call[I]{Call: _e.mock.On("CountAll", ctx, dest, where)}
 }
@@ -85,8 +85,8 @@ type MockTypedRepositoryApi_DeleteAll_Call[I interface{}] struct {
 }
 
 // DeleteAll is a helper method to define mock.On call
-//  - ctx context.Context
-//  - where WhereOption
+//   - ctx context.Context
+//   - where WhereOption
 func (_e *MockTypedRepositoryApi_Expecter[I]) DeleteAll(ctx interface{}, where interface{}) *MockTypedRepositoryApi_DeleteAll_Call[I] {
 	return &MockTypedRepositoryApi_DeleteAll_Call[I]{Call: _e.mock.On("DeleteAll", ctx, where)}
 }
@@ -123,8 +123,8 @@ type MockTypedRepositoryApi_DeleteOne_Call[I interface{}] struct {
 }
 
 // DeleteOne is a helper method to define mock.On call
-//  - ctx context.Context
-//  - keys exp.Ex
+//   - ctx context.Context
+//   - keys exp.Ex
 func (_e *MockTypedRepositoryApi_Expecter[I]) DeleteOne(ctx interface{}, keys interface{}) *MockTypedRepositoryApi_DeleteOne_Call[I] {
 	return &MockTypedRepositoryApi_DeleteOne_Call[I]{Call: _e.mock.On("DeleteOne", ctx, keys)}
 }
@@ -175,9 +175,9 @@ type MockTypedRepositoryApi_FindAll_Call[I interface{}] struct {
 }
 
 // FindAll is a helper method to define mock.On call
-//  - ctx context.Context
-//  - dest *[]I
-//  - options ...func(*goqu.SelectDataset , paging.Request)(*goqu.SelectDataset , paging.Request)
+//   - ctx context.Context
+//   - dest *[]I
+//   - options ...func(*goqu.SelectDataset , paging.Request)(*goqu.SelectDataset , paging.Request)
 func (_e *MockTypedRepositoryApi_Expecter[I]) FindAll(ctx interface{}, dest interface{}, options ...interface{}) *MockTypedRepositoryApi_FindAll_Call[I] {
 	return &MockTypedRepositoryApi_FindAll_Call[I]{Call: _e.mock.On("FindAll",
 		append([]interface{}{ctx, dest}, options...)...)}
@@ -221,9 +221,9 @@ type MockTypedRepositoryApi_FindOne_Call[I interface{}] struct {
 }
 
 // FindOne is a helper method to define mock.On call
-//  - ctx context.Context
-//  - dest *I
-//  - where WhereOption
+//   - ctx context.Context
+//   - dest *I
+//   - where WhereOption
 func (_e *MockTypedRepositoryApi_Expecter[I]) FindOne(ctx interface{}, dest interface{}, where interface{}) *MockTypedRepositoryApi_FindOne_Call[I] {
 	return &MockTypedRepositoryApi_FindOne_Call[I]{Call: _e.mock.On("FindOne", ctx, dest, where)}
 }
@@ -267,8 +267,8 @@ type MockTypedRepositoryApi_Insert_Call[I interface{}] struct {
 }
 
 // Insert is a helper method to define mock.On call
-//  - ctx context.Context
-//  - value ...I
+//   - ctx context.Context
+//   - value ...I
 func (_e *MockTypedRepositoryApi_Expecter[I]) Insert(ctx interface{}, value ...interface{}) *MockTypedRepositoryApi_Insert_Call[I] {
 	return &MockTypedRepositoryApi_Insert_Call[I]{Call: _e.mock.On("Insert",
 		append([]interface{}{ctx}, value...)...)}
@@ -312,7 +312,7 @@ type MockTypedRepositoryApi_Truncate_Call[I interface{}] struct {
 }
 
 // Truncate is a helper method to define mock.On call
-//  - ctx context.Context
+//   - ctx context.Context
 func (_e *MockTypedRepositoryApi_Expecter[I]) Truncate(ctx interface{}) *MockTypedRepositoryApi_Truncate_Call[I] {
 	return &MockTypedRepositoryApi_Truncate_Call[I]{Call: _e.mock.On("Truncate", ctx)}
 }
@@ -349,9 +349,9 @@ type MockTypedRepositoryApi_Update_Call[I interface{}] struct {
 }
 
 // Update is a helper method to define mock.On call
-//  - ctx context.Context
-//  - where WhereOption
-//  - value I
+//   - ctx context.Context
+//   - where WhereOption
+//   - value I
 func (_e *MockTypedRepositoryApi_Expecter[I]) Update(ctx interface{}, where interface{}, value interface{}) *MockTypedRepositoryApi_Update_Call[I] {
 	return &MockTypedRepositoryApi_Update_Call[I]{Call: _e.mock.On("Update", ctx, where, value)}
 }
@@ -395,8 +395,8 @@ type MockTypedRepositoryApi_Upsert_Call[I interface{}] struct {
 }
 
 // Upsert is a helper method to define mock.On call
-//  - ctx context.Context
-//  - value ...I
+//   - ctx context.Context
+//   - value ...I
 func (_e *MockTypedRepositoryApi_Expecter[I]) Upsert(ctx interface{}, value ...interface{}) *MockTypedRepositoryApi_Upsert_Call[I] {
 	return &MockTypedRepositoryApi_Upsert_Call[I]{Call: _e.mock.On("Upsert",
 		append([]interface{}{ctx}, value...)...)}

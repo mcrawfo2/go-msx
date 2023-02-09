@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"
 	"github.com/pkg/errors"
@@ -34,6 +35,7 @@ var logLevel logrus.Level
 var logLevelName string
 var incFiles []string
 var excFiles []string
+var allowDirty bool
 
 var ErrUserCancel = errors.New("user cancelled skel run")
 var ErrNoProjects = errors.New("no projects found")
@@ -45,6 +47,9 @@ var staticFiles map[string]*staticFilesFile
 
 func init() {
 	var err error
+	if os.Getenv("NO_COLOR") != "" || os.Getenv("CLICOLOR") == "0" {
+		core.DisableColor = true
+	}
 	staticFiles, err = provideStaticFiles() // load the templates
 	if err != nil {
 		panic(err.Error())
@@ -59,6 +64,8 @@ func init() {
 		[]string{}, "eg: i=\"**/*.go,**/*.ts\"\nOnly output file operations matching these quoted doublestar patterns will be done\nAlt syntax {alt1,...} not supported\nIf you don't include a file that a subsequent generation step needs, it may fail")
 	rootCmd.PersistentFlags().StringSliceVar(&excFiles, "exclude",
 		[]string{}, "eg: e=\"**/*.mod,**/*.sum\"\nOutput file operations matching these doublestar quoted patterns will not be done\nAlt syntax {alt1,...} not supported\nIf you exclude a file that a subsequent generation step needs, it may fail")
+	rootCmd.PersistentFlags().BoolVar(&allowDirty, "allow-dirty",
+		false, "Allow operation on git repos with uncommitted files without warning")
 
 	rootCmd.PersistentPreRunE = configure
 
@@ -66,7 +73,10 @@ func init() {
 
 func configure(cmd *cobra.Command, _ []string) error {
 
-	if cmd.Use == "version" {
+	// help, version and completion script commands don't need to be configured or tested
+	if cmd.Use == "version" ||
+		strings.HasPrefix(cmd.Name(), "help") ||
+		strings.Contains(cmd.CommandPath(), "completion") {
 		return nil
 	}
 
@@ -134,7 +144,9 @@ func configure(cmd *cobra.Command, _ []string) error {
 		os.Exit(1)
 	}
 
-	if project { // only makes sense to check for dirty git if we are in a project
+	// only makes sense to check for dirty git if we are in a project, and
+	// the allow-dirty cli flag is not set
+	if !allowDirty && project {
 		ok, err := GitCheckAsk(dir)
 		if err != nil {
 			logger.WithError(err).Errorf("configure(%s) error ask:", dir)
@@ -340,4 +352,10 @@ func Run(build int) {
 	log.SetLoggerLevel("msx.config.pflagprovider", logrus.ErrorLevel)
 
 	cli.Run(appName)
+}
+
+// Main is a delegate function called by testscript to run the skel command during testing
+func Main() int {
+	Run(buildNumber)
+	return cli.GetExitCode()
 }
