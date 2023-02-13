@@ -1,0 +1,4 @@
+# Skel Version Test Script
+
+exec skel --allow-dirty version
+stdout 'Current build: \d*'

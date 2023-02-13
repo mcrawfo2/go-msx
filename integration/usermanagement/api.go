@@ -10,8 +10,9 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/integration/secrets"
 )
 
-//go:generate mockery --inpackage --name=Api --structname=MockUserManagement
 // Deprecated: use secrets.Api, idm.Api or auth.Api directly
+//
+//go:generate mockery --inpackage --name=Api --structname=MockUserManagement
 type Api interface {
 	auth.Api
 	idm.Api

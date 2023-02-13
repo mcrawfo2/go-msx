@@ -38,3 +38,4 @@ book/*
 !book/mermaid*.js
 !book/checks
 .DS_Store
+

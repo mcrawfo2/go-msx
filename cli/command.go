@@ -117,6 +117,10 @@ func SetExitCode(exit int) {
 	exitCode = exit
 }
 
+func GetExitCode() int {
+	return exitCode
+}
+
 func Exit() {
 	os.Exit(exitCode)
 }

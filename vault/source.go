@@ -9,14 +9,14 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/config"
 )
 
-//TokenSource enables retrieval and management of Vault Tokens
+// TokenSource enables retrieval and management of Vault Tokens
 type TokenSource interface {
 	GetToken(ctx context.Context) (token string, err error)
 	Renewable() bool
 }
 
-//NewTokenSource will return a TokenSource implementation based provided config
-//Currently Config based source and Kubernetes Auth are implemented
+// NewTokenSource will return a TokenSource implementation based provided config
+// Currently Config based source and Kubernetes Auth are implemented
 func NewTokenSource(source string, cfg *config.Config, conn ConnectionApi) (tokenSource TokenSource, err error) {
 	switch source {
 	case "approle":
