@@ -3,23 +3,29 @@ info:
   title: Default Domain v2
   version: "5.0.0"
 paths:
-  /api/v1/entities:
+  /api/v1/lowerplural:
     get:
       tags:
-        - Entity
-      summary: List all the Entities
-      operationId: listEntities
+        - UpperCamelSingular
+      summary: List all the UpperCamelPlural
+      operationId: v2.listUpperCamelPlural
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/sortBy'
+        - $ref: '#/components/parameters/sortOrder'
+        - $ref: '#/components/parameters/parentUpperCamelSingularId'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/v2.EntityResponse.List.Envelope'
+                $ref: '#/components/schemas/UpperCamelSingularResponse.List.Envelope'
               example:
-                command: listEntities
+                command: listUpperCamelPlural
                 httpStatus: OK
-                message: Successfully executed listEntities
+                message: Successfully executed listUpperCamelPlural
                 params: {}
                 responseObject: []
                 success: true
@@ -30,11 +36,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/types.Void.Envelope'
               example:
-                command: listEntities
+                command: listUpperCamelPlural
                 errors:
                   - Service returned Bad Request
                 httpStatus: BAD_REQUEST
-                message: Failed to execute listEntities
+                message: Failed to execute listUpperCamelPlural
                 params: {}
                 responseObject: null
                 success: false
@@ -47,11 +53,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/types.Void.Envelope'
               example:
-                command: listEntities
+                command: listUpperCamelPlural
                 errors:
                   - Service returned Unauthorized
                 httpStatus: UNAUTHORIZED
-                message: Failed to execute listEntities
+                message: Failed to execute listUpperCamelPlural
                 params: {}
                 responseObject: null
                 success: false
@@ -64,28 +70,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/types.Void.Envelope'
               example:
-                command: listEntities
+                command: listUpperCamelPlural
                 errors:
                   - Service returned Forbidden
                 httpStatus: FORBIDDEN
-                message: Failed to execute listEntities
+                message: Failed to execute listUpperCamelPlural
                 params: {}
                 responseObject: null
                 success: false
                 throwable:
                   message: Service returned Forbidden
       x-msx-permissions:
-        - VIEW_ENTITIES
+        - VIEW_SCREAMING_SNAKE_PLURAL
+      x-msx-action: list
     post:
       tags:
-        - Entity
-      summary: Create a new Entity
-      operationId: createEntity
+        - UpperCamelSingular
+      summary: Create a new UpperCamelSingular
+      operationId: v2.createUpperCamelSingular
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/v2.EntityCreateRequest'
+              $ref: '#/components/schemas/UpperCamelSingularCreateRequest'
             example:
               data: ""
         required: true
@@ -95,129 +102,158 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/v2.EntityResponse'
+                $ref: '#/components/schemas/UpperCamelSingularResponse.Envelope'
+              example:
+                command: createUpperCamelPlural
+                httpStatus: OK
+                message: Successfully executed createUpperCamelPlural
+                params: {}
+                responseObject: []
+                success: true
         "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/v2.EntityResponse'
+                $ref: '#/components/schemas/UpperCamelSingularResponse.Envelope'
+              example:
+                command: createUpperCamelPlural
+                httpStatus: CREATED
+                message: Successfully executed createUpperCamelPlural
+                params: {}
+                responseObject: []
+                success: true
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: createUpperCamelPlural
+                httpStatus: BAD_REQUEST
+                message: Failed to execute createUpperCamelPlural
+                params: { }
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Bad Request
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: createUpperCamelPlural
+                httpStatus: UNAUTHORIZED
+                message: Failed to execute createUpperCamelPlural
+                params: { }
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Unauthorized
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
+              example:
+                command: createUpperCamelPlural
+                httpStatus: FORBIDDEN
+                message: Failed to execute createUpperCamelPlural
+                params: { }
+                responseObject: null
+                success: false
+                throwable:
+                  message: Service returned Forbidden
       x-msx-permissions:
-        - MANAGE_ENTITIES
-  /api/v1/entities/{entityId}:
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: create
+  /api/v1/lowerplural/{lowerCamelSingularId}:
     delete:
       tags:
-        - Entity
-      summary: Delete the specified Entity
-      operationId: deleteEntity
+        - UpperCamelSingular
+      summary: Delete the specified UpperCamelSingular
+      operationId: v2.deleteUpperCamelSingular
       parameters:
-        - name: entityId
-          in: path
-          description: Entity Id
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/lowerCamelSingularId'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/types.Empty'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
       x-msx-permissions:
-        - MANAGE_ENTITIES
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: delete
     get:
       tags:
-        - Entity
-      summary: Retrieve the specified Entity
-      operationId: getEntity
+        - UpperCamelSingular
+      summary: Retrieve the specified UpperCamelSingular
+      operationId: v2.getUpperCamelSingular
       parameters:
-        - name: entityId
-          in: path
-          description: Entity Id
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/lowerCamelSingularId'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/v2.EntityResponse'
+                $ref: '#/components/schemas/UpperCamelSingularResponse.Envelope'
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
       x-msx-permissions:
-        - VIEW_ENTITIES
+        - VIEW_SCREAMING_SNAKE_PLURAL
+      x-msx-action: retrieve
     put:
       tags:
-        - Entity
-      summary: Update the specified Entity
-      operationId: updateEntity
+        - UpperCamelSingular
+      summary: Update the specified UpperCamelSingular
+      operationId: v2.updateUpperCamelSingular
       parameters:
-        - name: entityId
-          in: path
-          description: Entity Id
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/lowerCamelSingularId'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/v2.EntityUpdateRequest'
+              $ref: '#/components/schemas/UpperCamelSingularUpdateRequest'
             example:
               data: ""
         required: true
@@ -227,27 +263,28 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/v2.EntityResponse'
+                $ref: '#/components/schemas/UpperCamelSingularResponse.Envelope'
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/integration.ErrorDTO'
+                $ref: '#/components/schemas/types.Void.Envelope'
       x-msx-permissions:
-        - MANAGE_ENTITIES
+        - MANAGE_SCREAMING_SNAKE_PLURAL
+      x-msx-action: update
 components:
   schemas:
     Binary:
@@ -260,25 +297,6 @@ components:
       type: string
       format: uuid
       example: 123e4567-e89b-12d3-a456-426614174000
-    integration.ErrorDTO:
-      required:
-        - code
-        - message
-        - path
-        - httpStatus
-        - timestamp
-      type: object
-      properties:
-        code:
-          type: string
-        httpStatus:
-          type: string
-        message:
-          type: string
-        path:
-          type: string
-        timestamp:
-          type: string
     integration.MsxEnvelope:
       required:
         - command
@@ -323,20 +341,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/types.BackTraceFrame'
-    scripts.ScriptResponse:
-      title: ScriptResponse
-      required:
-        - scriptId
-        - name
-        - content
-      type: object
-      properties:
-        content:
-          type: string
-        name:
-          type: string
-        scriptId:
-          $ref: '#/components/schemas/UUID'
     types.BackTraceFrame:
       title: BackTraceFrame
       required:
@@ -364,151 +368,65 @@ components:
       title: types.Void.Envelope
       allOf:
         - $ref: '#/components/schemas/integration.MsxEnvelope'
-    v2.EntityCreateRequest:
-      title: EntityCreateRequest
+    UpperCamelSingularCreateRequest:
+      title: UpperCamelSingularCreateRequest
       required:
         - data
       type: object
       properties:
         data:
           type: string
-    v2.EntityResponse:
-      title: EntityResponse
+    UpperCamelSingularResponse:
+      title: UpperCamelSingularResponse
       required:
-        - entityId
+        - lowerCamelSingularId
         - data
       type: object
       properties:
         data:
           type: string
-        entityId:
+        lowerCamelSingularId:
           $ref: '#/components/schemas/UUID'
-    v2.EntityResponse.List:
-      title: v2.EntityResponse.List
+      x-msx-actions:
+        - create
+        - update
+        - list
+        - retrieve
+    UpperCamelSingularResponse.List:
+      title: UpperCamelSingularResponse.List
       type: array
       items:
-        $ref: '#/components/schemas/v2.EntityResponse'
-    v2.EntityResponse.List.Envelope:
-      title: v2.EntityResponse.List.Envelope
+        $ref: '#/components/schemas/UpperCamelSingularResponse'
+    UpperCamelSingularResponse.List.Envelope:
+      title: UpperCamelSingularResponse.List.Envelope
       allOf:
         - $ref: '#/components/schemas/integration.MsxEnvelope'
         - type: object
           properties:
             responseObject:
-              $ref: '#/components/schemas/v2.EntityResponse.List'
-    v2.EntityUpdateRequest:
-      title: EntityUpdateRequest
-      required:
-        - data
-      type: object
-      properties:
-        data:
-          type: string
-    v8.EntityCreateRequest:
-      title: EntityCreateRequest
-      required:
-        - data
-      type: object
-      properties:
-        data:
-          minLength: 1
-          type: string
-    v8.EntityResponse:
-      title: EntityResponse
-      required:
-        - entityId
-        - data
-      type: object
-      properties:
-        data:
-          type: string
-        entityId:
-          $ref: '#/components/schemas/UUID'
-    v8.EntityResponse.List:
-      title: v8.EntityResponse.List
-      type: array
-      items:
-        $ref: '#/components/schemas/v8.EntityResponse'
-    v8.EntityResponse.List.Page:
-      title: v8.EntityResponse.List.Page
+              $ref: '#/components/schemas/UpperCamelSingularResponse.List'
+    UpperCamelSingularResponse.Envelope:
+      title: UpperCamelSingularResponse.Envelope
       allOf:
-        - $ref: '#/components/schemas/v8.PagingResponse'
+        - $ref: '#/components/schemas/integration.MsxEnvelope'
         - type: object
+          x-msx-injected-property: responseObject
           properties:
-            contents:
-              $ref: '#/components/schemas/v8.EntityResponse.List'
-    v8.EntityUpdateRequest:
-      title: EntityUpdateRequest
+            responseObject:
+              $ref: '#/components/schemas/UpperCamelSingularResponse'
+    UpperCamelSingularUpdateRequest:
+      title: UpperCamelSingularUpdateRequest
       required:
         - data
       type: object
       properties:
         data:
           type: string
-    v8.Error:
-      title: Error
-      required:
-        - code
-        - message
-      type: object
-      properties:
-        code:
-          type: string
-        details:
-          type: object
-          additionalProperties: {}
-        message:
-          type: string
-      example:
-        code: BIZ001
-        message: Entity in busy state
-    v8.PagingResponse:
-      title: PagingResponse
-      required:
-        - page
-        - pageSize
-        - hasNext
-        - hasPrevious
-        - sortBy
-        - sortOrder
-        - contents
-      type: object
-      properties:
-        contents: {}
-        hasNext:
-          type: boolean
-        hasPrevious:
-          type: boolean
-        page:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        sortBy:
-          type: string
-        sortOrder:
-          enum:
-            - asc
-            - desc
-          type: string
-        totalItems:
-          type: integer
-          nullable: true
-      example:
-        page: 0
-        pageSize: 10
-        totalItems: 100
-        hasNext: true
-        hasPrevious: false
-        sortBy: tenantId
-        sortOrder: ASC
-        contents: []
   parameters:
-    entityId:
-      name: entityId
+    lowerCamelSingularId:
+      name: lowerCamelSingularId
       in: path
-      description: Retrieve the entity with the specified id
+      description: Retrieve the lowerCamelSingular with the specified id
       required: true
       style: simple
       explode: false
@@ -538,7 +456,7 @@ components:
         format: int32
         default: 100
       example: "100"
-    parentEntityId:
+    parentUpperCamelSingularId:
       name: parentId
       in: query
       description: Filter by children of specified parent
@@ -565,10 +483,3 @@ components:
           - desc
         type: string
         default: asc
-  headers:
-    randomHeader:
-      style: simple
-      required: true
-      explode: false
-      schema:
-        type: integer

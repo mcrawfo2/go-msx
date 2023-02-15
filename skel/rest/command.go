@@ -94,8 +94,8 @@ func (c GeneratorConfig) Validate() error {
 				"Domain must contain only letters or spaces, and start with a letter")),
 		"folder": validation.Validate(&c.Folder, validation.Required,
 			validation.NewStringRule(
-				regexp.MustCompile(`^^[A-Za-z]+(/[A-Za-z]+)*/?$`).MatchString,
-				"Folder must contain 1 or more components of only letters, separated by slashes")),
+				regexp.MustCompile(`^^[A-Za-z0-9]+(/[A-Za-z0-9]+)*/?$`).MatchString,
+				"Folder must contain 1 or more components of only letters and/or digits, separated by slashes")),
 		"style":      validation.Validate(&c.Style, validation.Required, validation.In(types.Slice[string](StyleOptions).AnySlice()...)),
 		"tenant":     validation.Validate(&c.Tenant, validation.In(types.Slice[string](TenantOptions).AnySlice()...)),
 		"actions":    validation.Validate(c.Actions, validation.Each(validation.In(types.Slice[string](ActionOptions).AnySlice()...))),

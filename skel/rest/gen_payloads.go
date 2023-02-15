@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	ExtraPropertiesMsxAction  = "x-msx-action"
-	ExtraPropertiesMsxActions = "x-msx-actions"
+	ExtraPropertiesMsxAction           = "x-msx-action"
+	ExtraPropertiesMsxActions          = "x-msx-actions"
+	ExtraPropertiesMsxInjectedProperty = "x-msx-injected-property"
 )
 
 type DomainPayloadsGenerator struct {

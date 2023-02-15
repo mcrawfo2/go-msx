@@ -145,26 +145,26 @@ func NewEndpointBuilder(archetype string, pathParts ...string) *EndpointBuilder 
 	}
 }
 
-func NewListEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeList, path...)
+func NewListEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeList, pathParts...)
 }
 
-func NewRetrieveEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeRetrieve, path...)
+func NewRetrieveEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeRetrieve, pathParts...)
 }
 
-func NewCreateEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeCreate, path...)
+func NewCreateEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeCreate, pathParts...)
 }
 
-func NewUpdateEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeUpdate, path...)
+func NewUpdateEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeUpdate, pathParts...)
 }
 
-func NewDeleteEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeDelete, path...)
+func NewDeleteEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeDelete, pathParts...)
 }
 
-func NewCommandEndpointBuilder(path ...string) *EndpointBuilder {
-	return NewEndpointBuilder(EndpointArchetypeCommand, path...)
+func NewCommandEndpointBuilder(pathParts ...string) *EndpointBuilder {
+	return NewEndpointBuilder(EndpointArchetypeCommand, pathParts...)
 }

@@ -342,7 +342,7 @@ func (g DomainControllerGenerator) createEndpointActionUpdateSnippet(operation O
 				${snippet.outputs}
 
 				return ${domain.style}.
-					NewUpdateEndpointBuilder().
+					NewUpdateEndpointBuilder(pathSuffixUpperCamelSingularId).
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
 						WithSummary("${operation.summary}")).
@@ -393,7 +393,7 @@ func (g DomainControllerGenerator) createEndpointActionDeleteSnippet(operation O
 				${snippet.inputs}
 
 				return ${domain.style}.
-					NewDeleteEndpointBuilder().
+					NewDeleteEndpointBuilder(pathSuffixUpperCamelSingularId).
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
 						WithSummary("${operation.summary}")).
