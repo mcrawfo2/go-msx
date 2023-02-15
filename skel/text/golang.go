@@ -205,6 +205,11 @@ func (f *GoFile) AddImport(qualified, alias string) {
 	})
 }
 
+func (f *GoFile) AddSnippet(sectionPath string, snippet GoSnippet) {
+	f.File.AddSnippet(sectionPath, snippet)
+	f.AddImports(snippet.Imports)
+}
+
 func (f *GoFile) AddNewStatement(sectionPath, name string, stmt *jen.Statement) error {
 	snippet, err := NewGoStatementSnippet(name, stmt, Transformers{f.Inflector.Inflect})
 	if err != nil {
