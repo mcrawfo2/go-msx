@@ -36,9 +36,9 @@ func (g DomainModelGenerator) createFilterSnippet() error {
 		"Filter",
 		"filters",
 		`
-			type petFilters struct{}
+			type lowerCamelSingularFilters struct{}
 			
-			func (f petFilters) Where() sqldb.WhereOption {
+			func (f lowerCamelSingularFilters) Where() sqldb.WhereOption {
 				return nil
 			}
 			`,

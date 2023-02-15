@@ -198,10 +198,10 @@ var componentGenerators = []ScopedComponentGenerator{
 		Factory:   NewDomainServiceGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    TenantNone,
 		Component: ComponentConverter,
-		Factory:   NewDomainConverterGeneratorV8,
+		Factory:   NewDomainConverterGenerator,
 	},
 	{
 		Style:     MatchesAny,
