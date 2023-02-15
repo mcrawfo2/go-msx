@@ -44,7 +44,7 @@ type MockGoquRepositoryApi_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Delete(table interface{}) *MockGoquRepositoryApi_Delete_Call {
 	return &MockGoquRepositoryApi_Delete_Call{Call: _e.mock.On("Delete", table)}
 }
@@ -81,8 +81,8 @@ type MockGoquRepositoryApi_ExecuteDelete_Call struct {
 }
 
 // ExecuteDelete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.DeleteDataset
+//  - ctx context.Context
+//  - ds *goqu.DeleteDataset
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteDelete(ctx interface{}, ds interface{}) *MockGoquRepositoryApi_ExecuteDelete_Call {
 	return &MockGoquRepositoryApi_ExecuteDelete_Call{Call: _e.mock.On("ExecuteDelete", ctx, ds)}
 }
@@ -119,9 +119,9 @@ type MockGoquRepositoryApi_ExecuteGet_Call struct {
 }
 
 // ExecuteGet is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.SelectDataset
-//   - dest interface{}
+//  - ctx context.Context
+//  - ds *goqu.SelectDataset
+//  - dest interface{}
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteGet(ctx interface{}, ds interface{}, dest interface{}) *MockGoquRepositoryApi_ExecuteGet_Call {
 	return &MockGoquRepositoryApi_ExecuteGet_Call{Call: _e.mock.On("ExecuteGet", ctx, ds, dest)}
 }
@@ -158,8 +158,8 @@ type MockGoquRepositoryApi_ExecuteInsert_Call struct {
 }
 
 // ExecuteInsert is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.InsertDataset
+//  - ctx context.Context
+//  - ds *goqu.InsertDataset
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteInsert(ctx interface{}, ds interface{}) *MockGoquRepositoryApi_ExecuteInsert_Call {
 	return &MockGoquRepositoryApi_ExecuteInsert_Call{Call: _e.mock.On("ExecuteInsert", ctx, ds)}
 }
@@ -196,9 +196,9 @@ type MockGoquRepositoryApi_ExecuteSelect_Call struct {
 }
 
 // ExecuteSelect is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.SelectDataset
-//   - dest interface{}
+//  - ctx context.Context
+//  - ds *goqu.SelectDataset
+//  - dest interface{}
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteSelect(ctx interface{}, ds interface{}, dest interface{}) *MockGoquRepositoryApi_ExecuteSelect_Call {
 	return &MockGoquRepositoryApi_ExecuteSelect_Call{Call: _e.mock.On("ExecuteSelect", ctx, ds, dest)}
 }
@@ -235,8 +235,8 @@ type MockGoquRepositoryApi_ExecuteTruncate_Call struct {
 }
 
 // ExecuteTruncate is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.TruncateDataset
+//  - ctx context.Context
+//  - ds *goqu.TruncateDataset
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteTruncate(ctx interface{}, ds interface{}) *MockGoquRepositoryApi_ExecuteTruncate_Call {
 	return &MockGoquRepositoryApi_ExecuteTruncate_Call{Call: _e.mock.On("ExecuteTruncate", ctx, ds)}
 }
@@ -273,8 +273,8 @@ type MockGoquRepositoryApi_ExecuteUpdate_Call struct {
 }
 
 // ExecuteUpdate is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.UpdateDataset
+//  - ctx context.Context
+//  - ds *goqu.UpdateDataset
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteUpdate(ctx interface{}, ds interface{}) *MockGoquRepositoryApi_ExecuteUpdate_Call {
 	return &MockGoquRepositoryApi_ExecuteUpdate_Call{Call: _e.mock.On("ExecuteUpdate", ctx, ds)}
 }
@@ -311,8 +311,8 @@ type MockGoquRepositoryApi_ExecuteUpsert_Call struct {
 }
 
 // ExecuteUpsert is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ds *goqu.InsertDataset
+//  - ctx context.Context
+//  - ds *goqu.InsertDataset
 func (_e *MockGoquRepositoryApi_Expecter) ExecuteUpsert(ctx interface{}, ds interface{}) *MockGoquRepositoryApi_ExecuteUpsert_Call {
 	return &MockGoquRepositoryApi_ExecuteUpsert_Call{Call: _e.mock.On("ExecuteUpsert", ctx, ds)}
 }
@@ -351,7 +351,7 @@ type MockGoquRepositoryApi_Get_Call struct {
 }
 
 // Get is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Get(table interface{}) *MockGoquRepositoryApi_Get_Call {
 	return &MockGoquRepositoryApi_Get_Call{Call: _e.mock.On("Get", table)}
 }
@@ -390,7 +390,7 @@ type MockGoquRepositoryApi_Insert_Call struct {
 }
 
 // Insert is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Insert(table interface{}) *MockGoquRepositoryApi_Insert_Call {
 	return &MockGoquRepositoryApi_Insert_Call{Call: _e.mock.On("Insert", table)}
 }
@@ -429,7 +429,7 @@ type MockGoquRepositoryApi_Select_Call struct {
 }
 
 // Select is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Select(table interface{}) *MockGoquRepositoryApi_Select_Call {
 	return &MockGoquRepositoryApi_Select_Call{Call: _e.mock.On("Select", table)}
 }
@@ -468,7 +468,7 @@ type MockGoquRepositoryApi_Truncate_Call struct {
 }
 
 // Truncate is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Truncate(table interface{}) *MockGoquRepositoryApi_Truncate_Call {
 	return &MockGoquRepositoryApi_Truncate_Call{Call: _e.mock.On("Truncate", table)}
 }
@@ -507,7 +507,7 @@ type MockGoquRepositoryApi_Update_Call struct {
 }
 
 // Update is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Update(table interface{}) *MockGoquRepositoryApi_Update_Call {
 	return &MockGoquRepositoryApi_Update_Call{Call: _e.mock.On("Update", table)}
 }
@@ -546,7 +546,7 @@ type MockGoquRepositoryApi_Upsert_Call struct {
 }
 
 // Upsert is a helper method to define mock.On call
-//   - table string
+//  - table string
 func (_e *MockGoquRepositoryApi_Expecter) Upsert(table interface{}) *MockGoquRepositoryApi_Upsert_Call {
 	return &MockGoquRepositoryApi_Upsert_Call{Call: _e.mock.On("Upsert", table)}
 }

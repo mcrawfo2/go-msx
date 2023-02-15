@@ -41,9 +41,9 @@ type MockSqlRepositoryApi_SqlExecute_Call struct {
 }
 
 // SqlExecute is a helper method to define mock.On call
-//   - ctx context.Context
-//   - stmt string
-//   - args []interface{}
+//  - ctx context.Context
+//  - stmt string
+//  - args []interface{}
 func (_e *MockSqlRepositoryApi_Expecter) SqlExecute(ctx interface{}, stmt interface{}, args interface{}) *MockSqlRepositoryApi_SqlExecute_Call {
 	return &MockSqlRepositoryApi_SqlExecute_Call{Call: _e.mock.On("SqlExecute", ctx, stmt, args)}
 }
@@ -80,10 +80,10 @@ type MockSqlRepositoryApi_SqlGet_Call struct {
 }
 
 // SqlGet is a helper method to define mock.On call
-//   - ctx context.Context
-//   - stmt string
-//   - args []interface{}
-//   - dest interface{}
+//  - ctx context.Context
+//  - stmt string
+//  - args []interface{}
+//  - dest interface{}
 func (_e *MockSqlRepositoryApi_Expecter) SqlGet(ctx interface{}, stmt interface{}, args interface{}, dest interface{}) *MockSqlRepositoryApi_SqlGet_Call {
 	return &MockSqlRepositoryApi_SqlGet_Call{Call: _e.mock.On("SqlGet", ctx, stmt, args, dest)}
 }
@@ -120,10 +120,10 @@ type MockSqlRepositoryApi_SqlSelect_Call struct {
 }
 
 // SqlSelect is a helper method to define mock.On call
-//   - ctx context.Context
-//   - stmt string
-//   - args []interface{}
-//   - dest interface{}
+//  - ctx context.Context
+//  - stmt string
+//  - args []interface{}
+//  - dest interface{}
 func (_e *MockSqlRepositoryApi_Expecter) SqlSelect(ctx interface{}, stmt interface{}, args interface{}, dest interface{}) *MockSqlRepositoryApi_SqlSelect_Call {
 	return &MockSqlRepositoryApi_SqlSelect_Call{Call: _e.mock.On("SqlSelect", ctx, stmt, args, dest)}
 }
