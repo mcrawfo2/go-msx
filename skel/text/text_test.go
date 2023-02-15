@@ -116,14 +116,14 @@ func TestSnippet_Generate(t *testing.T) {
 func TestFile_FindSection(t *testing.T) {
 	type testCase[I NamedGenerator] struct {
 		name    string
-		f       File[I]
+		f       *File[I]
 		section string
 		want    *Section[I]
 	}
 	tests := []testCase[Snippet]{
 		{
 			name:    "FlatNew",
-			f:       File[Snippet]{},
+			f:       &File[Snippet]{},
 			section: "First",
 			want: &Section[Snippet]{
 				Name: "First",
@@ -131,7 +131,7 @@ func TestFile_FindSection(t *testing.T) {
 		},
 		{
 			name: "FlatExists",
-			f: File[Snippet]{
+			f: &File[Snippet]{
 				Sections: Sections[Snippet]{{
 					Name: "Exists",
 					Snippets: []Snippet{{
@@ -150,7 +150,7 @@ func TestFile_FindSection(t *testing.T) {
 		},
 		{
 			name: "DeepNew",
-			f: File[Snippet]{
+			f: &File[Snippet]{
 				Sections: Sections[Snippet]{{
 					Name: "First",
 				}},
