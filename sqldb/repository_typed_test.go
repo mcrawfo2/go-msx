@@ -51,7 +51,6 @@ func TestSuite_TypedRepository(t *testing.T) {
 	err = personsRepo.Insert(ctx, person1)
 	assert.NoError(t, err)
 
-	// no upsert for sqlite3
 	person1.Name = "Jonee6"
 	err = personsRepo.Upsert(ctx, person1)
 	assert.NoError(t, err)

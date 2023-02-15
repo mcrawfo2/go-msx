@@ -51,7 +51,6 @@ func TestSuite_GoquRepository(t *testing.T) {
 	err = rgoqu.ExecuteInsert(ctx, dsInsert.Rows(person1))
 	assert.NoError(t, err)
 
-	// no upsert for sqlite3
 	person1.Name = "Jonee6"
 	dsUpsert := rgoqu.Upsert(table)
 
