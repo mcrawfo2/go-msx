@@ -136,14 +136,18 @@ func (g DomainConverterGenerator) createConverterSortByOptionsSnippet() error {
 		"Sort",
 		"sortByOptions",
 		`
-			var lowerCamelSingularSortByOptions = types.StringPairSlice{
-				{
-					Left:  "lowerCamelSingularId",
-					Right: "lower_snake_singular_id",
+			var lowerCamelSingularSortByOptions = paging.SortByOptions{
+				DefaultProperty: "lowerCamelSingularId",
+				Mapping: types.StringPairSlice{
+					{
+						Left:  "lowerCamelSingularId",
+						Right: "lower_snake_singular_id",
+					},
 				},
 			}
 			`,
 		[]codegen.Import{
+			text.ImportPaging,
 			text.ImportTypes,
 		})
 }
