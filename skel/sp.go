@@ -83,7 +83,7 @@ func GenerateServicePack(args []string) error {
 		return err
 	}
 
-	return initializePackageFromFile(
+	return InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", "subscription"))
 }

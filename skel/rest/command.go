@@ -154,6 +154,8 @@ func generateDomainOptions(_ *cobra.Command, args []string) error {
 	return nil
 }
 
+type ActionFunc func() error
+
 type ComponentGenerator interface {
 	Generate() error
 	Render() string
@@ -292,5 +294,19 @@ func GenerateDomain(_ []string) (err error) {
 		}
 	}
 
-	return nil
+	var actions = []ActionFunc{
+		func() error {
+			return skel.InitializePackageFromFile(
+				path.Join(skel.Config().TargetDirectory(), "cmd", "app", "main.go"),
+				path.Join(skel.Config().AppPackageUrl(), generatorConfig.Folder))
+		},
+	}
+
+	for _, action := range actions {
+		if err = action(); err != nil {
+			return err
+		}
+	}
+
+	return
 }

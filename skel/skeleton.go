@@ -263,14 +263,14 @@ func GenerateMigrate(_ []string) error {
 		return err
 	}
 
-	err = initializePackageFromFile(
+	err = InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd/app/main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal/migrate"))
 	if err != nil {
 		return err
 	}
 
-	err = initializePackageFromFile(
+	err = InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "internal/migrate/migrate.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal/migrate/"+skeletonConfig.AppMigrateVersion()))
 	return err
