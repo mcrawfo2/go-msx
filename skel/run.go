@@ -122,13 +122,12 @@ func configure(cmd *cobra.Command, _ []string) error {
 	subProjs := false
 	var projs []DirName
 	dir := types.May(os.Getwd())
-	if !loaded { // FindProjects can be expensive
+	if !loaded && !root { // FindProjects can be expensive
 		projs, _ = FindProjects(dir, 4) // 4 seems like a good cutoff
 		subProjs = len(projs) > 0
 	}
 
-	logger.Debugf("configure: root:%t, project:%t, #projects:%d",
-		root, project, len(projs))
+	logger.Debugf("configure: root:%t, project:%t, #projects:%d", root, project, len(projs))
 
 	// flags now set
 
