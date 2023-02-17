@@ -237,7 +237,7 @@ func GenerateTimer(args []string) error {
 		return err
 	}
 
-	var deps = []string{"github.com/stretchr/testify@v1.7.0"}
+	var deps = []string{"github.com/stretchr/testify@v1.8.1"}
 	if err := AddDependencies(deps); err != nil {
 		return err
 	}
