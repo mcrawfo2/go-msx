@@ -85,9 +85,7 @@ func TestPortFieldInjector_InjectPrimitive_Text(t *testing.T) {
 			},
 		},
 		FieldPostProcessor: nil,
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -264,7 +262,7 @@ func TestPortFieldInjector_InjectPrimitive_Int(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -516,7 +514,7 @@ func TestPortFieldInjector_InjectPrimitive_Uint(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -759,7 +757,7 @@ func TestPortFieldInjector_InjectPrimitive_Float(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -883,7 +881,7 @@ func TestPortFieldInjector_InjectPrimitive_Bool(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -953,7 +951,7 @@ func TestPortFieldInjector_InjectPrimitive_Error(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	_, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -977,9 +975,7 @@ func TestPortFieldInjector_InjectPrimitive_Sanitizer(t *testing.T) {
 			},
 		},
 		FieldPostProcessor: nil,
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -1064,9 +1060,7 @@ func TestPortFieldInjector_InjectArray_Sanitizer(t *testing.T) {
 			},
 		},
 		FieldPostProcessor: nil,
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(arrays{}))
@@ -1169,9 +1163,7 @@ func TestPortFieldInjector_InjectObject_Sanitizer(t *testing.T) {
 			},
 		},
 		FieldPostProcessor: nil,
-		FieldTypeReflector: DefaultPortFieldTypeReflector{
-			Direction: PortDirectionIn,
-		},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(objects{}))
@@ -1285,7 +1277,7 @@ func TestPortFieldInjector_InjectContent_Bytes(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
@@ -1383,7 +1375,7 @@ func TestPortFieldInjector_InjectContent_Runes(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
@@ -1481,7 +1473,7 @@ func TestPortFieldInjector_InjectContent_Content(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeContent),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
@@ -1571,7 +1563,7 @@ func TestPortFieldInjector_InjectContent_Reader(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeContent),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(contents{}))
@@ -1746,7 +1738,7 @@ func TestPortFieldInjector_InjectContent_Entity(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeContent),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionIn),
 		FieldPostProcessor: PortFieldPostProcessorFunc(func(field *PortField, sf reflect.StructField) {
 			field.Type.Shape = FieldShapeContent
 		}),

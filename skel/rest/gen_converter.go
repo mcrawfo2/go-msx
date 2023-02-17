@@ -8,13 +8,15 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"fmt"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 	"path"
 )
 
-type DomainConverterGeneratorV8 struct {
+type DomainConverterGenerator struct {
 	Domain     string
 	Folder     string
+	Style      string
 	Actions    types.ComparableSlice[string]
 	Converters []DomainConversion
 	Spec       Spec
@@ -35,7 +37,7 @@ type DomainConversion struct {
 	Actions   types.ComparableSlice[string]
 }
 
-func (g DomainConverterGeneratorV8) createServiceSnippet() error {
+func (g DomainConverterGenerator) createServiceSnippet() error {
 	return g.AddNewText(
 		"Service",
 		"implementation",
@@ -46,7 +48,7 @@ func (g DomainConverterGeneratorV8) createServiceSnippet() error {
 		[]codegen.Import{})
 }
 
-func (g DomainConverterGeneratorV8) createConverterFilterQuerySnippet() error {
+func (g DomainConverterGenerator) createConverterFilterQuerySnippet() error {
 	return g.AddNewText(
 		"Converters/List Query Filter",
 		"filter",
@@ -59,7 +61,7 @@ func (g DomainConverterGeneratorV8) createConverterFilterQuerySnippet() error {
 		[]codegen.Import{})
 }
 
-func (g DomainConverterGeneratorV8) createConverterCreateRequestSnippet() error {
+func (g DomainConverterGenerator) createConverterCreateRequestSnippet() error {
 	return g.AddNewText(
 		"Converters/Create",
 		"create",
@@ -77,7 +79,7 @@ func (g DomainConverterGeneratorV8) createConverterCreateRequestSnippet() error 
 		})
 }
 
-func (g DomainConverterGeneratorV8) createConverterUpdateRequestSnippet() error {
+func (g DomainConverterGenerator) createConverterUpdateRequestSnippet() error {
 	return g.AddNewText(
 		"Converters/Update",
 		"update",
@@ -95,7 +97,7 @@ func (g DomainConverterGeneratorV8) createConverterUpdateRequestSnippet() error 
 		})
 }
 
-func (g DomainConverterGeneratorV8) createConverterListResponseSnippet() error {
+func (g DomainConverterGenerator) createConverterListResponseSnippet() error {
 	return g.AddNewText(
 		"Converters/List Response",
 		"listResponse",
@@ -111,7 +113,7 @@ func (g DomainConverterGeneratorV8) createConverterListResponseSnippet() error {
 		[]codegen.Import{})
 }
 
-func (g DomainConverterGeneratorV8) createConverterResponseSnippet() error {
+func (g DomainConverterGenerator) createConverterResponseSnippet() error {
 	return g.AddNewText(
 		"Converters/Response",
 		"retrieveResponse",
@@ -129,24 +131,28 @@ func (g DomainConverterGeneratorV8) createConverterResponseSnippet() error {
 		})
 }
 
-func (g DomainConverterGeneratorV8) createConverterSortByOptionsSnippet() error {
+func (g DomainConverterGenerator) createConverterSortByOptionsSnippet() error {
 	return g.AddNewText(
 		"Sort",
 		"sortByOptions",
 		`
-			var lowerCamelSingularSortByOptions = types.StringPairSlice{
-				{
-					Left:  "lowerCamelSingularId",
-					Right: "lower_snake_singular_id",
+			var lowerCamelSingularSortByOptions = paging.SortByOptions{
+				DefaultProperty: "lowerCamelSingularId",
+				Mapping: types.StringPairSlice{
+					{
+						Left:  "lowerCamelSingularId",
+						Right: "lower_snake_singular_id",
+					},
 				},
 			}
 			`,
 		[]codegen.Import{
+			text.ImportPaging,
 			text.ImportTypes,
 		})
 }
 
-func (g DomainConverterGeneratorV8) Generate() error {
+func (g DomainConverterGenerator) Generate() error {
 	errs := types.ErrorList{
 		g.createServiceSnippet(),
 	}
@@ -178,15 +184,16 @@ func (g DomainConverterGeneratorV8) Generate() error {
 	return errs.Filter()
 }
 
-func (g DomainConverterGeneratorV8) Filename() string {
-	target := path.Join(g.Folder, "converter_lowersingular_v8.go")
+func (g DomainConverterGenerator) Filename() string {
+	target := path.Join(g.Folder, fmt.Sprintf("converter_lowersingular_%s.go", g.Style))
 	return g.GoFile.Inflector.Inflect(target)
 }
 
-func NewDomainConverterGeneratorV8(spec Spec) ComponentGenerator {
-	return DomainConverterGeneratorV8{
+func NewDomainConverterGenerator(spec Spec) ComponentGenerator {
+	return DomainConverterGenerator{
 		Domain:  generatorConfig.Domain,
 		Folder:  generatorConfig.Folder,
+		Style:   generatorConfig.Style,
 		Actions: generatorConfig.Actions,
 		Converters: []DomainConversion{
 			{
@@ -216,7 +223,7 @@ func NewDomainConverterGeneratorV8(spec Spec) ComponentGenerator {
 		},
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
-				Comment:   "V8 API Converter for " + generatorConfig.Domain,
+				Comment:   "API Converter for " + generatorConfig.Domain,
 				Inflector: skel.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"Service",

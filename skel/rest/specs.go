@@ -166,9 +166,52 @@ type Operation struct {
 	Operation openapi3.Operation
 }
 
-type schemaVisitor func(s *openapi3.SchemaOrRef, spec *Spec)
+type schemaVisitor func(s *openapi3.SchemaOrRef, d map[string]openapi3.SchemaOrRef, spec *Spec)
+
+func (o Operation) WalkInjectedSchemas(spec *Spec, schema *openapi3.SchemaOrRef, visitor schemaVisitor) {
+	if schema.SchemaReference == nil {
+		return
+	}
+
+	definitions := spec.Raw.ComponentsEns().SchemasEns().MapOfSchemaOrRefValues
+
+	resolvedSchema, ok := definitions[openapi.SchemaRefName(schema.SchemaReference)]
+	if !ok {
+		return
+	}
+
+	if resolvedSchema.Schema == nil {
+		return
+	}
+
+	if len(resolvedSchema.Schema.AllOf) == 0 {
+		return
+	}
+
+	for _, allOne := range resolvedSchema.Schema.AllOf {
+		schemaOrRef := allOne
+
+		if schemaOrRef.Schema == nil {
+			continue
+		}
+
+		propNameAny, ok := schemaOrRef.Schema.MapOfAnything[ExtraPropertiesMsxInjectedProperty]
+		if !ok {
+			continue
+		}
+
+		prop := schemaOrRef.Schema.Properties[propNameAny.(string)]
+		if prop.SchemaReference == nil {
+			continue
+		}
+
+		visitor(&prop, definitions, spec)
+	}
+}
 
 func (o Operation) WalkSchemas(spec *Spec, visitor schemaVisitor) {
+	definitions := spec.Raw.ComponentsEns().SchemasEns().MapOfSchemaOrRefValues
+
 	if o.Operation.RequestBody != nil {
 		requestBodyOrRef := spec.ResolveRequestBody(*o.Operation.RequestBody)
 		for _, mediaType := range requestBodyOrRef.RequestBody.Content {
@@ -176,7 +219,7 @@ func (o Operation) WalkSchemas(spec *Spec, visitor schemaVisitor) {
 				continue
 			}
 
-			visitor(mediaType.Schema, spec)
+			visitor(mediaType.Schema, definitions, spec)
 		}
 	}
 
@@ -191,7 +234,7 @@ func (o Operation) WalkSchemas(spec *Spec, visitor schemaVisitor) {
 			continue
 		}
 
-		visitor(parameter.Schema, spec)
+		visitor(parameter.Schema, definitions, spec)
 	}
 
 	for _, responseOrRef := range o.Operation.Responses.MapOfResponseOrRefValues {
@@ -212,7 +255,7 @@ func (o Operation) WalkSchemas(spec *Spec, visitor schemaVisitor) {
 				continue
 			}
 
-			visitor(header.Schema, spec)
+			visitor(header.Schema, definitions, spec)
 		}
 
 		for _, mediaType := range response.Content {
@@ -220,7 +263,9 @@ func (o Operation) WalkSchemas(spec *Spec, visitor schemaVisitor) {
 				continue
 			}
 
-			visitor(mediaType.Schema, spec)
+			visitor(mediaType.Schema, definitions, spec)
+
+			o.WalkInjectedSchemas(spec, mediaType.Schema, visitor)
 		}
 	}
 }
@@ -272,7 +317,7 @@ func loadSpecification(tagName string, inflector skel.Inflector) (spec Spec, err
 
 			spec.Operations = append(spec.Operations, op)
 
-			op.WalkSchemas(&spec, func(s *openapi3.SchemaOrRef, g *Spec) {
+			op.WalkSchemas(&spec, func(s *openapi3.SchemaOrRef, d map[string]openapi3.SchemaOrRef, g *Spec) {
 				if s.SchemaReference == nil {
 					return
 				}

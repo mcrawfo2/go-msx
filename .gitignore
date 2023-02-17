@@ -30,6 +30,7 @@ test/
 local/
 vendor/
 bin/
+gen/
 cmd/example/example
 schema/asyncapi/asyncapi-2.3.0.json
 schema/asyncapi/asyncapi-2.4.0.json

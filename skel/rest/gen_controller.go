@@ -24,9 +24,10 @@ import (
 	"strings"
 )
 
-type DomainControllerGeneratorV8 struct {
+type DomainControllerGenerator struct {
 	Domain     string
 	Folder     string
+	Style      string
 	Tenant     string
 	Actions    types.ComparableSlice[string]
 	Components []string
@@ -36,7 +37,7 @@ type DomainControllerGeneratorV8 struct {
 	*text.GoFile
 }
 
-func (g DomainControllerGeneratorV8) createConstantsSnippet() error {
+func (g DomainControllerGenerator) createConstantsSnippet() error {
 	constants := text.GoConstants{
 		{
 			Name:  "pathSuffixUpperCamelSingularId",
@@ -65,7 +66,7 @@ func (g DomainControllerGeneratorV8) createConstantsSnippet() error {
 		[]codegen.Import{})
 }
 
-func (g DomainControllerGeneratorV8) createControllerSnippet() error {
+func (g DomainControllerGenerator) createControllerSnippet() error {
 	return g.AddNewText(
 		"Controller",
 		"controller",
@@ -78,7 +79,7 @@ func (g DomainControllerGeneratorV8) createControllerSnippet() error {
 		[]codegen.Import{})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointsConstructionSnippet(methods []string) error {
+func (g DomainControllerGenerator) createEndpointsConstructionSnippet(methods []string) error {
 	sort.Strings(methods)
 
 	var operations = new(strings.Builder)
@@ -120,7 +121,7 @@ func (g DomainControllerGeneratorV8) createEndpointsConstructionSnippet(methods 
 		})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointTransformationSnippet() error {
+func (g DomainControllerGenerator) createEndpointTransformationSnippet() error {
 	return g.AddNewText(
 		"Endpoint Transformation",
 		"endpointTransformers",
@@ -129,7 +130,7 @@ func (g DomainControllerGeneratorV8) createEndpointTransformationSnippet() error
 			// created by this controller.
 			func (c *lowerCamelSingularController) EndpointTransformers() restops.EndpointTransformers {
 				const tagName = "UpperCamelSingular"
-				const pathPrefix = "/v8/lowerplural"
+				const pathPrefix = "/${domain.style}/lowerplural"
 
 				openapi.AddTag(tagName, "Title Plural")
 			
@@ -145,7 +146,7 @@ func (g DomainControllerGeneratorV8) createEndpointTransformationSnippet() error
 		})
 }
 
-func (g DomainControllerGeneratorV8) cleanOperationId(operationId string) string {
+func (g DomainControllerGenerator) cleanOperationId(operationId string) string {
 	cleanOperationId := operationId
 	if strings.Contains(cleanOperationId, ".") {
 		lastPeriod := strings.LastIndex(cleanOperationId, ".")
@@ -154,7 +155,7 @@ func (g DomainControllerGeneratorV8) cleanOperationId(operationId string) string
 	return cleanOperationId
 }
 
-func (g DomainControllerGeneratorV8) createEndpointActionListSnippet(operation Operation) error {
+func (g DomainControllerGenerator) createEndpointActionListSnippet(operation Operation) error {
 	renderOptions := skel.NewEmptyRenderOptions()
 	renderOptions.AddVariables(map[string]string{
 		"snippet.outputs.content.tag": "`resp:\"body\"`",
@@ -171,19 +172,19 @@ func (g DomainControllerGeneratorV8) createEndpointActionListSnippet(operation O
 			}
 
 			// ${operation.id.clean} creates an endpoint providing a filtered, sorted, and paginated 
-			// sequence of ${UpperCamelSingular} instances.
+			// sequence of UpperCamelSingular instances.
 			func (c *lowerCamelSingularController) ${operation.id.clean}() restops.EndpointBuilder {
 				type inputs struct {
-					v8.PagingSortingInputs
+					${domain.style}.PagingSortingInputs
 					lowerCamelSingularFilterQueryInputs
 				}
 
 				type outputs struct {
-					v8.PagingOutputs
+					${domain.style}.PagingOutputs
 					Content []UpperCamelSingularResponse ${snippet.outputs.content.tag}
 				}
 
-				return v8.
+				return ${domain.style}.
 					NewListEndpointBuilder().
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
@@ -208,13 +209,13 @@ func (g DomainControllerGeneratorV8) createEndpointActionListSnippet(operation O
 		template,
 		[]codegen.Import{
 			text.ImportRestOps,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportOpenApi3,
 			text.ImportContext,
 		})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointActionRetrieveSnippet(operation Operation) error {
+func (g DomainControllerGenerator) createEndpointActionRetrieveSnippet(operation Operation) error {
 	portStructVariables, err := g.generatePortStructVariables(operation)
 	if err != nil {
 		return err
@@ -236,7 +237,7 @@ func (g DomainControllerGeneratorV8) createEndpointActionRetrieveSnippet(operati
 				${snippet.inputs}
 				${snippet.outputs}
 
-				return v8.
+				return ${domain.style}.
 					NewRetrieveEndpointBuilder(pathSuffixUpperCamelSingularId).
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
@@ -260,13 +261,13 @@ func (g DomainControllerGeneratorV8) createEndpointActionRetrieveSnippet(operati
 		template,
 		[]codegen.Import{
 			text.ImportRestOps,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportOpenApi3,
 			text.ImportContext,
 		})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointActionCreateSnippet(operation Operation) error {
+func (g DomainControllerGenerator) createEndpointActionCreateSnippet(operation Operation) error {
 	portStructVariables, err := g.generatePortStructVariables(operation)
 	if err != nil {
 		return err
@@ -288,7 +289,7 @@ func (g DomainControllerGeneratorV8) createEndpointActionCreateSnippet(operation
 				${snippet.inputs}
 				${snippet.outputs}
 
-				return v8.
+				return ${domain.style}.
 					NewCreateEndpointBuilder().
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
@@ -312,13 +313,13 @@ func (g DomainControllerGeneratorV8) createEndpointActionCreateSnippet(operation
 		template,
 		[]codegen.Import{
 			text.ImportRestOps,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportOpenApi3,
 			text.ImportContext,
 		})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointActionUpdateSnippet(operation Operation) error {
+func (g DomainControllerGenerator) createEndpointActionUpdateSnippet(operation Operation) error {
 	portStructVariables, err := g.generatePortStructVariables(operation)
 	if err != nil {
 		return err
@@ -340,8 +341,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionUpdateSnippet(operation
 				${snippet.inputs}
 				${snippet.outputs}
 
-				return v8.
-					NewUpdateEndpointBuilder().
+				return ${domain.style}.
+					NewUpdateEndpointBuilder(pathSuffixUpperCamelSingularId).
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
 						WithSummary("${operation.summary}")).
@@ -364,13 +365,13 @@ func (g DomainControllerGeneratorV8) createEndpointActionUpdateSnippet(operation
 		template,
 		[]codegen.Import{
 			text.ImportRestOps,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportOpenApi3,
 			text.ImportContext,
 		})
 }
 
-func (g DomainControllerGeneratorV8) createEndpointActionDeleteSnippet(operation Operation) error {
+func (g DomainControllerGenerator) createEndpointActionDeleteSnippet(operation Operation) error {
 	portStructVariables, err := g.generatePortStructVariables(operation)
 	if err != nil {
 		return err
@@ -391,8 +392,8 @@ func (g DomainControllerGeneratorV8) createEndpointActionDeleteSnippet(operation
 			func (c *lowerCamelSingularController) ${operation.id.clean}() restops.EndpointBuilder {
 				${snippet.inputs}
 
-				return v8.
-					NewDeleteEndpointBuilder().
+				return ${domain.style}.
+					NewDeleteEndpointBuilder(pathSuffixUpperCamelSingularId).
 					WithId("${operation.id}").
 					WithDoc(new(openapi3.Operation).
 						WithSummary("${operation.summary}")).
@@ -415,13 +416,13 @@ func (g DomainControllerGeneratorV8) createEndpointActionDeleteSnippet(operation
 		template,
 		[]codegen.Import{
 			text.ImportRestOps,
-			text.ImportRestOpsV8,
+			g.importStyle(),
 			text.ImportOpenApi3,
 			text.ImportContext,
 		})
 }
 
-func (g DomainControllerGeneratorV8) generatePortStructVariables(operation Operation) (vars map[string]string, err error) {
+func (g DomainControllerGenerator) generatePortStructVariables(operation Operation) (vars map[string]string, err error) {
 	var schema *jsonschema.Schema
 	var snippet string
 	vars = map[string]string{}
@@ -459,7 +460,7 @@ func (g DomainControllerGeneratorV8) generatePortStructVariables(operation Opera
 	return
 }
 
-func (g DomainControllerGeneratorV8) generatePortStructSnippet(portStructSchema *jsonschema.Schema) (string, error) {
+func (g DomainControllerGenerator) generatePortStructSnippet(portStructSchema *jsonschema.Schema) (string, error) {
 	schemaName := *portStructSchema.ID
 
 	// Grab all the transitive schemas
@@ -510,7 +511,7 @@ func (g DomainControllerGeneratorV8) generatePortStructSnippet(portStructSchema 
 	return snippet, nil
 }
 
-func (g DomainControllerGeneratorV8) generateInputPortStructSchema(operation openapi3.Operation) (*jsonschema.Schema, error) {
+func (g DomainControllerGenerator) generateInputPortStructSchema(operation openapi3.Operation) (*jsonschema.Schema, error) {
 	directionTag := "req"
 	structTypeName := "inputs"
 
@@ -575,7 +576,7 @@ func (g DomainControllerGeneratorV8) generateInputPortStructSchema(operation ope
 	return portSchema, nil
 }
 
-func (g DomainControllerGeneratorV8) generateOutputPortStructSchema(operation openapi3.Operation) (*jsonschema.Schema, error) {
+func (g DomainControllerGenerator) generateOutputPortStructSchema(operation openapi3.Operation) (*jsonschema.Schema, error) {
 	directionTag := "resp"
 	structTypeName := "outputs"
 
@@ -644,7 +645,7 @@ func (g DomainControllerGeneratorV8) generateOutputPortStructSchema(operation op
 			}
 
 			if portFieldSchema.Ref != nil {
-				if strings.HasSuffix(*portFieldSchema.Ref, "v8.Error") && isError && !isSuccess {
+				if strings.HasSuffix(*portFieldSchema.Ref, g.Style+".Error") && isError && !isSuccess {
 					continue
 				}
 			}
@@ -657,7 +658,7 @@ func (g DomainControllerGeneratorV8) generateOutputPortStructSchema(operation op
 	return portSchema, nil
 }
 
-func (g DomainControllerGeneratorV8) createContextAccessorSnippet() error {
+func (g DomainControllerGenerator) createContextAccessorSnippet() error {
 	return g.AddNewText(
 		"Context",
 		"contextAccessor",
@@ -674,7 +675,7 @@ func (g DomainControllerGeneratorV8) createContextAccessorSnippet() error {
 		})
 }
 
-func (g DomainControllerGeneratorV8) createConstructorSnippet() error {
+func (g DomainControllerGenerator) createConstructorSnippet() error {
 	return g.AddNewText(
 		"Constructor",
 		"constructor",
@@ -702,7 +703,7 @@ func (g DomainControllerGeneratorV8) createConstructorSnippet() error {
 		})
 }
 
-func (g DomainControllerGeneratorV8) createLifecycleSnippet() error {
+func (g DomainControllerGenerator) createLifecycleSnippet() error {
 	return g.AddNewText(
 		"Lifecycle",
 		"init",
@@ -732,7 +733,12 @@ func (g DomainControllerGeneratorV8) createLifecycleSnippet() error {
 		})
 }
 
-func (g DomainControllerGeneratorV8) Generate() error {
+func (g DomainControllerGenerator) Apply(options skel.RenderOptions) skel.RenderOptions {
+	options.AddVariable("domain.style", g.Style)
+	return options
+}
+
+func (g DomainControllerGenerator) Generate() error {
 	errs := types.ErrorList{
 		g.createConstantsSnippet(),
 		g.createControllerSnippet(),
@@ -773,21 +779,31 @@ func (g DomainControllerGeneratorV8) Generate() error {
 	return errs.Filter()
 }
 
-func (g DomainControllerGeneratorV8) Filename() string {
-	target := path.Join(g.Folder, "controller_lowersingular_v8.go")
+func (g DomainControllerGenerator) Filename() string {
+	target := path.Join(g.Folder, fmt.Sprintf("controller_lowersingular_%s.go", g.Style))
 	return g.GoFile.Inflector.Inflect(target)
 }
 
-func NewDomainControllerGeneratorV8(spec Spec) ComponentGenerator {
+func (g DomainControllerGenerator) importStyle() codegen.Import {
+	switch g.Style {
+	case StyleV2:
+		return text.ImportRestOpsV2
+	default:
+		return text.ImportRestOpsV8
+	}
+}
+
+func NewDomainControllerGenerator(spec Spec) ComponentGenerator {
 	inflector := skel.NewInflector(generatorConfig.Domain)
 
-	return DomainControllerGeneratorV8{
+	return DomainControllerGenerator{
 		// Configuration
 		Domain:     generatorConfig.Domain,
 		Folder:     generatorConfig.Folder,
 		Tenant:     generatorConfig.Tenant,
 		Actions:    generatorConfig.Actions,
 		Components: generatorConfig.Components,
+		Style:      generatorConfig.Style,
 
 		// Sources
 		Spec: spec,

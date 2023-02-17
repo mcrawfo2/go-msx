@@ -6,6 +6,7 @@ package text
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"github.com/lithammer/dedent"
 	"strings"
 )
 
@@ -13,9 +14,8 @@ const MaxLineLength = 120
 
 // Snippet stores a named series of text lines attached to a File section.
 type Snippet struct {
-	Section string
-	Name    string
-	Lines   []string
+	Name  string
+	Lines []string
 }
 
 func (s Snippet) GetName() string {
@@ -31,6 +31,20 @@ func (s Snippet) Generate(out Emitter) {
 
 func (s Snippet) Empty() bool {
 	return len(s.Lines) == 0
+}
+
+func NewSnippet(name, content string, transforms Transformers) (snippet Snippet) {
+	content = transforms.Transform(content)
+
+	var lines []string
+	if strings.TrimSpace(content) != "" {
+		lines = strings.Split(content, "\n")
+	}
+
+	return Snippet{
+		Name:  name,
+		Lines: lines,
+	}
 }
 
 // Section is a portion of a File
@@ -132,6 +146,12 @@ func (f *File[I]) FileFormat() skel.FileFormat {
 	return f.Format
 }
 
+func (f *File[I]) AddSnippet(sectionPath string, snippet I) {
+	logger.Infof("  📃 Adding snippet %q to section %q", snippet.GetName(), sectionPath)
+	section := f.FindSection(sectionPath)
+	section.AddSnippet(snippet)
+}
+
 func (f *File[I]) FindSection(section string) *Section[I] {
 	if section == "" {
 		return nil
@@ -164,4 +184,30 @@ func (f *File[I]) Render() string {
 	f.Sections.Generate(out)
 
 	return out.String()
+}
+
+type TextFile struct {
+	*File[Snippet]
+	Transformers
+}
+
+func (f *TextFile) AddNewText(sectionPath, name, content string) error {
+	f.AddSnippet(sectionPath, NewSnippet(name, content, f.Transformers))
+	return nil
+}
+
+func NewTextFile(format skel.FileFormat, inflector skel.Inflector, comment string, sections Sections[Snippet]) *TextFile {
+	return &TextFile{
+		File: &File[Snippet]{
+			Comment:   comment,
+			Sections:  sections,
+			Inflector: inflector,
+			Format:    format,
+		},
+		Transformers: Transformers{
+			inflector.Inflect,
+			dedent.Dedent,
+			strings.TrimSpace,
+		},
+	}
 }

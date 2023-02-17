@@ -26,6 +26,7 @@ type PortReflector struct{}
 
 func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 	reflector := ops.PortReflector{
+		Direction: ops.PortDirectionIn,
 		FieldGroups: map[string]ops.FieldGroup{
 			FieldGroupStreamChannel: {
 				Cardinality:   types.CardinalityZeroToOne(),
@@ -45,6 +46,7 @@ func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 			},
 		},
 		FieldPostProcessor: r.PostProcessField,
+		FieldTypeReflector: ops.NewDefaultPortFieldTypeReflector(ops.PortDirectionIn),
 	}
 
 	return reflector.ReflectPortStruct(PortTypeInput, st)
@@ -52,6 +54,7 @@ func (r PortReflector) ReflectInputPort(st reflect.Type) (*ops.Port, error) {
 
 func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
 	reflector := ops.PortReflector{
+		Direction: ops.PortDirectionOut,
 		FieldGroups: map[string]ops.FieldGroup{
 			FieldGroupStreamChannel: {
 				Cardinality:   types.CardinalityZeroToOne(),
@@ -71,6 +74,7 @@ func (r PortReflector) ReflectOutputPort(st reflect.Type) (*ops.Port, error) {
 			},
 		},
 		FieldPostProcessor: r.PostProcessField,
+		FieldTypeReflector: ops.NewDefaultPortFieldTypeReflector(ops.PortDirectionOut),
 	}
 
 	return reflector.ReflectPortStruct(PortTypeOutput, st)

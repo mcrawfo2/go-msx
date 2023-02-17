@@ -19,7 +19,7 @@ type DomainMigrationGenerator struct {
 	Tenant string
 	Folder string
 	Spec   Spec
-	*text.SqlFile
+	*text.TextFile
 }
 
 func (g DomainMigrationGenerator) createTableSnippet() error {
@@ -65,7 +65,7 @@ func (g DomainMigrationGenerator) Filename() string {
 	prefix, _ := skel.NextMigrationPrefix(g.Folder)
 	filename := fmt.Sprintf("%s__%s.sql", prefix, description)
 	target := path.Join(g.Folder, filename)
-	return g.SqlFile.Inflector.Inflect(target)
+	return g.Inflector.Inflect(target)
 }
 
 func NewDomainMigrationGenerator(spec Spec) ComponentGenerator {
@@ -78,14 +78,13 @@ func NewDomainMigrationGenerator(spec Spec) ComponentGenerator {
 		Tenant: generatorConfig.Tenant,
 		Folder: folder,
 		Spec:   spec,
-		SqlFile: &text.SqlFile{File: &text.File[text.SqlSnippet]{
-			Format:    skel.FileFormatSql,
-			Comment:   "Migration for " + generatorConfig.Domain,
-			Inflector: skel.NewInflector(generatorConfig.Domain),
-			Sections: text.NewSections[text.SqlSnippet](
+		TextFile: text.NewTextFile(
+			skel.FileFormatSql,
+			skel.NewInflector(generatorConfig.Domain),
+			"Migration for "+generatorConfig.Domain,
+			text.NewSections[text.Snippet](
 				"Table",
 				"Index",
-			),
-		}},
+			)),
 	}
 }

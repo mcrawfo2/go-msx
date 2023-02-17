@@ -586,7 +586,7 @@ func processConditionalBlocks(data string, format FileFormat, condition string, 
 	return sb.String(), nil
 }
 
-func initializePackageFromFile(fileName, packageUrl string) error {
+func InitializePackageFromFile(fileName, packageUrl string) error {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, fileName, nil, 0)
 	if err != nil {

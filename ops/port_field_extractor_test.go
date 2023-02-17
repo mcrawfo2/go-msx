@@ -44,7 +44,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Text(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -273,7 +273,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Int(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -496,7 +496,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Uint(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -711,7 +711,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Float(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -824,7 +824,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Bool(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, _ := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -886,7 +886,7 @@ func TestPortFieldExtractor_ExtractPrimitive_Error(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapePrimitive),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	_, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(primitives{}))
@@ -917,13 +917,14 @@ func TestPortFieldExtractor_ExtractArray_Scalar(t *testing.T) {
 	}
 
 	pr := PortReflector{
+		Direction: PortDirectionOut,
 		FieldGroups: map[string]FieldGroup{
 			FieldGroupExtractor: {
 				Cardinality:   types.CardinalityZeroToMany(),
 				AllowedShapes: types.NewStringSet(FieldShapeArray),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(arrays{}))
@@ -1152,7 +1153,7 @@ func TestPortFieldExtractor_ExtractObject_Scalar(t *testing.T) {
 				AllowedShapes: types.NewStringSet(FieldShapeObject),
 			},
 		},
-		FieldTypeReflector: DefaultPortFieldTypeReflector{},
+		FieldTypeReflector: NewDefaultPortFieldTypeReflector(PortDirectionOut),
 	}
 
 	port, err := pr.ReflectPortStruct(PortTypeTest, reflect.TypeOf(objects{}))

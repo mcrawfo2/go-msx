@@ -5,6 +5,7 @@
 package paging
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -79,4 +80,11 @@ const (
 type SortOrder struct {
 	Property  string
 	Direction SortDirection
+}
+
+type SortByOptions struct {
+	// DefaultProperty is the API-facing name of the default sort field
+	DefaultProperty string
+	// Mapping contains a list of API (left) <-> DB (right) field name mappings for sort fields
+	Mapping types.StringPairSlice
 }

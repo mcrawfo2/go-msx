@@ -94,8 +94,8 @@ func (c GeneratorConfig) Validate() error {
 				"Domain must contain only letters or spaces, and start with a letter")),
 		"folder": validation.Validate(&c.Folder, validation.Required,
 			validation.NewStringRule(
-				regexp.MustCompile(`^^[A-Za-z]+(/[A-Za-z]+)*/?$`).MatchString,
-				"Folder must contain 1 or more components of only letters, separated by slashes")),
+				regexp.MustCompile(`^^[A-Za-z0-9]+(/[A-Za-z0-9]+)*/?$`).MatchString,
+				"Folder must contain 1 or more components of only letters and/or digits, separated by slashes")),
 		"style":      validation.Validate(&c.Style, validation.Required, validation.In(types.Slice[string](StyleOptions).AnySlice()...)),
 		"tenant":     validation.Validate(&c.Tenant, validation.In(types.Slice[string](TenantOptions).AnySlice()...)),
 		"actions":    validation.Validate(c.Actions, validation.Each(validation.In(types.Slice[string](ActionOptions).AnySlice()...))),
@@ -154,6 +154,8 @@ func generateDomainOptions(_ *cobra.Command, args []string) error {
 	return nil
 }
 
+type ActionFunc func() error
+
 type ComponentGenerator interface {
 	Generate() error
 	Render() string
@@ -186,22 +188,22 @@ var componentGenerators = []ScopedComponentGenerator{
 		Factory:   NewDomainPayloadsGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    MatchesAny,
 		Component: ComponentController,
-		Factory:   NewDomainControllerGeneratorV8,
+		Factory:   NewDomainControllerGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    TenantNone,
 		Component: ComponentService,
-		Factory:   NewDomainServiceGeneratorV8,
+		Factory:   NewDomainServiceGenerator,
 	},
 	{
-		Style:     StyleV8,
+		Style:     MatchesAny,
 		Tenant:    TenantNone,
 		Component: ComponentConverter,
-		Factory:   NewDomainConverterGeneratorV8,
+		Factory:   NewDomainConverterGenerator,
 	},
 	{
 		Style:     MatchesAny,
@@ -292,5 +294,19 @@ func GenerateDomain(_ []string) (err error) {
 		}
 	}
 
-	return nil
+	var actions = []ActionFunc{
+		func() error {
+			return skel.InitializePackageFromFile(
+				path.Join(skel.Config().TargetDirectory(), "cmd", "app", "main.go"),
+				path.Join(skel.Config().AppPackageUrl(), generatorConfig.Folder))
+		},
+	}
+
+	for _, action := range actions {
+		if err = action(); err != nil {
+			return err
+		}
+	}
+
+	return
 }

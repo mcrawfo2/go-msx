@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"mime/multipart"
 	"reflect"
 	"testing"
@@ -29,7 +30,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_File(t *testing.T) {
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(new(multipart.FileHeader)),
 			},
-			wantOptional: false,
 		},
 		{
 			name: "MultipartFilePointerIndirect",
@@ -38,9 +38,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_File(t *testing.T) {
 				Shape:        FieldShapeFile,
 				Type:         reflect.TypeOf(new(multipart.FileHeader)),
 				Indirections: 1,
+				Optional:     true,
 				HandlerType:  reflect.TypeOf(new(multipart.FileHeader)),
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Base64Bytes",
@@ -59,21 +59,19 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_File(t *testing.T) {
 				Shape:        FieldShapeFile,
 				Type:         reflect.TypeOf(types.Base64Bytes{}),
 				Indirections: 1,
+				Optional:     true,
 				HandlerType:  reflect.TypeOf(types.Base64Bytes{}),
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionOut)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}
@@ -94,8 +92,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_FileArray(t *testing
 				Type:         reflect.TypeOf([]*multipart.FileHeader{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]*multipart.FileHeader{}),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Base64Bytes",
@@ -105,20 +103,18 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_FileArray(t *testing
 				Type:         reflect.TypeOf([]types.Base64Bytes{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]types.Base64Bytes{}),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionOut)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}
@@ -139,15 +135,15 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]int{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]int{}),
+				Optional:     true,
 				Items: &PortFieldElementType{
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapePrimitive,
 						Type:        reflect.TypeOf(int(0)),
 						HandlerType: reflect.TypeOf(int(0)),
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "IntArrayIndirect",
@@ -157,15 +153,15 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]int{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]int{}),
+				Optional:     true,
 				Items: &PortFieldElementType{
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapePrimitive,
 						Type:        reflect.TypeOf(int(0)),
 						HandlerType: reflect.TypeOf(int(0)),
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "ObjectArray",
@@ -175,8 +171,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]struct{}{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]struct{}{}),
+				Optional:     true,
 				Items: &PortFieldElementType{
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapeObject,
 						Fields:      []PortFieldElementType{},
 						Type:        reflect.TypeOf(struct{}{}),
@@ -184,7 +181,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "PointerArray",
@@ -194,9 +190,10 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]*string{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]*string{}),
+				Optional:     true,
 				Items: &PortFieldElementType{
-					Optional: true,
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
+						Optional:     true,
 						Shape:        FieldShapePrimitive,
 						Type:         reflect.TypeOf(""),
 						Indirections: 1,
@@ -204,7 +201,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "PointerArrayIndirect",
@@ -214,29 +210,27 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Array(t *testing.T) 
 				Type:         reflect.TypeOf([]*string{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]*string{}),
+				Optional:     true,
 				Items: &PortFieldElementType{
-					Optional: true,
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:        FieldShapePrimitive,
 						Type:         reflect.TypeOf(""),
 						Indirections: 1,
+						Optional:     true,
 						HandlerType:  reflect.TypeOf(""),
 					},
 				},
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionOut)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
 					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
 			}
 		})
 	}
@@ -250,6 +244,11 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 	type nestedStruct struct {
 		SingleField string         `inp:"test"`
 		SecondField embeddedStruct `inp:"test"`
+	}
+
+	type recursiveStruct struct {
+		Field string           `inp:"test"`
+		Next  *recursiveStruct `inp:"test"`
 	}
 
 	tests := []struct {
@@ -266,23 +265,23 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(map[string]interface{}{}),
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(map[string]interface{}{}),
+				Optional:     true,
 				Keys: &PortFieldElementType{
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapePrimitive,
 						Type:        reflect.TypeOf(""),
 						HandlerType: reflect.TypeOf(""),
 					},
 				},
 				Values: &PortFieldElementType{
-					Optional: true,
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapeAny,
 						Type:        reflect.TypeOf((*interface{})(nil)).Elem(),
 						HandlerType: reflect.TypeOf((*interface{})(nil)).Elem(),
+						Optional:    true,
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "MapStringIndirect",
@@ -292,23 +291,23 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(map[string]interface{}{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(map[string]interface{}{}),
+				Optional:     true,
 				Keys: &PortFieldElementType{
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapePrimitive,
 						Type:        reflect.TypeOf(""),
 						HandlerType: reflect.TypeOf(""),
 					},
 				},
 				Values: &PortFieldElementType{
-					Optional: true,
-					PortFieldType: PortFieldType{
+					PortFieldType: &PortFieldType{
 						Shape:       FieldShapeAny,
 						Type:        reflect.TypeOf((*interface{})(nil)).Elem(),
 						HandlerType: reflect.TypeOf((*interface{})(nil)).Elem(),
+						Optional:    true,
 					},
 				},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Struct",
@@ -329,9 +328,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(struct{}{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(struct{}{}),
+				Optional:     true,
 				Fields:       []PortFieldElementType{},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "StructDoubleIndirect",
@@ -341,9 +340,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Type:         reflect.TypeOf(struct{}{}),
 				Indirections: 2,
 				HandlerType:  reflect.TypeOf(struct{}{}),
+				Optional:     true,
 				Fields:       []PortFieldElementType{},
 			},
-			wantOptional: true,
 		},
 		{
 			name: "StructNested",
@@ -353,22 +352,21 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 				Indirections: 1,
 				Type:         reflect.TypeOf(nestedStruct{}),
 				HandlerType:  reflect.TypeOf(nestedStruct{}),
+				Optional:     true,
 				Fields: []PortFieldElementType{
 					{
-						Peer:     "singleField",
-						Indices:  []int{0},
-						Optional: false,
-						PortFieldType: PortFieldType{
+						Peer:    "singleField",
+						Indices: []int{0},
+						PortFieldType: &PortFieldType{
 							Shape:       FieldShapePrimitive,
 							Type:        reflect.TypeOf(""),
 							HandlerType: reflect.TypeOf(""),
 						},
 					},
 					{
-						Peer:     "secondField",
-						Indices:  []int{1},
-						Optional: false,
-						PortFieldType: PortFieldType{
+						Peer:    "secondField",
+						Indices: []int{1},
+						PortFieldType: &PortFieldType{
 							Shape:       FieldShapeObject,
 							Type:        reflect.TypeOf(embeddedStruct{}),
 							HandlerType: reflect.TypeOf(embeddedStruct{}),
@@ -376,7 +374,7 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 								{
 									Peer:    "anotherField",
 									Indices: []int{0},
-									PortFieldType: PortFieldType{
+									PortFieldType: &PortFieldType{
 										Shape:       FieldShapePrimitive,
 										Type:        reflect.TypeOf(""),
 										HandlerType: reflect.TypeOf(""),
@@ -387,19 +385,49 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Object(t *testing.T)
 					},
 				},
 			},
+		},
+		{
+			name: "StructRecursive",
+			arg:  reflect.TypeOf(new(recursiveStruct)),
+			wantType: func() PortFieldType {
+				root := PortFieldType{
+					Shape:        FieldShapeObject,
+					Indirections: 1,
+					Type:         reflect.TypeOf(recursiveStruct{}),
+					HandlerType:  reflect.TypeOf(recursiveStruct{}),
+					Optional:     true,
+					Fields: []PortFieldElementType{
+						{
+							Peer:    "field",
+							Indices: []int{0},
+							PortFieldType: &PortFieldType{
+								Shape:       FieldShapePrimitive,
+								Type:        reflect.TypeOf(""),
+								HandlerType: reflect.TypeOf(""),
+							},
+						},
+						{
+							Peer:    "next",
+							Indices: []int{1},
+						},
+					},
+				}
+
+				root.Fields[1].PortFieldType = &root
+
+				return root
+			}(),
 			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionIn)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}
@@ -419,10 +447,9 @@ func (m *MyReadCloser) Close() error {
 
 func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T) {
 	tests := []struct {
-		name         string
-		arg          reflect.Type
-		wantType     PortFieldType
-		wantOptional bool
+		name     string
+		arg      reflect.Type
+		wantType PortFieldType
 	}{
 		{
 			name: "Content",
@@ -433,7 +460,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T
 				Indirections: 0,
 				HandlerType:  ContentType,
 			},
-			wantOptional: false,
 		},
 		{
 			name: "ContentIndirect",
@@ -443,8 +469,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T
 				Type:         ContentType,
 				Indirections: 1,
 				HandlerType:  ContentType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "IoReadCloser",
@@ -455,7 +481,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T
 				Indirections: 0,
 				HandlerType:  IoReadCloserType,
 			},
-			wantOptional: false,
 		},
 		{
 			name: "IoReadCloserIndirect",
@@ -464,21 +489,19 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T
 				Shape:        FieldShapeContent,
 				Type:         reflect.TypeOf(MyReadCloser{}),
 				Indirections: 1,
+				Optional:     true,
 				HandlerType:  IoReadCloserType,
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionIn)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}
@@ -486,10 +509,9 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Content(t *testing.T
 
 func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing.T) {
 	tests := []struct {
-		name         string
-		arg          reflect.Type
-		wantType     PortFieldType
-		wantOptional bool
+		name     string
+		arg      reflect.Type
+		wantType PortFieldType
 	}{
 		{
 			name: "TypesTime",
@@ -500,7 +522,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  TextUnmarshalerType,
 			},
-			wantOptional: false,
 		},
 		{
 			name: "TypesTimeIndirect",
@@ -510,8 +531,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(types.Time{}),
 				Indirections: 1,
 				HandlerType:  TextUnmarshalerType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "TypesUuid",
@@ -522,7 +543,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  TextUnmarshalerType,
 			},
-			wantOptional: false,
 		},
 		{
 			name: "TypesUuidIndirect",
@@ -532,8 +552,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(types.UUID{}),
 				Indirections: 1,
 				HandlerType:  TextUnmarshalerType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "TypesDuration",
@@ -544,7 +564,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  TextUnmarshalerType,
 			},
-			wantOptional: false,
 		},
 		{
 			name: "TypesDurationIndirect",
@@ -554,8 +573,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(types.Duration(0)),
 				Indirections: 1,
 				HandlerType:  TextUnmarshalerType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "ByteSlice",
@@ -566,7 +585,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]byte{}),
 			},
-			wantOptional: false,
 		},
 		{
 			name: "ByteSliceIndirect",
@@ -576,8 +594,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf([]byte{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]byte{}),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "JsonRawMessage",
@@ -588,7 +606,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]byte{}),
 			},
-			wantOptional: false,
 		},
 		{
 			name: "JsonRawMessageIndirect",
@@ -598,8 +615,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(json.RawMessage{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]byte{}),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "RuneSlice",
@@ -610,7 +627,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf([]rune{}),
 			},
-			wantOptional: false,
 		},
 		{
 			name: "RuneSliceIndirect",
@@ -620,8 +636,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf([]rune{}),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf([]rune{}),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "IntIndirect",
@@ -631,8 +647,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(int(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(int(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Int8Indirect",
@@ -642,8 +658,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(int8(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(int8(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Int16Indirect",
@@ -653,8 +669,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(int16(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(int16(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Int32Indirect",
@@ -664,8 +680,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(int32(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(int32(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Int64Indirect",
@@ -675,8 +691,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(int64(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(int64(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "UintIndirect",
@@ -686,8 +702,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(uint(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(uint(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Uint8Indirect",
@@ -697,8 +713,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(uint8(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(uint8(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Uint16Indirect",
@@ -708,8 +724,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(uint16(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(uint16(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Uint32Indirect",
@@ -719,8 +735,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(uint32(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(uint32(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Uint64Indirect",
@@ -730,8 +746,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(uint64(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(uint64(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Float32Indirect",
@@ -741,8 +757,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(float32(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(float32(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "Float64Indirect",
@@ -752,8 +768,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(float64(0)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(float64(0)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "BoolIndirect",
@@ -763,8 +779,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(bool(false)),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(bool(false)),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "String",
@@ -775,7 +791,6 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Indirections: 0,
 				HandlerType:  reflect.TypeOf(""),
 			},
-			wantOptional: false,
 		},
 		{
 			name: "StringIndirect",
@@ -785,56 +800,48 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Primitive(t *testing
 				Type:         reflect.TypeOf(""),
 				Indirections: 1,
 				HandlerType:  reflect.TypeOf(""),
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{
-				Direction: PortDirectionIn,
-			}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionIn)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}
 }
 
-func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Unknown(t *testing.T) {
+func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Error(t *testing.T) {
 	tests := []struct {
-		name         string
-		arg          reflect.Type
-		wantType     PortFieldType
-		wantOptional bool
+		name     string
+		arg      reflect.Type
+		wantType PortFieldType
+		wantErr  bool
 	}{
 		{
-			name: "Channel",
-			arg:  reflect.TypeOf(make(chan struct{})),
-			wantType: PortFieldType{
-				Shape:        FieldShapeUnknown,
-				Type:         reflect.TypeOf(make(chan struct{})),
-				Indirections: 0,
-				HandlerType:  reflect.TypeOf(make(chan struct{})),
-			},
-			wantOptional: true,
+			name:    "Channel",
+			arg:     reflect.TypeOf(make(chan struct{})),
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
-				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+			r := NewDefaultPortFieldTypeReflector(PortDirectionIn)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			if tt.wantErr {
+				assert.Error(t, gotErr)
+			} else {
+				assert.NoError(t, gotErr)
+				if !reflect.DeepEqual(gotType, &tt.wantType) {
+					t.Errorf("ReflectPortFieldType() diff\n%s",
+						testhelpers.Diff(&tt.wantType, gotType))
+				}
 			}
 		})
 	}
@@ -858,8 +865,8 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Any(t *testing.T) {
 				Type:         anythingType,
 				Indirections: 0,
 				HandlerType:  anythingType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 		{
 			name: "IndirectInterface",
@@ -869,20 +876,18 @@ func TestDefaultPortFieldTypeReflector_ReflectPortFieldType_Any(t *testing.T) {
 				Type:         anythingType,
 				Indirections: 1,
 				HandlerType:  anythingType,
+				Optional:     true,
 			},
-			wantOptional: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := DefaultPortFieldTypeReflector{}
-			gotType, gotOptional := r.ReflectPortFieldType(tt.arg)
-			if !reflect.DeepEqual(gotType, tt.wantType) {
+			r := NewDefaultPortFieldTypeReflector(PortDirectionIn)
+			gotType, gotErr := r.ReflectPortFieldType(tt.arg)
+			assert.Nil(t, gotErr)
+			if !reflect.DeepEqual(gotType, &tt.wantType) {
 				t.Errorf("ReflectPortFieldType() diff\n%s",
-					testhelpers.Diff(tt.wantType, gotType))
-			}
-			if gotOptional != tt.wantOptional {
-				t.Errorf("ReflectPortFieldType() gotOptional = %v, want %v", gotOptional, tt.wantOptional)
+					testhelpers.Diff(&tt.wantType, gotType))
 			}
 		})
 	}

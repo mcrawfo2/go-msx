@@ -108,7 +108,7 @@ func GenerateTopicPublisher(args []string) error {
 		return err
 	}
 
-	if err := initializePackageFromFile(
+	if err := InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName)); err != nil {
 		return err
@@ -163,7 +163,7 @@ func GenerateTopicSubscriber(args []string) error {
 		return err
 	}
 
-	if err := initializePackageFromFile(
+	if err := InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", "stream", topicPackageName)); err != nil {
 		return err
@@ -231,13 +231,13 @@ func GenerateTimer(args []string) error {
 		return err
 	}
 
-	if err := initializePackageFromFile(
+	if err := InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", "timer", timerPackageName)); err != nil {
 		return err
 	}
 
-	var deps = []string{"github.com/stretchr/testify@v1.7.0"}
+	var deps = []string{"github.com/stretchr/testify@v1.8.1"}
 	if err := AddDependencies(deps); err != nil {
 		return err
 	}
@@ -334,7 +334,7 @@ func generateDomain(name string, conditions map[string]bool) error {
 		return err
 	}
 
-	return initializePackageFromFile(
+	return InitializePackageFromFile(
 		path.Join(skeletonConfig.TargetDirectory(), "cmd", "app", "main.go"),
 		path.Join(skeletonConfig.AppPackageUrl(), "internal", domainPackageName))
 }

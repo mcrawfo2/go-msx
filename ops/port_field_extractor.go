@@ -323,8 +323,7 @@ func (i PortFieldExtractor) extractElement(pfet PortFieldElementType, fv reflect
 func (i PortFieldExtractor) rootPortFieldElement() PortFieldElementType {
 	return PortFieldElementType{
 		Indices:       i.portField.Indices,
-		Optional:      i.portField.Optional,
-		PortFieldType: i.portField.Type,
+		PortFieldType: i.portField.Type.SetOptional(i.portField.Optional),
 	}
 }
 

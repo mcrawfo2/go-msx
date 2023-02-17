@@ -59,6 +59,7 @@ func TestPortReflector_postProcessField(t *testing.T) {
 					Type:         ops.AnyType,
 					Indirections: 0,
 					HandlerType:  ops.AnyType,
+					Optional:     true,
 				},
 				Options: map[string]string{},
 				Baggage: map[interface{}]interface{}{},

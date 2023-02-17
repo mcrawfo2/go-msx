@@ -55,14 +55,14 @@ func transformImports(imports []codegen.Import, transforms Transformers) []codeg
 	return imports
 }
 
-func NewGoGeneratorSnippet(section, name string, gen Generator, imports []codegen.Import, transforms Transformers) (snippet GoSnippet) {
+func NewGoGeneratorSnippet(name string, gen Generator, imports []codegen.Import, transforms Transformers) (snippet GoSnippet) {
 	emitter := NewGoEmitter()
 	gen.Generate(emitter)
 	content := emitter.String()
-	return NewGoTextSnippet(section, name, content, imports, transforms)
+	return NewGoTextSnippet(name, content, imports, transforms)
 }
 
-func NewGoTextSnippet(section, name, content string, imports []codegen.Import, transforms Transformers) (snippet GoSnippet) {
+func NewGoTextSnippet(name, content string, imports []codegen.Import, transforms Transformers) (snippet GoSnippet) {
 	content = transforms.Transform(content)
 	imports = transformImports(imports, transforms)
 
@@ -73,20 +73,18 @@ func NewGoTextSnippet(section, name, content string, imports []codegen.Import, t
 
 	return GoSnippet{
 		Snippet: Snippet{
-			Section: section,
-			Name:    name,
-			Lines:   lines,
+			Name:  name,
+			Lines: lines,
 		},
 		Imports: imports,
 	}
 }
 
-func NewGoStatementSnippet(section, name string, stmt *jen.Statement, transforms Transformers) (snippet GoSnippet, err error) {
+func NewGoStatementSnippet(name string, stmt *jen.Statement, transforms Transformers) (snippet GoSnippet, err error) {
 	if stmt == nil {
 		return GoSnippet{
 			Snippet: Snippet{
-				Section: section,
-				Name:    name,
+				Name: name,
 			},
 		}, nil
 	}
@@ -139,9 +137,8 @@ func NewGoStatementSnippet(section, name string, stmt *jen.Statement, transforms
 
 	return GoSnippet{
 		Snippet: Snippet{
-			Section: section,
-			Name:    name,
-			Lines:   lines,
+			Name:  name,
+			Lines: lines,
 		},
 		Imports: imports,
 	}, nil
@@ -208,31 +205,23 @@ func (f *GoFile) AddImport(qualified, alias string) {
 	})
 }
 
-func (f *GoFile) AddSnippet(snippet GoSnippet) {
-	logger.Infof("  📃 Adding snippet %q to section %q", snippet.Name, snippet.Section)
-	section := f.FindSection(snippet.Section)
-	section.AddSnippet(snippet)
-
-	imports := snippet.Imports
-	for _, imp := range imports {
-		f.AddImport(imp.QualifiedName, imp.Name)
-	}
+func (f *GoFile) AddSnippet(sectionPath string, snippet GoSnippet) {
+	f.File.AddSnippet(sectionPath, snippet)
+	f.AddImports(snippet.Imports)
 }
 
-func (f *GoFile) AddNewSnippet(snippet GoSnippet, err error) error {
+func (f *GoFile) AddNewStatement(sectionPath, name string, stmt *jen.Statement) error {
+	snippet, err := NewGoStatementSnippet(name, stmt, Transformers{f.Inflector.Inflect})
 	if err != nil {
 		return err
 	}
-	f.AddSnippet(snippet)
+
+	f.AddSnippet(sectionPath, snippet)
 	return nil
 }
 
-func (f *GoFile) AddNewStatement(path, name string, stmt *jen.Statement) error {
-	return f.AddNewSnippet(NewGoStatementSnippet(path, name, stmt, Transformers{f.Inflector.Inflect}))
-}
-
-func (f *GoFile) AddNewText(path, name, body string, imports []codegen.Import) error {
-	f.AddSnippet(NewGoTextSnippet(path, name, body, imports, Transformers{
+func (f *GoFile) AddNewText(sectionPath, name, body string, imports []codegen.Import) error {
+	f.AddSnippet(sectionPath, NewGoTextSnippet(name, body, imports, Transformers{
 		f.Inflector.Inflect,
 		dedent.Dedent,
 		strings.TrimSpace,
@@ -240,13 +229,13 @@ func (f *GoFile) AddNewText(path, name, body string, imports []codegen.Import) e
 	return nil
 }
 
-func (f *GoFile) AddNewDecl(path, name string, decl codegen.Decl, imports []codegen.Import) error {
-	f.AddSnippet(NewGoGeneratorSnippet(path, name, Decls{decl}, imports, Transformers{f.Inflector.Inflect}))
+func (f *GoFile) AddNewDecl(sectionPath, name string, decl codegen.Decl, imports []codegen.Import) error {
+	f.AddSnippet(sectionPath, NewGoGeneratorSnippet(name, Decls{decl}, imports, Transformers{f.Inflector.Inflect}))
 	return nil
 }
 
-func (f *GoFile) AddNewGenerator(path, name string, decl Generator, imports []codegen.Import) error {
-	f.AddSnippet(NewGoGeneratorSnippet(path, name, decl, imports, Transformers{f.Inflector.Inflect}))
+func (f *GoFile) AddNewGenerator(sectionPath, name string, decl Generator, imports []codegen.Import) error {
+	f.AddSnippet(sectionPath, NewGoGeneratorSnippet(name, decl, imports, Transformers{f.Inflector.Inflect}))
 	return nil
 }
 
