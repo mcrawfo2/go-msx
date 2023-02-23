@@ -19,7 +19,7 @@ const PrefixComponentsSchemas = "#/components/schemas/"
 const PrefixDefinitions = "#/definitions/"
 const PrefixPackageApi = "Api"
 
-var typeOverrideMap = map[string]map[string]interface{}{
+var typeOverrideMap = map[string]map[string]any{
 	"UUID": {
 		"type": "types.UUID",
 		"imports": []string{
@@ -48,6 +48,30 @@ var typeOverrideMap = map[string]map[string]interface{}{
 		"type": "v8.PagingResponse",
 		"imports": []string{
 			"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8",
+		},
+	},
+	"v2.PagingResponse": {
+		"type": "v2.PagingResponse",
+		"imports": []string{
+			"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v2",
+		},
+	},
+	"integration.MsxEnvelope": {
+		"type": "integration.MsxEnvelope",
+		"imports": []string{
+			"cto-github.cisco.com/NFV-BU/go-msx/integration",
+		},
+	},
+	"integration.Throwable": {
+		"type": "integration.Throwable",
+		"imports": []string{
+			"cto-github.cisco.com/NFV-BU/go-msx/integration",
+		},
+	},
+	"types.BackTraceFrame": {
+		"type": "types.BackTraceFrame",
+		"imports": []string{
+			"cto-github.cisco.com/NFV-BU/go-msx/types",
 		},
 	},
 }
