@@ -8,6 +8,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/paging"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"errors"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -110,6 +111,12 @@ func (c *TypedRepository[I]) FindAll(ctx context.Context, dest *[]I, options ...
 
 	// Apply limit and offset when pagination is requested
 	if pgReq.Size > 0 {
+		if len(pgReq.Sort) == 0 {
+			// logger.WithContext(ctx).Warn("Pagination without explicit ORDER BY may not have consistent results.")
+			err = errors.New("pagination without explicit ORDER BY may not have consistent results")
+			return
+		}
+
 		rowsQuery = rowsQuery.
 			Limit(pgReq.Size).
 			Offset(pgReq.Page * pgReq.Size)

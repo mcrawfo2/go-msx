@@ -73,9 +73,9 @@ func TestSuite_TypedRepository(t *testing.T) {
 	pagingResponse, err := personsRepo.FindAll(ctx, &destPersons,
 		Where(And(map[string]interface{}{"name": person1.Name})),
 		Keys(map[string]interface{}{"id": person1.Id}),
-		//Distinct("name"), // no distinct on for sqlite3
-		Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
+		// Distinct("name"), // no distinct on for sqlite3
 		Paging(paging.Request{Size: 10, Page: 0}),
+		Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
 	)
 	assert.NoError(t, err)
 	logger.WithContext(ctx).Info(pagingResponse)
@@ -212,13 +212,44 @@ func TestTypedRepository_FindAll(t *testing.T) {
 	pagingResponse, err := personsRepo.FindAll(ctx, &destPersons,
 		Where(goqu.Ex(map[string]interface{}{"name": mockName})),
 		Keys(goqu.Ex(map[string]interface{}{"id": uuid.MustParse(mockId)})),
-		//Distinct("name"),
-		Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
+		// Distinct("name"), // goqu: dialect does not support DISTINCT ON clause [dialect=sqlite3]
+
 		Paging(paging.Request{Size: 10, Page: 0}),
+		Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
 	)
 	assert.NoError(t, err)
 	logger.WithContext(ctx).Info(pagingResponse)
 	logger.WithContext(ctx).Info(destPersons)
+}
+
+func TestTypedRepository_FindAll_NoDefaultSort(t *testing.T) {
+	ctx, mockDB, mock, err := newReposSqlMock()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+
+	rows := sqlmock.NewRows([]string{"id", "name"}).
+		AddRow(uuid.MustParse(mockId), mockName)
+	mock.ExpectQuery("SELECT \\* FROM `persons` WHERE \\(\\(`name` = \\?\\) AND \\(`id` = \\?\\)\\) ORDER BY `name` ASC LIMIT \\?").
+		WillReturnRows(rows)
+	mock.ExpectQuery("SELECT COUNT\\(\\*\\) FROM \\(SELECT \\* FROM `persons` WHERE \\(\\(`name` = \\?\\) AND \\(`id` = \\?\\)\\)\\) AS `t1`").
+		WillReturnRows(sqlmock.NewRows([]string{"COUNT"}).FromCSVString("5"))
+
+	personsRepo, _ := NewTypedRepository[Person](ctx, "persons")
+
+	var destPersons []Person
+	_, err = personsRepo.FindAll(ctx, &destPersons,
+		Where(goqu.Ex(map[string]interface{}{"name": mockName})),
+		Keys(goqu.Ex(map[string]interface{}{"id": uuid.MustParse(mockId)})),
+		// Distinct("name"), // goqu: dialect does not support DISTINCT ON clause [dialect=sqlite3]
+
+		Paging(paging.Request{Size: 10, Page: 0}),
+		// Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
+	)
+
+	assert.Error(t, err)
+	logger.WithContext(ctx).Error(err)
 }
 
 func TestTypedRepository_DeleteOne(t *testing.T) {
@@ -382,7 +413,7 @@ func TestQueryGeneration(t *testing.T) {
 				mockApi.EXPECT().
 					SqlSelect(
 						mock.Anything,
-						"SELECT * FROM `person` WHERE ((`id` = ?) AND (`name` = ?)) LIMIT ? OFFSET ?",
+						"SELECT * FROM `person` WHERE ((`id` = ?) AND (`name` = ?)) ORDER BY `name` ASC LIMIT ? OFFSET ?",
 						[]any{mockId, mockName, int64(10), int64(100)},
 						mock.Anything).
 					Return(nil)
@@ -406,7 +437,9 @@ func TestQueryGeneration(t *testing.T) {
 					Paging(paging.Request{
 						Size: 10,
 						Page: 10,
-					}))
+					}),
+					Sort([]paging.SortOrder{{Property: "name", Direction: "ASC"}}),
+				)
 				return err
 			},
 			wantErr: false,

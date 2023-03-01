@@ -35,6 +35,10 @@ func Distinct(distinct ...string) FindAllOption {
 	}
 }
 
+/*
+Note that both Sort and Paging (pagingRequest.Sort) can be used for sorting.
+It may not be a good idea to use both at the same time for sorting purposes (having sorting info in 2 places).
+*/
 func Sort(sortOrders []paging.SortOrder) FindAllOption {
 	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		for _, sortOrder := range sortOrders {
@@ -45,14 +49,18 @@ func Sort(sortOrders []paging.SortOrder) FindAllOption {
 			default:
 				ds = ds.OrderAppend(ident.Asc())
 			}
-		}
 
-		pgReq.Sort = sortOrders
+			pgReq.Sort = append(pgReq.Sort, sortOrder)
+		}
 
 		return ds, pgReq
 	}
 }
 
+/*
+Note that both Sort and Paging (pagingRequest.Sort) can be used for sorting.
+It may not be a good idea to use both at the same time for sorting purposes (having sorting info in 2 places).
+*/
 func Paging(pagingRequest paging.Request) FindAllOption {
 	return func(ds *goqu.SelectDataset, pgReq paging.Request) (*goqu.SelectDataset, paging.Request) {
 		if pagingRequest.Size > 0 {
@@ -60,6 +68,9 @@ func Paging(pagingRequest paging.Request) FindAllOption {
 				Limit(pagingRequest.Size).
 				Offset(pagingRequest.Page * pagingRequest.Size)
 		}
+
+		pgReq.Size = pagingRequest.Size
+		pgReq.Page = pagingRequest.Page
 
 		for _, sortOrder := range pagingRequest.Sort {
 			ident := goqu.I(sortOrder.Property)
@@ -69,11 +80,9 @@ func Paging(pagingRequest paging.Request) FindAllOption {
 			default:
 				ds = ds.OrderAppend(ident.Asc())
 			}
-		}
 
-		pgReq.Size = pagingRequest.Size
-		pgReq.Page = pagingRequest.Page
-		pgReq.Sort = pagingRequest.Sort
+			pgReq.Sort = append(pgReq.Sort, sortOrder)
+		}
 
 		return ds, pgReq
 	}

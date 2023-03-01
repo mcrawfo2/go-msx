@@ -59,6 +59,7 @@ require (
 	github.com/radovskyb/watcher v1.0.7
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/sanity-io/litter v1.5.5
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
@@ -77,16 +78,13 @@ require (
 	go.uber.org/atomic v1.9.0
 	golang.org/x/mod v0.7.0
 	golang.org/x/text v0.5.0
+	golang.org/x/tools v0.4.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
 	modernc.org/sqlite v1.20.2
 	moul.io/banner v1.0.1
 )
-
-require github.com/sanity-io/litter v1.5.5
-
-require golang.org/x/tools v0.4.0
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
