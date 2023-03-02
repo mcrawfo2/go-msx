@@ -8,11 +8,13 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -84,6 +86,7 @@ type GeneratorConfig struct {
 	Tenant     string
 	Actions    []string
 	Components []string
+	UnitTests  bool
 }
 
 func (c GeneratorConfig) Validate() error {
@@ -131,6 +134,11 @@ func init() {
 	cmd.Flags().StringVar(&generatorConfig.Tenant, "tenant", TenantNone, "Tenant access control.  One of: single, hierarchy")
 	cmd.Flags().StringArrayVar(&generatorConfig.Actions, "actions", []string{}, "Generate specific actions.  Any of: list, retrieve, create, update, delete")
 	cmd.Flags().StringArrayVar(&generatorConfig.Components, "components", []string{}, "Generate specific components.  Any of: pkg, api, controller, converter, service, repository, model")
+	cmd.Flags().BoolVar(&generatorConfig.UnitTests, "tests", true, "Generate unit tests")
+
+	cmd = skel.AddTarget("disinflect", "Reverse inflections", Disinflect)
+	cmd.Args = cobra.MinimumNArgs(2)
+	cmd.Hidden = true
 }
 
 func generateDomainOptions(_ *cobra.Command, args []string) error {
@@ -168,69 +176,74 @@ type RenderOptionsTransformer interface {
 }
 
 type ScopedComponentGenerator struct {
-	Style     string
-	Tenant    string
 	Component string
+	UnitTest  bool
 	Factory   func(spec Spec) ComponentGenerator
 }
 
 var componentGenerators = []ScopedComponentGenerator{
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
 		Component: ComponentGlobals,
 		Factory:   NewDomainGlobalsGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
+		Component: ComponentGlobals,
+		Factory:   NewDomainGlobalsUnitTestGenerator,
+		UnitTest:  true,
+	},
+	{
 		Component: ComponentPayloads,
 		Factory:   NewDomainPayloadsGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
 		Component: ComponentController,
 		Factory:   NewDomainControllerGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    TenantNone,
+		Component: ComponentController,
+		Factory:   NewDomainControllerUnitTestGenerator,
+		UnitTest:  true,
+	},
+	{
 		Component: ComponentService,
 		Factory:   NewDomainServiceGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    TenantNone,
+		Component: ComponentService,
+		Factory:   NewDomainServiceUnitTestGenerator,
+		UnitTest:  true,
+	},
+	{
 		Component: ComponentConverter,
 		Factory:   NewDomainConverterGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
 		Component: ComponentModel,
 		Factory:   NewDomainModelGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
+		Component: ComponentModel,
+		Factory:   NewDomainModelUnitTestGenerator,
+		UnitTest:  true,
+	},
+	{
 		Component: ComponentRepository,
 		Factory:   NewDomainRepositoryGenerator,
 	},
 	{
-		Style:     MatchesAny,
-		Tenant:    MatchesAny,
+		Component: ComponentRepository,
+		Factory:   NewDomainRepositoryUnitTestGenerator,
+		UnitTest:  true,
+	},
+	{
 		Component: ComponentMigration,
 		Factory:   NewDomainMigrationGenerator,
 	},
 }
 
-func findGenerator(style, tenant, component string) *ScopedComponentGenerator {
+func findGenerator(component string, ut bool) *ScopedComponentGenerator {
 	for _, componentGenerator := range componentGenerators {
-		if componentGenerator.Style != MatchesAny && componentGenerator.Style != style {
-			continue
-		}
-		if componentGenerator.Tenant != MatchesAny && componentGenerator.Tenant != tenant {
+		if componentGenerator.UnitTest != ut {
 			continue
 		}
 		if componentGenerator.Component != MatchesAny && componentGenerator.Component != component {
@@ -253,9 +266,13 @@ func GenerateDomain(_ []string) (err error) {
 
 	var generators []ScopedComponentGenerator
 	for _, component := range generatorConfig.Components {
-		generator := findGenerator(generatorConfig.Style, generatorConfig.Tenant, component)
+		generator := findGenerator(component, false)
 		if generator != nil {
 			generators = append(generators, *generator)
+			utGenerator := findGenerator(component, true)
+			if utGenerator != nil && generatorConfig.UnitTests {
+				generators = append(generators, *utGenerator)
+			}
 		} else {
 			err = errors.Errorf("Failed to identify generator for style=%s tenant=%s component=%s",
 				generatorConfig.Style, generatorConfig.Tenant, component)
@@ -296,9 +313,15 @@ func GenerateDomain(_ []string) (err error) {
 
 	var actions = []ActionFunc{
 		func() error {
+			// initialize the generated package from main
 			return skel.InitializePackageFromFile(
 				path.Join(skel.Config().TargetDirectory(), "cmd", "app", "main.go"),
 				path.Join(skel.Config().AppPackageUrl(), generatorConfig.Folder))
+		},
+		func() error {
+			// generate mocks
+			return skel.GoGenerate(
+				path.Join(skel.Config().TargetDirectory(), generatorConfig.Folder))
 		},
 	}
 
@@ -309,4 +332,62 @@ func GenerateDomain(_ []string) (err error) {
 	}
 
 	return
+}
+
+func Disinflect(args []string) error {
+	sourceFile := args[0]
+	domain := strings.TrimSpace(strings.Join(args[1:], " "))
+
+	inflector := skel.NewInflector(domain)
+
+	sourceBytes, err := os.ReadFile(sourceFile)
+	if err != nil {
+		return err
+	}
+
+	inflections := types.StringPairSlice{
+		{
+			Left:  `\b` + inflector[skel.InflectionLowerCamelPlural],
+			Right: skel.InflectionLowerCamelPlural,
+		},
+		{
+			Left:  `_` + inflector[skel.InflectionLowerCamelPlural],
+			Right: `_` + skel.InflectionLowerCamelPlural,
+		},
+		{
+			Left:  inflector[skel.InflectionUpperCamelPlural],
+			Right: skel.InflectionUpperCamelPlural,
+		},
+		{
+			Left:  `\b` + inflector[skel.InflectionLowerCamelSingular],
+			Right: skel.InflectionLowerCamelSingular,
+		},
+		{
+			Left:  `_` + inflector[skel.InflectionLowerCamelSingular],
+			Right: `_` + skel.InflectionLowerCamelSingular,
+		},
+		{
+			Left:  inflector[skel.InflectionUpperCamelSingular],
+			Right: skel.InflectionUpperCamelSingular,
+		},
+		{
+			Left:  `\b` + inflector[skel.InflectionLowerSnakeSingular] + `_`,
+			Right: skel.InflectionLowerSnakeSingular + `_`,
+		},
+		{
+			Left:  `\b` + inflector[skel.InflectionScreamingSnakePlural] + `_`,
+			Right: skel.InflectionScreamingSnakePlural + `_`,
+		},
+		{
+			Left:  `\b` + inflector[skel.InflectionScreamingSnakeSingular] + `_`,
+			Right: skel.InflectionScreamingSnakeSingular + `_`,
+		},
+	}
+	for _, inflection := range inflections {
+		re := regexp.MustCompile(inflection.Left)
+		sourceBytes = re.ReplaceAll(sourceBytes, []byte(inflection.Right))
+	}
+
+	_, err = fmt.Println(string(sourceBytes))
+	return err
 }

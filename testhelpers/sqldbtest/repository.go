@@ -154,7 +154,7 @@ func (r *RepositoryTest) checkWantErr() error {
 	return testhelpers.CheckErr(r.Got, r.HasErr, r.WantErr)
 }
 
-func (r *RepositoryTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Context)) {
+func (r *RepositoryTest) Test(t *testing.T, fn testhelpers.ServiceTestFunc) {
 	var cfg *config.Config
 	if r.Context.Config != nil {
 		cfg = r.Context.Config
