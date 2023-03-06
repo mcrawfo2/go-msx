@@ -29,6 +29,7 @@ func (c SpecificationCustomizer) PostBuildSpec(swagger *spec.Swagger) {
 	c.CustomizeBasePath(swagger)
 	c.CustomizeTypeDefinitions(swagger)
 	c.SortTags(swagger)
+	c.CustomizeApiIgnore(swagger)
 }
 
 func (c SpecificationCustomizer) CustomizeInfo(swagger *spec.Swagger) {
@@ -60,15 +61,21 @@ func (c SpecificationCustomizer) CustomizeInfo(swagger *spec.Swagger) {
 }
 
 func (c SpecificationCustomizer) CustomizeTags(swagger *spec.Swagger) {
-	// Register tags definitions from all routes
+	// Register tags definitions from all routes (except api ignored routes)
 	var existingTags = types.StringStack{}
 	for _, svc := range c.container.RegisteredWebServices() {
 		for _, route := range svc.Routes() {
 			if routeTagDefinition, ok := webservice.TagDefinitionFromRoute(route); !ok {
 				continue
 			} else if !existingTags.Contains(routeTagDefinition.Name) {
-				existingTags = append(existingTags, routeTagDefinition.Name)
-				swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
+				// do not add this tag if current route is api ignored
+				routeApiIgnore, ok := webservice.ApiIgnoreFromRoute(route)
+				if !ok || !routeApiIgnore {
+					existingTags = append(existingTags, routeTagDefinition.Name)
+					swagger.Tags = append(swagger.Tags, spec.Tag{TagProps: routeTagDefinition})
+				} else {
+					logger.Infof("Api ignore: %v %v", route.Method, route.Path)
+				}
 			}
 		}
 	}
@@ -119,6 +126,71 @@ func (c SpecificationCustomizer) CustomizeTypeDefinitions(swagger *spec.Swagger)
 	}
 }
 
+func (c SpecificationCustomizer) CustomizeApiIgnore(swagger *spec.Swagger) {
+	for _, svc := range c.container.RegisteredWebServices() {
+		for _, route := range svc.Routes() {
+			routeApiIgnore, ok := webservice.ApiIgnoreFromRoute(route)
+			if ok && routeApiIgnore {
+				// to find and remove the correct route in swagger
+				routePath := strings.TrimSuffix(route.Path, "/")
+				routePath = strings.TrimPrefix(routePath, swagger.SwaggerProps.BasePath)
+
+				pathItem, pathExists := swagger.SwaggerProps.Paths.Paths[routePath]
+				if pathExists {
+					removeRouteFromPathItem(&pathItem, route)
+					swagger.SwaggerProps.Paths.Paths[routePath] = pathItem
+				}
+			}
+		}
+	}
+
+	// remove paths without any item
+	filteredPaths := FilterPathsWithoutItem(swagger.SwaggerProps.Paths.Paths)
+	swagger.SwaggerProps.Paths.Paths = filteredPaths
+}
+
+func removeRouteFromPathItem(pathItem *spec.PathItem, route restful.Route) {
+	methodUpper := strings.ToUpper(route.Method)
+	switch methodUpper {
+	case "GET":
+		pathItem.Get = nil
+	case "PUT":
+		pathItem.Put = nil
+	case "POST":
+		pathItem.Post = nil
+	case "DELETE":
+		pathItem.Delete = nil
+	case "OPTIONS":
+		pathItem.Options = nil
+	case "HEAD":
+		pathItem.Head = nil
+	case "PATCH":
+		pathItem.Patch = nil
+	default:
+		logger.Error("Unknown method: " + methodUpper)
+	}
+}
+
 type SchemaSource interface {
 	SwaggerSchemaJson() string
+}
+
+func IsSpecItemEmpty(pathItem spec.PathItem) bool {
+	return pathItem.Get == nil &&
+		pathItem.Put == nil &&
+		pathItem.Post == nil &&
+		pathItem.Delete == nil &&
+		pathItem.Options == nil &&
+		pathItem.Head == nil &&
+		pathItem.Patch == nil
+}
+
+func FilterPathsWithoutItem(paths map[string]spec.PathItem) map[string]spec.PathItem {
+	filteredPaths := make(map[string]spec.PathItem)
+	for routePath, pathItem := range paths {
+		if !IsSpecItemEmpty(pathItem) {
+			filteredPaths[routePath] = pathItem
+		}
+	}
+	return filteredPaths
 }

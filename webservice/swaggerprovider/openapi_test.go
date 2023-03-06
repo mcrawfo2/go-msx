@@ -8,6 +8,7 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema"
 	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/configtest"
+	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/openapi-go/openapi3"
@@ -28,6 +29,9 @@ func TestOpenApiProvider_BuildSpec(t *testing.T) {
 
 	ws := new(restful.WebService)
 	ws.Route(ws.GET("/api/v1/entity").
+		To(func(request *restful.Request, response *restful.Response) {}))
+	ws.Route(ws.GET("/api/v1/apiignore").
+		Metadata(webservice.MetadataApiIgnore, true).
 		To(func(request *restful.Request, response *restful.Response) {}))
 
 	c.Add(ws)

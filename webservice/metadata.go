@@ -128,3 +128,17 @@ func SilenceLogFromRequest(request *restful.Request) bool {
 	silenceLog, ok := val.(bool)
 	return ok && silenceLog
 }
+
+func RouteBuilderWithApiIgnore(b *restful.RouteBuilder, apiIgnore bool) {
+	b.Metadata(MetadataApiIgnore, apiIgnore)
+}
+
+func ApiIgnoreFromRoute(r restful.Route) (isApiIgnored, ok bool) {
+	val, ok := r.Metadata[MetadataApiIgnore]
+	if !ok {
+		return
+	}
+
+	isApiIgnored, ok = val.(bool)
+	return
+}
