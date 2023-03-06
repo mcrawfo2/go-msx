@@ -143,6 +143,7 @@ func NewRenderOptions() RenderOptions {
 			"service.type":                 skeletonConfig.ServiceType,
 			"slack.channel":                skeletonConfig.SlackChannel,
 			"trunk":                        skeletonConfig.Trunk,
+			"gomsx.version":                GoMsxVersion,
 		},
 		Conditions: map[string]bool{
 			"REPOSITORY_COCKROACH":   skeletonConfig.Repository == "cockroach",
@@ -153,6 +154,7 @@ func NewRenderOptions() RenderOptions {
 			"GENERATOR_SPUI":         skeletonConfig.Archetype == archetypeKeySPUI,
 			"UI":                     hasUI(),
 			"K8S_GROUP_DATAPLATFORM": skeletonConfig.KubernetesGroup == "dataplatform",
+			"EXTERNAL":               IsExternal,
 		},
 		Strings:      map[string]string{},
 		IncFiles:     incFiles,

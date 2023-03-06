@@ -5,6 +5,8 @@
 package skel
 
 import (
+	"errors"
+	"net"
 	"os"
 	"path"
 	"strconv"
@@ -13,6 +15,13 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"golang.org/x/text/cases"
 )
+
+const (
+	DefaultInternalScmHost = "cto-github.cisco.com"
+	DefaultExternalScmHost = "github.com"
+)
+
+var ErrUserCancelled = errors.New("user cancelled")
 
 type SkeletonConfig struct {
 	Archetype         string `survey:"generator" json:"generator"`
@@ -35,6 +44,8 @@ type SkeletonConfig struct {
 	Trunk             string `survey:"trunk" json:"trunk"`
 	ImageFile         string `survey:"imageFile" json:"imageFile"`
 	noOverwrite       bool   // prevent the renderer from overwriting existing files
+	ScmHost           string `survey:"scmHost" json:"scmHost"`
+	ScmOrganization   string `survey:"scmOrg" json:"scmOrg"`
 }
 
 func (c SkeletonConfig) TargetDirectory() string {
@@ -63,7 +74,7 @@ func (c SkeletonConfig) AppMigrateVersion() string {
 
 func (c SkeletonConfig) AppPackageUrl() string {
 	// TODO: honor go.mod package url
-	return path.Join("cto-github.cisco.com", "NFV-BU", c.AppName)
+	return path.Join(c.ScmHost, c.ScmOrganization, c.AppName)
 }
 
 func (c SkeletonConfig) ApiPackageUrl() string {
@@ -102,7 +113,10 @@ var skeletonConfig = &SkeletonConfig{
 	SlackChannel:      "go-msx-build",
 	Trunk:             "main",
 	ImageFile:         "msx.png",
+	ScmHost:           DefaultInternalScmHost,
+	ScmOrganization:   "NFV-BU",
 }
+var IsExternal bool
 
 func Config() *SkeletonConfig {
 	return skeletonConfig
@@ -346,19 +360,27 @@ var archetypeSurveyQuestions = map[string][]*survey.Question{
 	},
 }
 
-var archetypeQuestions = []*survey.Question{
-	{
-		Name: "generator",
-		Prompt: &survey.Select{
-			Message: "Generate archetype:",
-			Options: archetypes.DisplayNames(),
-			Default: 0,
-		},
-	},
+func DetectExternal() bool {
+	var dnsError *net.DNSError
+	_, err := net.LookupHost(DefaultInternalScmHost)
+	if errors.As(err, &dnsError) {
+		IsExternal = true
+	}
+	return IsExternal
 }
 
 // ConfigureInteractive is the only entry point to the menu UI
 func ConfigureInteractive() error {
+	var archetypeQuestions = []*survey.Question{
+		{
+			Name: "generator",
+			Prompt: &survey.Select{
+				Message: "Generate archetype:",
+				Options: archetypes.DisplayNames(IsExternal),
+				Default: 0,
+			},
+		},
+	}
 
 	var archetypeIndex int
 	err := survey.Ask(archetypeQuestions, &archetypeIndex) // determine the archetype
@@ -383,6 +405,33 @@ func ConfigureInteractive() error {
 	skeletonConfig.Archetype = archetypes.Key(archetypeIndex)
 
 	var questions = archetypeSurveyQuestions[skeletonConfig.Archetype]
+	err = survey.Ask(questions, skeletonConfig)
+	if err != nil {
+		return err
+	}
+
+	// Ask SCM location
+	if IsExternal {
+		skeletonConfig.ScmHost = DefaultExternalScmHost
+		skeletonConfig.ScmOrganization = os.Getenv("USER")
+	}
+	questions = []*survey.Question{
+		{
+			Name: "scmHost",
+			Prompt: &survey.Input{
+				Message: "SCM Host:",
+				Default: skeletonConfig.ScmHost,
+			},
+			Validate: survey.Required,
+		},
+		{
+			Name: "scmOrganization",
+			Prompt: &survey.Input{
+				Message: "SCM Host:",
+				Default: skeletonConfig.ScmOrganization,
+			},
+		},
+	}
 	err = survey.Ask(questions, skeletonConfig)
 	if err != nil {
 		return err

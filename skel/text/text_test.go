@@ -171,13 +171,13 @@ func TestFile_FindSection(t *testing.T) {
 func TestFile_Render(t *testing.T) {
 	type testCase[I NamedGenerator] struct {
 		name string
-		f    File[I]
+		f    *File[I]
 		want string
 	}
 	tests := []testCase[Snippet]{
 		{
 			name: "General",
-			f: File[Snippet]{
+			f: &File[Snippet]{
 				Comment: "General",
 				Sections: Sections[Snippet]{{
 					Name: "One",

@@ -32,6 +32,14 @@ const (
 
 type Inflector map[string]string
 
+func (i Inflector) Invert() Inflector {
+	result := make(map[string]string)
+	for k, v := range i {
+		result[v] = k
+	}
+	return result
+}
+
 func (i Inflector) Inflect(target string) string {
 	for k, v := range i {
 		target = strings.ReplaceAll(target, k, v)

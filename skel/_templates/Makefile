@@ -36,9 +36,12 @@ dist: ## Build all outputs required for a container image
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
 	$(BUILDER) install-resources
+#if EXTERNAL
+#else EXTERNAL
 	$(BUILDER) install-dependency-configs
 	$(BUILDER) install-swagger-ui
 	$(BUILDER) install-asyncapi-ui
+#endif EXTERNAL
 	$(BUILDER) build-executable
 	$(BUILDER) download-seccomp-dependencies
 	$(BUILDER) generate-seccomp-profile
@@ -50,7 +53,10 @@ dist-debug: ## Build all outputs required for a debug container image
 	$(BUILDER) generate-build-info
 	$(BUILDER) install-executable-configs
 	$(BUILDER) install-resources
+#if EXTERNAL
+#else EXTERNAL
 	$(BUILDER) install-dependency-configs
+#endif EXTERNAL
 	$(BUILDER) build-debug-executable
 
 docker-push:

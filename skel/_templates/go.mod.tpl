@@ -1,6 +1,10 @@
-module cto-github.cisco.com/NFV-BU/${app.name}
+module ${app.packageurl}
 
 go 1.18
+
+//#if EXTERNAL
+replace cto-github.cisco.com/NFV-BU/go-msx => github.com/mcrawfo2/go-msx ${gomsx.version}
+//#endif EXTERNAL
 
 //#if GENERATOR_BEAT
 replace (

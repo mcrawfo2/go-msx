@@ -223,7 +223,10 @@ func NewDomainConverterGenerator(spec Spec) ComponentGenerator {
 		},
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
-				Comment:   "API Converter for " + generatorConfig.Domain,
+				Comment: fmt.Sprintf(
+					"%s API Converter for %s",
+					generatorConfig.Style,
+					generatorConfig.Domain),
 				Inflector: skel.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"Service",

@@ -33,12 +33,13 @@ type ServiceTest struct {
 		TokenDetails *securitytest.MockTokenDetailsProvider
 		Injectors    []types.ContextInjector
 	}
-	Clock   *abtime.ManualTime
-	HasErr  bool
-	Got     []interface{}
-	Want    []interface{}
-	WantErr bool
-	Checks  struct {
+	Clock              *abtime.ManualTime
+	HasErr             bool
+	Got                []interface{}
+	Want               []interface{}
+	WantErr            bool
+	AssertExpectations bool
+	Checks             struct {
 		Log []logtest.Check
 	}
 	Errors struct {
@@ -67,6 +68,11 @@ func (s *ServiceTest) WithWantErr(wantErr bool) *ServiceTest {
 func (s *ServiceTest) WithHasErr(hasErr bool) *ServiceTest {
 	s.HasErr = hasErr
 	return s
+}
+
+func (r *ServiceTest) WithAssertExpectations(assert bool) *ServiceTest {
+	r.AssertExpectations = assert
+	return r
 }
 
 func (s *ServiceTest) WithRecording(rec *logtest.Recording) *ServiceTest {
@@ -119,7 +125,24 @@ func (s *ServiceTest) checkWant() (results []error) {
 			continue
 		}
 		got := s.Got[n]
-		if !reflect.DeepEqual(want, got) {
+
+		zero := false
+		if want == nil {
+			gotValue := reflect.ValueOf(got)
+			if gotValue.Kind() == reflect.Interface && got != nil {
+				gotValue = gotValue.Elem()
+			}
+			switch gotValue.Kind() {
+			case reflect.Ptr:
+				zero = gotValue.IsNil()
+			case reflect.Slice, reflect.Map:
+				zero = gotValue.Len() == 0
+			case reflect.Interface:
+				zero = got != nil
+			}
+		}
+
+		if !zero && !reflect.DeepEqual(want, got) {
 			results = append(results, errors.Errorf("Returned Value %d mismatch:\n%s", n, testhelpers.Diff(want, got)))
 		}
 	}
@@ -131,7 +154,7 @@ func (s *ServiceTest) checkWantErr() error {
 	return testhelpers.CheckErr(s.Got, s.HasErr, s.WantErr)
 }
 
-func (s *ServiceTest) Test(t *testing.T, fn func(t *testing.T, ctx context.Context)) {
+func (s *ServiceTest) Test(t *testing.T, fn testhelpers.ServiceTestFunc) {
 	var cfg *config.Config
 	if s.Context.Config != nil {
 		cfg = s.Context.Config

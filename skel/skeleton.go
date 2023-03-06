@@ -6,14 +6,18 @@ package skel
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/exec"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/pipe.v2"
+	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 var ErrNoTemplates = errors.Errorf("no templates")
@@ -206,6 +210,12 @@ func GenerateLocal(_ []string) error {
 }
 
 func GenerateApp(_ []string) error {
+	if IsExternal {
+		if err := FindPublicGoMsxVersion(); err != nil {
+			return err
+		}
+	}
+
 	logger.Info("Generating application")
 	templates := TemplateSet{
 		{
@@ -290,6 +300,61 @@ func GenerateTest(_ []string) error {
 	return templates.Render(NewRenderOptions())
 }
 
+var GoMsxVersion string
+
+func FindPublicGoMsxVersion() error {
+	resp, err := http.Get("https://api.github.com/repos/mcrawfo2/go-msx/tags")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return errors.Errorf("Failed to retrieve GitHub tags, returned %d", resp.StatusCode)
+	}
+
+	type GithubTag struct {
+		Name string `json:"name"`
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Wrap(err, "Failed to retrieve tags")
+	}
+
+	var tags []GithubTag
+	if err = json.Unmarshal(bodyBytes, &tags); err != nil {
+		return errors.Wrap(err, "Failed to decode tags")
+	}
+
+	var highestTagVersion types.Version
+	var highestTagName string
+	for _, tag := range tags {
+		if !strings.HasPrefix(tag.Name, "v") {
+
+		}
+
+		tagName := strings.TrimPrefix(tag.Name, "v")
+		tagVersion, err := types.NewVersion(tagName)
+		if err != nil {
+			continue
+		}
+
+		if highestTagName == "" || highestTagVersion.Lt(tagVersion) {
+			highestTagVersion = tagVersion
+			highestTagName = tag.Name
+		}
+		break
+	}
+
+	if highestTagName == "" {
+		return errors.New("Failed to locate any recent version tags")
+	}
+
+	GoMsxVersion = highestTagName
+	return nil
+}
+
 func AddGoMsxDependency(_ []string) error {
 	logger.Info("Add go-msx dependency")
 
@@ -302,18 +367,20 @@ func AddGoMsxDependency(_ []string) error {
 				pipe.Exec("go", "get", "cto-github.cisco.com/NFV-BU/"+name)))
 
 	}
-
-	pipes := []pipe.Pipe{
+	var pipes = []pipe.Pipe{
 		addDependency("go-msx"),
-		addDependency("go-msx-build"),
-		addDependency("go-msx-populator"),
 	}
 
-	if skeletonConfig.Archetype == archetypeKeyBeat {
-		pipes = append(pipes, addDependency("go-msx-beats"))
-	} else if skeletonConfig.Archetype == archetypeKeyServicePack {
-		pipes = append(pipes, addDependency("administrationservice"))
-		pipes = append(pipes, addDependency("catalogservice"))
+	if !IsExternal {
+		pipes = append(pipes, addDependency("go-msx-build"))
+		pipes = append(pipes, addDependency("go-msx-populator"))
+
+		if skeletonConfig.Archetype == archetypeKeyBeat {
+			pipes = append(pipes, addDependency("go-msx-beats"))
+		} else if skeletonConfig.Archetype == archetypeKeyServicePack {
+			pipes = append(pipes, addDependency("administrationservice"))
+			pipes = append(pipes, addDependency("catalogservice"))
+		}
 	}
 
 	pipes = append(pipes,

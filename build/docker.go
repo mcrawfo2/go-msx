@@ -51,14 +51,24 @@ func DockerPush(args []string) error {
 }
 
 func dockerImageName() string {
-	return fmt.Sprintf("%s/%s:%s",
-		BuildConfig.Docker.Repository,
+	if BuildConfig.Docker.Repository != "" {
+		return fmt.Sprintf("%s/%s:%s",
+			BuildConfig.Docker.Repository,
+			BuildConfig.App.Name,
+			BuildConfig.FullBuildNumber())
+	}
+
+	return fmt.Sprintf("%s:%s",
 		BuildConfig.App.Name,
 		BuildConfig.FullBuildNumber())
 }
 
 func dockerBaseImage() string {
-	return fmt.Sprintf("%s/%s",
-		BuildConfig.Docker.Repository,
-		BuildConfig.Docker.BaseImage)
+	if BuildConfig.Docker.Repository != "" {
+		return fmt.Sprintf("%s/%s",
+			BuildConfig.Docker.Repository,
+			BuildConfig.Docker.BaseImage)
+	}
+	
+	return BuildConfig.Docker.BaseImage
 }

@@ -160,7 +160,7 @@ func (c PagingConverter) FromSortingInputs(sortReq SortingInputs) (result paging
 			Direction: paging.SortDirection(strings.ToUpper(sortReq.SortOrder)),
 		}
 		result.Sort = append(result.Sort, sortResult)
-		result.Sort, err = c.ToPagingSortOrder(result.Sort)
+		result.Sort, err = c.FromPagingSortOrder(result.Sort)
 	}
 	return
 }

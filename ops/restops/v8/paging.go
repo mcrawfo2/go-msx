@@ -139,7 +139,7 @@ func (c PagingConverter) FromSortingInputs(sortReq SortingInputs) (result paging
 			Direction: paging.SortDirection(strings.ToUpper(sortReq.SortOrder)),
 		}
 		result.Sort = append(result.Sort, sortResult)
-		result.Sort, err = c.ToPagingSortOrder(result.Sort)
+		result.Sort, err = c.FromPagingSortOrder(result.Sort)
 	}
 	return
 }
@@ -205,7 +205,7 @@ func (c PagingConverter) ToPagingResponse(pout paging.Response) (response Paging
 
 	if pout.Sort != nil && len(pout.Sort) == 1 {
 		response.SortBy = pout.Sort[0].Property
-		response.SortOrder = string(pout.Sort[0].Direction)
+		response.SortOrder = strings.ToLower(string(pout.Sort[0].Direction))
 	}
 
 	return

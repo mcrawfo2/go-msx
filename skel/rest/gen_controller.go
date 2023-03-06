@@ -7,6 +7,7 @@ package rest
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/js"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema/openapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
@@ -644,6 +645,16 @@ func (g DomainControllerGenerator) generateOutputPortStructSchema(operation open
 				propertyName = "errorBody"
 			}
 
+			if g.Style == StyleV2 {
+				responseEnvelopeSchema := g.Spec.ResolveSchema(*responseBodySchema)
+				injectedSchema := openapi.InjectedPropertySchema(responseEnvelopeSchema.Schema)
+				if injectedSchema == nil {
+					// eg types.Void.Envelope = no explicit body
+					continue
+				}
+				portFieldSchema = g.Spec.GetJsonSchema(injectedSchema)
+			}
+
 			if portFieldSchema.Ref != nil {
 				if strings.HasSuffix(*portFieldSchema.Ref, g.Style+".Error") && isError && !isSuccess {
 					continue
@@ -810,7 +821,10 @@ func NewDomainControllerGenerator(spec Spec) ComponentGenerator {
 
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
-				Comment:   "V8 API REST Controller for " + generatorConfig.Domain,
+				Comment: fmt.Sprintf(
+					"%s API REST Controller for %s",
+					generatorConfig.Style,
+					generatorConfig.Domain),
 				Inflector: inflector,
 				Sections: text.NewGoSections(
 					"Constants",
