@@ -10,6 +10,7 @@ import (
 	"github.com/swaggest/openapi-go/openapi3"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -109,9 +110,51 @@ func LookupSchema(schemaName string) (*openapi3.Schema, bool) {
 	return result.Schema, ok
 }
 
+// Tags is a sortable, unique list of openapi3 tags
+type Tags []openapi3.Tag
+
+func (t Tags) Len() int {
+	return len(t)
+}
+
+func (t Tags) Less(i, j int) bool {
+	return strings.Compare(t[i].Name, t[j].Name) < 0
+}
+
+func (t Tags) Swap(i, j int) {
+	t[i], t[j] = t[j], t[i]
+}
+
+func (t Tags) Index(name string) int {
+	for i, tag := range t {
+		if tag.Name == name {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func (t Tags) Add(tag openapi3.Tag) Tags {
+	result := append(Tags(nil), t...)
+
+	i := t.Index(tag.Name)
+	if i == -1 {
+		result = append(result, tag)
+	} else {
+		result[i] = tag
+	}
+
+	sort.Sort(result)
+
+	return result
+}
+
 func AddTag(name string, description string) {
 	tag := openapi3.Tag{}
 	tag.WithName(name)
 	tag.WithDescription(description)
-	Spec().WithTags(append(Spec().Tags, tag)...)
+
+	tags := Tags(Spec().Tags).Add(tag)
+	Spec().WithTags(tags...)
 }
