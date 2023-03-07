@@ -6,7 +6,6 @@ package swaggerprovider
 
 import (
 	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/swagger"
 	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
@@ -20,7 +19,6 @@ import (
 
 var (
 	ErrDisabled = errors.New("Swagger disabled")
-	logger      = log.NewLogger("msx.webservice.swaggerprovider")
 )
 
 type SwaggerProvider struct {

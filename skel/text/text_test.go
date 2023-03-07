@@ -118,14 +118,15 @@ func TestFile_FindSection(t *testing.T) {
 		name    string
 		f       *File[I]
 		section string
-		want    *Section[I]
+		want    Section[I]
 	}
+
 	tests := []testCase[Snippet]{
 		{
 			name:    "FlatNew",
 			f:       &File[Snippet]{},
 			section: "First",
-			want: &Section[Snippet]{
+			want: Section[Snippet]{
 				Name: "First",
 			},
 		},
@@ -141,7 +142,7 @@ func TestFile_FindSection(t *testing.T) {
 				}},
 			},
 			section: "Exists",
-			want: &Section[Snippet]{
+			want: Section[Snippet]{
 				Name: "Exists",
 				Snippets: []Snippet{{
 					Name: "ExistsSnippet",
@@ -156,14 +157,16 @@ func TestFile_FindSection(t *testing.T) {
 				}},
 			},
 			section: "First/Second",
-			want: &Section[Snippet]{
+			want: Section[Snippet]{
 				Name: "Second",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, tt.f.FindSection(tt.section), "FindSection(%v)", tt.section)
+			got := tt.f.FindSection(tt.section)
+			assert.NotNil(t, got)
+			assert.Equal(t, tt.want, *got)
 		})
 	}
 }

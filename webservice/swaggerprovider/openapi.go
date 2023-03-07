@@ -26,10 +26,15 @@ type OpenApiProvider struct {
 }
 
 func (p *OpenApiProvider) BuildSpec(container *restful.Container, contextPath string) (err error) {
-	// Create endpoints for each of the routes
+	// Create endpoints for each of the routes (except api ignored routes)
 	for _, ws := range container.RegisteredWebServices() {
 		for _, route := range ws.Routes() {
-			restops.RegisterRouteEndpoint(route, contextPath)
+			routeApiIgnore, ok := webservice.ApiIgnoreFromRoute(route)
+			if !ok || !routeApiIgnore {
+				restops.RegisterRouteEndpoint(route, contextPath)
+			} else {
+				logger.WithContext(p.ctx).Infof("Api ignore: %v %v", route.Method, route.Path)
+			}
 		}
 	}
 

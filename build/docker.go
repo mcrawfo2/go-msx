@@ -69,6 +69,6 @@ func dockerBaseImage() string {
 			BuildConfig.Docker.Repository,
 			BuildConfig.Docker.BaseImage)
 	}
-	
+
 	return BuildConfig.Docker.BaseImage
 }

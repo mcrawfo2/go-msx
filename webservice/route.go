@@ -43,6 +43,7 @@ const (
 	MetadataDefaultReturnCode = "DefaultReturnCode"
 	MetadataEnvelope          = "Envelope"
 	MetadataParams            = "InputParamsStruct"
+	MetadataApiIgnore         = "ApiIgnore"
 
 	AttributeDefaultReturnCode = "DefaultReturnCode"
 	AttributeSuccessResponse   = "SuccessResponse"
@@ -53,10 +54,6 @@ const (
 
 	StructTagRequest  = "req"
 	StructTagResponse = "resp"
-)
-
-var (
-	logger = log.NewLogger("msx.webservice")
 )
 
 func StandardList(b *restful.RouteBuilder) {

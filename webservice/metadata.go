@@ -84,6 +84,20 @@ func RouteBuilderWithDefaultReturnCode(b *restful.RouteBuilder, code int) {
 	b.Metadata(MetadataDefaultReturnCode, code)
 }
 
+func RouteBuilderWithApiIgnore(b *restful.RouteBuilder, apiIgnore bool) {
+	b.Metadata(MetadataApiIgnore, apiIgnore)
+}
+
+func ApiIgnoreFromRoute(r restful.Route) (isApiIgnored, ok bool) {
+	val, ok := r.Metadata[MetadataApiIgnore]
+	if !ok {
+		return
+	}
+
+	isApiIgnored, ok = val.(bool)
+	return
+}
+
 // Request Attribute Accessors
 
 func RequestWithError(request *restful.Request, err error) *restful.Request {
