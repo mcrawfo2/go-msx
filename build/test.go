@@ -29,9 +29,6 @@ func InstallTestDependencies(args []string) error {
 		goInstall("github.com/AlekSi/gocov-xml@latest"),
 		goInstall("gotest.tools/gotestsum@latest"),
 		goInstall("github.com/jstemmer/go-junit-report/v2@latest"),
-		goGet("github.com/stretchr/testify/assert@v1.8.1"),
-		goGet("github.com/stretchr/testify/mock@v1.8.1"),
-		goGet("github.com/stretchr/testify/http@v1.8.1"),
 	)
 
 	s := pipe.NewState(os.Stdout, os.Stdout)
