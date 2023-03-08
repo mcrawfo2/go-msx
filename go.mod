@@ -43,7 +43,7 @@ require (
 	github.com/lib/pq v1.10.6
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.7
-	github.com/mcrawfo2/go-jsonschema v1.0.6
+	github.com/mcrawfo2/go-jsonschema v1.0.7
 	github.com/mcrawfo2/jennifer v1.5.2
 	github.com/minghsu0107/watermill-redistream v1.0.0
 	github.com/mitchellh/mapstructure v1.5.0
