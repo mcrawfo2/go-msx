@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/gocql/gocql"
 	"github.com/hashicorp/go-uuid"
 )
 
@@ -35,17 +34,6 @@ func (u *UUID) UnmarshalJSON(data []byte) error {
 	} else {
 		*u = uuidBytes[:]
 	}
-	return nil
-}
-
-// DEPRECATED
-func (u UUID) MarshalCQL(info gocql.TypeInfo) ([]byte, error) {
-	return u[:], nil
-}
-
-// DEPRECATED
-func (u *UUID) UnmarshalCQL(info gocql.TypeInfo, data []byte) error {
-	*u = data
 	return nil
 }
 

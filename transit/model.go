@@ -8,7 +8,6 @@ import (
 	"context"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"database/sql/driver"
-	"github.com/gocql/gocql"
 	"github.com/pkg/errors"
 )
 
@@ -48,24 +47,6 @@ func (s *SecureData) cleanValue() (string, error) {
 	}
 
 	return s.secure.String(), nil
-}
-
-func (s *SecureData) UnmarshalCQL(_ gocql.TypeInfo, data []byte) (err error) {
-	s.dirty = false
-	s.secure, err = ParseValue(string(data))
-	if err != nil {
-		return err
-	}
-	s.keyId = s.secure.KeyId()
-	return nil
-}
-
-func (s *SecureData) MarshalCQL(_ gocql.TypeInfo) ([]byte, error) {
-	result, err := s.cleanValue()
-	if err != nil {
-		return nil, err
-	}
-	return []byte(result), nil
 }
 
 func (s *SecureData) Value() (driver.Value, error) {
