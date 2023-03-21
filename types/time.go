@@ -6,7 +6,6 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/gocql/gocql"
 	"time"
 )
 
@@ -55,22 +54,6 @@ func (t *Time) String() string {
 		return "<nil>"
 	}
 	return time.Time(*t).Format(timeLayout)
-}
-
-// DEPRECATED
-func (t Time) MarshalCQL(info gocql.TypeInfo) ([]byte, error) {
-	return gocql.Marshal(info, time.Time(t))
-}
-
-// DEPRECATED
-func (t *Time) UnmarshalCQL(info gocql.TypeInfo, data []byte) error {
-	var v time.Time
-	err := gocql.Unmarshal(info, data, &v)
-	if err != nil {
-		return err
-	}
-	*t = Time(v)
-	return nil
 }
 
 func (t Time) ToTimeTime() time.Time {
