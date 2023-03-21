@@ -5,7 +5,6 @@
 package rest
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
@@ -464,7 +463,7 @@ func NewDomainGlobalsUnitTestGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   "Unit Test Data for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.Sections[text.GoSnippet]{
 					{
 						Name: "UniqueId",

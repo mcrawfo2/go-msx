@@ -79,8 +79,8 @@ func NewDomainMigrationGenerator(spec Spec) ComponentGenerator {
 		Folder: folder,
 		Spec:   spec,
 		TextFile: text.NewTextFile(
-			skel.FileFormatSql,
-			skel.NewInflector(generatorConfig.Domain),
+			text.FileFormatSql,
+			text.NewInflector(generatorConfig.Domain),
 			"Migration for "+generatorConfig.Domain,
 			text.NewSections[text.Snippet](
 				"Table",

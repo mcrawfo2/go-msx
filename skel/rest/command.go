@@ -6,6 +6,7 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/go-msx/validate"
 	"fmt"
@@ -152,7 +153,7 @@ func generateDomainOptions(_ *cobra.Command, args []string) error {
 		generatorConfig.Components = ComponentOptions
 	}
 
-	generatorConfig.Folder = skel.NewInflector(generatorConfig.Domain).Inflect(generatorConfig.Folder)
+	generatorConfig.Folder = text.NewInflector(generatorConfig.Domain).Inflect(generatorConfig.Folder)
 
 	err := validate.Validate(generatorConfig)
 	if err != nil {
@@ -168,7 +169,7 @@ type ComponentGenerator interface {
 	Generate() error
 	Render() string
 	Filename() string
-	FileFormat() skel.FileFormat
+	FileFormat() text.FileFormat
 }
 
 type RenderOptionsTransformer interface {
@@ -257,8 +258,8 @@ func findGenerator(component string, ut bool) *ScopedComponentGenerator {
 
 // GenerateDomain is the CLI entry point for generating generic REST domains
 func GenerateDomain(_ []string) (err error) {
-	inflector := skel.NewInflector(generatorConfig.Domain)
-	tagName := inflector.Inflect(skel.InflectionUpperCamelSingular)
+	inflector := text.NewInflector(generatorConfig.Domain)
+	tagName := inflector.Inflect(text.InflectionUpperCamelSingular)
 	spec, err := loadSpecification(tagName, inflector)
 	if err != nil {
 		return err
@@ -338,7 +339,7 @@ func Disinflect(args []string) error {
 	sourceFile := args[0]
 	domain := strings.TrimSpace(strings.Join(args[1:], " "))
 
-	inflector := skel.NewInflector(domain)
+	inflector := text.NewInflector(domain)
 
 	sourceBytes, err := os.ReadFile(sourceFile)
 	if err != nil {
@@ -347,40 +348,40 @@ func Disinflect(args []string) error {
 
 	inflections := types.StringPairSlice{
 		{
-			Left:  `\b` + inflector[skel.InflectionLowerCamelPlural],
-			Right: skel.InflectionLowerCamelPlural,
+			Left:  `\b` + inflector[text.InflectionLowerCamelPlural],
+			Right: text.InflectionLowerCamelPlural,
 		},
 		{
-			Left:  `_` + inflector[skel.InflectionLowerCamelPlural],
-			Right: `_` + skel.InflectionLowerCamelPlural,
+			Left:  `_` + inflector[text.InflectionLowerCamelPlural],
+			Right: `_` + text.InflectionLowerCamelPlural,
 		},
 		{
-			Left:  inflector[skel.InflectionUpperCamelPlural],
-			Right: skel.InflectionUpperCamelPlural,
+			Left:  inflector[text.InflectionUpperCamelPlural],
+			Right: text.InflectionUpperCamelPlural,
 		},
 		{
-			Left:  `\b` + inflector[skel.InflectionLowerCamelSingular],
-			Right: skel.InflectionLowerCamelSingular,
+			Left:  `\b` + inflector[text.InflectionLowerCamelSingular],
+			Right: text.InflectionLowerCamelSingular,
 		},
 		{
-			Left:  `_` + inflector[skel.InflectionLowerCamelSingular],
-			Right: `_` + skel.InflectionLowerCamelSingular,
+			Left:  `_` + inflector[text.InflectionLowerCamelSingular],
+			Right: `_` + text.InflectionLowerCamelSingular,
 		},
 		{
-			Left:  inflector[skel.InflectionUpperCamelSingular],
-			Right: skel.InflectionUpperCamelSingular,
+			Left:  inflector[text.InflectionUpperCamelSingular],
+			Right: text.InflectionUpperCamelSingular,
 		},
 		{
-			Left:  `\b` + inflector[skel.InflectionLowerSnakeSingular] + `_`,
-			Right: skel.InflectionLowerSnakeSingular + `_`,
+			Left:  `\b` + inflector[text.InflectionLowerSnakeSingular] + `_`,
+			Right: text.InflectionLowerSnakeSingular + `_`,
 		},
 		{
-			Left:  `\b` + inflector[skel.InflectionScreamingSnakePlural] + `_`,
-			Right: skel.InflectionScreamingSnakePlural + `_`,
+			Left:  `\b` + inflector[text.InflectionScreamingSnakePlural] + `_`,
+			Right: text.InflectionScreamingSnakePlural + `_`,
 		},
 		{
-			Left:  `\b` + inflector[skel.InflectionScreamingSnakeSingular] + `_`,
-			Right: skel.InflectionScreamingSnakeSingular + `_`,
+			Left:  `\b` + inflector[text.InflectionScreamingSnakeSingular] + `_`,
+			Right: text.InflectionScreamingSnakeSingular + `_`,
 		},
 	}
 	for _, inflection := range inflections {

@@ -5,10 +5,10 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"path"
 
 	"github.com/iancoleman/strcase"
-	"golang.org/x/text/cases"
 )
 
 const (
@@ -22,7 +22,7 @@ func init() {
 }
 
 func GenerateBeatsDomain(args []string) error {
-	caser := cases.Title(TitlingLanguage)
+	caser := text.NewTitleCaser()
 	inflections := map[string]string{
 		inflectionAppTitle:           caser.String(skeletonConfig.AppName),
 		inflectionProtocolUpperCamel: strcase.ToCamel(skeletonConfig.BeatProtocol),
@@ -45,7 +45,7 @@ func GenerateBeatsDomain(args []string) error {
 			Name:       inflections[inflectionAppTitle] + " Field Descriptors",
 			SourceFile: path.Join(metaPackageSource, "fields.yml"),
 			DestFile:   path.Join(metaPackagePath, "fields.yml"),
-			Format:     FileFormatYaml,
+			Format:     text.FileFormatYaml,
 		},
 		{
 			Name:       inflections[inflectionAppTitle] + " DTO",

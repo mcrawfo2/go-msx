@@ -313,7 +313,7 @@ func NewDomainServiceGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   generatorConfig.Style + " API Service for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"API",
 					"Service",

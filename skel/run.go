@@ -21,7 +21,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
 )
 
 // skel program is likely started by ../cmd/skel/skel.go
@@ -39,8 +38,6 @@ var allowDirty bool
 
 var ErrUserCancel = errors.New("user cancelled skel run")
 var ErrNoProjects = errors.New("no projects found")
-
-var TitlingLanguage = language.English
 
 // templates, loaded by provideStaticFiles
 var staticFiles map[string]*staticFilesFile

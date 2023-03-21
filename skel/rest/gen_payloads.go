@@ -6,7 +6,6 @@ package rest
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/openapi"
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
@@ -37,7 +36,7 @@ type DomainPayloadsGenerator struct {
 }
 
 func (g DomainPayloadsGenerator) createPayloadSnippets() error {
-	packageName := g.GoFile.Inflector.Inflect(skel.InflectionLowerPlural)
+	packageName := g.GoFile.Inflector.Inflect(text.InflectionLowerPlural)
 	generatedSchemas := make(types.StringSet)
 
 	for _, payload := range g.Spec.Payloads.ForActions(g.Actions...) {
@@ -123,7 +122,7 @@ func (g DomainPayloadsGenerator) Filename() string {
 }
 
 func NewDomainPayloadsGenerator(spec Spec) ComponentGenerator {
-	inflector := skel.NewInflector(generatorConfig.Domain)
+	inflector := text.NewInflector(generatorConfig.Domain)
 
 	return DomainPayloadsGenerator{
 		Domain:  generatorConfig.Domain,
@@ -131,7 +130,7 @@ func NewDomainPayloadsGenerator(spec Spec) ComponentGenerator {
 		Actions: generatorConfig.Actions,
 		Generator: types.May(generator.New(generator.Config{
 			OutputFiler: func(definition string) string {
-				return fmt.Sprintf("payloads_%s.go", inflector.Inflect(skel.InflectionLowerSingular))
+				return fmt.Sprintf("payloads_%s.go", inflector.Inflect(text.InflectionLowerSingular))
 			},
 		})),
 		Spec: spec,

@@ -6,6 +6,7 @@ package asyncapi
 
 import (
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/gedex/inflector"
@@ -196,7 +197,7 @@ func (g *TemplatedGenerator) RenderMessageOperation(op string, messageId string,
 			template := skel.Template{
 				Name:       fmt.Sprintf("Creating message operation snippet %s", k),
 				SourceData: []byte(v),
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			}
 
 			var contents string
@@ -285,7 +286,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 				Operation:  skel.OpAddNoOverwrite,
 				SourceFile: "asyncapi/pkg.go",
 				DestFile:   "internal/stream/${async.channel.package}/pkg.go",
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			},
 		}
 	case templateSetKey{operation: OperationPublish, component: msgPayload},
@@ -296,7 +297,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 			Operation:  skel.OpAddNoOverwrite,
 			SourceFile: "asyncapi/payload.go",
 			DestFile:   "internal/stream/${async.channel.package}/api/${async.snakemsgtype}.go",
-			Format:     skel.FileFormatGo,
+			Format:     text.FileFormatGo,
 		}}
 	case templateSetKey{operation: OperationPublish, component: msgOperation}:
 		return skel.TemplateSet{
@@ -304,7 +305,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 				Operation:  skel.OpAddNoOverwrite,
 				SourceFile: "asyncapi/publisher_channel.go",
 				DestFile:   "internal/stream/${async.channel.package}/publisher_channel.go",
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			},
 		}
 	case templateSetKey{operation: OperationPublish, component: msgMessage}:
@@ -313,7 +314,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 				Operation:  skel.OpNew,
 				SourceFile: "asyncapi/publisher_message.go",
 				DestFile:   "internal/stream/${async.channel.package}/publisher_${async.snakemsgtype}.go",
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			},
 		}
 	case templateSetKey{operation: OperationSubscribe, component: msgOperation}:
@@ -322,7 +323,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 				Operation:  skel.OpAddNoOverwrite,
 				SourceFile: "asyncapi/subscriber_channel.go",
 				DestFile:   "internal/stream/${async.channel.package}/subscriber_channel.go",
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			},
 		}
 	case templateSetKey{operation: OperationSubscribe, component: msgMessage}:
@@ -331,7 +332,7 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 				Operation:  skel.OpNew,
 				SourceFile: "asyncapi/subscriber_message.go",
 				DestFile:   "internal/stream/${async.channel.package}/subscriber_${async.snakemsgtype}.go",
-				Format:     skel.FileFormatGo,
+				Format:     text.FileFormatGo,
 			},
 		}
 	}

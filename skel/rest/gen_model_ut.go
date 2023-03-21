@@ -5,7 +5,6 @@
 package rest
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
@@ -91,7 +90,7 @@ func NewDomainModelUnitTestGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   "Model Unit Test for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.Sections[text.GoSnippet]{{
 					Name: "Filter",
 					Sections: text.NewGoSections(

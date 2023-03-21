@@ -5,13 +5,12 @@
 package text
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func testEmit(generator Generator) string {
-	emitter := NewEmitter(skel.FileFormatOther)
+	emitter := NewEmitter(FileFormatOther)
 	generator.Generate(emitter)
 	return emitter.String()
 }
@@ -213,7 +212,7 @@ func TestTextFile_Render(t *testing.T) {
 			name: "Simple",
 			fields: fields{
 				File: &File[Snippet]{
-					Format:  skel.FileFormatSql,
+					Format:  FileFormatSql,
 					Comment: "heading comment",
 					Sections: Sections[Snippet]{
 						{
