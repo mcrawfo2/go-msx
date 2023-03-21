@@ -6,7 +6,6 @@ package skel
 
 import (
 	"bytes"
-	"compress/gzip"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
@@ -15,7 +14,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -195,8 +193,6 @@ func sliceStr(name string, s []string) string {
 	return buf.String() + "\n"
 }
 
-type TemplateOp int
-
 type Template struct {
 	Name       string
 	DestFile   string
@@ -224,25 +220,9 @@ func (t Template) source(options RenderOptions) (string, error) {
 
 	sourceFile := SubstituteVariables(t.SourceFile, options.Variables)
 
-	f, ok := staticFiles[sourceFile]
-	if !ok {
-		return "", errors.Errorf("Template file not found: %s", sourceFile)
-	}
-
-	var reader io.Reader
-	if f.size != 0 {
-		var err error
-		reader, err = gzip.NewReader(strings.NewReader(f.data))
-		if err != nil {
-			return "", err
-		}
-	} else {
-		reader = strings.NewReader(f.data)
-	}
-
-	data, err := io.ReadAll(reader)
+	data, err := ReadStaticFile(sourceFile)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Template file not found")
 	}
 
 	return string(data), nil

@@ -5,6 +5,8 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/cli"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"encoding/json"
 	"fmt"
@@ -13,17 +15,14 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"cto-github.cisco.com/NFV-BU/go-msx/cli"
-	"cto-github.cisco.com/NFV-BU/go-msx/log"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
-// skel program is likely started by ../cmd/skel/skel.go
+// skel program is started by /cmd/skel/skel.go
 
 const appName = "skel"
 const projectConfigFileName = ".skel.json"
@@ -39,18 +38,11 @@ var allowDirty bool
 var ErrUserCancel = errors.New("user cancelled skel run")
 var ErrNoProjects = errors.New("no projects found")
 
-// templates, loaded by provideStaticFiles
-var staticFiles map[string]*staticFilesFile
-
 func init() {
-	var err error
 	if os.Getenv("NO_COLOR") != "" || os.Getenv("CLICOLOR") == "0" {
 		core.DisableColor = true
 	}
-	staticFiles, err = provideStaticFiles() // load the templates
-	if err != nil {
-		panic(err.Error())
-	}
+
 	rootCmd := cli.RootCmd()
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return GenerateSkeleton(args)
