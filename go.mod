@@ -75,9 +75,9 @@ require (
 	github.com/uber/jaeger-client-go v2.19.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible
 	go.uber.org/atomic v1.9.0
-	golang.org/x/mod v0.7.0
-	golang.org/x/text v0.5.0
-	golang.org/x/tools v0.4.0
+	golang.org/x/mod v0.8.0
+	golang.org/x/text v0.8.0
+	golang.org/x/tools v0.6.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544
 	gopkg.in/yaml.v2 v2.4.0
@@ -172,8 +172,8 @@ require (
 	go.opentelemetry.io/otel v1.6.1 // indirect
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
