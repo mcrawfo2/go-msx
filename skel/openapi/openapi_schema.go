@@ -2,9 +2,10 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package skel
+package openapi
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"path"
 
 	"github.com/iancoleman/strcase"
@@ -35,7 +36,7 @@ func generateSchema(schema Schema) error {
 			jen.Qual(pkgTypes, "ErrorMap").Values(validation)))
 
 	targetFileName := path.Join(
-		skeletonConfig.TargetDirectory(),
+		skel.Config().TargetDirectory(),
 		"pkg",
 		"api",
 		strcase.ToSnake(schema.TypeName())+".go")
@@ -72,7 +73,7 @@ func generateSchemaProperties(f *jen.File, schema Schema) ([]jen.Code, map[strin
 	var (
 		properties = make([]jen.Code, 0)
 		imports    = make(map[string]string)
-		ns         = schema.Namespace(skeletonConfig.AppPackageUrl())
+		ns         = schema.Namespace(skel.Config().AppPackageUrl())
 
 		schemaProps []Property
 		err         error

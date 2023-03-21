@@ -2,9 +2,10 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package skel
+package openapi
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"path"
 
 	"github.com/iancoleman/strcase"
@@ -52,7 +53,7 @@ func arrayFormat(schema Schema) (Schema, error) {
 
 func generateTypeSchema(schema Schema) error {
 	f := jen.NewFile("api")
-	ns := schema.Namespace(skeletonConfig.AppPackageUrl())
+	ns := schema.Namespace(skel.Config().AppPackageUrl())
 	statement := f.Type().Id(schema.TypeName())
 
 	switch schema.schemaRef.Value.Type {
@@ -76,7 +77,7 @@ func generateTypeSchema(schema Schema) error {
 	}
 
 	targetFileName := path.Join(
-		skeletonConfig.TargetDirectory(),
+		skel.Config().TargetDirectory(),
 		"pkg",
 		"api",
 		strcase.ToSnake(schema.TypeName())+".go",

@@ -41,7 +41,6 @@ func init() {
 	AddTarget("add-go-msx-dependency", "Add msx dependencies", AddGoMsxDependency)
 	AddTarget("generate-git", "Create git repository", GenerateGit)
 	AddTarget("generate-github", "Create github configuration files", GenerateGithub)
-	AddTarget("generate-webservices", "Create web services from swagger manifest", GenerateDomainOpenApi)
 	AddTarget("generate-spui", "Create service pack UI", GenerateSPUI)
 }
 
