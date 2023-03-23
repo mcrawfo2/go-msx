@@ -28,7 +28,7 @@ func init() {
 	cmd.Flags().StringSliceVarP(&generatorConfig.Messages, "message", "m", nil, "Message name")
 	cmd.Flags().BoolVarP(&generatorConfig.Publisher, "publisher", "p", false, "Generate channel and message publisher")
 	cmd.Flags().BoolVarP(&generatorConfig.Subscriber, "subscriber", "s", false, "Generate channel and message subscriber")
-	cmd.Flags().StringVarP(&generatorConfig.Domain, "domain", "d", "", "Attach subscriber to domain's application service")
+	//cmd.Flags().StringVarP(&generatorConfig.Domain, "domain", "d", "", "Attach subscriber to domain's application service")
 
 	// Publisher
 	cmd = skel.AddTarget("generate-channel-publisher", "Create async channel publisher", GenerateChannelPublisher)
