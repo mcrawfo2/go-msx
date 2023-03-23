@@ -8,7 +8,6 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"${app.packageurl}/internal/stream/${async.channel.package}/api"
-	// "${app.packageurl}/internal/${async.domain.package}"
 )
 
 // Dependencies
@@ -16,6 +15,8 @@ import (
 //go:generate mockery --inpackage --name=${async.upmsgtype}Handler --structname=Mock${async.upmsgtype}Handler --filename mock_${async.upmsgtype}Handler.go
 
 ${dependencies}
+
+// Context
 
 const contextKey${async.upmsgtype}Subscriber = contextKeyNamed("${async.upmsgtype}Subscriber")
 
@@ -28,46 +29,45 @@ func Context${async.upmsgtype}Subscriber() types.ContextKeyAccessor[*streamops.M
 ${implementation}
 
 func new${async.upmsgtype}Subscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
-	svc := Context${async.upmsgtype}Subscriber().Get(ctx)
-	if svc == nil {
+	doc := new(asyncapi.MessageSubscriberDocumentor).
+		WithMessage(new(asyncapi.Message).
+			WithTitle("${async.msgtype.human}").
+			WithSummary("${async.msgtype.human}").
+			WithTags(
+				*asyncapi.NewTag("${async.upmsgtype}"),
+			))
 
-		doc := new(asyncapi.MessageSubscriberDocumentor).
-			WithMessage(new(asyncapi.Message).
-				WithTitle("${async.msgtype.human}").
-				WithSummary("${async.msgtype.human}").
-				WithTags(
-					*asyncapi.NewTag("${async.upmsgtype}"),
-				))
+	cs, err := newChannelSubscriber(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-		cs, err := newChannelSubscriber(ctx)
-		if err != nil {
-			return nil, err
-		}
+	// TODO: specify your message handler here
+	var handler ${async.upmsgtype}Handler = drop${async.upmsgtype}Handler{}
 
-		var handler ${async.upmsgtype}Handler
-		// handler, err = ${async.domain.package}.New${async.domain.uppercamelsingular}Service(ctx)
-		// if err != nil {
-		//	   return nil, err
-		// }
+	sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "${async.upmsgtype}")
+	if err != nil {
+		return nil, err
+	}
 
-		sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "${async.upmsgtype}")
-		if err != nil {
-			return nil, err
-		}
-
-		svc, err = sb.
-			WithInputs(${async.msgtype}Input{}).
-			WithDecorator(service.DefaultServiceAccount).
-			WithHandler(${handler}).
-			WithDocumentor(doc).
-			Build()
-		if err != nil {
-			return nil, err
-		}
+	svc, err := sb.
+		WithInputs(${async.msgtype}Input{}).
+		WithDecorator(service.DefaultServiceAccount).
+		WithHandler(${handler}).
+		WithDocumentor(doc).
+		Build()
+	if err != nil {
+		return nil, err
 	}
 
 	return svc, nil
 }
+
+// Singleton
+
+var ${async.msgtype}Subscriber = types.NewSingleton(
+	new${async.upmsgtype}Subscriber,
+	Context${async.upmsgtype}Subscriber)
 
 // Instantiate
 
@@ -76,8 +76,8 @@ func init() {
 		[]string{app.CommandRoot, app.CommandAsyncApi},
 		app.EventStart,
 		app.PhaseBefore,
-		func(ctx context.Context) error {
-			_, err := new${async.upmsgtype}Subscriber(ctx)
-			return err
+		func(ctx context.Context) (err error) {
+			_, err = ${async.msgtype}Subscriber.Factory(ctx)
+			return
 		})
 }

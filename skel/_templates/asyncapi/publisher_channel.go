@@ -16,7 +16,13 @@ func contextChannelPublisher() types.ContextKeyAccessor[*streamops.ChannelPublis
 func newChannelPublisher(ctx context.Context) (svc *streamops.ChannelPublisher, err error) {
 	svc = contextChannelPublisher().Get(ctx)
 	if svc == nil {
-		svc, err = streamops.NewChannelPublisher(ctx, channel, "${async.operation.id}")
+		var ch *streamops.Channel
+		ch, err = newChannel(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		svc, err = streamops.NewChannelPublisher(ctx, ch, "${async.operation.id}")
 		if err != nil {
 			return nil, err
 		}

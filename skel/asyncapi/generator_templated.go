@@ -56,6 +56,10 @@ func (g *TemplatedGenerator) RenderChannel() (err error) {
 		"async.channel.package": packageName(channelShortName(g.cfg.ChannelName)),
 	})
 
+	if err = g.render(opts, OperationNone, msgPackage); err != nil {
+		return
+	}
+
 	if err = g.render(opts, OperationNone, msgChannel); err != nil {
 		return
 	}
@@ -150,6 +154,13 @@ func (p ${async.msgtype}Publisher) Publish${async.upmsgtype}(ctx context.Context
 		"dependencies": `
 type ${async.upmsgtype}Handler interface {
 	On${async.upmsgtype}(ctx context.Context, payload api.${async.upmsgtype}) error
+}
+
+type drop${async.upmsgtype}Handler struct{}
+
+func (n drop${async.upmsgtype}Handler) On${async.upmsgtype}(ctx context.Context, payload api.${async.upmsgtype}) error {
+	logger.Error("No handler assigned to ${async.upmsgtype} message subscription.  Dropping message.")
+	return nil
 }
 
 `,
@@ -260,7 +271,8 @@ func (g *TemplatedGenerator) render(opts skel.RenderOptions, op string, componen
 type msgComponent int
 
 const (
-	msgChannel msgComponent = iota
+	msgPackage msgComponent = iota
+	msgChannel
 	msgOperation
 	msgMessage
 	msgPayload
@@ -278,14 +290,26 @@ func (g *TemplatedGenerator) templates(operation string, component msgComponent)
 	}
 
 	switch key {
+	case templateSetKey{operation: OperationPublish, component: msgPackage},
+		templateSetKey{operation: OperationSubscribe, component: msgPackage},
+		templateSetKey{operation: OperationNone, component: msgPackage}:
+		return skel.TemplateSet{
+			{Name: "Creating package",
+				Operation:  skel.OpAddNoOverwrite,
+				SourceFile: "asyncapi/pkg.go",
+				DestFile:   "internal/stream/${async.channel.package}/pkg.go",
+				Format:     text.FileFormatGo,
+			},
+		}
+
 	case templateSetKey{operation: OperationPublish, component: msgChannel},
 		templateSetKey{operation: OperationSubscribe, component: msgChannel},
 		templateSetKey{operation: OperationNone, component: msgChannel}:
 		return skel.TemplateSet{
 			{Name: "Creating channel",
 				Operation:  skel.OpAddNoOverwrite,
-				SourceFile: "asyncapi/pkg.go",
-				DestFile:   "internal/stream/${async.channel.package}/pkg.go",
+				SourceFile: "asyncapi/channel.go",
+				DestFile:   "internal/stream/${async.channel.package}/channel.go",
 				Format:     text.FileFormatGo,
 			},
 		}

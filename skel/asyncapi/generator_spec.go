@@ -395,12 +395,29 @@ func (g *Generator) GenerateSubscriberHandlerInterfaceCode(emitter *codegen.Emit
 		params = append(params, jen.Id(strcase.ToLowerCamel(structField.Name)).Op(typeEmitter.String()))
 	}
 
-	stmt := jen.
-		Line().Type().Id(interfaceName).
-		Interface(
-			jen.Id("On" + messageId).Call(params...).Error(),
+	structName := "drop" + messageId + "Handler"
+
+	stmt := jen.Statement{
+		jen.
+			Line().Type().Id(interfaceName).
+			Interface(
+				jen.Id("On" + messageId).Call(params...).Error(),
+			).
+			Line(),
+		jen.Line().Type().Id(structName).
+			Struct().
+			Line(),
+		jen.Line().Func().
+			Params(jen.Id("_").Id(structName)).
+			Id("On"+messageId).Params(params...).Error().Block(
+			jen.Id("logger").Dot("Error").Call(
+				jen.Lit(fmt.Sprintf(
+					"No handler assigned to %s message subscription.  Dropping message.",
+					messageId))),
+			jen.Return(jen.Nil()),
 		).
-		Line()
+			Line(),
+	}
 
 	return stmt.Render(&EmitterWriter{Emitter: emitter})
 }
