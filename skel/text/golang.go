@@ -45,6 +45,18 @@ type GoSnippet struct {
 	Imports []codegen.Import
 }
 
+func (s GoSnippet) Append(o GoSnippet) GoSnippet {
+	r := GoSnippet{}
+
+	r.Lines = append([]string{}, s.Lines...)
+	r.Lines = append(r.Lines, o.Lines...)
+
+	r.Imports = append([]codegen.Import{}, s.Imports...)
+	r.Imports = append(r.Imports, o.Imports...)
+
+	return r
+}
+
 func transformImports(imports []codegen.Import, transforms Transformers) []codegen.Import {
 	for n, imp := range imports {
 		if imp.Name != "" {
@@ -53,6 +65,14 @@ func transformImports(imports []codegen.Import, transforms Transformers) []codeg
 		imports[n].QualifiedName = transforms.Transform(imp.QualifiedName)
 	}
 	return imports
+}
+
+func NewGoSnippet(name string) (snippet GoSnippet) {
+	return GoSnippet{
+		Snippet: Snippet{
+			Name: name,
+		},
+	}
 }
 
 func NewGoGeneratorSnippet(name string, gen Generator, imports []codegen.Import, transforms Transformers) (snippet GoSnippet) {
@@ -220,12 +240,16 @@ func (f *GoFile) AddNewStatement(sectionPath, name string, stmt *jen.Statement) 
 	return nil
 }
 
+var DefaultTextTransformers = Transformers{
+	dedent.Dedent,
+	strings.TrimSpace,
+}
+
 func (f *GoFile) AddNewText(sectionPath, name, body string, imports []codegen.Import) error {
-	f.AddSnippet(sectionPath, NewGoTextSnippet(name, body, imports, Transformers{
-		f.Inflector.Inflect,
-		dedent.Dedent,
-		strings.TrimSpace,
-	}))
+	transformers := append(
+		Transformers{f.Inflector.Inflect},
+		DefaultTextTransformers...)
+	f.AddSnippet(sectionPath, NewGoTextSnippet(name, body, imports, transformers))
 	return nil
 }
 

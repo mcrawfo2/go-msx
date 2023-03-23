@@ -16,6 +16,36 @@ type TemplateOptions struct {
 	Strings    map[string]string // key is string name
 }
 
+func (r TemplateOptions) AddString(source, dest string) {
+	r.Strings[source] = dest
+}
+
+func (r TemplateOptions) AddStrings(strings map[string]string) {
+	for k, v := range strings {
+		r.Strings[k] = v
+	}
+}
+
+func (r TemplateOptions) AddVariable(source, dest string) {
+	r.Variables[source] = dest
+}
+
+func (r TemplateOptions) AddVariables(variables map[string]string) {
+	for k, v := range variables {
+		r.Variables[k] = v
+	}
+}
+
+func (r TemplateOptions) AddCondition(condition string, value bool) {
+	r.Conditions[condition] = value
+}
+
+func (r TemplateOptions) AddConditions(conditions map[string]bool) {
+	for k, v := range conditions {
+		r.Conditions[k] = v
+	}
+}
+
 func NewTemplateOptions() TemplateOptions {
 	return TemplateOptions{
 		Variables:  make(map[string]string),

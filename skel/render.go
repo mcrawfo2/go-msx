@@ -44,51 +44,41 @@ type RenderOptions struct {
 }
 
 func (r RenderOptions) AddString(source, dest string) {
-	r.Strings[source] = dest
-	r.DeltaOptions.Strings[source] = dest
+	r.TemplateOptions.AddString(source, dest)
+	r.DeltaOptions.AddString(source, dest)
 }
 
 func (r RenderOptions) AddStrings(strings map[string]string) {
-	for k, v := range strings {
-		r.Strings[k] = v
-		r.DeltaOptions.Strings[k] = v
-	}
+	r.TemplateOptions.AddStrings(strings)
+	r.DeltaOptions.AddStrings(strings)
 }
 
 func (r RenderOptions) AddVariable(source, dest string) {
-	r.Variables[source] = dest
-	r.DeltaOptions.Variables[source] = dest
+	r.TemplateOptions.AddVariable(source, dest)
+	r.DeltaOptions.AddVariable(source, dest)
 }
 
 func (r RenderOptions) AddVariables(variables map[string]string) {
-	for k, v := range variables {
-		r.Variables[k] = v
-		r.DeltaOptions.Variables[k] = v
-	}
+	r.TemplateOptions.AddVariables(variables)
+	r.DeltaOptions.AddVariables(variables)
 }
 
 func (r RenderOptions) AddCondition(condition string, value bool) {
-	r.Conditions[condition] = value
-	r.DeltaOptions.Conditions[condition] = value
+	r.TemplateOptions.AddCondition(condition, value)
+	r.DeltaOptions.AddCondition(condition, value)
 }
 
 func (r RenderOptions) AddConditions(conditions map[string]bool) {
-	for k, v := range conditions {
-		r.Conditions[k] = v
-		r.DeltaOptions.Conditions[k] = v
-	}
+	r.TemplateOptions.AddConditions(conditions)
+	r.DeltaOptions.AddConditions(conditions)
 }
 
 func NewEmptyRenderOptions() RenderOptions {
 	return RenderOptions{
-		TemplateOptions: text.TemplateOptions{
-			Variables:  map[string]string{},
-			Conditions: map[string]bool{},
-			Strings:    map[string]string{},
-		},
-		IncFiles:     incFiles,
-		ExcFiles:     excFiles,
-		DeltaOptions: text.NewTemplateOptions(),
+		TemplateOptions: text.NewTemplateOptions(),
+		IncFiles:        incFiles,
+		ExcFiles:        excFiles,
+		DeltaOptions:    text.NewTemplateOptions(),
 	}
 }
 
