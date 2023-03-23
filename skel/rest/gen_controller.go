@@ -674,10 +674,12 @@ func (g DomainControllerGenerator) createContextAccessorSnippet() error {
 		"Context",
 		"contextAccessor",
 		`
+			const contextKeyUpperCamelSingularController = contextKeyNamed("UpperCamelSingularController")
+
 			// contextUpperCamelSingularController returns a ContextKeyAccessor enabling dependency overrides
 			// for lowerCamelSingularController.
 			func contextUpperCamelSingularController() types.ContextKeyAccessor[restops.EndpointsProducer] {
-			  return types.NewContextKeyAccessor[restops.EndpointsProducer](contextKeyNamed("UpperCamelSingularController"))
+			  return types.NewContextKeyAccessor[restops.EndpointsProducer](contextKeyUpperCamelSingularController)
 			}
 		`,
 		[]codegen.Import{

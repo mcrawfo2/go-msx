@@ -177,11 +177,12 @@ func (g DomainRepositoryGenerator) createContextSnippet() error {
 		"Context",
 		"contextAccessor",
 		`
+			const contextKeyUpperCamelSingularRepository = contextKeyNamed("UpperCamelSingularRepository")
 
 			// contextPetRepository returns a ContextKeyAccessor enabling dependency overrides
 			// for UpperCamelSingularRepositoryApi.
 			func contextUpperCamelSingularRepository() types.ContextKeyAccessor[UpperCamelSingularRepositoryApi] {
-				return types.NewContextKeyAccessor[UpperCamelSingularRepositoryApi](contextKeyNamed("UpperCamelSingularRepository"))
+				return types.NewContextKeyAccessor[UpperCamelSingularRepositoryApi](contextKeyUpperCamelSingularRepository)
 			}
 			`,
 		[]codegen.Import{
