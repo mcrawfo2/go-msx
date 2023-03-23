@@ -2,9 +2,10 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package skel
+package openapi
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"fmt"
 	"net/url"
 	"os"
@@ -15,10 +16,6 @@ import (
 	"github.com/mcrawfo2/jennifer/jen"
 	"github.com/pkg/errors"
 )
-
-func init() {
-	AddTarget("generate-domain-openapi", "Create domains from OpenAPI 3.0 manifest", GenerateDomainOpenApi)
-}
 
 func GenerateDomainOpenApi(args []string) error {
 	if len(args) == 0 {
@@ -79,7 +76,10 @@ func loadSwaggerFromUri(loader *openapi3.SwaggerLoader, url *url.URL) (*openapi3
 
 	documentFilePath := fmt.Sprintf("openapi/%s.v%s.yaml", documentParts[0], documentParts[1])
 
-	bytes := []byte(staticFiles[documentFilePath].data)
+	bytes, err := skel.ReadStaticFile(documentFilePath)
+	if err != nil {
+		return nil, err
+	}
 	return loader.LoadSwaggerFromData(bytes)
 }
 
@@ -119,13 +119,14 @@ func generateType(s *jen.Statement, ns string, schema Schema) (map[string]string
 		return nil, nil
 	}
 
-	sns := schema.Namespace(skeletonConfig.AppPackageUrl())
+	cfg := skel.Config()
+	sns := schema.Namespace(cfg.AppPackageUrl())
 	var imports map[string]string
 	if sns == ns {
 		s = s.Id(schema.TypeName())
 	} else {
 		s = s.Qual(sns, schema.TypeName())
-		imports = schema.Imports(skeletonConfig.AppPackageUrl())
+		imports = schema.Imports(cfg.AppPackageUrl())
 	}
 
 	return imports, nil

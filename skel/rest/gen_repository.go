@@ -5,7 +5,6 @@
 package rest
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
@@ -178,11 +177,12 @@ func (g DomainRepositoryGenerator) createContextSnippet() error {
 		"Context",
 		"contextAccessor",
 		`
+			const contextKeyUpperCamelSingularRepository = contextKeyNamed("UpperCamelSingularRepository")
 
 			// contextPetRepository returns a ContextKeyAccessor enabling dependency overrides
 			// for UpperCamelSingularRepositoryApi.
 			func contextUpperCamelSingularRepository() types.ContextKeyAccessor[UpperCamelSingularRepositoryApi] {
-				return types.NewContextKeyAccessor[UpperCamelSingularRepositoryApi](contextKeyNamed("UpperCamelSingularRepository"))
+				return types.NewContextKeyAccessor[UpperCamelSingularRepositoryApi](contextKeyUpperCamelSingularRepository)
 			}
 			`,
 		[]codegen.Import{
@@ -282,7 +282,7 @@ func NewDomainRepositoryGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   "Repository for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"Constants",
 					"API",

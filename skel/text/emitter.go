@@ -5,7 +5,6 @@
 package text
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"github.com/mcrawfo2/go-jsonschema/pkg/codegen"
 )
 
@@ -54,7 +53,7 @@ type Emitter interface {
 
 // textEmitter implements Emitter for non-go languages
 type textEmitter struct {
-	format skel.FileFormat
+	format FileFormat
 	*codegen.Emitter
 }
 
@@ -65,7 +64,7 @@ func (e *textEmitter) Raw() *codegen.Emitter {
 
 // Comment outputs a single line comment using the
 func (e *textEmitter) Comment(s string) {
-	startMarker, endMarker := skel.CommentMarkers(e.format)
+	startMarker, endMarker := e.format.CommentMarkers()
 	if startMarker != "" {
 		startMarker = startMarker + " "
 	}
@@ -75,7 +74,7 @@ func (e *textEmitter) Comment(s string) {
 	e.Println("%s%s%s", startMarker, s, endMarker)
 }
 
-func NewEmitter(format skel.FileFormat) Emitter {
+func NewEmitter(format FileFormat) Emitter {
 	return &textEmitter{
 		Emitter: codegen.NewEmitter(MaxLineLength),
 		format:  format,

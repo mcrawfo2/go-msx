@@ -497,7 +497,7 @@ func NewDomainRepositoryUnitTestGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   "Repository Unit Tests for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					&text.Section[text.GoSnippet]{
 						Name: "Fixture",

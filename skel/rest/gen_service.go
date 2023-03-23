@@ -199,10 +199,12 @@ func (g DomainServiceGenerator) createContextSnippet() error {
 		"Context",
 		"contextAccessor",
 		`
+			const contextKeyUpperCamelSingularService = contextKeyNamed("UpperCamelSingularService")
+		    
 			// contextUpperCamelSingularService returns a ContextKeyAccessor enabling dependency overrides
 			// for UpperCamelSingularServiceApi.
 			func contextUpperCamelSingularService() types.ContextKeyAccessor[UpperCamelSingularServiceApi] {
-				return types.NewContextKeyAccessor[UpperCamelSingularServiceApi](contextKeyNamed("UpperCamelSingularService"))
+				return types.NewContextKeyAccessor[UpperCamelSingularServiceApi]()
 			}
 		`,
 		[]codegen.Import{
@@ -313,7 +315,7 @@ func NewDomainServiceGenerator(spec Spec) ComponentGenerator {
 		GoFile: &text.GoFile{
 			File: &text.File[text.GoSnippet]{
 				Comment:   generatorConfig.Style + " API Service for " + generatorConfig.Domain,
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"API",
 					"Service",

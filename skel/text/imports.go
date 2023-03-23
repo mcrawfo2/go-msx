@@ -23,6 +23,8 @@ const PkgRepository = "cto-github.cisco.com/NFV-BU/go-msx/repository"
 const PkgHttp = "net/http"
 const PkgGoqu = "github.com/doug-martin/goqu/v9"
 
+const PkgStreamOps = "cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
+
 const PkgTestHelpers = "cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
 const PkgControllerTest = "cto-github.cisco.com/NFV-BU/go-msx/testhelpers/controllertest"
 const PkgWebServiceTest = "cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"

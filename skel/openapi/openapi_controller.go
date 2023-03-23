@@ -2,9 +2,10 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package skel
+package openapi
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"fmt"
 	"path"
 	"strings"
@@ -33,7 +34,7 @@ func generateController(c Controller) (err error) {
 	}
 
 	targetFileName := path.Join(
-		skeletonConfig.TargetDirectory(),
+		skel.Config().TargetDirectory(),
 		"internal",
 		ns,
 		strcase.ToSnake(name)+".go")
@@ -56,7 +57,7 @@ func generateParameterField(f *jen.File, c Controller, p Parameter) (*jen.Statem
 		parameterField = parameterField.Op("*")
 	}
 
-	err := generateTypeWithImport(f, c.Namespace(skeletonConfig.AppPackageUrl()), parameterField, p.SchemaType)
+	err := generateTypeWithImport(f, c.Namespace(skel.Config().AppPackageUrl()), parameterField, p.SchemaType)
 	if err != nil {
 		return nil, err
 	}

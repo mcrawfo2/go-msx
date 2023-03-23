@@ -5,7 +5,6 @@
 package text
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"github.com/lithammer/dedent"
 	"strings"
 )
@@ -138,11 +137,11 @@ func NewSections[I NamedGenerator](sections ...any) Sections[I] {
 type File[I NamedGenerator] struct {
 	Comment   string
 	Sections  Sections[I]
-	Inflector skel.Inflector
-	Format    skel.FileFormat
+	Format    FileFormat
+	Inflector Inflector
 }
 
-func (f *File[I]) FileFormat() skel.FileFormat {
+func (f *File[I]) FileFormat() FileFormat {
 	return f.Format
 }
 
@@ -196,7 +195,7 @@ func (f *TextFile) AddNewText(sectionPath, name, content string) error {
 	return nil
 }
 
-func NewTextFile(format skel.FileFormat, inflector skel.Inflector, comment string, sections Sections[Snippet]) *TextFile {
+func NewTextFile(format FileFormat, inflector Inflector, comment string, sections Sections[Snippet]) *TextFile {
 	return &TextFile{
 		File: &File[Snippet]{
 			Comment:   comment,
@@ -211,3 +210,37 @@ func NewTextFile(format skel.FileFormat, inflector skel.Inflector, comment strin
 		},
 	}
 }
+
+type FileFormat int
+
+func (f FileFormat) CommentMarkers() (string, string) {
+	switch f {
+	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker, FileFormatBash:
+		return "", ""
+	case FileFormatSql:
+		return "--", ""
+	case FileFormatXml, FileFormatMarkdown:
+		return "<--", "-->"
+	default:
+		return "//", ""
+	}
+}
+
+const (
+	FileFormatGo FileFormat = iota
+	FileFormatMakefile
+	FileFormatJson
+	FileFormatSql
+	FileFormatYaml
+	FileFormatXml
+	FileFormatGroovy
+	FileFormatProperties
+	FileFormatMarkdown
+	FileFormatGoMod
+	FileFormatDocker
+	FileFormatBash
+	FileFormatJavaScript
+	FileFormatTypeScript
+	FileFormatJenkins
+	FileFormatOther
+)

@@ -8,6 +8,7 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/openapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/payloads"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	_ "embed"
 	"encoding/json"
@@ -287,7 +288,7 @@ func (p Payloads) ForActions(actions ...string) Payloads {
 	return results
 }
 
-func loadSpecification(tagName string, inflector skel.Inflector) (spec Spec, err error) {
+func loadSpecification(tagName string, inflector text.Inflector) (spec Spec, err error) {
 	spec.Raw, err = loadSpecificationFile(inflector)
 	if err != nil {
 		return
@@ -340,9 +341,9 @@ func loadSpecification(tagName string, inflector skel.Inflector) (spec Spec, err
 	return
 }
 
-func loadSpecificationFile(inflector skel.Inflector) (spec *openapi3.Spec, err error) {
+func loadSpecificationFile(inflector text.Inflector) (spec *openapi3.Spec, err error) {
 	var specBytes []byte
-	var format = skel.FileFormatYaml
+	var format = text.FileFormatYaml
 
 	if generatorConfig.Spec == "" {
 		switch generatorConfig.Style {
@@ -355,9 +356,9 @@ func loadSpecificationFile(inflector skel.Inflector) (spec *openapi3.Spec, err e
 	} else {
 		switch path.Ext(generatorConfig.Spec) {
 		case ".json", ".json5":
-			format = skel.FileFormatJson
+			format = text.FileFormatJson
 		case ".yaml":
-			format = skel.FileFormatYaml
+			format = text.FileFormatYaml
 		}
 
 		specBytes, err = ioutil.ReadFile(generatorConfig.Spec)
@@ -368,7 +369,7 @@ func loadSpecificationFile(inflector skel.Inflector) (spec *openapi3.Spec, err e
 		inflector = nil
 	}
 
-	if format == skel.FileFormatYaml {
+	if format == text.FileFormatYaml {
 		if specBytes, err = yaml.YAMLToJSON(specBytes); err != nil {
 			return
 		}
@@ -378,7 +379,7 @@ func loadSpecificationFile(inflector skel.Inflector) (spec *openapi3.Spec, err e
 		template := skel.Template{
 			Name:       "spec",
 			SourceData: specBytes,
-			Format:     skel.FileFormatJson,
+			Format:     text.FileFormatJson,
 		}
 
 		renderOptions := skel.NewRenderOptions()

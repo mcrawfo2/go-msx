@@ -581,7 +581,7 @@ func (g DomainControllerUnitTestGenerator) importStyle() codegen.Import {
 }
 
 func NewDomainControllerUnitTestGenerator(spec Spec) ComponentGenerator {
-	inflector := skel.NewInflector(generatorConfig.Domain)
+	inflector := text.NewInflector(generatorConfig.Domain)
 
 	return DomainControllerUnitTestGenerator{
 		// Configuration

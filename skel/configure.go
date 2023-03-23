@@ -5,6 +5,7 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"errors"
 	"net"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"golang.org/x/text/cases"
 )
 
 const (
@@ -438,7 +438,7 @@ func ConfigureInteractive() error {
 	}
 
 	// Post-Process answers
-	caser := cases.Title(TitlingLanguage)
+	caser := text.NewTitleCaser()
 	switch skeletonConfig.Archetype {
 	case archetypeKeyApp:
 		skeletonConfig.KubernetesGroup = "platformms"

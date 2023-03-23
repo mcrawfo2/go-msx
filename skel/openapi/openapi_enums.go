@@ -2,9 +2,10 @@
 // Use of this source code is governed by an MIT-style license that can be
 // found in the LICENSE file or at https://opensource.org/licenses/MIT.
 
-package skel
+package openapi
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"fmt"
 	"path"
 
@@ -177,7 +178,7 @@ func generateEnums(schema Schema) error {
 	generateUnmarshalJSONFunc(schema, f)
 
 	targetFileName := path.Join(
-		skeletonConfig.TargetDirectory(),
+		skel.Config().TargetDirectory(),
 		"pkg",
 		"api",
 		strcase.ToSnake(schema.TypeName())+".go",

@@ -5,9 +5,8 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"path"
-
-	"golang.org/x/text/cases"
 )
 
 func init() {
@@ -15,7 +14,7 @@ func init() {
 }
 
 func GenerateServicePack(args []string) error {
-	caser := cases.Title(TitlingLanguage)
+	caser := text.NewTitleCaser()
 	inflections := map[string]string{
 		inflectionAppTitle: caser.String(skeletonConfig.AppName),
 	}
@@ -65,13 +64,13 @@ func GenerateServicePack(args []string) error {
 			Name:       inflections[inflectionAppTitle] + " Service Lifecycle Manifest",
 			SourceFile: path.Join(slmPackageSource, "manifest.json"),
 			DestFile:   path.Join(slmPackagePath, "manifest.json"),
-			Format:     FileFormatJson,
+			Format:     text.FileFormatJson,
 		},
 		{
 			Name:       inflections[inflectionAppTitle] + " Service Lifecycle Deployment Manifest",
 			SourceFile: path.Join(slmPackageSource, "manifest.yml"),
 			DestFile:   path.Join(slmPackagePath, "manifest.yml"),
-			Format:     FileFormatYaml,
+			Format:     text.FileFormatYaml,
 		},
 	}
 

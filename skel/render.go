@@ -5,9 +5,8 @@
 package skel
 
 import (
-	"bufio"
 	"bytes"
-	"compress/gzip"
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
 	"github.com/bmatcuk/doublestar"
@@ -15,7 +14,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -28,27 +26,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type FileFormat int
-
-const (
-	FileFormatGo FileFormat = iota
-	FileFormatMakefile
-	FileFormatJson
-	FileFormatSql
-	FileFormatYaml
-	FileFormatXml
-	FileFormatGroovy
-	FileFormatProperties
-	FileFormatMarkdown
-	FileFormatGoMod
-	FileFormatDocker
-	FileFormatBash
-	FileFormatJavaScript
-	FileFormatTypeScript
-	FileFormatJenkins
-	FileFormatOther
-)
-
 var (
 	ErrFileExistsAlready = errors.New("file exists already, it should not")
 	ErrFileDoesNotExist  = errors.New("file does not exist, it should")
@@ -57,69 +34,56 @@ var (
 var printOptionsDeltas = false // only need to print the NewRenderOptions() values once
 
 type RenderOptions struct {
-	Variables   map[string]string // key is var name
-	Conditions  map[string]bool   // key is condition name
-	Strings     map[string]string // key is string name
-	IncFiles    []string          // glob patterns of files to consider (empty=all)
-	ExcFiles    []string          // glob patterns of files to exclude (empty=none)
-	NoOverwrite bool              // RenderTo will not alter existing files, no matter what
+	text.TemplateOptions
+	IncFiles    []string // glob patterns of files to consider (empty=all)
+	ExcFiles    []string // glob patterns of files to exclude (empty=none)
+	NoOverwrite bool     // RenderTo will not alter existing files, no matter what
 
-	printDeltas             bool              // print the changed items only
-	deltaVars, deltaStrings map[string]string // the changed items
-	deltaConds              map[string]bool
+	printDeltas  bool // print the changed items only
+	DeltaOptions text.TemplateOptions
 }
 
 func (r RenderOptions) AddString(source, dest string) {
-	r.Strings[source] = dest
-	r.deltaStrings[source] = dest
+	r.TemplateOptions.AddString(source, dest)
+	r.DeltaOptions.AddString(source, dest)
 }
 
 func (r RenderOptions) AddStrings(strings map[string]string) {
-	for k, v := range strings {
-		r.Strings[k] = v
-		r.deltaStrings[k] = v
-	}
+	r.TemplateOptions.AddStrings(strings)
+	r.DeltaOptions.AddStrings(strings)
 }
 
 func (r RenderOptions) AddVariable(source, dest string) {
-	r.Variables[source] = dest
-	r.deltaVars[source] = dest
+	r.TemplateOptions.AddVariable(source, dest)
+	r.DeltaOptions.AddVariable(source, dest)
 }
 
 func (r RenderOptions) AddVariables(variables map[string]string) {
-	for k, v := range variables {
-		r.Variables[k] = v
-		r.deltaVars[k] = v
-	}
+	r.TemplateOptions.AddVariables(variables)
+	r.DeltaOptions.AddVariables(variables)
 }
 
 func (r RenderOptions) AddCondition(condition string, value bool) {
-	r.Conditions[condition] = value
-	r.deltaConds[condition] = value
+	r.TemplateOptions.AddCondition(condition, value)
+	r.DeltaOptions.AddCondition(condition, value)
 }
 
 func (r RenderOptions) AddConditions(conditions map[string]bool) {
-	for k, v := range conditions {
-		r.Conditions[k] = v
-		r.deltaConds[k] = v
-	}
+	r.TemplateOptions.AddConditions(conditions)
+	r.DeltaOptions.AddConditions(conditions)
 }
 
 func NewEmptyRenderOptions() RenderOptions {
 	return RenderOptions{
-		Variables:    map[string]string{},
-		Conditions:   map[string]bool{},
-		Strings:      map[string]string{},
-		IncFiles:     incFiles,
-		ExcFiles:     excFiles,
-		deltaStrings: map[string]string{},
-		deltaVars:    map[string]string{},
-		deltaConds:   map[string]bool{},
+		TemplateOptions: text.NewTemplateOptions(),
+		IncFiles:        incFiles,
+		ExcFiles:        excFiles,
+		DeltaOptions:    text.NewTemplateOptions(),
 	}
 }
 
-func NewRenderOptions() RenderOptions {
-	return RenderOptions{
+func NewTemplateOptions() text.TemplateOptions {
+	return text.TemplateOptions{
 		Variables: map[string]string{
 			"app.name":                     skeletonConfig.AppName,
 			"app.shortname":                strings.TrimSuffix(skeletonConfig.AppName, "service"),
@@ -156,32 +120,40 @@ func NewRenderOptions() RenderOptions {
 			"K8S_GROUP_DATAPLATFORM": skeletonConfig.KubernetesGroup == "dataplatform",
 			"EXTERNAL":               IsExternal,
 		},
-		Strings:      map[string]string{},
-		IncFiles:     incFiles,
-		ExcFiles:     excFiles,
-		deltaStrings: map[string]string{},
-		deltaVars:    map[string]string{},
-		deltaConds:   map[string]bool{},
+		Strings: map[string]string{},
+	}
+}
+
+func NewRenderOptions() RenderOptions {
+	return RenderOptions{
+		TemplateOptions: NewTemplateOptions(),
+		IncFiles:        incFiles,
+		ExcFiles:        excFiles,
+		DeltaOptions:    text.NewTemplateOptions(),
 	}
 }
 
 func (r RenderOptions) String() string {
 	if printOptionsDeltas {
-		if len(r.deltaStrings) > 0 || len(r.deltaVars) > 0 || len(r.deltaConds) > 0 {
+		if len(r.DeltaOptions.Strings) > 0 || len(r.DeltaOptions.Variables) > 0 || len(r.DeltaOptions.Conditions) > 0 {
 			return fmt.Sprintf("Changed\n%s%s%s\n",
-				mapStr("Variables", r.deltaVars), mapStr("Conditions", r.deltaConds), mapStr("Strings", r.deltaStrings))
+				mapStr("Variables", r.DeltaOptions.Variables),
+				mapStr("Conditions", r.DeltaOptions.Conditions),
+				mapStr("Strings", r.DeltaOptions.Strings))
 		}
 		return ""
 	}
 	printOptionsDeltas = true
 	return fmt.Sprintf("%s%s%s%s%s\n",
-		mapStr("Variables", r.Variables), mapStr("Conditions", r.Conditions), mapStr("Strings", r.Strings),
-		sliceStr("Include", r.IncFiles), sliceStr("Exclude: ", r.ExcFiles))
+		mapStr("Variables", r.Variables),
+		mapStr("Conditions", r.Conditions),
+		mapStr("Strings", r.Strings),
+		sliceStr("Include", r.IncFiles),
+		sliceStr("Exclude: ", r.ExcFiles))
 }
 
 // renders a map as a string with a title but returns "" if the map is empty
 func mapStr[t interface{ string | bool }](name string, m map[string]t) string {
-
 	if len(m) == 0 {
 		return ""
 	}
@@ -211,14 +183,12 @@ func sliceStr(name string, s []string) string {
 	return buf.String() + "\n"
 }
 
-type TemplateOp int
-
 type Template struct {
 	Name       string
 	DestFile   string
 	SourceFile string
 	SourceData []byte
-	Format     FileFormat
+	Format     text.FileFormat
 	Operation  TemplateOperation
 }
 
@@ -240,28 +210,23 @@ func (t Template) source(options RenderOptions) (string, error) {
 
 	sourceFile := SubstituteVariables(t.SourceFile, options.Variables)
 
-	f, ok := staticFiles[sourceFile]
-	if !ok {
-		return "", errors.Errorf("Template file not found: %s", sourceFile)
-	}
-
-	var reader io.Reader
-	if f.size != 0 {
-		var err error
-		reader, err = gzip.NewReader(strings.NewReader(f.data))
-		if err != nil {
-			return "", err
-		}
-	} else {
-		reader = strings.NewReader(f.data)
-	}
-
-	data, err := io.ReadAll(reader)
+	data, err := ReadStaticFile(sourceFile)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Template file not found")
 	}
 
 	return string(data), nil
+}
+
+func SubstituteVariables(content string, variables map[string]string) string {
+	t := text.NewTemplate("vars", text.FileFormatOther, text.TemplateLanguageSkel,
+		text.TemplateStringOption(content))
+
+	o := text.NewTemplateOptions()
+	o.Variables = variables
+
+	result, _ := t.Render(o)
+	return result
 }
 
 func (t Template) destinationFile(options RenderOptions) (string, error) {
@@ -371,7 +336,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 
 	// Write the rendered contents to the destination file
 	perm := os.FileMode(0644)
-	if t.Format == FileFormatBash { // +x for bash scripts
+	if t.Format == text.FileFormatBash { // +x for bash scripts
 		perm = os.FileMode(0755)
 	}
 	err = os.WriteFile(targetFileName, []byte(newcontents), perm)
@@ -379,7 +344,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 		return errors.Wrapf(err, "writing %q failed", targetFileName)
 	}
 
-	if t.Format == FileFormatGo {
+	if t.Format == text.FileFormatGo {
 		logger.Infof("  🎨 Reformatting %q", path.Base(destFile))
 		err = exec.ExecutePipes(
 			exec.ExecQuiet("go", []string{"fmt", targetFileName}))
@@ -394,6 +359,7 @@ func (t Template) RenderTo(directory string, options RenderOptions) error {
 }
 
 func (t Template) RenderContents(options RenderOptions) (result string, err error) {
+
 	// Load the source
 	contents, err := t.source(options)
 	if err != nil {
@@ -404,24 +370,13 @@ func (t Template) RenderContents(options RenderOptions) (result string, err erro
 		logger.Warnf("improbably short template `%s` (%s, %d bytes)", t.Name, t.SourceFile, len(contents))
 	}
 
-	// Replace strings
-	for sourceString, destString := range options.Strings {
-		contents = strings.ReplaceAll(contents, sourceString, destString)
-	}
-
-	// Substitute variables
-	contents = SubstituteVariables(contents, options.Variables)
-
-	// Execute conditions
-	for condition, value := range options.Conditions {
-		contents, err = processConditionalBlocks(contents, t.Format, condition, value)
-	}
+	tt := text.NewTemplate(t.Name, t.Format, text.TemplateLanguageSkel, text.TemplateStringOption(contents))
+	out, err := tt.Render(options.TemplateOptions)
 	if err != nil {
-		return
+		return "", err
 	}
 
-	result = contents
-	return
+	return out, nil
 }
 
 type TemplateSet []Template
@@ -495,97 +450,6 @@ func (t TemplateSet) Dirs(opts RenderOptions) (results []string) {
 		dirs.Add(destDir)
 	}
 	return dirs.Values()
-}
-
-func SubstituteVariables(source string, variableValues map[string]string) string {
-	rendered := source
-	variableInstanceRegex := regexp.MustCompile(`\${([^}]+)}`)
-	for _, variableInstance := range variableInstanceRegex.FindAllStringSubmatch(rendered, -1) {
-		variableName := variableInstance[1]
-		variableValue, ok := variableValues[strings.ToLower(variableName)]
-		if ok {
-			rendered = strings.ReplaceAll(rendered, "${"+variableName+"}", variableValue)
-		}
-	}
-	return rendered
-}
-
-func CommentMarkers(format FileFormat) (string, string) {
-	switch format {
-	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker, FileFormatBash:
-		return "", ""
-	case FileFormatSql:
-		return "--", ""
-	case FileFormatXml, FileFormatMarkdown:
-		return "<--", "-->"
-	default:
-		return "//", ""
-	}
-}
-
-func conditionalMarkers(format FileFormat) (string, string) {
-	prefix, suffix := CommentMarkers(format)
-	return prefix + "#", suffix
-}
-
-func processConditionalBlocks(data string, format FileFormat, condition string, output bool) (result string, err error) {
-	type parserState int
-	const outside parserState = 0
-	const insideIf parserState = 1
-	const insideElse parserState = 2
-
-	sb := strings.Builder{}
-	write := func(out bool, line string) {
-		if !out {
-			return
-		}
-		sb.WriteString(line)
-		sb.WriteRune('\n')
-	}
-	insideCondition := outside
-	prefix, suffix := conditionalMarkers(format)
-	startMarker := prefix + "if " + condition + suffix
-	middleMarker := prefix + "else " + condition + suffix
-	endMarker := prefix + "endif " + condition + suffix
-
-	scanner := bufio.NewScanner(strings.NewReader(data))
-	for scanner.Scan() {
-		line := scanner.Text()
-		lineTrimmed := strings.TrimSpace(line)
-		switch insideCondition {
-		case outside:
-			switch lineTrimmed {
-			case startMarker:
-				insideCondition = insideIf
-			default:
-				write(true, line)
-			}
-
-		case insideIf:
-			switch lineTrimmed {
-			case endMarker:
-				insideCondition = outside
-			case middleMarker:
-				insideCondition = insideElse
-			default:
-				write(output, line)
-			}
-
-		case insideElse:
-			switch lineTrimmed {
-			case endMarker:
-				insideCondition = outside
-			default:
-				write(!output, line)
-			}
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return "", errors.Wrap(err, "Failed to process conditional blocks")
-	}
-
-	return sb.String(), nil
 }
 
 func InitializePackageFromFile(fileName, packageUrl string) error {

@@ -5,7 +5,6 @@
 package rest
 
 import (
-	"cto-github.cisco.com/NFV-BU/go-msx/skel"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"fmt"
@@ -227,7 +226,7 @@ func NewDomainConverterGenerator(spec Spec) ComponentGenerator {
 					"%s API Converter for %s",
 					generatorConfig.Style,
 					generatorConfig.Domain),
-				Inflector: skel.NewInflector(generatorConfig.Domain),
+				Inflector: text.NewInflector(generatorConfig.Domain),
 				Sections: text.NewGoSections(
 					"Service",
 					&text.Section[text.GoSnippet]{

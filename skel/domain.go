@@ -5,6 +5,7 @@
 package skel
 
 import (
+	"cto-github.cisco.com/NFV-BU/go-msx/skel/text"
 	"fmt"
 	"github.com/spf13/cobra"
 	"path"
@@ -73,9 +74,9 @@ func GenerateTopicPublisher(args []string) error {
 		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
 	}
 	topicName := strings.Join(args, " ")
-	inflections := NewInflector(topicName)
+	inflections := text.NewInflector(topicName)
 
-	topicPackageName := inflections[inflectionLowerPlural]
+	topicPackageName := inflections[text.InflectionLowerPlural]
 	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
 	topicPackagePath := path.Join("internal", "stream", topicPackageName)
 	apiPackagePath := path.Join("pkg", "api")
@@ -84,19 +85,19 @@ func GenerateTopicPublisher(args []string) error {
 
 	templates := TemplateSet{
 		{
-			Name:       inflections[inflectionTitleSingular] + " Publisher",
+			Name:       inflections[text.InflectionTitleSingular] + " Publisher",
 			SourceFile: path.Join(topicPackageSource, "publisher.go"),
-			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "publisher_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "publisher_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Package",
+			Name:       inflections[text.InflectionTitleSingular] + " Package",
 			SourceFile: path.Join(topicPackageSource, "pkg.go"),
 			DestFile:   path.Join(topicPackagePath, "pkg.go"),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " DTOs",
-			SourceFile: path.Join(apiPackageSource, inflectionLowerPlural+"_message.go"),
-			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[inflectionLowerSingular]),
+			Name:       inflections[text.InflectionTitleSingular] + " DTOs",
+			SourceFile: path.Join(apiPackageSource, text.InflectionLowerPlural+"_message.go"),
+			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[text.InflectionLowerSingular]),
 		},
 	}
 
@@ -128,9 +129,9 @@ func GenerateTopicSubscriber(args []string) error {
 		return errors.New("No Topic Name specified.  Please provide singular topic name.  Examples: 'employee' or 'device connection'")
 	}
 	topicName := strings.Join(args, " ")
-	inflections := NewInflector(topicName)
+	inflections := text.NewInflector(topicName)
 
-	topicPackageName := inflections[inflectionLowerPlural]
+	topicPackageName := inflections[text.InflectionLowerPlural]
 	topicPackageSource := path.Join("code", "topic", "stream", "lowerplural")
 	topicPackagePath := path.Join("internal", "stream", topicPackageName)
 	apiPackagePath := path.Join("pkg", "api")
@@ -139,19 +140,19 @@ func GenerateTopicSubscriber(args []string) error {
 
 	templates := TemplateSet{
 		{
-			Name:       inflections[inflectionTitleSingular] + " Subscriber",
+			Name:       inflections[text.InflectionTitleSingular] + " Subscriber",
 			SourceFile: path.Join(topicPackageSource, "subscriber.go"),
-			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "subscriber_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(topicPackagePath, "subscriber_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Package",
+			Name:       inflections[text.InflectionTitleSingular] + " Package",
 			SourceFile: path.Join(topicPackageSource, "pkg.go"),
 			DestFile:   path.Join(topicPackagePath, "pkg.go"),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " DTOs",
-			SourceFile: path.Join(apiPackageSource, inflectionLowerPlural+"_message.go"),
-			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[inflectionLowerSingular]),
+			Name:       inflections[text.InflectionTitleSingular] + " DTOs",
+			SourceFile: path.Join(apiPackageSource, text.InflectionLowerPlural+"_message.go"),
+			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s_message.go"), inflections[text.InflectionLowerSingular]),
 		},
 	}
 
@@ -188,20 +189,20 @@ func GenerateTimer(args []string) error {
 		return errors.New("No Timer Name specified.  Please provide singular timer name.  Examples: 'employee' or 'device connection'")
 	}
 	timerName := strings.Join(args, " ")
-	inflections := NewInflector(timerName)
+	inflections := text.NewInflector(timerName)
 
-	timerPackageName := inflections[inflectionLowerPlural]
+	timerPackageName := inflections[text.InflectionLowerPlural]
 	timerPackageSource := path.Join("code", "timer", "lowerplural")
 	timerPackagePath := path.Join("internal", "timer", timerPackageName)
 
 	templates := TemplateSet{
 		{
-			Name:       inflections[inflectionTitleSingular] + " Timer",
+			Name:       inflections[text.InflectionTitleSingular] + " Timer",
 			SourceFile: path.Join(timerPackageSource, "timer.go"),
-			DestFile:   fmt.Sprintf(path.Join(timerPackagePath, "timer_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(timerPackagePath, "timer_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Package",
+			Name:       inflections[text.InflectionTitleSingular] + " Package",
 			SourceFile: path.Join(timerPackageSource, "pkg.go"),
 			DestFile:   path.Join(timerPackagePath, "pkg.go"),
 		},
@@ -215,7 +216,7 @@ func GenerateTimer(args []string) error {
 	leaderElectionKey := "consul.leader.election"
 	leaderElectionConfig := leaderElectionKey + ":\n  enabled: true\n"
 	leaderElectionRegEx := regexp.MustCompile(`(?m)^` + leaderElectionKey + `:\n  enabled: (.*)\n$`)
-	fixedIntervalKey := "scheduled.tasks." + inflections[inflectionLowerSingular] + ".fixed-interval"
+	fixedIntervalKey := "scheduled.tasks." + inflections[text.InflectionLowerSingular] + ".fixed-interval"
 	fixedIntervalConfig := fixedIntervalKey + ": 15m\n"
 	fixedIntervalRegEx := regexp.MustCompile(`(?m)^` + fixedIntervalKey + `:(.*)\n$`)
 
@@ -247,10 +248,10 @@ func GenerateTimer(args []string) error {
 }
 
 func generateDomain(name string, conditions map[string]bool) error {
-	inflections := NewInflector(name)
+	inflections := text.NewInflector(name)
 
-	domainPackageName := inflections[inflectionLowerPlural]
-	domainPackageSource := path.Join("code", "domain", inflectionLowerPlural)
+	domainPackageName := inflections[text.InflectionLowerPlural]
+	domainPackageSource := path.Join("code", "domain", text.InflectionLowerPlural)
 	domainPackagePath := path.Join("internal", domainPackageName)
 	apiPackagePath := path.Join("pkg", "api")
 	apiPackageSource := path.Join("code", "domain", "api")
@@ -267,60 +268,60 @@ func generateDomain(name string, conditions map[string]bool) error {
 
 	templates := TemplateSet{
 		{
-			Name:       inflections[inflectionTitleSingular] + " Log",
+			Name:       inflections[text.InflectionTitleSingular] + " Log",
 			SourceFile: path.Join(domainPackageSource, "log.go"),
 			DestFile:   path.Join(domainPackagePath, "log.go"),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Context",
+			Name:       inflections[text.InflectionTitleSingular] + " Context",
 			SourceFile: path.Join(domainPackageSource, "context.go"),
 			DestFile:   path.Join(domainPackagePath, "context.go"),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Controller",
+			Name:       inflections[text.InflectionTitleSingular] + " Controller",
 			SourceFile: path.Join(domainPackageSource, "controller.go"),
-			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "controller_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "controller_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Converter",
+			Name:       inflections[text.InflectionTitleSingular] + " Converter",
 			SourceFile: path.Join(domainPackageSource, "converter.go"),
-			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "converter_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "converter_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Service",
+			Name:       inflections[text.InflectionTitleSingular] + " Service",
 			SourceFile: path.Join(domainPackageSource, "service.go"),
-			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "service_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "service_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Model",
+			Name:       inflections[text.InflectionTitleSingular] + " Model",
 			SourceFile: path.Join(domainPackageSource, "model.go"),
-			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "model_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "model_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Repository",
+			Name:       inflections[text.InflectionTitleSingular] + " Repository",
 			SourceFile: fmt.Sprintf(path.Join(domainPackageSource, "repository_%s.go"), skeletonConfig.Repository),
-			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "repository_%s.go"), inflections[inflectionLowerSingular]),
+			DestFile:   fmt.Sprintf(path.Join(domainPackagePath, "repository_%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " DTOs",
-			SourceFile: path.Join(apiPackageSource, inflectionLowerPlural+".go"),
-			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s.go"), inflections[inflectionLowerSingular]),
+			Name:       inflections[text.InflectionTitleSingular] + " DTOs",
+			SourceFile: path.Join(apiPackageSource, text.InflectionLowerPlural+".go"),
+			DestFile:   fmt.Sprintf(path.Join(apiPackagePath, "%s.go"), inflections[text.InflectionLowerSingular]),
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Migration",
+			Name:       inflections[text.InflectionTitleSingular] + " Migration",
 			SourceFile: path.Join(migratePackageSource, "table.cql"),
 			DestFile: fmt.Sprintf(
 				path.Join(migratePackagePath, "%s__CREATE_TABLE_%s.%s"),
 				migratePrefix,
-				inflections[inflectionScreamingSnakeSingular],
+				inflections[text.InflectionScreamingSnakeSingular],
 				queryFileExtension),
-			Format: FileFormatSql,
+			Format: text.FileFormatSql,
 		},
 		{
-			Name:       inflections[inflectionTitleSingular] + " Permissions",
+			Name:       inflections[text.InflectionTitleSingular] + " Permissions",
 			SourceFile: path.Join(populatePackage, "manifest.json"),
 			DestFile:   path.Join(populatePackage, "manifest.json"),
-			Format:     FileFormatJson,
+			Format:     text.FileFormatJson,
 		},
 	}
 
