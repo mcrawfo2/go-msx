@@ -63,6 +63,7 @@ func GenerateChannel(args []string) (err error) {
 
 	for i, message := range generatorConfig.Messages {
 		generatorConfig.Messages[i] = strcase.ToLowerCamel(message)
+		generatorConfig.Deep = true
 	}
 
 	return newTemplatedGenerator(generatorConfig).Generate()

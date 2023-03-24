@@ -64,14 +64,14 @@ func (e *textEmitter) Raw() *codegen.Emitter {
 
 // Comment outputs a single line comment using the
 func (e *textEmitter) Comment(s string) {
-	startMarker, endMarker := e.format.CommentMarkers()
-	if startMarker != "" {
-		startMarker = startMarker + " "
+	markers := e.format.CommentMarkers()
+	if markers.Prefix != "" {
+		markers.Prefix += " "
 	}
-	if endMarker != "" {
-		endMarker = " " + endMarker
+	if markers.Suffix != "" {
+		markers.Suffix = " " + markers.Suffix
 	}
-	e.Println("%s%s%s", startMarker, s, endMarker)
+	e.Println("%s", markers.Wrap(s))
 }
 
 func NewEmitter(format FileFormat) Emitter {

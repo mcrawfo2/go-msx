@@ -1,4 +1,11 @@
-package ${async.channel.package}
+//#id channelpackage ${async.channel.package}
+//#id asyncMessagePublisher ${async.msgtype}Publisher
+//#id AsyncMessagePublisher ${async.upmsgtype}Publisher
+//#id NewAsyncMessagePublisher New${async.upmsgtype}Publisher
+//#id contextKeyAsyncMessagePublisher  contextKey${async.upmsgtype}Publisher
+//#id ContextAsyncMessagePublisher  Context${async.upmsgtype}Publisher
+//#id asyncMessageOutput  ${async.msgtype}Output
+package channelpackage
 
 import (
 	"context"
@@ -6,31 +13,60 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
 	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
-	${imports}
+	//#var imports
 )
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=${async.upmsgtype}Publisher --structname=Mock${async.upmsgtype}Publisher --filename mock_${async.upmsgtype}Publisher.go
+//go:generate mockery --name=AsyncMessagePublisher --testonly --case=snake --inpackage --with-expecter
 
-${dependencies}
+//#var dependencies
+//#ignore
 
-const contextKey${async.upmsgtype}Publisher = contextKeyNamed("${async.upmsgtype}Publisher")
+type AsyncMessagePublisher interface {
+	PublishAsyncMessage(ctx context.Context, payload api.AsyncMessage) error
+}
 
-func Context${async.upmsgtype}Publisher() types.ContextKeyAccessor[${async.upmsgtype}Publisher] {
-	return types.NewContextKeyAccessor[${async.upmsgtype}Publisher](contextKey${async.upmsgtype}Publisher)
+//#endignore
+
+// Context
+
+const contextKeyAsyncMessagePublisher = contextKeyNamed("AsyncMessagePublisher")
+
+func ContextAsyncMessagePublisher() types.ContextKeyAccessor[AsyncMessagePublisher] {
+	return types.NewContextKeyAccessor[AsyncMessagePublisher](contextKeyAsyncMessagePublisher)
 }
 
 // Implementation
 
-type ${async.msgtype}Publisher struct {
+type asyncMessagePublisher struct {
 	messagePublisher *streamops.MessagePublisher
 }
 
-${implementation}
+//#var implementation
+//#ignore
 
-func New${async.upmsgtype}Publisher(ctx context.Context) (${async.upmsgtype}Publisher, error) {
-	svc := Context${async.upmsgtype}Publisher().Get(ctx)
+type asyncMessagePublisher struct {
+	messagePublisher *streamops.MessagePublisher
+}
+
+type asyncMessageOutput struct {
+	EventType string           `out:"header=eventType" const:"statusChange"`
+	Payload   api.AsyncMessage `out:"body"`
+}
+
+func (p asyncMessagePublisher) PublishStatusChangeResponse(ctx context.Context, payload api.AsyncMessage) error {
+	return p.messagePublisher.Publish(ctx, asyncMessageOutput{
+		Payload: payload,
+	})
+}
+
+//#endignore
+
+// Constructor
+
+func NewAsyncMessagePublisher(ctx context.Context) (AsyncMessagePublisher, error) {
+	svc := ContextAsyncMessagePublisher().Get(ctx)
 	if svc == nil {
 		doc := new(asyncapi.MessagePublisherDocumentor).
 			WithMessage(new(asyncapi.Message).
@@ -45,7 +81,7 @@ func New${async.upmsgtype}Publisher(ctx context.Context) (${async.upmsgtype}Publ
 			return nil, err
 		}
 
-		mpb, err := streamops.NewMessagePublisherBuilder(ctx, cp, "${async.upmsgtype}", ${async.msgtype}Output{})
+		mpb, err := streamops.NewMessagePublisherBuilder(ctx, cp, "${async.upmsgtype}", asyncMessageOutput{})
 
 		mp, err := mpb.
 			WithDocumentor(doc).
@@ -54,7 +90,7 @@ func New${async.upmsgtype}Publisher(ctx context.Context) (${async.upmsgtype}Publ
 			return nil, err
 		}
 
-		svc = &${async.msgtype}Publisher{
+		svc = &asyncMessagePublisher{
 			messagePublisher: mp,
 		}
 	}
@@ -70,7 +106,7 @@ func init() {
 		app.EventStart,
 		app.PhaseBefore,
 		func(ctx context.Context) (err error) {
-			_, err = New${async.upmsgtype}Publisher(ctx)
+			_, err = NewAsyncMessagePublisher(ctx)
 			return
 		})
 }

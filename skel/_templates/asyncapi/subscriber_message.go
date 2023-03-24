@@ -1,4 +1,13 @@
-package ${async.channel.package}
+//#id channelpackage ${async.channel.package}
+//#id AsyncMessageSubscriber ${async.upmsgtype}Subscriber
+//#id asyncMessageSubscriber ${async.msgtype}Subscriber
+//#id newAsyncMessageSubscriber new${async.upmsgtype}Subscriber
+//#id contextKeyAsyncMessageSubscriber contextKey${async.upmsgtype}Subscriber
+//#id ContextAsyncMessageSubscriber Context${async.upmsgtype}Subscriber
+//#id AsyncMessageHandler ${async.upmsgtype}Handler
+//#id dropAsyncMessageHandler drop${async.upmsgtype}Handler
+//#id asyncMessageInput ${async.msgtype}Input
+package channelpackage
 
 import (
 	"context"
@@ -12,23 +21,42 @@ import (
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=${async.upmsgtype}Handler --structname=Mock${async.upmsgtype}Handler --filename mock_${async.upmsgtype}Handler.go
+//go:generate mockery --name=AsyncMessageHandler --testonly --case=snake --inpackage --with-expecter
 
-${dependencies}
+//#var dependencies
+//#ignore
+type AsyncMessageHandler interface {
+	OnAsyncMessage(ctx context.Context, payload api.AsyncMessage) error
+}
+
+type dropAsyncMessageHandler struct{}
+
+func (_ dropAsyncMessageHandler) OnAsyncMessage(ctx context.Context, payload api.AsyncMessage) error {
+	logger.Error("No handler assigned to AsyncMessage message subscription.  Dropping message.")
+	return nil
+}
+//#endignore
 
 // Context
 
-const contextKey${async.upmsgtype}Subscriber = contextKeyNamed("${async.upmsgtype}Subscriber")
+const contextKeyAsyncMessageSubscriber = contextKeyNamed("AsyncMessageSubscriber")
 
-func Context${async.upmsgtype}Subscriber() types.ContextKeyAccessor[*streamops.MessageSubscriber] {
-	return types.NewContextKeyAccessor[*streamops.MessageSubscriber](contextKey${async.upmsgtype}Subscriber)
+func ContextAsyncMessageSubscriber() types.ContextKeyAccessor[*streamops.MessageSubscriber] {
+	return types.NewContextKeyAccessor[*streamops.MessageSubscriber](contextKeyAsyncMessageSubscriber)
 }
 
 // Constructor
 
-${implementation}
+//#var implementation
+//#ignore
 
-func new${async.upmsgtype}Subscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
+type asyncMessageInput struct {
+	Payload   api.AsyncMessage `in:"body"`
+}
+
+//#endignore
+
+func newAsyncMessageSubscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
 	doc := new(asyncapi.MessageSubscriberDocumentor).
 		WithMessage(new(asyncapi.Message).
 			WithTitle("${async.msgtype.human}").
@@ -43,7 +71,7 @@ func new${async.upmsgtype}Subscriber(ctx context.Context) (*streamops.MessageSub
 	}
 
 	// TODO: specify your message handler here
-	var handler ${async.upmsgtype}Handler = drop${async.upmsgtype}Handler{}
+	var handler AsyncMessageHandler = dropAsyncMessageHandler{}
 
 	sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "${async.upmsgtype}")
 	if err != nil {
@@ -51,9 +79,16 @@ func new${async.upmsgtype}Subscriber(ctx context.Context) (*streamops.MessageSub
 	}
 
 	svc, err := sb.
-		WithInputs(${async.msgtype}Input{}).
+		WithInputs(asyncMessageInput{}).
 		WithDecorator(service.DefaultServiceAccount).
-		WithHandler(${handler}).
+		WithHandler(
+			//#var handler
+			//#ignore
+			func(ctx context.Context, in *asyncMessageInput) error {
+				return delegate.OnAsyncMessage(ctx, in.Payload)
+			},
+			//#endignore
+		).
 		WithDocumentor(doc).
 		Build()
 	if err != nil {
@@ -65,9 +100,9 @@ func new${async.upmsgtype}Subscriber(ctx context.Context) (*streamops.MessageSub
 
 // Singleton
 
-var ${async.msgtype}Subscriber = types.NewSingleton(
-	new${async.upmsgtype}Subscriber,
-	Context${async.upmsgtype}Subscriber)
+var asyncMessageSubscriber = types.NewSingleton(
+	newAsyncMessageSubscriber,
+	ContextAsyncMessageSubscriber)
 
 // Instantiate
 
@@ -77,7 +112,7 @@ func init() {
 		app.EventStart,
 		app.PhaseBefore,
 		func(ctx context.Context) (err error) {
-			_, err = ${async.msgtype}Subscriber.Factory(ctx)
+			_, err = asyncMessageSubscriber.Factory(ctx)
 			return
 		})
 }
