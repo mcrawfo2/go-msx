@@ -5,6 +5,7 @@
 package text
 
 import (
+	"fmt"
 	"github.com/lithammer/dedent"
 	"strings"
 )
@@ -211,18 +212,31 @@ func NewTextFile(format FileFormat, inflector Inflector, comment string, section
 	}
 }
 
+type Markers struct {
+	Prefix string
+	Suffix string
+}
+
+func (m Markers) Prefixed(v string) string {
+	return fmt.Sprintf("%s%s", m.Prefix, v)
+}
+
+func (m Markers) Wrap(v string) string {
+	return fmt.Sprintf("%s%s%s", m.Prefix, v, m.Suffix)
+}
+
 type FileFormat int
 
-func (f FileFormat) CommentMarkers() (string, string) {
+func (f FileFormat) CommentMarkers() Markers {
 	switch f {
 	case FileFormatMakefile, FileFormatYaml, FileFormatProperties, FileFormatDocker, FileFormatBash:
-		return "", ""
+		return Markers{Prefix: "", Suffix: ""}
 	case FileFormatSql:
-		return "--", ""
+		return Markers{Prefix: "--", Suffix: ""}
 	case FileFormatXml, FileFormatMarkdown:
-		return "<--", "-->"
+		return Markers{Prefix: "<--", Suffix: "-->"}
 	default:
-		return "//", ""
+		return Markers{Prefix: "//", Suffix: ""}
 	}
 }
 
@@ -243,4 +257,5 @@ const (
 	FileFormatTypeScript
 	FileFormatJenkins
 	FileFormatOther
+	FileFormatPath
 )

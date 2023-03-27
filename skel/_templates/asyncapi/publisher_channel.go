@@ -1,4 +1,5 @@
-package ${async.channel.package}
+//#id channelpackage ${async.channel.package}
+package channelpackage
 
 import (
 	"context"
@@ -17,7 +18,7 @@ func newChannelPublisher(ctx context.Context) (svc *streamops.ChannelPublisher, 
 	svc = contextChannelPublisher().Get(ctx)
 	if svc == nil {
 		var ch *streamops.Channel
-		ch, err = newChannel(ctx)
+		ch, err = channel.Factory(ctx)
 		if err != nil {
 			return nil, err
 		}

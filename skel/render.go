@@ -189,6 +189,7 @@ type Template struct {
 	SourceFile string
 	SourceData []byte
 	Format     text.FileFormat
+	Language   text.TemplateLanguage
 	Operation  TemplateOperation
 }
 
@@ -208,7 +209,7 @@ func (t Template) source(options RenderOptions) (string, error) {
 		return string(t.SourceData), nil
 	}
 
-	sourceFile := SubstituteVariables(t.SourceFile, options.Variables)
+	sourceFile := SubstitutePathVariables(t.SourceFile, options.Variables)
 
 	data, err := ReadStaticFile(sourceFile)
 	if err != nil {
@@ -218,9 +219,10 @@ func (t Template) source(options RenderOptions) (string, error) {
 	return string(data), nil
 }
 
-func SubstituteVariables(content string, variables map[string]string) string {
-	t := text.NewTemplate("vars", text.FileFormatOther, text.TemplateLanguageSkel,
-		text.TemplateStringOption(content))
+func SubstitutePathVariables(content string, variables map[string]string) string {
+	t := text.NewTemplate("filename", text.FileFormatPath, text.TemplateLanguageSkel,
+		text.TemplateStringOption(content),
+		text.TrimNewlineSuffix)
 
 	o := text.NewTemplateOptions()
 	o.Variables = variables
@@ -234,9 +236,9 @@ func (t Template) destinationFile(options RenderOptions) (string, error) {
 		if len(t.SourceFile) == 0 {
 			return "", errors.New("Missing destination filename")
 		}
-		return SubstituteVariables(t.SourceFile, options.Variables), nil
+		return SubstitutePathVariables(t.SourceFile, options.Variables), nil
 	}
-	return SubstituteVariables(t.DestFile, options.Variables), nil
+	return SubstitutePathVariables(t.DestFile, options.Variables), nil
 }
 
 // Render does the original Render to skeletonConfig.TargetDirectory()
@@ -370,7 +372,7 @@ func (t Template) RenderContents(options RenderOptions) (result string, err erro
 		logger.Warnf("improbably short template `%s` (%s, %d bytes)", t.Name, t.SourceFile, len(contents))
 	}
 
-	tt := text.NewTemplate(t.Name, t.Format, text.TemplateLanguageSkel, text.TemplateStringOption(contents))
+	tt := text.NewTemplate(t.Name, t.Format, t.Language, text.TemplateStringOption(contents))
 	out, err := tt.Render(options.TemplateOptions)
 	if err != nil {
 		return "", err
@@ -445,7 +447,7 @@ func (t TemplateSet) RenderTo(directory string, options RenderOptions) (err erro
 func (t TemplateSet) Dirs(opts RenderOptions) (results []string) {
 	dirs := types.NewStringSet()
 	for _, template := range t {
-		destFile := SubstituteVariables(template.DestFile, opts.Variables)
+		destFile := SubstitutePathVariables(template.DestFile, opts.Variables)
 		destDir := path.Dir(destFile)
 		dirs.Add(destDir)
 	}

@@ -1,4 +1,5 @@
-package ${async.channel.package}
+//#id channelpackage ${async.channel.package}
+package channelpackage
 
 import (
 	"context"
