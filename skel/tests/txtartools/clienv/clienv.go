@@ -14,6 +14,16 @@ import (
 	"strings"
 )
 
+// Environment variables read by the txtartools programs
+const (
+	EnvOnly     = "TXTAR_ONLY"
+	EnvIgnore   = "TXTAR_IGNORE"
+	EnvContents = "TXTAR_CONTENTS"
+	EnvCmp      = "TXTAR_CMP"
+
+	DefaultCmpGlob = `same:** ignorelines:*.go:DO[[:space:]]NOT[[:space:]]EDIT`
+)
+
 type Ix int // index into a Flagvars map
 
 // Flagvar tracks which flags are set and which env vars they match with

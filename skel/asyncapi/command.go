@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 )
@@ -169,7 +169,7 @@ func loadSpec(filename string) (spec asyncapi.Spec, err error) {
 			return
 		}
 	} else {
-		specBytes, err = ioutil.ReadFile(filename)
+		specBytes, err = os.ReadFile(filename)
 		if err != nil {
 			err = errors.Wrap(err, "Failed to load spec")
 			return

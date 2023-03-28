@@ -115,7 +115,7 @@ func GenerateTopicPublisher(args []string) error {
 		return err
 	}
 
-	var deps = []string{"github.com/stretchr/testify@v1.7.0"}
+	var deps = []string{"github.com/stretchr/testify@v1.8.1"}
 	if err := AddDependencies(deps); err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func GenerateTopicSubscriber(args []string) error {
 	deps = append(deps,
 		"github.com/ThreeDotsLabs/watermill/message",
 		"github.com/pkg/errors",
-		"github.com/stretchr/testify@v1.7.0")
+		"github.com/stretchr/testify@v1.8.1")
 
 	if err := AddDependencies(deps); err != nil {
 		return err

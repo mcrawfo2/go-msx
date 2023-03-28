@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Copyright © 2023, Cisco Systems Inc.
 # Use of this source code is governed by an MIT-style license that can be
@@ -15,7 +15,7 @@ if [ ! -d someservice ]; then
   exit 1
 fi
 
-export TXTAR_IGNORE="**/.git/** **/.github/** **/go.sum"
+export TXTAR_IGNORE="**/.git/**"
 export TXTAR_CONTENTS="**"
 
 echo "Making: plain root archive $FIXT/before/plain-root.txtar"

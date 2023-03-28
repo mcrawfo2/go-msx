@@ -2,6 +2,10 @@
 # ========== comments from - ==========
 # Skel Completions Test Script stub
 
+# Copyright © 2023, Cisco Systems Inc.
+# Use of this source code is governed by an MIT-style license that can be
+# found in the LICENSE file or at https://opensource.org/licenses/MIT.
+
 exec skel completion fish
 cmp stdout golden/fish.completion
 
@@ -322,7 +326,7 @@ __skel_process_completion_results() {
     __skel_handle_special_char "$cur" =
 
     # Print the activeHelp statements before we finish
-    if [ ${#activeHelp} -ne 0 ]; then
+    if [ ${#activeHelp[*]} -ne 0 ]; then
         printf "\n";
         printf "%s\n" "${activeHelp[@]}"
         printf "\n"
@@ -736,7 +740,7 @@ filter __skel_escapeStringWithSpecialChars {
     $_ -replace '\s|#|@|\$|;|,|''|\{|\}|\(|\)|"|`|\||<|>|&','`$&'
 }
 
-Register-ArgumentCompleter -CommandName 'skel' -ScriptBlock {
+[scriptblock]$__skelCompleterBlock = {
     param(
             $WordToComplete,
             $CommandAst,
@@ -952,3 +956,5 @@ Register-ArgumentCompleter -CommandName 'skel' -ScriptBlock {
 
     }
 }
+
+Register-ArgumentCompleter -CommandName 'skel' -ScriptBlock $__skelCompleterBlock

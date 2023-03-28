@@ -1,3 +1,0 @@
-add-go-msx-dependency-test:
-	@echo "Target: add-go-msx-dependency test script"
-	@./fixtures/build/make-add-go-msx-dependency-test.sh

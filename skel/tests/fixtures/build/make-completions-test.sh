@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Copyright © 2023, Cisco Systems Inc.
 # Use of this source code is governed by an MIT-style license that can be

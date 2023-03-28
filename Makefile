@@ -15,6 +15,7 @@ BUILD_NUMBER ?= 0
 all: clean vet license-check test
 
 test:
+	make -f skel/tests/Makefile install-txtartools
 	$(BUILDER) download-test-deps
 	$(BUILDER) execute-unit-tests
 
