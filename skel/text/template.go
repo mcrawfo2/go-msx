@@ -432,7 +432,10 @@ func (v *VariableLineVisitor) VisitLine(line string) (string, bool, error) {
 	if ok {
 		lineSuffix, ok := varCommand.Options["suffix"]
 		if ok {
-			varValue += lineSuffix
+			// Insert the suffix before any trailing whitespace
+			varValueTrimmed := strings.TrimRight(varValue, " \n\t\r")
+			varValueTrimmedSuffix := varValue[len(varValueTrimmed):]
+			varValue = varValueTrimmed + lineSuffix + varValueTrimmedSuffix
 		}
 
 		return varValue, true, nil

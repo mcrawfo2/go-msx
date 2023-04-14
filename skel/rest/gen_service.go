@@ -204,7 +204,7 @@ func (g DomainServiceGenerator) createContextSnippet() error {
 			// contextUpperCamelSingularService returns a ContextKeyAccessor enabling dependency overrides
 			// for UpperCamelSingularServiceApi.
 			func contextUpperCamelSingularService() types.ContextKeyAccessor[UpperCamelSingularServiceApi] {
-				return types.NewContextKeyAccessor[UpperCamelSingularServiceApi]()
+				return types.NewContextKeyAccessor[UpperCamelSingularServiceApi](contextKeyUpperCamelSingularService)
 			}
 		`,
 		[]codegen.Import{

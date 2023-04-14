@@ -85,7 +85,11 @@ require (
 	moul.io/banner v1.0.1
 )
 
-require github.com/bmatcuk/doublestar/v4 v4.6.0
+require (
+	github.com/bmatcuk/doublestar/v4 v4.6.0
+	github.com/peter-evans/patience v0.3.0
+	github.com/sergi/go-diff v1.2.0
+)
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
@@ -160,7 +164,6 @@ require (
 	github.com/renstrom/shortuuid v3.0.0+incompatible // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
-	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190116191733-b6c0e53d7304 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect

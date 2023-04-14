@@ -26,7 +26,7 @@ import (
 
 const appName = "skel"
 const projectConfigFileName = ".skel.json"
-const generateConfigFileName = "generate.json"
+const GenerateConfigFileName = "generate.json"
 
 var logger = log.NewLogger("msx.skel")
 var logLevel logrus.Level
@@ -87,6 +87,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 
 	root := cmd == cli.RootCmd()
 	project := false
+	fresh := false
 
 	loaded, err := loadProjectConfig()
 	if err != nil {
@@ -98,12 +99,13 @@ func configure(cmd *cobra.Command, _ []string) error {
 	}
 
 	if !loaded {
-		loaded, err := loadGenerateConfig()
+		loaded, err = loadGenerateConfig()
 		if err != nil {
 			return err
 		}
 		if loaded {
-			project = false
+			project = true
+			fresh = true
 			logger.Debug("Loaded generator config")
 		}
 	}
@@ -137,7 +139,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 
 	// only makes sense to check for dirty git if we are in a project, and
 	// the allow-dirty cli flag is not set
-	if !allowDirty && project {
+	if !allowDirty && project && !fresh {
 		ok, err := GitCheckAsk(dir)
 		if err != nil {
 			logger.WithError(err).Errorf("configure(%s) error ask:", dir)
@@ -157,7 +159,7 @@ func configure(cmd *cobra.Command, _ []string) error {
 
 	// root cmd in dir containing .skel.json (project dir) uses those settings,
 	// explains it will regenerate and confirms
-	if root && project {
+	if root && project && !fresh {
 		printErr("\n\nThere is already a project in this directory\n")
 		printInfo("Did you, perhaps, mean to run a skel subcommand?\n")
 		printErr("Do you want to continue, which will regenerate the project, and may overwrite files?\n\n")
@@ -255,16 +257,18 @@ func loadProjectConfig() (bool, error) {
 }
 
 func loadGenerateConfig() (bool, error) {
-	stat, err := os.Stat(generateConfigFileName)
+	stat, err := os.Stat(GenerateConfigFileName)
 	if err != nil && !os.IsNotExist(err) {
 		return false, err
 	} else if err != nil {
+		logger.Debugf("No %s found in %s", GenerateConfigFileName, types.May(os.Getwd()))
 		return false, nil
 	} else if stat.IsDir() {
 		return false, nil
 	}
 
-	err = loadConfig(generateConfigFileName)
+	logger.Debugf("Loading %s", GenerateConfigFileName)
+	err = loadConfig(GenerateConfigFileName)
 	if err != nil {
 		return false, err
 	}

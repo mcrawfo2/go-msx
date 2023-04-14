@@ -15,7 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/pmezard/go-difflib/difflib"
 	"golang.org/x/tools/txtar"
 	"io"
 	"os"
@@ -365,48 +365,51 @@ func fileExists(name string) bool {
 	return true
 }
 
-func same(txt1, txt2 io.Reader, ignoreLines RegexString) (same bool, diffText string, err error) {
-
+func same(actual, expected io.Reader, ignoreLines RegexString) (same bool, diffText string, err error) {
 	var rg *regexp.Regexp = nil
 	if len(ignoreLines) > 0 {
 		rg = regexp.MustCompile(string(ignoreLines))
 	}
 
-	ln1, err := matchingLines(txt1, rg)
+	actualLines, err := matchingLines(actual, rg)
 	if err != nil {
 		return false, "", err
 	}
 
-	ln2, err := matchingLines(txt2, rg)
+	expectedLines, err := matchingLines(expected, rg)
 	if err != nil {
 		return false, "", err
 	}
 
-	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(ln1, ln2, false)
-	if len(diffs) > 1 {
-		return false, dmp.DiffPrettyText(diffs), nil
+	diff := difflib.UnifiedDiff{
+		A:        expectedLines,
+		B:        actualLines,
+		FromFile: "Expected",
+		ToFile:   "Actual",
+		Context:  2,
 	}
 
-	return true, "", nil
+	diffText, err = difflib.GetUnifiedDiffString(diff)
+	if err != nil {
+		return false, "", err
+	}
 
+	same = diffText == ""
+	return
 }
 
-func matchingLines(source io.Reader, rg *regexp.Regexp) (matching string, err error) {
-
-	matching = ""
-
+func matchingLines(source io.Reader, rg *regexp.Regexp) (matching []string, err error) {
 	scanr := bufio.NewScanner(source)
 	scanr.Split(bufio.ScanLines)
 
 	for scanr.Scan() {
 		t := scanr.Text()
 		if rg == nil || !rg.MatchString(t) {
-			matching = matching + t
+			matching = append(matching, t+"\n")
 		}
 	}
 	if scanr.Err() != nil {
-		return "", scanr.Err()
+		return nil, scanr.Err()
 	}
 
 	return matching, nil

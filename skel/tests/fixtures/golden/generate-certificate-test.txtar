@@ -243,7 +243,7 @@ deployments/someservice_variables.yml
 -- .skel.json --
 {
     "generator": "app",
-    "targetParent": "/Users/andrewpr/dev/tmptst2",
+    "targetParent": "",
     "appName": "someservice",
     "appUUID": "",
     "appDisplayName": "Some Microservice",
@@ -259,7 +259,9 @@ deployments/someservice_variables.yml
     "kubernetesGroup": "platformms",
     "slackChannel": "go-msx-build",
     "trunk": "main",
-    "imageFile": "msx.png"
+    "imageFile": "msx.png",
+    "scmHost": "cto-github.cisco.com",
+    "scmOrg": "NFV-BU"
 }
 -- .vscode/launch.json --
 {
@@ -2162,9 +2164,9 @@ module cto-github.cisco.com/NFV-BU/someservice
 go 1.18
 
 require (
-	cto-github.cisco.com/NFV-BU/go-msx v0.7.37
-	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.0
-	cto-github.cisco.com/NFV-BU/go-msx-populator v0.14.0
+	cto-github.cisco.com/NFV-BU/go-msx v0.7.47
+	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.1
+	cto-github.cisco.com/NFV-BU/go-msx-populator v0.15.1
 )
 
 require (
@@ -2175,7 +2177,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
-	github.com/Shopify/sarama v1.32.0 // indirect
+	github.com/Shopify/sarama v1.33.0 // indirect
 	github.com/ThreeDotsLabs/watermill v1.1.1 // indirect
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.2 // indirect
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4 // indirect
@@ -2207,14 +2209,12 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/gocql/gocql v0.0.0-20210413161705-87a5d7a5ff74 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-github/v38 v38.1.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/consul/api v1.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -2258,6 +2258,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/otiai10/copy v1.0.2 // indirect
@@ -2297,17 +2298,16 @@ require (
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0 // indirect
-	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -2352,22 +2352,22 @@ import (
 )
 -- local/server.crt --
 -----BEGIN CERTIFICATE-----
-MIIBtTCCAVqgAwIBAgIBATAKBggqhkjOPQQDAjA8MRYwFAYDVQQKEw1DaXNjbyBT
+MIIBszCCAVqgAwIBAgIBATAKBggqhkjOPQQDAjA8MRYwFAYDVQQKEw1DaXNjbyBT
 eXN0ZW1zMQwwCgYDVQQLEwNNU1gxFDASBgNVBAMTC3NvbWVzZXJ2aWNlMB4XDTIz
-MDMwODIyMjMxNloXDTIzMDkwNDIyMjMxNlowPDEWMBQGA1UEChMNQ2lzY28gU3lz
+MDQwNjIxMjE1MFoXDTIzMTAwMzIxMjE1MFowPDEWMBQGA1UEChMNQ2lzY28gU3lz
 dGVtczEMMAoGA1UECxMDTVNYMRQwEgYDVQQDEwtzb21lc2VydmljZTBZMBMGByqG
-SM49AgEGCCqGSM49AwEHA0IABKt0DA6Y4W0U/woYbpOmyUhZwIE2lxzKP+sj9Ap9
-0+BDR6q89nMbaZ2LZFSDzSqxE6yq8oUrYwgGv+VQRFSoeY2jTTBLMA4GA1UdDwEB
+SM49AgEGCCqGSM49AwEHA0IABKuHkeZacRTgdR2Gpf3NGZX8k+W2E+lAEnVWyY43
++P2UlmcIDjCns8NB41Hv8SmQKuvHPFCsNfBUYvZxnf7sh7CjTTBLMA4GA1UdDwEB
 /wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMBYGA1Ud
-EQQPMA2CC3NvbWVzZXJ2aWNlMAoGCCqGSM49BAMCA0kAMEYCIQDnO7BF0Q/icbuq
-WayXnIOCLGQcMdxKsdFQFIC2tM0gtAIhAOsNcUvM6cQACPrD924CShjOUk9ignkk
-ZQYAnR5KIQJi
+EQQPMA2CC3NvbWVzZXJ2aWNlMAoGCCqGSM49BAMCA0cAMEQCIEwmyekwHRPACBD/
+nIjNY5Vx3W/ypZrS9qyDrVvUCj6DAiAkLAmlOeKYrktf3PnHequES4vUHJwbrT65
+REUKVbOAjQ==
 -----END CERTIFICATE-----
 -- local/server.key --
 -----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIDMaJ1HHqEBo7r1fMyK+Rl22Ljaa2MVLnrBirc50zRO0oAoGCCqGSM49
-AwEHoUQDQgAEq3QMDpjhbRT/Chhuk6bJSFnAgTaXHMo/6yP0Cn3T4ENHqrz2cxtp
-nYtkVIPNKrETrKryhStjCAa/5VBEVKh5jQ==
+MHcCAQEEIAHpqlT2Ai66ryT8aZTXiZ8hmjXlQEmt8sObO9lPudTWoAoGCCqGSM49
+AwEHoUQDQgAEq4eR5lpxFOB1HYal/c0ZlfyT5bYT6UASdVbJjjf4/ZSWZwgOMKez
+w0HjUe/xKZAq68c8UKw18FRi9nGd/uyHsA==
 -----END EC PRIVATE KEY-----
 -- local/someservice.remote.yml --
 remote.service.address: 192.168.1.2

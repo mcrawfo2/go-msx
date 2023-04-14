@@ -243,7 +243,7 @@ deployments/someservice_variables.yml
 -- .skel.json --
 {
     "generator": "app",
-    "targetParent": "/Users/andrewpr/dev/tmptst2",
+    "targetParent": "",
     "appName": "someservice",
     "appUUID": "",
     "appDisplayName": "Some Microservice",
@@ -259,7 +259,9 @@ deployments/someservice_variables.yml
     "kubernetesGroup": "platformms",
     "slackChannel": "go-msx-build",
     "trunk": "main",
-    "imageFile": "msx.png"
+    "imageFile": "msx.png",
+    "scmHost": "cto-github.cisco.com",
+    "scmOrg": "NFV-BU"
 }
 -- .vscode/launch.json --
 {
@@ -2163,9 +2165,9 @@ module cto-github.cisco.com/NFV-BU/someservice
 go 1.18
 
 require (
-	cto-github.cisco.com/NFV-BU/go-msx v0.7.37
-	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.0
-	cto-github.cisco.com/NFV-BU/go-msx-populator v0.14.0
+	cto-github.cisco.com/NFV-BU/go-msx v0.7.47
+	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.1
+	cto-github.cisco.com/NFV-BU/go-msx-populator v0.15.1
 )
 
 require (
@@ -2176,7 +2178,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
-	github.com/Shopify/sarama v1.32.0 // indirect
+	github.com/Shopify/sarama v1.33.0 // indirect
 	github.com/ThreeDotsLabs/watermill v1.1.1 // indirect
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.2 // indirect
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4 // indirect
@@ -2208,14 +2210,12 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/gocql/gocql v0.0.0-20210413161705-87a5d7a5ff74 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-github/v38 v38.1.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/consul/api v1.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -2259,6 +2259,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/otiai10/copy v1.0.2 // indirect
@@ -2298,17 +2299,16 @@ require (
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0 // indirect
-	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -2362,7 +2362,7 @@ import (
 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
 )
 -- internal/toads/controller_toad_v8.go --
-// V8 API REST Controller for toad
+// v8 API REST Controller for toad
 
 package toads
 
@@ -2561,10 +2561,12 @@ func (c *toadController) deleteToad() restops.EndpointBuilder {
 
 // Context
 
+const contextKeyToadController = contextKeyNamed("ToadController")
+
 // contextToadController returns a ContextKeyAccessor enabling dependency overrides
 // for toadController.
 func contextToadController() types.ContextKeyAccessor[restops.EndpointsProducer] {
-	return types.NewContextKeyAccessor[restops.EndpointsProducer](contextKeyNamed("ToadController"))
+	return types.NewContextKeyAccessor[restops.EndpointsProducer](contextKeyToadController)
 }
 
 // Constructor
@@ -2605,8 +2607,408 @@ func init() {
 				RegisterEndpoints(controller)
 		})
 }
+-- internal/toads/controller_toad_v8_test.go --
+// v8 API REST Controller Unit Tests for toad
+
+package toads
+
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
+	"cto-github.cisco.com/NFV-BU/go-msx/repository"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/controllertest"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/securitytest"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+	"net/http"
+	"testing"
+)
+
+// Fixture
+
+// Structure
+
+// toadControllerTestFixture contains test dependencies for Controller tests.
+type toadControllerTestFixture struct {
+	// SUT
+	Controller *toadController
+
+	// Mocks
+	ToadService *MockToadServiceApi
+
+	// Canned API Values
+	ApiData toadTestApiData
+}
+
+// Constructor
+
+// newToadControllerTestFixture creates a new fixture for Controller tests
+func newToadControllerTestFixture() toadControllerTestFixture {
+	return toadControllerTestFixture{
+		ApiData: newToadTestApiData(),
+	}
+}
+
+// TestCase
+
+// Constructor
+
+func newToadControllerTest() *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture] {
+	return testhelpers.
+		NewFixtureCase(new(controllertest.ControllerTest), newToadControllerTestFixture()).
+		WithSetup(func(c *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			c.Fixture.ToadService = NewMockToadServiceApi(c.T)
+		}).
+		WithSetup(func(c *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Set token provider, controller
+			c.Testable.
+				WithTokenDetailsProvider(securitytest.NewMockTokenDetailsProvider()).
+				WithEndpointProducerSourceFactory(func(ctx context.Context) (restops.EndpointsProducer, error) {
+					// Save the controller
+					controller, err := newToadController(ctx)
+					if err == nil {
+						c.Fixture.Controller = controller.(*toadController)
+					}
+					return controller, err
+				}).
+				WithContextInjector(func(ctx context.Context) context.Context {
+					return contextToadService().Set(ctx, c.Fixture.ToadService)
+				})
+		}).
+		WithNamedSetup("permissions", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Allow view and manage permissions by default
+			p.Testable.Context.TokenDetails.Permissions = []string{
+				permissionViewToads,
+				permissionManageToads,
+			}
+		})
+}
+
+// Tests
+
+// List
+
+func Test_toadController_listToads(t *testing.T) {
+	test := newToadControllerTest().
+		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Always point to the list endpoint
+			p.Testable.
+				WithRequestMethod(http.MethodGet).
+				WithRequestPath("/api/v8/toads", nil)
+		}).
+		WithNamedSetup("query", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithRequestQueryParameter("page", "0").
+				WithRequestQueryParameter("pageSize", "10")
+		}).
+		WithNamedSetup("service.ListToads", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Fixture.ToadService.EXPECT().
+				ListToads(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.AnythingOfType("v8.PagingSortingInputs"),
+					toadFilterQueryInputs{}).
+				Return(p.Fixture.ApiData.PagingResponse, p.Fixture.ApiData.ToadResponses, nil)
+		}).
+		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK)).
+				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
+					"contents.#",
+					float64(len(p.Fixture.ApiData.ToadResponses))))
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "MissingQuery",
+			test: test.Clone().
+				WithoutNamedSetup("query").
+				WithoutNamedSetup("service.ListToads").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusBadRequest)).
+						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
+							"details.Page.\\.failures.#",
+							float64(1))).
+						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
+							"details.Page.\\.failures.0",
+							"expected integer, but got null")).
+						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
+							"details.PageSize.\\.failures.#",
+							float64(1))).
+						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
+							"details.PageSize.\\.failures.0",
+							"expected integer, but got null"))
+				}),
+		},
+		{
+			name: "MissingPermission",
+			test: test.Clone().
+				WithoutNamedSetup("permissions").
+				WithoutNamedSetup("service.ListToads").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Retrieve
+
+func Test_toadController_getToad(t *testing.T) {
+	test := newToadControllerTest().
+		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Always point to the retrieve endpoint
+			p.Testable.
+				WithRequestMethod(http.MethodGet).
+				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
+					"toadId": p.Fixture.ApiData.ToadId.String(),
+				})
+		}).
+		WithNamedSetup("service.GetToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Fixture.ToadService.EXPECT().
+				GetToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
+				Return(p.Fixture.ApiData.ToadResponse, nil)
+		}).
+		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK))
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFound",
+			test: test.Clone().
+				WithNamedSetup("service.GetToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Fixture.ToadService.EXPECT().
+						GetToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
+						Return(ToadResponse{}, errors.Wrapf(repository.ErrNotFound, "Toad not found"))
+				}).
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
+				}),
+		},
+		{
+			name: "MissingPermission",
+			test: test.Clone().
+				WithoutNamedSetup("permissions").
+				WithoutNamedSetup("service.GetToad").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Create
+
+func Test_toadController_createToad(t *testing.T) {
+	test := newToadControllerTest().
+		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Always point to the create endpoint
+			p.Testable.
+				WithRequestMethod(http.MethodPost).
+				WithRequestPath("/api/v8/toads", nil).
+				WithRequestBodyJson(p.Fixture.ApiData.ToadCreateRequest).
+				WithRequestHeader(restops.HeaderContentType, restops.ContentTypeJson)
+		}).
+		WithNamedSetup("service.CreateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Fixture.ToadService.EXPECT().
+				CreateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadCreateRequest).
+				Return(p.Fixture.ApiData.ToadResponse, nil)
+		}).
+		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusCreated))
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "AlreadyExists",
+			test: test.Clone().
+				WithNamedSetup("service.CreateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Fixture.ToadService.EXPECT().
+						CreateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadCreateRequest).
+						Return(ToadResponse{}, errors.Wrapf(repository.ErrAlreadyExists, "Toad already exists"))
+				}).
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusConflict))
+				}),
+		},
+		{
+			name: "MissingPermission",
+			test: test.Clone().
+				WithoutNamedSetup("permissions").
+				WithoutNamedSetup("service.CreateToad").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Update
+
+func Test_toadController_updateToad(t *testing.T) {
+	test := newToadControllerTest().
+		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Always point to the update endpoint
+			p.Testable.
+				WithRequestMethod(http.MethodPut).
+				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
+					"toadId": p.Fixture.ApiData.ToadId.String(),
+				}).
+				WithRequestBodyJson(p.Fixture.ApiData.ToadUpdateRequest).
+				WithRequestHeader(restops.HeaderContentType, restops.ContentTypeJson)
+		}).
+		WithNamedSetup("service.UpdateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Fixture.ToadService.EXPECT().
+				UpdateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId, p.Fixture.ApiData.ToadUpdateRequest).
+				Return(p.Fixture.ApiData.ToadResponse, nil)
+		}).
+		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK))
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFound",
+			test: test.Clone().
+				WithNamedSetup("service.UpdateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Fixture.ToadService.EXPECT().
+						UpdateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId, p.Fixture.ApiData.ToadUpdateRequest).
+						Return(ToadResponse{}, errors.Wrapf(repository.ErrNotFound, "Toad not found"))
+				}).
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
+				}),
+		},
+		{
+			name: "MissingPermission",
+			test: test.Clone().
+				WithoutNamedSetup("permissions").
+				WithoutNamedSetup("service.UpdateToad").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Delete
+
+func Test_toadController_deleteToad(t *testing.T) {
+	test := newToadControllerTest().
+		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			// Always point to the update endpoint
+			p.Testable.
+				WithRequestMethod(http.MethodDelete).
+				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
+					"toadId": p.Fixture.ApiData.ToadId.String(),
+				})
+		}).
+		WithNamedSetup("service.DeleteToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Fixture.ToadService.EXPECT().
+				DeleteToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
+				Return(nil)
+		}).
+		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+			p.Testable.
+				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNoContent))
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFound",
+			test: test.Clone().
+				WithNamedSetup("service.DeleteToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Fixture.ToadService.EXPECT().
+						DeleteToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
+						Return(errors.Wrapf(repository.ErrNotFound, "Toad not found"))
+				}).
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
+				}),
+		},
+		{
+			name: "MissingPermission",
+			test: test.Clone().
+				WithoutNamedSetup("permissions").
+				WithoutNamedSetup("service.DeleteToad").
+				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
+					p.Testable.
+						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
 -- internal/toads/converter_toad_v8.go --
-// API Converter for toad
+// v8 API Converter for toad
 
 package toads
 
@@ -2682,6 +3084,679 @@ var toadSortByOptions = paging.SortByOptions{
 		},
 	},
 }
+-- internal/toads/data_toad_test.go --
+// Unit Test Data for toad
+
+package toads
+
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/google/uuid"
+	"strings"
+)
+
+// UniqueId
+
+var toadTestToadId = types.MustNewUUID()
+
+// Model
+
+// Structure
+
+type toadTestModelData struct {
+	Toads          []Toad
+	ToadFilters    toadFilters
+	PagingRequest  paging.Request
+	PagingResponse paging.Response
+	ToadId         uuid.UUID
+	Toad           Toad
+}
+
+// Constructor
+
+func newToadTestModelData() toadTestModelData {
+	toadId := prepared.ToModelUuid(toadTestToadId)
+	data := "data"
+
+	result := toadTestModelData{}
+
+	result.Toads = []Toad{{
+		Data:   data,
+		ToadId: toadId,
+	}, {
+		Data:   data,
+		ToadId: toadId,
+	}}
+	result.ToadFilters = toadFilters{}
+	result.PagingRequest = paging.Request{
+		Size: 10,
+		Sort: []paging.SortOrder{{
+			Direction: paging.SortDirectionAsc,
+			Property:  "toad_id",
+		}},
+	}
+	result.PagingResponse = paging.Response{
+		Size: uint(10),
+		Sort: []paging.SortOrder{{
+			Direction: paging.SortDirectionAsc,
+			Property:  "toad_id",
+		}},
+		TotalItems: types.PtrTo[uint](2),
+	}
+	result.ToadId = toadId
+	result.Toad = Toad{
+		Data:   data,
+		ToadId: toadId,
+	}
+
+	return result
+}
+
+// API
+
+// Structure
+
+type toadTestApiData struct {
+	ToadResponses     []ToadResponse
+	PagingRequest     v8.PagingSortingInputs
+	PagingResponse    v8.PagingResponse
+	ToadId            types.UUID
+	ToadResponse      ToadResponse
+	ToadCreateRequest ToadCreateRequest
+	ToadUpdateRequest ToadUpdateRequest
+}
+
+// Constructor
+
+func newToadTestApiData() toadTestApiData {
+	toadId := toadTestToadId
+	data := "data"
+
+	result := toadTestApiData{}
+
+	result.ToadResponses = []ToadResponse{{
+		Data:   data,
+		ToadId: toadId,
+	}, {
+		Data:   data,
+		ToadId: toadId,
+	}}
+	result.PagingRequest = v8.PagingSortingInputs{
+		PagingInputs: v8.PagingInputs{PageSize: 10},
+		SortingInputs: v8.SortingInputs{
+			SortBy:    "toadId",
+			SortOrder: "asc",
+		},
+	}
+	result.PagingResponse = v8.PagingResponse{
+		PageSize:   10,
+		SortBy:     "toadId",
+		SortOrder:  strings.ToLower(v8.SortDirectionAsc),
+		TotalItems: types.PtrTo[int](2),
+	}
+	result.ToadId = toadId
+	result.ToadResponse = ToadResponse{
+		Data:   data,
+		ToadId: toadId,
+	}
+	result.ToadCreateRequest = ToadCreateRequest{Data: data}
+	result.ToadUpdateRequest = ToadUpdateRequest{Data: data}
+
+	return result
+}
+-- internal/toads/mock_toad_repository_api_test.go --
+// Code generated by mockery v2.21.1. DO NOT EDIT.
+
+package toads
+
+import (
+	context "context"
+
+	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
+	mock "github.com/stretchr/testify/mock"
+
+	uuid "github.com/google/uuid"
+)
+
+// MockToadRepositoryApi is an autogenerated mock type for the ToadRepositoryApi type
+type MockToadRepositoryApi struct {
+	mock.Mock
+}
+
+type MockToadRepositoryApi_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockToadRepositoryApi) EXPECT() *MockToadRepositoryApi_Expecter {
+	return &MockToadRepositoryApi_Expecter{mock: &_m.Mock}
+}
+
+// Delete provides a mock function with given fields: ctx, toadId
+func (_m *MockToadRepositoryApi) Delete(ctx context.Context, toadId uuid.UUID) error {
+	ret := _m.Called(ctx, toadId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, toadId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockToadRepositoryApi_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type MockToadRepositoryApi_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - toadId uuid.UUID
+func (_e *MockToadRepositoryApi_Expecter) Delete(ctx interface{}, toadId interface{}) *MockToadRepositoryApi_Delete_Call {
+	return &MockToadRepositoryApi_Delete_Call{Call: _e.mock.On("Delete", ctx, toadId)}
+}
+
+func (_c *MockToadRepositoryApi_Delete_Call) Run(run func(ctx context.Context, toadId uuid.UUID)) *MockToadRepositoryApi_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_Delete_Call) Return(_a0 error) *MockToadRepositoryApi_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockToadRepositoryApi_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindAllPagedFiltered provides a mock function with given fields: ctx, pin, fin
+func (_m *MockToadRepositoryApi) FindAllPagedFiltered(ctx context.Context, pin paging.Request, fin toadFilters) (paging.Response, []Toad, error) {
+	ret := _m.Called(ctx, pin, fin)
+
+	var r0 paging.Response
+	var r1 []Toad
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, paging.Request, toadFilters) (paging.Response, []Toad, error)); ok {
+		return rf(ctx, pin, fin)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, paging.Request, toadFilters) paging.Response); ok {
+		r0 = rf(ctx, pin, fin)
+	} else {
+		r0 = ret.Get(0).(paging.Response)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, paging.Request, toadFilters) []Toad); ok {
+		r1 = rf(ctx, pin, fin)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]Toad)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, paging.Request, toadFilters) error); ok {
+		r2 = rf(ctx, pin, fin)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// MockToadRepositoryApi_FindAllPagedFiltered_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAllPagedFiltered'
+type MockToadRepositoryApi_FindAllPagedFiltered_Call struct {
+	*mock.Call
+}
+
+// FindAllPagedFiltered is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin paging.Request
+//   - fin toadFilters
+func (_e *MockToadRepositoryApi_Expecter) FindAllPagedFiltered(ctx interface{}, pin interface{}, fin interface{}) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
+	return &MockToadRepositoryApi_FindAllPagedFiltered_Call{Call: _e.mock.On("FindAllPagedFiltered", ctx, pin, fin)}
+}
+
+func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) Run(run func(ctx context.Context, pin paging.Request, fin toadFilters)) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(paging.Request), args[2].(toadFilters))
+	})
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) Return(_a0 paging.Response, _a1 []Toad, _a2 error) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) RunAndReturn(run func(context.Context, paging.Request, toadFilters) (paging.Response, []Toad, error)) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindByKey provides a mock function with given fields: ctx, toadId
+func (_m *MockToadRepositoryApi) FindByKey(ctx context.Context, toadId uuid.UUID) (Toad, error) {
+	ret := _m.Called(ctx, toadId)
+
+	var r0 Toad
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (Toad, error)); ok {
+		return rf(ctx, toadId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) Toad); ok {
+		r0 = rf(ctx, toadId)
+	} else {
+		r0 = ret.Get(0).(Toad)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, toadId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockToadRepositoryApi_FindByKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByKey'
+type MockToadRepositoryApi_FindByKey_Call struct {
+	*mock.Call
+}
+
+// FindByKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - toadId uuid.UUID
+func (_e *MockToadRepositoryApi_Expecter) FindByKey(ctx interface{}, toadId interface{}) *MockToadRepositoryApi_FindByKey_Call {
+	return &MockToadRepositoryApi_FindByKey_Call{Call: _e.mock.On("FindByKey", ctx, toadId)}
+}
+
+func (_c *MockToadRepositoryApi_FindByKey_Call) Run(run func(ctx context.Context, toadId uuid.UUID)) *MockToadRepositoryApi_FindByKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_FindByKey_Call) Return(_a0 Toad, _a1 error) *MockToadRepositoryApi_FindByKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_FindByKey_Call) RunAndReturn(run func(context.Context, uuid.UUID) (Toad, error)) *MockToadRepositoryApi_FindByKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Save provides a mock function with given fields: ctx, toad
+func (_m *MockToadRepositoryApi) Save(ctx context.Context, toad Toad) error {
+	ret := _m.Called(ctx, toad)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, Toad) error); ok {
+		r0 = rf(ctx, toad)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockToadRepositoryApi_Save_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Save'
+type MockToadRepositoryApi_Save_Call struct {
+	*mock.Call
+}
+
+// Save is a helper method to define mock.On call
+//   - ctx context.Context
+//   - toad Toad
+func (_e *MockToadRepositoryApi_Expecter) Save(ctx interface{}, toad interface{}) *MockToadRepositoryApi_Save_Call {
+	return &MockToadRepositoryApi_Save_Call{Call: _e.mock.On("Save", ctx, toad)}
+}
+
+func (_c *MockToadRepositoryApi_Save_Call) Run(run func(ctx context.Context, toad Toad)) *MockToadRepositoryApi_Save_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(Toad))
+	})
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_Save_Call) Return(_a0 error) *MockToadRepositoryApi_Save_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockToadRepositoryApi_Save_Call) RunAndReturn(run func(context.Context, Toad) error) *MockToadRepositoryApi_Save_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+type mockConstructorTestingTNewMockToadRepositoryApi interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockToadRepositoryApi creates a new instance of MockToadRepositoryApi. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockToadRepositoryApi(t mockConstructorTestingTNewMockToadRepositoryApi) *MockToadRepositoryApi {
+	mock := &MockToadRepositoryApi{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
+-- internal/toads/mock_toad_service_api_test.go --
+// Code generated by mockery v2.21.1. DO NOT EDIT.
+
+package toads
+
+import (
+	context "context"
+
+	types "cto-github.cisco.com/NFV-BU/go-msx/types"
+	mock "github.com/stretchr/testify/mock"
+
+	v8 "cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
+)
+
+// MockToadServiceApi is an autogenerated mock type for the ToadServiceApi type
+type MockToadServiceApi struct {
+	mock.Mock
+}
+
+type MockToadServiceApi_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockToadServiceApi) EXPECT() *MockToadServiceApi_Expecter {
+	return &MockToadServiceApi_Expecter{mock: &_m.Mock}
+}
+
+// CreateToad provides a mock function with given fields: ctx, request
+func (_m *MockToadServiceApi) CreateToad(ctx context.Context, request ToadCreateRequest) (ToadResponse, error) {
+	ret := _m.Called(ctx, request)
+
+	var r0 ToadResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, ToadCreateRequest) (ToadResponse, error)); ok {
+		return rf(ctx, request)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, ToadCreateRequest) ToadResponse); ok {
+		r0 = rf(ctx, request)
+	} else {
+		r0 = ret.Get(0).(ToadResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, ToadCreateRequest) error); ok {
+		r1 = rf(ctx, request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockToadServiceApi_CreateToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateToad'
+type MockToadServiceApi_CreateToad_Call struct {
+	*mock.Call
+}
+
+// CreateToad is a helper method to define mock.On call
+//   - ctx context.Context
+//   - request ToadCreateRequest
+func (_e *MockToadServiceApi_Expecter) CreateToad(ctx interface{}, request interface{}) *MockToadServiceApi_CreateToad_Call {
+	return &MockToadServiceApi_CreateToad_Call{Call: _e.mock.On("CreateToad", ctx, request)}
+}
+
+func (_c *MockToadServiceApi_CreateToad_Call) Run(run func(ctx context.Context, request ToadCreateRequest)) *MockToadServiceApi_CreateToad_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(ToadCreateRequest))
+	})
+	return _c
+}
+
+func (_c *MockToadServiceApi_CreateToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_CreateToad_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockToadServiceApi_CreateToad_Call) RunAndReturn(run func(context.Context, ToadCreateRequest) (ToadResponse, error)) *MockToadServiceApi_CreateToad_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteToad provides a mock function with given fields: ctx, id
+func (_m *MockToadServiceApi) DeleteToad(ctx context.Context, id types.UUID) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockToadServiceApi_DeleteToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteToad'
+type MockToadServiceApi_DeleteToad_Call struct {
+	*mock.Call
+}
+
+// DeleteToad is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id types.UUID
+func (_e *MockToadServiceApi_Expecter) DeleteToad(ctx interface{}, id interface{}) *MockToadServiceApi_DeleteToad_Call {
+	return &MockToadServiceApi_DeleteToad_Call{Call: _e.mock.On("DeleteToad", ctx, id)}
+}
+
+func (_c *MockToadServiceApi_DeleteToad_Call) Run(run func(ctx context.Context, id types.UUID)) *MockToadServiceApi_DeleteToad_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.UUID))
+	})
+	return _c
+}
+
+func (_c *MockToadServiceApi_DeleteToad_Call) Return(_a0 error) *MockToadServiceApi_DeleteToad_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockToadServiceApi_DeleteToad_Call) RunAndReturn(run func(context.Context, types.UUID) error) *MockToadServiceApi_DeleteToad_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetToad provides a mock function with given fields: ctx, id
+func (_m *MockToadServiceApi) GetToad(ctx context.Context, id types.UUID) (ToadResponse, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 ToadResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) (ToadResponse, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) ToadResponse); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(ToadResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, types.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockToadServiceApi_GetToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetToad'
+type MockToadServiceApi_GetToad_Call struct {
+	*mock.Call
+}
+
+// GetToad is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id types.UUID
+func (_e *MockToadServiceApi_Expecter) GetToad(ctx interface{}, id interface{}) *MockToadServiceApi_GetToad_Call {
+	return &MockToadServiceApi_GetToad_Call{Call: _e.mock.On("GetToad", ctx, id)}
+}
+
+func (_c *MockToadServiceApi_GetToad_Call) Run(run func(ctx context.Context, id types.UUID)) *MockToadServiceApi_GetToad_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.UUID))
+	})
+	return _c
+}
+
+func (_c *MockToadServiceApi_GetToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_GetToad_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockToadServiceApi_GetToad_Call) RunAndReturn(run func(context.Context, types.UUID) (ToadResponse, error)) *MockToadServiceApi_GetToad_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListToads provides a mock function with given fields: ctx, pageReq, freq
+func (_m *MockToadServiceApi) ListToads(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error) {
+	ret := _m.Called(ctx, pageReq, freq)
+
+	var r0 v8.PagingResponse
+	var r1 []ToadResponse
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error)); ok {
+		return rf(ctx, pageReq, freq)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) v8.PagingResponse); ok {
+		r0 = rf(ctx, pageReq, freq)
+	} else {
+		r0 = ret.Get(0).(v8.PagingResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) []ToadResponse); ok {
+		r1 = rf(ctx, pageReq, freq)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]ToadResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) error); ok {
+		r2 = rf(ctx, pageReq, freq)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// MockToadServiceApi_ListToads_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListToads'
+type MockToadServiceApi_ListToads_Call struct {
+	*mock.Call
+}
+
+// ListToads is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pageReq v8.PagingSortingInputs
+//   - freq toadFilterQueryInputs
+func (_e *MockToadServiceApi_Expecter) ListToads(ctx interface{}, pageReq interface{}, freq interface{}) *MockToadServiceApi_ListToads_Call {
+	return &MockToadServiceApi_ListToads_Call{Call: _e.mock.On("ListToads", ctx, pageReq, freq)}
+}
+
+func (_c *MockToadServiceApi_ListToads_Call) Run(run func(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs)) *MockToadServiceApi_ListToads_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(v8.PagingSortingInputs), args[2].(toadFilterQueryInputs))
+	})
+	return _c
+}
+
+func (_c *MockToadServiceApi_ListToads_Call) Return(pageResp v8.PagingResponse, payload []ToadResponse, err error) *MockToadServiceApi_ListToads_Call {
+	_c.Call.Return(pageResp, payload, err)
+	return _c
+}
+
+func (_c *MockToadServiceApi_ListToads_Call) RunAndReturn(run func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error)) *MockToadServiceApi_ListToads_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateToad provides a mock function with given fields: ctx, id, request
+func (_m *MockToadServiceApi) UpdateToad(ctx context.Context, id types.UUID, request ToadUpdateRequest) (ToadResponse, error) {
+	ret := _m.Called(ctx, id, request)
+
+	var r0 ToadResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UUID, ToadUpdateRequest) (ToadResponse, error)); ok {
+		return rf(ctx, id, request)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.UUID, ToadUpdateRequest) ToadResponse); ok {
+		r0 = rf(ctx, id, request)
+	} else {
+		r0 = ret.Get(0).(ToadResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, types.UUID, ToadUpdateRequest) error); ok {
+		r1 = rf(ctx, id, request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockToadServiceApi_UpdateToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateToad'
+type MockToadServiceApi_UpdateToad_Call struct {
+	*mock.Call
+}
+
+// UpdateToad is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id types.UUID
+//   - request ToadUpdateRequest
+func (_e *MockToadServiceApi_Expecter) UpdateToad(ctx interface{}, id interface{}, request interface{}) *MockToadServiceApi_UpdateToad_Call {
+	return &MockToadServiceApi_UpdateToad_Call{Call: _e.mock.On("UpdateToad", ctx, id, request)}
+}
+
+func (_c *MockToadServiceApi_UpdateToad_Call) Run(run func(ctx context.Context, id types.UUID, request ToadUpdateRequest)) *MockToadServiceApi_UpdateToad_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.UUID), args[2].(ToadUpdateRequest))
+	})
+	return _c
+}
+
+func (_c *MockToadServiceApi_UpdateToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_UpdateToad_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockToadServiceApi_UpdateToad_Call) RunAndReturn(run func(context.Context, types.UUID, ToadUpdateRequest) (ToadResponse, error)) *MockToadServiceApi_UpdateToad_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+type mockConstructorTestingTNewMockToadServiceApi interface {
+	mock.TestingT
+	Cleanup(func())
+}
+
+// NewMockToadServiceApi creates a new instance of MockToadServiceApi. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+func NewMockToadServiceApi(t mockConstructorTestingTNewMockToadServiceApi) *MockToadServiceApi {
+	mock := &MockToadServiceApi{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
 -- internal/toads/model_toad.go --
 // Model for toad
 
@@ -2705,6 +3780,38 @@ func (f toadFilters) Where() sqldb.WhereOption {
 type Toad struct {
 	ToadId uuid.UUID `db:"toad_id"`
 	Data   string    `db:"data"`
+}
+-- internal/toads/model_toad_test.go --
+// Model Unit Test for toad
+
+package toads
+
+import (
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+// Filter
+
+// Where
+
+func Test_toadFilters_Where(t *testing.T) {
+	tests := []struct {
+		name string
+		want sqldb.WhereOption
+	}{
+		{
+			name: "Success",
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := toadFilters{}
+			assert.Equalf(t, tt.want, f.Where(), "Where()")
+		})
+	}
 }
 -- internal/toads/payloads_toad.go --
 // Payloads for toad
@@ -2838,10 +3945,12 @@ func (r *toadTypedRepository) Delete(ctx context.Context, toadId uuid.UUID) (err
 
 // Context
 
+const contextKeyToadRepository = contextKeyNamed("ToadRepository")
+
 // contextPetRepository returns a ContextKeyAccessor enabling dependency overrides
 // for ToadRepositoryApi.
 func contextToadRepository() types.ContextKeyAccessor[ToadRepositoryApi] {
-	return types.NewContextKeyAccessor[ToadRepositoryApi](contextKeyNamed("ToadRepository"))
+	return types.NewContextKeyAccessor[ToadRepositoryApi](contextKeyToadRepository)
 }
 
 // Constructor
@@ -2862,8 +3971,343 @@ func newToadRepository(ctx context.Context) (ToadRepositoryApi, error) {
 	}
 	return repo, nil
 }
+-- internal/toads/repository_toad_test.go --
+// Repository Unit Tests for toad
+
+package toads
+
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/repository"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/sqldbtest"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"testing"
+)
+
+// Fixture
+
+// Structure
+
+type toadRepositoryTestFixture struct {
+	// SUT
+	ToadRepository ToadRepositoryApi
+
+	// Mocks
+	TypedRepository *sqldb.MockTypedRepositoryApi[Toad]
+
+	// Data
+	ModelData toadTestModelData
+}
+
+// Setup
+
+func (p toadRepositoryTestFixture) Setup(t *testing.T, ctx context.Context) toadRepositoryTestFixture {
+	svc, err := newToadRepository(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, svc)
+
+	p.ToadRepository = svc
+	return p
+}
+
+// Constructor
+
+func newToadRepositoryTestFixture() toadRepositoryTestFixture {
+	return toadRepositoryTestFixture{
+		ModelData: newToadTestModelData(),
+	}
+}
+
+// TestCase
+
+// Constructor
+
+func newToadRepositoryTest() *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture] {
+	return testhelpers.
+		NewServiceFixtureCase(new(sqldbtest.RepositoryTest), newToadRepositoryTestFixture()).
+		WithSetup(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			// Create the mock toad repository
+			s.Fixture.TypedRepository = sqldb.NewMockTypedRepositoryApi[Toad](s.T)
+			// Inject it for use by the SUT
+			s.Testable.WithContextInjector(func(ctx context.Context) context.Context {
+				return sqldb.ContextTypedRepository[Toad](tableNameToad).Set(ctx, s.Fixture.TypedRepository)
+			})
+
+			// All repository methods may return an error
+			s.Testable.HasErr = true
+		})
+}
+
+// Tests
+
+// List
+
+func Test_toadTypedRepository_FindAllPagedFiltered(t *testing.T) {
+	test := newToadRepositoryTest().
+		WithNamedSetup("typedRepository.FindAll", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Fixture.TypedRepository.EXPECT().
+				FindAll(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.AnythingOfType("*[]toads.Toad"),
+					mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption]),
+					mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption])).
+				Run(func(ctx context.Context, dest *[]Toad, options ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request)) {
+					// Set our output parameter
+					*dest = s.Fixture.ModelData.Toads
+				}).
+				Return(
+					s.Fixture.ModelData.PagingResponse,
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ModelData.PagingResponse,
+				s.Fixture.ModelData.Toads,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			pIn := s.Fixture.ModelData.PagingRequest
+			pOut, results, err := s.Fixture.ToadRepository.FindAllPagedFiltered(ctx, pIn, toadFilters{})
+
+			s.Testable.Got = []any{
+				pOut, results, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "RepositoryError",
+			test: test.Clone().
+				WithNamedSetup("typedRepository.FindAll", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Fixture.TypedRepository.EXPECT().
+						FindAll(
+							mock.MatchedBy(testhelpers.AnyContext),
+							mock.AnythingOfType("*[]toads.Toad"),
+							mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption]),
+							mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption])).
+						Return(
+							paging.Response{},
+							sqldb.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Testable.Want = []any{
+						paging.Response{},
+						[]Toad(nil),
+						sqldb.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Retrieve
+
+func Test_toadTypedRepository_FindByKey(t *testing.T) {
+	test := newToadRepositoryTest().
+		WithNamedSetup("typedRepository.FindOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Fixture.TypedRepository.EXPECT().
+				FindOne(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.AnythingOfType("*toads.Toad"),
+					mock.MatchedBy(testhelpers.Implements[sqldb.WhereOption])).
+				Run(func(ctx context.Context, dest *Toad, where sqldb.WhereOption) {
+					// Set our output parameter
+					*dest = s.Fixture.ModelData.Toad
+				}).
+				Return(nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ModelData.Toad,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			result, err := s.Fixture.ToadRepository.FindByKey(ctx, s.Fixture.ModelData.ToadId)
+
+			s.Testable.Got = []any{
+				result, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFoundError",
+			test: test.Clone().
+				WithNamedSetup("typedRepository.FindOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Fixture.TypedRepository.EXPECT().
+						FindOne(
+							mock.MatchedBy(testhelpers.AnyContext),
+							mock.AnythingOfType("*toads.Toad"),
+							mock.MatchedBy(testhelpers.Implements[sqldb.WhereOption])).
+						Return(sqldb.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Testable.Want = []any{
+						Toad{},
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+
+}
+
+// Save
+
+func Test_toadTypedRepository_Save(t *testing.T) {
+	test := newToadRepositoryTest().
+		WithNamedSetup("typedRepository.Upsert", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Fixture.TypedRepository.EXPECT().
+				Upsert(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.AnythingOfType("toads.Toad")).
+				Return(nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Testable.Want = []any{
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			err := s.Fixture.ToadRepository.Save(ctx, s.Fixture.ModelData.Toad)
+
+			s.Testable.Got = []any{
+				err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFoundError",
+			test: test.Clone().
+				WithNamedSetup("typedRepository.Upsert", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Fixture.TypedRepository.EXPECT().
+						Upsert(
+							mock.MatchedBy(testhelpers.AnyContext),
+							mock.AnythingOfType("toads.Toad")).
+						Return(sqldb.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Testable.Want = []any{
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Delete
+
+func Test_toadTypedRepository_Delete(t *testing.T) {
+	test := newToadRepositoryTest().
+		WithNamedSetup("typedRepository.DeleteOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Fixture.TypedRepository.EXPECT().
+				DeleteOne(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.MatchedBy(testhelpers.Implements[sqldb.KeysOption])).
+				Return(nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+			s.Testable.Want = []any{
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			err := s.Fixture.ToadRepository.Delete(ctx, s.Fixture.ModelData.ToadId)
+
+			s.Testable.Got = []any{
+				err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "NotFoundError",
+			test: test.Clone().
+				WithNamedSetup("typedRepository.DeleteOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Fixture.TypedRepository.EXPECT().
+						DeleteOne(
+							mock.MatchedBy(testhelpers.AnyContext),
+							mock.MatchedBy(testhelpers.Implements[sqldb.KeysOption])).
+						Return(sqldb.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
+					s.Testable.Want = []any{
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
 -- internal/toads/service_toad_v8.go --
-// V8 API Service for toad
+// v8 API Service for toad
 
 package toads
 
@@ -2985,10 +4429,12 @@ func (s *toadService) DeleteToad(ctx context.Context, id types.UUID) error {
 
 // Context
 
+const contextKeyToadService = contextKeyNamed("ToadService")
+
 // contextToadService returns a ContextKeyAccessor enabling dependency overrides
 // for ToadServiceApi.
 func contextToadService() types.ContextKeyAccessor[ToadServiceApi] {
-	return types.NewContextKeyAccessor[ToadServiceApi](contextKeyNamed("ToadService"))
+	return types.NewContextKeyAccessor[ToadServiceApi](contextKeyToadService)
 }
 
 // Constructor
@@ -3018,6 +4464,519 @@ func newToadService(ctx context.Context) (svc ToadServiceApi, err error) {
 	}
 
 	return
+}
+-- internal/toads/service_toad_v8_test.go --
+// v8 API Service Unit Tests for toad
+
+package toads
+
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
+	"cto-github.cisco.com/NFV-BU/go-msx/paging"
+	"cto-github.cisco.com/NFV-BU/go-msx/repository"
+	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
+	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/servicetest"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"testing"
+)
+
+// Fixture
+
+// Structure
+
+type toadServiceTestFixture struct {
+	// SUT
+	ToadService ToadServiceApi
+
+	// Mocks
+	ToadRepository *MockToadRepositoryApi
+
+	// Canned Values
+	ApiData   toadTestApiData
+	ModelData toadTestModelData
+}
+
+// Setup
+
+func (p toadServiceTestFixture) Setup(t *testing.T, ctx context.Context) toadServiceTestFixture {
+	svc, err := newToadService(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, svc)
+
+	p.ToadService = svc
+	return p
+}
+
+// Constructor
+
+func newToadServiceTestFixture() toadServiceTestFixture {
+	return toadServiceTestFixture{
+		ApiData:   newToadTestApiData(),
+		ModelData: newToadTestModelData(),
+	}
+}
+
+// TestCase
+
+// Constructor
+
+func newToadServiceTest() *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture] {
+	return testhelpers.
+		NewServiceFixtureCase(new(servicetest.ServiceTest), newToadServiceTestFixture()).
+		WithSetup(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			// Create the mock toad repository
+			s.Fixture.ToadRepository = NewMockToadRepositoryApi(s.T)
+			// Inject it for use by the SUT
+			s.Testable.WithContextInjector(func(ctx context.Context) context.Context {
+				return contextToadRepository().Set(ctx, s.Fixture.ToadRepository)
+			})
+
+			// Inject the mock transaction manager
+			s.Testable.WithContextInjector(sqldb.InjectMockTransactionManager)
+
+			// All service methods may return an error
+			s.Testable.HasErr = true
+		})
+}
+
+// Tests
+
+// List
+
+func Test_toadService_ListToads(t *testing.T) {
+	test := newToadServiceTest().
+		WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				FindAllPagedFiltered(
+					mock.MatchedBy(testhelpers.AnyContext),
+					s.Fixture.ModelData.PagingRequest,
+					s.Fixture.ModelData.ToadFilters).
+				Return(
+					s.Fixture.ModelData.PagingResponse,
+					s.Fixture.ModelData.Toads,
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ApiData.PagingResponse,
+				s.Fixture.ApiData.ToadResponses,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+			// Instantiate the SUT
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			pReq := s.Fixture.ApiData.PagingRequest
+			fReq := toadFilterQueryInputs{}
+
+			pResp, results, err := s.Fixture.ToadService.ListToads(ctx, pReq, fReq)
+
+			s.Testable.Got = []any{
+				pResp, results, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "SortingRequestError",
+			test: test.Clone().
+				WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+					// Instantiate the SUT
+					s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+					// Give a faulty sort order
+					pReq := v8.PagingSortingInputs{
+						PagingInputs: v8.PagingInputs{
+							PageSize: 10,
+						},
+						SortingInputs: v8.SortingInputs{
+							SortBy:    "ERROR",
+							SortOrder: "asc",
+						},
+					}
+
+					fReq := toadFilterQueryInputs{}
+
+					pResp, results, err := s.Fixture.ToadService.ListToads(ctx, pReq, fReq)
+
+					s.Testable.Got = []any{
+						pResp, results, err,
+					}
+				}).
+				WithoutNamedSetup("repository.FindAllPagedFiltered").
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						v8.PagingResponse{},
+						[]ToadResponse(nil),
+						errors.WithStack(errors.New("ERROR: Unknown sort by")),
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+		{
+			name: "RepositoryError",
+			test: test.Clone().
+				WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						FindAllPagedFiltered(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.PagingRequest,
+							s.Fixture.ModelData.ToadFilters).
+						Return(
+							paging.Response{},
+							nil,
+							repository.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						v8.PagingResponse{},
+						[]ToadResponse(nil),
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+		{
+			name: "SortingResponseError",
+			test: test.Clone().
+				WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						FindAllPagedFiltered(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.PagingRequest,
+							s.Fixture.ModelData.ToadFilters).
+						Return(
+							paging.Response{
+								Size:       10,
+								TotalItems: types.PtrTo[uint](2),
+								Sort: []paging.SortOrder{{
+									Property:  "ERROR",
+									Direction: "ASC",
+								}},
+							},
+							s.Fixture.ModelData.Toads,
+							nil)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+
+						v8.PagingResponse{
+							PageSize:   10,
+							TotalItems: types.PtrTo[int](2),
+						},
+						[]ToadResponse(nil),
+						errors.WithStack(errors.New("ERROR: Unknown sort by")),
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Retrieve
+
+func Test_toadService_GetToad(t *testing.T) {
+	test := newToadServiceTest().
+		WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				FindByKey(
+					mock.MatchedBy(testhelpers.AnyContext),
+					s.Fixture.ModelData.ToadId).
+				Return(
+					s.Fixture.ModelData.Toad,
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ApiData.ToadResponse,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+			// Instantiate the SUT
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			result, err := s.Fixture.ToadService.GetToad(ctx, s.Fixture.ApiData.ToadId)
+
+			s.Testable.Got = []any{
+				result, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "RepositoryError",
+			test: test.Clone().
+				WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						FindByKey(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.ToadId).
+						Return(
+							Toad{},
+							repository.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						ToadResponse{},
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Create
+
+func Test_toadService_CreateToad(t *testing.T) {
+	test := newToadServiceTest().
+		WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				Save(
+					mock.MatchedBy(testhelpers.AnyContext),
+					mock.AnythingOfType("Toad")).
+				Return(
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ApiData.ToadResponse,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+			// Instantiate the SUT
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			result, err := s.Fixture.ToadService.CreateToad(ctx, s.Fixture.ApiData.ToadCreateRequest)
+			if err == nil {
+				// fix for test result diff (toadid auto-generated by converter)
+				result.ToadId = s.Fixture.ApiData.ToadId
+			}
+
+			s.Testable.Got = []any{
+				result, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "RepositoryError",
+			test: test.Clone().
+				WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						Save(
+							mock.MatchedBy(testhelpers.AnyContext),
+							mock.AnythingOfType("Toad")).
+						Return(
+							repository.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						ToadResponse{},
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+// Update
+
+func Test_toadService_UpdateToad(t *testing.T) {
+	test := newToadServiceTest().
+		WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				FindByKey(
+					mock.MatchedBy(testhelpers.AnyContext),
+					s.Fixture.ModelData.ToadId).
+				Return(
+					s.Fixture.ModelData.Toad,
+					nil)
+		}).
+		WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				Save(
+					mock.MatchedBy(testhelpers.AnyContext),
+					s.Fixture.ModelData.Toad).
+				Return(
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Testable.Want = []any{
+				s.Fixture.ApiData.ToadResponse,
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+			// Instantiate the SUT
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			result, err := s.Fixture.ToadService.UpdateToad(ctx, s.Fixture.ApiData.ToadId, s.Fixture.ApiData.ToadUpdateRequest)
+
+			s.Testable.Got = []any{
+				result, err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "RepositoryFindError",
+			test: test.Clone().
+				WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						FindByKey(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.ToadId).
+						Return(
+							Toad{},
+							repository.ErrNotFound)
+				}).
+				WithoutNamedSetup("repository.Save").
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						ToadResponse{},
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+		{
+			name: "RepositorySaveError",
+			test: test.Clone().
+				WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						Save(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.Toad).
+						Return(
+							repository.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						ToadResponse{},
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
+}
+
+func Test_toadService_DeleteToad(t *testing.T) {
+	test := newToadServiceTest().
+		WithNamedSetup("repository.Delete", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Fixture.ToadRepository.EXPECT().
+				Delete(
+					mock.MatchedBy(testhelpers.AnyContext),
+					s.Fixture.ModelData.ToadId).
+				Return(
+					nil)
+		}).
+		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+			s.Testable.Want = []any{
+				nil,
+			}
+			s.Testable.WantErr = false
+		}).
+		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
+			// Instantiate the SUT
+			s.Fixture = s.Fixture.Setup(s.T, ctx)
+
+			err := s.Fixture.ToadService.DeleteToad(ctx, s.Fixture.ApiData.ToadId)
+
+			s.Testable.Got = []any{
+				err,
+			}
+		})
+
+	tests := []struct {
+		name string
+		test testhelpers.Testable
+	}{
+		{
+			name: "Success",
+			test: test.Clone(),
+		},
+		{
+			name: "RepositoryError",
+			test: test.Clone().
+				WithNamedSetup("repository.Delete", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Fixture.ToadRepository.EXPECT().
+						Delete(
+							mock.MatchedBy(testhelpers.AnyContext),
+							s.Fixture.ModelData.ToadId).
+						Return(
+							repository.ErrNotFound)
+				}).
+				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
+					s.Testable.Want = []any{
+						repository.ErrNotFound,
+					}
+					s.Testable.WantErr = true
+				}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test.Test)
+	}
 }
 -- local/someservice.remote.yml --
 remote.service.address: 192.168.1.2

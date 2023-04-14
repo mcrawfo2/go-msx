@@ -15,7 +15,6 @@ BUILD_NUMBER ?= 0
 all: clean vet license-check test
 
 test:
-	make -f skel/tests/Makefile install-txtartools
 	$(BUILDER) download-test-deps
 	$(BUILDER) execute-unit-tests
 
@@ -50,6 +49,9 @@ publish-skel:
 
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
+
+skel-test:
+	make -C skel/tests
 
 generate-book:
 	$(BUILDER) download-generate-deps

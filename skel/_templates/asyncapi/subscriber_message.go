@@ -82,7 +82,7 @@ func newAsyncMessageSubscriber(ctx context.Context) (*streamops.MessageSubscribe
 		WithInputs(asyncMessageInput{}).
 		WithDecorator(service.DefaultServiceAccount).
 		WithHandler(
-			//#var handler
+			//#var handler suffix=,
 			//#ignore
 			func(ctx context.Context, in *asyncMessageInput) error {
 				return delegate.OnAsyncMessage(ctx, in.Payload)

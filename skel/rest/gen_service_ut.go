@@ -653,13 +653,22 @@ func (g DomainServiceUnitTestGenerator) Generate() error {
 		g.createTestCaseConstructorSnippet(),
 	}
 
+	// Consistent method ordering
+	var foundActions types.ComparableSlice[string]
+
 	for _, operation := range g.Spec.Operations {
-		if !g.Actions.Contains(operation.Action) {
+		if g.Actions.Contains(operation.Action) {
+			foundActions = append(foundActions, operation.Action)
+		}
+	}
+
+	for _, action := range g.Actions {
+		if !foundActions.Contains(action) {
 			continue
 		}
 
 		var err error
-		switch operation.Action {
+		switch action {
 		case ActionList:
 			err = g.createActionListTestSnippet()
 		case ActionRetrieve:

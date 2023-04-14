@@ -72,6 +72,8 @@ func TestGlobs(t *testing.T) {
 const globz = `same:** ignorelines:*.og:.*EDIT.*`
 
 func TestIgnoreLines(t *testing.T) {
+	// this is an integration test
+	t.SkipNow()
 
 	args := []string{"-debug", "-cmpglobs=\"" + globz + "\"", "mockery.txtar", "."}
 
@@ -87,6 +89,8 @@ func TestIgnoreLines(t *testing.T) {
 }
 
 func TestIgnoreLines2(t *testing.T) {
+	// this is an integration test
+	t.SkipNow()
 
 	args := []string{"-debug", "-cmpglobs=\"" + globz + "\"", "mockery2.txtar", "."}
 
@@ -102,6 +106,8 @@ func TestIgnoreLines2(t *testing.T) {
 }
 
 func TestIgnoreLines3(t *testing.T) {
+	// this is an integration test
+	t.SkipNow()
 
 	args := []string{"-debug", "-cmpglobs=\"" + globz + "\"", "mockery3.txtar", "."}
 

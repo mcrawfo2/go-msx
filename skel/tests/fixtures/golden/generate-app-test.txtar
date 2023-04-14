@@ -243,7 +243,7 @@ deployments/someservice_variables.yml
 -- .skel.json --
 {
     "generator": "app",
-    "targetParent": "/Users/andrewpr/dev/tmptst2",
+    "targetParent": "",
     "appName": "someservice",
     "appUUID": "",
     "appDisplayName": "Some Microservice",
@@ -259,7 +259,9 @@ deployments/someservice_variables.yml
     "kubernetesGroup": "platformms",
     "slackChannel": "go-msx-build",
     "trunk": "main",
-    "imageFile": "msx.png"
+    "imageFile": "msx.png",
+    "scmHost": "cto-github.cisco.com",
+    "scmOrg": "NFV-BU"
 }
 -- .vscode/launch.json --
 {
@@ -2159,6 +2161,7 @@ someservice:
 module cto-github.cisco.com/NFV-BU/someservice
 
 go 1.18
+
 
 -- internal/empty_test.go --
 package internal

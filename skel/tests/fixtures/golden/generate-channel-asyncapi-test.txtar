@@ -243,7 +243,7 @@ deployments/someservice_variables.yml
 -- .skel.json --
 {
     "generator": "app",
-    "targetParent": "/Users/andrewpr/dev/tmptst2",
+    "targetParent": "",
     "appName": "someservice",
     "appUUID": "",
     "appDisplayName": "Some Microservice",
@@ -259,7 +259,9 @@ deployments/someservice_variables.yml
     "kubernetesGroup": "platformms",
     "slackChannel": "go-msx-build",
     "trunk": "main",
-    "imageFile": "msx.png"
+    "imageFile": "msx.png",
+    "scmHost": "cto-github.cisco.com",
+    "scmOrg": "NFV-BU"
 }
 -- .vscode/launch.json --
 {
@@ -2559,9 +2561,9 @@ module cto-github.cisco.com/NFV-BU/someservice
 go 1.18
 
 require (
-	cto-github.cisco.com/NFV-BU/go-msx v0.7.37
-	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.0
-	cto-github.cisco.com/NFV-BU/go-msx-populator v0.14.0
+	cto-github.cisco.com/NFV-BU/go-msx v0.7.47
+	cto-github.cisco.com/NFV-BU/go-msx-build v0.5.1
+	cto-github.cisco.com/NFV-BU/go-msx-populator v0.15.1
 )
 
 require (
@@ -2572,7 +2574,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/Rican7/retry v0.3.1 // indirect
-	github.com/Shopify/sarama v1.32.0 // indirect
+	github.com/Shopify/sarama v1.33.0 // indirect
 	github.com/ThreeDotsLabs/watermill v1.1.1 // indirect
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.2 // indirect
 	github.com/ThreeDotsLabs/watermill-sql v1.3.4 // indirect
@@ -2604,14 +2606,12 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/gocql/gocql v0.0.0-20210413161705-87a5d7a5ff74 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-github/v38 v38.1.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/consul/api v1.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -2655,6 +2655,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/otiai10/copy v1.0.2 // indirect
@@ -2694,17 +2695,16 @@ require (
 	go.opentelemetry.io/otel/trace v1.6.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0 // indirect
-	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/pipe.v2 v2.0.0-20140414041502-3c2ca4d52544 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -2849,7 +2849,47 @@ type ToggleComplianceRequest struct {
 
 const ToggleComplianceRequestActionDisableCompliance string = "disableCompliance"
 const ToggleComplianceRequestActionEnableCompliance string = "enableCompliance"
--- internal/stream/complianceevent/mock_DriftCheckRequestHandler.go --
+-- internal/stream/complianceevent/channel.go --
+package complianceevent
+
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
+
+// Context
+
+const contextKeyChannel = contextKeyNamed("Channel")
+
+func ContextChannel() types.ContextKeyAccessor[*streamops.Channel] {
+	return types.NewContextKeyAccessor[*streamops.Channel](contextKeyChannel)
+}
+
+// Constructor
+
+func newChannel(ctx context.Context) (*streamops.Channel, error) {
+	doc := new(asyncapi.ChannelDocumentor).
+		WithChannelItem(new(asyncapi.ChannelItem).
+			WithDescription("Description of the COMPLIANCE_EVENT_TOPIC channel."))
+
+	ch, err := streamops.NewChannel(ctx, "COMPLIANCE_EVENT_TOPIC")
+	if err != nil {
+		return nil, err
+	}
+
+	ch.WithDocumentor(doc)
+
+	return ch, nil
+}
+
+// Singleton
+
+var channel = types.NewSingleton(
+	newChannel,
+	ContextChannel)
+-- internal/stream/complianceevent/mock_drift_check_request_handler_test.go --
 // Code generated by mockery v2.21.1. DO NOT EDIT.
 
 package complianceevent
@@ -2867,6 +2907,14 @@ type MockDriftCheckRequestHandler struct {
 	mock.Mock
 }
 
+type MockDriftCheckRequestHandler_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockDriftCheckRequestHandler) EXPECT() *MockDriftCheckRequestHandler_Expecter {
+	return &MockDriftCheckRequestHandler_Expecter{mock: &_m.Mock}
+}
+
 // OnDriftCheckRequest provides a mock function with given fields: ctx, payload
 func (_m *MockDriftCheckRequestHandler) OnDriftCheckRequest(ctx context.Context, payload api.DriftCheckRequest) error {
 	ret := _m.Called(ctx, payload)
@@ -2879,6 +2927,35 @@ func (_m *MockDriftCheckRequestHandler) OnDriftCheckRequest(ctx context.Context,
 	}
 
 	return r0
+}
+
+// MockDriftCheckRequestHandler_OnDriftCheckRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnDriftCheckRequest'
+type MockDriftCheckRequestHandler_OnDriftCheckRequest_Call struct {
+	*mock.Call
+}
+
+// OnDriftCheckRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - payload api.DriftCheckRequest
+func (_e *MockDriftCheckRequestHandler_Expecter) OnDriftCheckRequest(ctx interface{}, payload interface{}) *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call {
+	return &MockDriftCheckRequestHandler_OnDriftCheckRequest_Call{Call: _e.mock.On("OnDriftCheckRequest", ctx, payload)}
+}
+
+func (_c *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call) Run(run func(ctx context.Context, payload api.DriftCheckRequest)) *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(api.DriftCheckRequest))
+	})
+	return _c
+}
+
+func (_c *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call) Return(_a0 error) *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call) RunAndReturn(run func(context.Context, api.DriftCheckRequest) error) *MockDriftCheckRequestHandler_OnDriftCheckRequest_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockDriftCheckRequestHandler interface {
@@ -2895,7 +2972,7 @@ func NewMockDriftCheckRequestHandler(t mockConstructorTestingTNewMockDriftCheckR
 
 	return mock
 }
--- internal/stream/complianceevent/mock_RemediateRequestHandler.go --
+-- internal/stream/complianceevent/mock_remediate_request_handler_test.go --
 // Code generated by mockery v2.21.1. DO NOT EDIT.
 
 package complianceevent
@@ -2913,6 +2990,14 @@ type MockRemediateRequestHandler struct {
 	mock.Mock
 }
 
+type MockRemediateRequestHandler_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockRemediateRequestHandler) EXPECT() *MockRemediateRequestHandler_Expecter {
+	return &MockRemediateRequestHandler_Expecter{mock: &_m.Mock}
+}
+
 // OnRemediateRequest provides a mock function with given fields: ctx, payload
 func (_m *MockRemediateRequestHandler) OnRemediateRequest(ctx context.Context, payload api.RemediateRequest) error {
 	ret := _m.Called(ctx, payload)
@@ -2925,6 +3010,35 @@ func (_m *MockRemediateRequestHandler) OnRemediateRequest(ctx context.Context, p
 	}
 
 	return r0
+}
+
+// MockRemediateRequestHandler_OnRemediateRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnRemediateRequest'
+type MockRemediateRequestHandler_OnRemediateRequest_Call struct {
+	*mock.Call
+}
+
+// OnRemediateRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - payload api.RemediateRequest
+func (_e *MockRemediateRequestHandler_Expecter) OnRemediateRequest(ctx interface{}, payload interface{}) *MockRemediateRequestHandler_OnRemediateRequest_Call {
+	return &MockRemediateRequestHandler_OnRemediateRequest_Call{Call: _e.mock.On("OnRemediateRequest", ctx, payload)}
+}
+
+func (_c *MockRemediateRequestHandler_OnRemediateRequest_Call) Run(run func(ctx context.Context, payload api.RemediateRequest)) *MockRemediateRequestHandler_OnRemediateRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(api.RemediateRequest))
+	})
+	return _c
+}
+
+func (_c *MockRemediateRequestHandler_OnRemediateRequest_Call) Return(_a0 error) *MockRemediateRequestHandler_OnRemediateRequest_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRemediateRequestHandler_OnRemediateRequest_Call) RunAndReturn(run func(context.Context, api.RemediateRequest) error) *MockRemediateRequestHandler_OnRemediateRequest_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockRemediateRequestHandler interface {
@@ -2941,7 +3055,7 @@ func NewMockRemediateRequestHandler(t mockConstructorTestingTNewMockRemediateReq
 
 	return mock
 }
--- internal/stream/complianceevent/mock_ToggleComplianceRequestHandler.go --
+-- internal/stream/complianceevent/mock_toggle_compliance_request_handler_test.go --
 // Code generated by mockery v2.21.1. DO NOT EDIT.
 
 package complianceevent
@@ -2959,6 +3073,14 @@ type MockToggleComplianceRequestHandler struct {
 	mock.Mock
 }
 
+type MockToggleComplianceRequestHandler_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockToggleComplianceRequestHandler) EXPECT() *MockToggleComplianceRequestHandler_Expecter {
+	return &MockToggleComplianceRequestHandler_Expecter{mock: &_m.Mock}
+}
+
 // OnToggleComplianceRequest provides a mock function with given fields: ctx, payload
 func (_m *MockToggleComplianceRequestHandler) OnToggleComplianceRequest(ctx context.Context, payload api.ToggleComplianceRequest) error {
 	ret := _m.Called(ctx, payload)
@@ -2971,6 +3093,35 @@ func (_m *MockToggleComplianceRequestHandler) OnToggleComplianceRequest(ctx cont
 	}
 
 	return r0
+}
+
+// MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnToggleComplianceRequest'
+type MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call struct {
+	*mock.Call
+}
+
+// OnToggleComplianceRequest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - payload api.ToggleComplianceRequest
+func (_e *MockToggleComplianceRequestHandler_Expecter) OnToggleComplianceRequest(ctx interface{}, payload interface{}) *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call {
+	return &MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call{Call: _e.mock.On("OnToggleComplianceRequest", ctx, payload)}
+}
+
+func (_c *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call) Run(run func(ctx context.Context, payload api.ToggleComplianceRequest)) *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(api.ToggleComplianceRequest))
+	})
+	return _c
+}
+
+func (_c *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call) Return(_a0 error) *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call) RunAndReturn(run func(context.Context, api.ToggleComplianceRequest) error) *MockToggleComplianceRequestHandler_OnToggleComplianceRequest_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockToggleComplianceRequestHandler interface {
@@ -2991,30 +3142,12 @@ func NewMockToggleComplianceRequestHandler(t mockConstructorTestingTNewMockToggl
 package complianceevent
 
 import (
-	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/app"
-	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
-	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 )
 
 type contextKeyNamed string
 
-var channel *streamops.Channel
-
-func init() {
-	app.OnEvent(app.EventConfigure, app.PhaseAfter, func(ctx context.Context) (err error) {
-		channel, err = streamops.NewChannel(ctx, "COMPLIANCE_EVENT_TOPIC")
-		if err != nil {
-			return
-		}
-
-		channel.WithDocumentor(new(asyncapi.ChannelDocumentor).
-			WithChannelItem(new(asyncapi.ChannelItem).
-				WithDescription("Description of the COMPLIANCE_EVENT_TOPIC channel.")))
-
-		return nil
-	})
-}
+var logger = log.NewPackageLogger()
 -- internal/stream/complianceevent/subscriber_channel.go --
 package complianceevent
 
@@ -3025,33 +3158,46 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 )
 
+// Context
+
 const contextKeyChannelSubscriber = contextKeyNamed("ChannelSubscriber")
 
 func ContextChannelSubscriber() types.ContextKeyAccessor[*streamops.ChannelSubscriber] {
 	return types.NewContextKeyAccessor[*streamops.ChannelSubscriber](contextKeyChannelSubscriber)
 }
 
+// Constructor
+
 func newChannelSubscriber(ctx context.Context) (channelSubscriber *streamops.ChannelSubscriber, err error) {
-	channelSubscriber = ContextChannelSubscriber().Get(ctx)
-	if channelSubscriber == nil {
-		doc := new(asyncapi.ChannelSubscriberDocumentor).
-			WithOperation(new(asyncapi.Operation).
-				WithID("onComplianceEventSubscribe").
-				WithSummary("onComplianceEventSubscribe"))
+	doc := new(asyncapi.ChannelSubscriberDocumentor).
+		WithOperation(new(asyncapi.Operation).
+			WithID("onComplianceEventSubscribe").
+			WithSummary("onComplianceEventSubscribe"))
 
-		channelSubscriber, err = streamops.NewChannelSubscriber(ctx,
-			channel,
-			"onComplianceEventSubscribe",
-			types.OptionalOf("eventType"))
-		if err != nil {
-			return nil, err
-		}
-
-		channelSubscriber.AddDocumentor(doc)
+	ch, err := channel.Factory(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	channelSubscriber, err = streamops.NewChannelSubscriber(ctx,
+		ch,
+		"onComplianceEventSubscribe",
+		types.OptionalOf("eventType"))
+	if err != nil {
+		return nil, err
+	}
+
+	channelSubscriber.AddDocumentor(doc)
 
 	return channelSubscriber, nil
 }
+
+// Singleton
+
+var channelSubscriber = types.NewSingleton(
+	newChannelSubscriber,
+	ContextChannelSubscriber,
+)
 -- internal/stream/complianceevent/subscriber_drift_check_request.go --
 package complianceevent
 
@@ -3063,16 +3209,24 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/someservice/internal/stream/complianceevent/api"
-	// "cto-github.cisco.com/NFV-BU/someservice/internal/unknowns"
 )
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=DriftCheckRequestHandler --structname=MockDriftCheckRequestHandler --filename mock_DriftCheckRequestHandler.go
+//go:generate mockery --name=DriftCheckRequestHandler --testonly --case=snake --inpackage --with-expecter
 
 type DriftCheckRequestHandler interface {
 	OnDriftCheckRequest(ctx context.Context, payload api.DriftCheckRequest) error
 }
+
+type dropDriftCheckRequestHandler struct{}
+
+func (_ dropDriftCheckRequestHandler) OnDriftCheckRequest(ctx context.Context, payload api.DriftCheckRequest) error {
+	logger.Error("No handler assigned to DriftCheckRequest message subscription.  Dropping message.")
+	return nil
+}
+
+// Context
 
 const contextKeyDriftCheckRequestSubscriber = contextKeyNamed("DriftCheckRequestSubscriber")
 
@@ -3090,48 +3244,49 @@ type driftCheckRequestInput struct {
 }
 
 func newDriftCheckRequestSubscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
-	svc := ContextDriftCheckRequestSubscriber().Get(ctx)
-	if svc == nil {
+	doc := new(asyncapi.MessageSubscriberDocumentor).
+		WithMessage(new(asyncapi.Message).
+			WithTitle("Drift Check").
+			WithSummary("Drift Check").
+			WithTags(
+				*asyncapi.NewTag("DriftCheckRequest"),
+			))
 
-		doc := new(asyncapi.MessageSubscriberDocumentor).
-			WithMessage(new(asyncapi.Message).
-				WithTitle("Drift Check").
-				WithSummary("Drift Check").
-				WithTags(
-					*asyncapi.NewTag("DriftCheckRequest"),
-				))
+	cs, err := newChannelSubscriber(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-		cs, err := newChannelSubscriber(ctx)
-		if err != nil {
-			return nil, err
-		}
+	// TODO: specify your message handler here
+	var handler DriftCheckRequestHandler = dropDriftCheckRequestHandler{}
 
-		var handler DriftCheckRequestHandler
-		// handler, err = unknowns.NewUnknownService(ctx)
-		// if err != nil {
-		//	   return nil, err
-		// }
+	sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "DriftCheckRequest")
+	if err != nil {
+		return nil, err
+	}
 
-		sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "DriftCheckRequest")
-		if err != nil {
-			return nil, err
-		}
-
-		svc, err = sb.
-			WithInputs(driftCheckRequestInput{}).
-			WithDecorator(service.DefaultServiceAccount).
-			WithHandler(func(ctx context.Context, in *driftCheckRequestInput) error {
+	svc, err := sb.
+		WithInputs(driftCheckRequestInput{}).
+		WithDecorator(service.DefaultServiceAccount).
+		WithHandler(
+			func(ctx context.Context, in *driftCheckRequestInput) error {
 				return handler.OnDriftCheckRequest(ctx, in.Payload)
-			}).
-			WithDocumentor(doc).
-			Build()
-		if err != nil {
-			return nil, err
-		}
+			},
+		).
+		WithDocumentor(doc).
+		Build()
+	if err != nil {
+		return nil, err
 	}
 
 	return svc, nil
 }
+
+// Singleton
+
+var driftCheckRequestSubscriber = types.NewSingleton(
+	newDriftCheckRequestSubscriber,
+	ContextDriftCheckRequestSubscriber)
 
 // Instantiate
 
@@ -3140,9 +3295,9 @@ func init() {
 		[]string{app.CommandRoot, app.CommandAsyncApi},
 		app.EventStart,
 		app.PhaseBefore,
-		func(ctx context.Context) error {
-			_, err := newDriftCheckRequestSubscriber(ctx)
-			return err
+		func(ctx context.Context) (err error) {
+			_, err = driftCheckRequestSubscriber.Factory(ctx)
+			return
 		})
 }
 -- internal/stream/complianceevent/subscriber_remediate_request.go --
@@ -3156,16 +3311,24 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/someservice/internal/stream/complianceevent/api"
-	// "cto-github.cisco.com/NFV-BU/someservice/internal/unknowns"
 )
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=RemediateRequestHandler --structname=MockRemediateRequestHandler --filename mock_RemediateRequestHandler.go
+//go:generate mockery --name=RemediateRequestHandler --testonly --case=snake --inpackage --with-expecter
 
 type RemediateRequestHandler interface {
 	OnRemediateRequest(ctx context.Context, payload api.RemediateRequest) error
 }
+
+type dropRemediateRequestHandler struct{}
+
+func (_ dropRemediateRequestHandler) OnRemediateRequest(ctx context.Context, payload api.RemediateRequest) error {
+	logger.Error("No handler assigned to RemediateRequest message subscription.  Dropping message.")
+	return nil
+}
+
+// Context
 
 const contextKeyRemediateRequestSubscriber = contextKeyNamed("RemediateRequestSubscriber")
 
@@ -3183,48 +3346,49 @@ type remediateRequestInput struct {
 }
 
 func newRemediateRequestSubscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
-	svc := ContextRemediateRequestSubscriber().Get(ctx)
-	if svc == nil {
+	doc := new(asyncapi.MessageSubscriberDocumentor).
+		WithMessage(new(asyncapi.Message).
+			WithTitle("Remediate").
+			WithSummary("Remediate").
+			WithTags(
+				*asyncapi.NewTag("RemediateRequest"),
+			))
 
-		doc := new(asyncapi.MessageSubscriberDocumentor).
-			WithMessage(new(asyncapi.Message).
-				WithTitle("Remediate").
-				WithSummary("Remediate").
-				WithTags(
-					*asyncapi.NewTag("RemediateRequest"),
-				))
+	cs, err := newChannelSubscriber(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-		cs, err := newChannelSubscriber(ctx)
-		if err != nil {
-			return nil, err
-		}
+	// TODO: specify your message handler here
+	var handler RemediateRequestHandler = dropRemediateRequestHandler{}
 
-		var handler RemediateRequestHandler
-		// handler, err = unknowns.NewUnknownService(ctx)
-		// if err != nil {
-		//	   return nil, err
-		// }
+	sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "RemediateRequest")
+	if err != nil {
+		return nil, err
+	}
 
-		sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "RemediateRequest")
-		if err != nil {
-			return nil, err
-		}
-
-		svc, err = sb.
-			WithInputs(remediateRequestInput{}).
-			WithDecorator(service.DefaultServiceAccount).
-			WithHandler(func(ctx context.Context, in *remediateRequestInput) error {
+	svc, err := sb.
+		WithInputs(remediateRequestInput{}).
+		WithDecorator(service.DefaultServiceAccount).
+		WithHandler(
+			func(ctx context.Context, in *remediateRequestInput) error {
 				return handler.OnRemediateRequest(ctx, in.Payload)
-			}).
-			WithDocumentor(doc).
-			Build()
-		if err != nil {
-			return nil, err
-		}
+			},
+		).
+		WithDocumentor(doc).
+		Build()
+	if err != nil {
+		return nil, err
 	}
 
 	return svc, nil
 }
+
+// Singleton
+
+var remediateRequestSubscriber = types.NewSingleton(
+	newRemediateRequestSubscriber,
+	ContextRemediateRequestSubscriber)
 
 // Instantiate
 
@@ -3233,9 +3397,9 @@ func init() {
 		[]string{app.CommandRoot, app.CommandAsyncApi},
 		app.EventStart,
 		app.PhaseBefore,
-		func(ctx context.Context) error {
-			_, err := newRemediateRequestSubscriber(ctx)
-			return err
+		func(ctx context.Context) (err error) {
+			_, err = remediateRequestSubscriber.Factory(ctx)
+			return
 		})
 }
 -- internal/stream/complianceevent/subscriber_toggle_compliance_request.go --
@@ -3249,16 +3413,24 @@ import (
 	"cto-github.cisco.com/NFV-BU/go-msx/security/service"
 	"cto-github.cisco.com/NFV-BU/go-msx/types"
 	"cto-github.cisco.com/NFV-BU/someservice/internal/stream/complianceevent/api"
-	// "cto-github.cisco.com/NFV-BU/someservice/internal/unknowns"
 )
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=ToggleComplianceRequestHandler --structname=MockToggleComplianceRequestHandler --filename mock_ToggleComplianceRequestHandler.go
+//go:generate mockery --name=ToggleComplianceRequestHandler --testonly --case=snake --inpackage --with-expecter
 
 type ToggleComplianceRequestHandler interface {
 	OnToggleComplianceRequest(ctx context.Context, payload api.ToggleComplianceRequest) error
 }
+
+type dropToggleComplianceRequestHandler struct{}
+
+func (_ dropToggleComplianceRequestHandler) OnToggleComplianceRequest(ctx context.Context, payload api.ToggleComplianceRequest) error {
+	logger.Error("No handler assigned to ToggleComplianceRequest message subscription.  Dropping message.")
+	return nil
+}
+
+// Context
 
 const contextKeyToggleComplianceRequestSubscriber = contextKeyNamed("ToggleComplianceRequestSubscriber")
 
@@ -3276,48 +3448,49 @@ type toggleComplianceRequestInput struct {
 }
 
 func newToggleComplianceRequestSubscriber(ctx context.Context) (*streamops.MessageSubscriber, error) {
-	svc := ContextToggleComplianceRequestSubscriber().Get(ctx)
-	if svc == nil {
+	doc := new(asyncapi.MessageSubscriberDocumentor).
+		WithMessage(new(asyncapi.Message).
+			WithTitle("Toggle Compliance").
+			WithSummary("Toggle Compliance").
+			WithTags(
+				*asyncapi.NewTag("ToggleComplianceRequest"),
+			))
 
-		doc := new(asyncapi.MessageSubscriberDocumentor).
-			WithMessage(new(asyncapi.Message).
-				WithTitle("Toggle Compliance").
-				WithSummary("Toggle Compliance").
-				WithTags(
-					*asyncapi.NewTag("ToggleComplianceRequest"),
-				))
+	cs, err := newChannelSubscriber(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-		cs, err := newChannelSubscriber(ctx)
-		if err != nil {
-			return nil, err
-		}
+	// TODO: specify your message handler here
+	var handler ToggleComplianceRequestHandler = dropToggleComplianceRequestHandler{}
 
-		var handler ToggleComplianceRequestHandler
-		// handler, err = unknowns.NewUnknownService(ctx)
-		// if err != nil {
-		//	   return nil, err
-		// }
+	sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "ToggleComplianceRequest")
+	if err != nil {
+		return nil, err
+	}
 
-		sb, err := streamops.NewMessageSubscriberBuilder(ctx, cs, "ToggleComplianceRequest")
-		if err != nil {
-			return nil, err
-		}
-
-		svc, err = sb.
-			WithInputs(toggleComplianceRequestInput{}).
-			WithDecorator(service.DefaultServiceAccount).
-			WithHandler(func(ctx context.Context, in *toggleComplianceRequestInput) error {
+	svc, err := sb.
+		WithInputs(toggleComplianceRequestInput{}).
+		WithDecorator(service.DefaultServiceAccount).
+		WithHandler(
+			func(ctx context.Context, in *toggleComplianceRequestInput) error {
 				return handler.OnToggleComplianceRequest(ctx, in.Payload)
-			}).
-			WithDocumentor(doc).
-			Build()
-		if err != nil {
-			return nil, err
-		}
+			},
+		).
+		WithDocumentor(doc).
+		Build()
+	if err != nil {
+		return nil, err
 	}
 
 	return svc, nil
 }
+
+// Singleton
+
+var toggleComplianceRequestSubscriber = types.NewSingleton(
+	newToggleComplianceRequestSubscriber,
+	ContextToggleComplianceRequestSubscriber)
 
 // Instantiate
 
@@ -3326,9 +3499,9 @@ func init() {
 		[]string{app.CommandRoot, app.CommandAsyncApi},
 		app.EventStart,
 		app.PhaseBefore,
-		func(ctx context.Context) error {
-			_, err := newToggleComplianceRequestSubscriber(ctx)
-			return err
+		func(ctx context.Context) (err error) {
+			_, err = toggleComplianceRequestSubscriber.Factory(ctx)
+			return
 		})
 }
 -- internal/stream/complianceupdate/api/toggle_compliance_response.go --
@@ -3352,7 +3525,47 @@ type ToggleComplianceResponse struct {
 
 const ToggleComplianceResponseActionDisableCompliance string = "disableCompliance"
 const ToggleComplianceResponseActionEnableCompliance string = "enableCompliance"
--- internal/stream/complianceupdate/mock_ToggleComplianceResponsePublisher.go --
+-- internal/stream/complianceupdate/channel.go --
+package complianceupdate
+
+import (
+	"context"
+	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
+	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
+	"cto-github.cisco.com/NFV-BU/go-msx/types"
+)
+
+// Context
+
+const contextKeyChannel = contextKeyNamed("Channel")
+
+func ContextChannel() types.ContextKeyAccessor[*streamops.Channel] {
+	return types.NewContextKeyAccessor[*streamops.Channel](contextKeyChannel)
+}
+
+// Constructor
+
+func newChannel(ctx context.Context) (*streamops.Channel, error) {
+	doc := new(asyncapi.ChannelDocumentor).
+		WithChannelItem(new(asyncapi.ChannelItem).
+			WithDescription("Description of the COMPLIANCE_UPDATE_TOPIC channel."))
+
+	ch, err := streamops.NewChannel(ctx, "COMPLIANCE_UPDATE_TOPIC")
+	if err != nil {
+		return nil, err
+	}
+
+	ch.WithDocumentor(doc)
+
+	return ch, nil
+}
+
+// Singleton
+
+var channel = types.NewSingleton(
+	newChannel,
+	ContextChannel)
+-- internal/stream/complianceupdate/mock_toggle_compliance_response_publisher_test.go --
 // Code generated by mockery v2.21.1. DO NOT EDIT.
 
 package complianceupdate
@@ -3370,6 +3583,14 @@ type MockToggleComplianceResponsePublisher struct {
 	mock.Mock
 }
 
+type MockToggleComplianceResponsePublisher_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockToggleComplianceResponsePublisher) EXPECT() *MockToggleComplianceResponsePublisher_Expecter {
+	return &MockToggleComplianceResponsePublisher_Expecter{mock: &_m.Mock}
+}
+
 // PublishToggleComplianceResponse provides a mock function with given fields: ctx, payload
 func (_m *MockToggleComplianceResponsePublisher) PublishToggleComplianceResponse(ctx context.Context, payload api.ToggleComplianceResponse) error {
 	ret := _m.Called(ctx, payload)
@@ -3382,6 +3603,35 @@ func (_m *MockToggleComplianceResponsePublisher) PublishToggleComplianceResponse
 	}
 
 	return r0
+}
+
+// MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PublishToggleComplianceResponse'
+type MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call struct {
+	*mock.Call
+}
+
+// PublishToggleComplianceResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - payload api.ToggleComplianceResponse
+func (_e *MockToggleComplianceResponsePublisher_Expecter) PublishToggleComplianceResponse(ctx interface{}, payload interface{}) *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call {
+	return &MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call{Call: _e.mock.On("PublishToggleComplianceResponse", ctx, payload)}
+}
+
+func (_c *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call) Run(run func(ctx context.Context, payload api.ToggleComplianceResponse)) *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(api.ToggleComplianceResponse))
+	})
+	return _c
+}
+
+func (_c *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call) Return(_a0 error) *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call) RunAndReturn(run func(context.Context, api.ToggleComplianceResponse) error) *MockToggleComplianceResponsePublisher_PublishToggleComplianceResponse_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockToggleComplianceResponsePublisher interface {
@@ -3402,30 +3652,12 @@ func NewMockToggleComplianceResponsePublisher(t mockConstructorTestingTNewMockTo
 package complianceupdate
 
 import (
-	"context"
-	"cto-github.cisco.com/NFV-BU/go-msx/app"
-	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
-	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
+	"cto-github.cisco.com/NFV-BU/go-msx/log"
 )
 
 type contextKeyNamed string
 
-var channel *streamops.Channel
-
-func init() {
-	app.OnEvent(app.EventConfigure, app.PhaseAfter, func(ctx context.Context) (err error) {
-		channel, err = streamops.NewChannel(ctx, "COMPLIANCE_UPDATE_TOPIC")
-		if err != nil {
-			return
-		}
-
-		channel.WithDocumentor(new(asyncapi.ChannelDocumentor).
-			WithChannelItem(new(asyncapi.ChannelItem).
-				WithDescription("Description of the COMPLIANCE_UPDATE_TOPIC channel.")))
-
-		return nil
-	})
-}
+var logger = log.NewPackageLogger()
 -- internal/stream/complianceupdate/publisher_channel.go --
 package complianceupdate
 
@@ -3445,7 +3677,13 @@ func contextChannelPublisher() types.ContextKeyAccessor[*streamops.ChannelPublis
 func newChannelPublisher(ctx context.Context) (svc *streamops.ChannelPublisher, err error) {
 	svc = contextChannelPublisher().Get(ctx)
 	if svc == nil {
-		svc, err = streamops.NewChannelPublisher(ctx, channel, "onComplianceUpdatePublish")
+		var ch *streamops.Channel
+		ch, err = channel.Factory(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		svc, err = streamops.NewChannelPublisher(ctx, ch, "onComplianceUpdatePublish")
 		if err != nil {
 			return nil, err
 		}
@@ -3473,11 +3711,13 @@ import (
 
 // Dependencies
 
-//go:generate mockery --inpackage --name=ToggleComplianceResponsePublisher --structname=MockToggleComplianceResponsePublisher --filename mock_ToggleComplianceResponsePublisher.go
+//go:generate mockery --name=ToggleComplianceResponsePublisher --testonly --case=snake --inpackage --with-expecter
 
 type ToggleComplianceResponsePublisher interface {
 	PublishToggleComplianceResponse(ctx context.Context, payload api.ToggleComplianceResponse) error
 }
+
+// Context
 
 const contextKeyToggleComplianceResponsePublisher = contextKeyNamed("ToggleComplianceResponsePublisher")
 
@@ -3501,6 +3741,8 @@ type toggleComplianceResponseOutput struct {
 func (p toggleComplianceResponsePublisher) PublishToggleComplianceResponse(ctx context.Context, payload api.ToggleComplianceResponse) error {
 	return p.messagePublisher.Publish(ctx, toggleComplianceResponseOutput{Payload: payload})
 }
+
+// Constructor
 
 func NewToggleComplianceResponsePublisher(ctx context.Context) (ToggleComplianceResponsePublisher, error) {
 	svc := ContextToggleComplianceResponsePublisher().Get(ctx)
