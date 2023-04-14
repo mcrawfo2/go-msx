@@ -86,6 +86,11 @@ require (
 )
 
 require (
+	github.com/bluekeyes/go-gitdiff v0.7.1
+	github.com/bmatcuk/doublestar/v4 v4.6.0
+)
+
+require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible // indirect
 	github.com/DataDog/sketches-go v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.5.0 // indirect

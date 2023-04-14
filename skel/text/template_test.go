@@ -479,7 +479,7 @@ func TestVariableLineVisitor_VisitLine(t *testing.T) {
 				},
 				Directive: markers,
 			},
-			line:       "//#var hello suffix=,",
+			line:       "  //#var hello suffix=,",
 			wantLine:   "world,",
 			wantOutput: true,
 			wantErr:    false,

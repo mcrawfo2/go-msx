@@ -27,7 +27,7 @@ func (a Archetypes) Key(index int) string {
 func (a Archetypes) DisplayNames(external bool) []string {
 	var result []string
 	for _, archetype := range a {
-		if external && archetype.External {
+		if !external || (external && archetype.External) {
 			result = append(result, archetype.DisplayName)
 		}
 	}

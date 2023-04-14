@@ -45,15 +45,14 @@ The program outputs a testscript script that tests any prefixed files against th
 
 (for testscript syntax see: https://pkg.go.dev/github.com/rogpeppe/go-internal/testscript)
 
-Globs are doublestar globs, separated by spaces 
+Each file is matched against the GenGlobs, which are prefix:doublestar glob pairs, pairs separated by spaces 
 
-  #exist:<**glob> [**glob] ...    : generate an existance-only check for these
-  #notexist:<**glob> [**glob] ... : generate a non-existance check 
-  #same:<**glob> [**glob] ...     : generate a sameness check (contents must have been included)
-  #notsame:<**glob> [**glob] ...  : generate a non-sameness check
+  exist:<**glob>    - generate an existance-only check for these
+  notexist:<**glob> - generate a non-existance check 
+  same:<**glob>     - generate a sameness check (contents must have been included)
+  notsame:<**glob>  - generate a non-sameness check
 
-The first match wins, evaluated in the order:
-  - same, notsame, exist, notexist 
+The first match wins, evaluated in the order provided, any number of them may be given 
 
 Doublestar globs are described here: https://github.com/bmatcuk/doublestar
 
@@ -61,48 +60,38 @@ Output will be sent to <stdout> in the order: archive comments, testscript scrip
 
 `
 
-// Environment variables read by this program
 const (
-	EnvSame      = "TXTAR_SAME"
-	EnvNotSame   = "TXTAR_NOTSAME"
-	EnvExists    = "TXTAR_EXISTS"
-	EnvNotExists = "TXTAR_NOTEXISTS"
-)
-
-const (
-	sameIx clienv.Ix = iota
+	genGlobsIx clienv.Ix = iota
+	sameIx
 	notsameIx
 	existsIx
 	notexistsIx
+	noMatchIx
 )
+
+// glob prefixes
+
+var prefix2ix = map[string]clienv.Ix{
+	"same":      sameIx,
+	"notsame":   notsameIx,
+	"exists":    existsIx,
+	"notexists": notexistsIx,
+}
 
 // Variables for command line flags
 var debugOn bool // debug output
-var sameRaw string
-var notsameRaw string
-var existsRaw string
-var notexistsRaw string
-var same []string
-var notsame []string
-var exists []string
-var notexists []string
+var genGlobsRaw string
+var genGlobs []string
 
 var flag2env = clienv.Flagvars{
-	sameIx: {Name: "same", Env: EnvSame, Default: "**", RawVar: &sameRaw, FinVar: &same,
-		Use: "globs for files that must be the same"},
-	notsameIx: {Name: "notsame", Env: EnvNotSame, Default: "", RawVar: &notsameRaw, FinVar: &notsame,
-		Use: "globs for files that must not be the same"},
-	existsIx: {Name: "exists", Env: EnvExists, Default: "", RawVar: &existsRaw, FinVar: &exists,
-		Use: "globs for files that must exist"},
-	notexistsIx: {Name: "notexists", Env: EnvNotExists, Default: "", RawVar: &notexistsRaw, FinVar: &notexists,
-		Use: "globs for files that must not exist"},
+	genGlobsIx: {Name: "genglobs", Env: clienv.EnvCmp,
+		Default: "same:**", RawVar: &genGlobsRaw, FinVar: &genGlobs,
+		Use: "globs that describe how to generate test lines"},
 }
 
 const (
 	fromStdin = "-"
 )
-
-// const LF byte = '\n'
 
 func main() {
 
@@ -121,6 +110,7 @@ func main() {
 
 	debug("txtargen: args: %s\n", flag.Args())
 	debug(flag2env.String())
+	debug("############# genglobs: %s\n", genGlobs)
 
 	if len(flag.Args()) != 2 {
 		flag.Usage()
@@ -148,6 +138,7 @@ func main() {
 	generated := fmt.Sprintf("\n\n# ========== Generated, unwise to edit ==========\n")
 
 	for _, file := range files {
+
 		goldpath := file.Name
 		path := file.Name
 		if strings.HasPrefix(path, generate) { // only generate for these
@@ -155,30 +146,32 @@ func main() {
 		} else {
 			continue // next file please
 		}
-		for _, ix := range []clienv.Ix{sameIx, notsameIx, existsIx, notexistsIx} { // predictable order
-			fv := flag2env[ix]
-			match, err := matchGlobs(path, *fv.FinVar)
-			if err != nil {
-				_, err = fmt.Fprintf(os.Stderr, "error matching globs: %v\n", err)
-				os.Exit(1)
-			}
-			var line string
-			if match {
-				switch ix {
-				case existsIx:
-					line = "exists " + path + "\n"
-				case notexistsIx:
-					line = "!exists " + path + "\n"
-				case sameIx:
-					line = "cmp " + path + " " + goldpath + "\n"
-				case notsameIx:
-					line = "!cmp " + path + " " + goldpath + "\n"
-				}
-				debug("generated: %s", line)
-				generated = generated + line
-				break // on to the next file
-			}
+
+		kind, err := matchGenGlobs(path, genGlobs)
+
+		if err != nil {
+			_, err = fmt.Fprintf(os.Stderr, "error matching globs: %v\n", err)
+			os.Exit(1)
 		}
+
+		var line string
+		if kind == noMatchIx {
+			continue
+		}
+
+		switch kind {
+		case existsIx:
+			line = "exists " + path + "\n"
+		case notexistsIx:
+			line = "! exists " + path + "\n"
+		case sameIx:
+			line = "cmp " + path + " " + goldpath + "\n"
+		case notsameIx:
+			line = "! cmp " + path + " " + goldpath + "\n"
+		}
+		debug("generated: %s", line)
+		generated = generated + line
+
 	}
 
 	//	debug("all generated: %s", generated+"<<")
@@ -195,20 +188,6 @@ func main() {
 	}
 
 	return
-}
-
-func matchGlobs(fileName string, globs []string) (isMatch bool, err error) {
-	isMatch = false
-	for _, m := range globs {
-		j, err := doublestar.Match(m, fileName)
-		if err != nil {
-			return false, err
-		}
-		if j {
-			return true, nil
-		}
-	}
-	return isMatch, nil
 }
 
 func readArchive(filename string) (arch *txtar.Archive, err error) {
@@ -237,3 +216,73 @@ func debug(format string, args ...interface{}) {
 		fmt.Printf("#debug> "+format, args...)
 	}
 }
+
+func matchGenGlobs(filename string, genglobs []string) (matchIx clienv.Ix, err error) {
+	for _, glob := range genglobs {
+		kind, matchTo := globSplit(glob)
+		if kind == noMatchIx {
+			continue
+		}
+		matched, err := doublestar.Match(matchTo, filename)
+		if err != nil {
+			return noMatchIx, err
+		}
+		if matched {
+			return kind, nil
+		}
+	}
+	return noMatchIx, nil
+}
+
+func globSplit(gg string) (kind clienv.Ix, match string) {
+	before, after, found := strings.Cut(gg, ":")
+	if !found {
+		return noMatchIx, ""
+	}
+	kind, found = prefix2ix[before]
+	if !found {
+		return noMatchIx, ""
+	}
+	return kind, after
+}
+
+//sameIx: {Name: "same", Env: EnvSame, Default: "**", RawVar: &sameRaw, FinVar: &same,
+//	Use: "globs for files that must be the same"},
+//notsameIx: {Name: "notsame", Env: EnvNotSame, Default: "", RawVar: &notsameRaw, FinVar: &notsame,
+//	Use: "globs for files that must not be the same"},
+//existsIx: {Name: "exists", Env: EnvExists, Default: "", RawVar: &existsRaw, FinVar: &exists,
+//	Use: "globs for files that must exist"},
+//notexistsIx: {Name: "notexists", Env: EnvNotExists, Default: "", RawVar: &notexistsRaw, FinVar: &notexists,
+//	Use: "globs for files that must not exist"},
+//var sameRaw string
+//var notsameRaw string
+//var existsRaw string
+//var notexistsRaw string
+//var same []string
+//var notsame []string
+//var exists []string
+//var notexists []string
+//EnvSame      = "TXTAR_SAME"
+//EnvNotSame   = "TXTAR_NOTSAME"
+//EnvExists    = "TXTAR_EXISTS"
+//EnvNotExists = "TXTAR_NOTEXISTS"
+//func matchGlobs(fileName string, globs []string) (isMatch bool, err error) {
+//	isMatch = false
+//	for _, m := range globs {
+//		j, err := doublestar.Match(m, fileName)
+//		if err != nil {
+//			return false, err
+//		}
+//		if j {
+//			return true, nil
+//		}
+//	}
+//	return isMatch, nil
+//}
+
+//var ix2prefix = map[clienv.Ix]string{
+//	sameIx:      "same",
+//	notsameIx:   "notsame",
+//	existsIx:    "exists",
+//	notexistsIx: "notexists",
+//}

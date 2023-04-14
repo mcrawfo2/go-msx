@@ -31,7 +31,7 @@ where:
 
   * [directory] is the root of a directory tree, whose files will be read and included in the 
       (stdout) output in txtar format
-  * [file] will be read for enclosed files and comments (txtar style) ad combined into the output
+  * [file] will be read for enclosed files and comments (txtar style) and combined into the output
     A named file with enclosed files will be considered a txtar archive
     A named file without enclosed files will be enclosed as a file
     Text sent to stdin (-) without enclosed files will be considered comment
@@ -51,13 +51,6 @@ Output will be sent to <stdout> in the order of arguments, within the comment/fi
 
 For testscript syntax see: https://pkg.go.dev/github.com/rogpeppe/go-internal/testscript
 `
-
-// Environment variables read by this program
-const (
-	EnvOnly     = "TXTAR_ONLY"
-	EnvIgnore   = "TXTAR_IGNORE"
-	EnvContents = "TXTAR_CONTENTS"
-)
 
 const (
 	ignoreIx clienv.Ix = iota
@@ -83,11 +76,11 @@ var ignore, contents, only []string
 var filterArchives bool // whether to apply filters to files from txtars as well as directories
 
 var flag2env = clienv.Flagvars{
-	ignoreIx: {Name: "ignore", Env: EnvIgnore, Default: "", RawVar: &ignoreRaw, FinVar: &ignore,
+	ignoreIx: {Name: "ignore", Env: clienv.EnvIgnore, Default: "", RawVar: &ignoreRaw, FinVar: &ignore,
 		Use: "space-separated list of globs to ignore, overrides include"},
-	contentsIx: {Name: "contents", Env: EnvContents, Default: "**", RawVar: &contentsRaw, FinVar: &contents,
+	contentsIx: {Name: "contents", Env: clienv.EnvContents, Default: "**", RawVar: &contentsRaw, FinVar: &contents,
 		Use: "space-separated list of globs to include the contents of"},
-	onlyIx: {Name: "only", Env: EnvOnly, Default: "**", RawVar: &onlyRaw, FinVar: &only,
+	onlyIx: {Name: "only", Env: clienv.EnvOnly, Default: "**", RawVar: &onlyRaw, FinVar: &only,
 		Use: "space-separated list of globs to include"},
 }
 

@@ -50,6 +50,9 @@ publish-skel:
 install-skel:
 	go install cto-github.cisco.com/NFV-BU/go-msx/cmd/skel
 
+skel-test:
+	make -C skel/tests
+
 generate-book:
 	$(BUILDER) download-generate-deps
 	$(BUILDER) copy-book-chapters

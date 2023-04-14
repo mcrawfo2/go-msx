@@ -103,7 +103,11 @@ func GenerateSkeleton(_ []string) error {
 func GenerateSkelJson(_ []string) error {
 	logger.Info("Generating skel config")
 
-	bytes, err := json.MarshalIndent(skeletonConfig, "", "    ")
+	noTargetDirectory := *skeletonConfig
+	noTargetDirectory.TargetParent = ""
+	noTargetDirectory.TargetDir = ""
+
+	bytes, err := json.MarshalIndent(noTargetDirectory, "", "    ")
 	if err != nil {
 		return err
 	}
@@ -750,6 +754,15 @@ func GoGenerate(targetDirectory string) error {
 	return exec.ExecutePipes(pipes...)
 }
 
+func TempDir() string {
+	ws := os.Getenv("WORKSPACE")
+	if ws != "" {
+		return ws
+	}
+
+	return os.TempDir()
+}
+
 func GenerateSPUI(_ []string) error {
 	logger.Info("Generating service pack UI")
 
@@ -767,12 +780,12 @@ func GenerateSPUI(_ []string) error {
 
 	skeletonConfig.AppUUID = uuid.NewString()
 
-	generatorDir := filepath.Join(os.TempDir(), uuid.NewString()) // the npm generator app loaded here
+	generatorDir := filepath.Join(TempDir(), uuid.NewString()) // the npm generator app loaded here
 	logger.Infof("Generator Directory: %s", generatorDir)
 
 	// the create-project script rimrafs its target dir, :# ,
 	// so we need to generate elsewhere and then copy in to place
-	tmpTargetDir := filepath.Join(os.TempDir(), uuid.NewString())
+	tmpTargetDir := filepath.Join(TempDir(), uuid.NewString())
 	logger.Infof("Temp target Directory: %s", tmpTargetDir)
 
 	err = exec.ExecutePipes(
@@ -806,10 +819,9 @@ func GenerateSPUI(_ []string) error {
 	err = exec.ExecutePipes(
 		exec.WithDir(tmpTargetDir,
 			pipe.Line(
-				exec.Info("- Copying generated project from "+tmpTargetDir+
-					" to "+skeletonConfig.TargetParent),
-				pipe.Exec("cp", "-R", tmpTargetDir+`/`,
-					skeletonConfig.TargetParent))),
+				exec.Info("- Copying generated project from %s to %s", tmpTargetDir, skeletonConfig.TargetParent),
+				pipe.Exec("cp", "-Rv", projName, skeletonConfig.TargetParent),
+				pipe.Write(os.Stdout))),
 	)
 	if err != nil {
 		logger.Warn("failed to copy generated project")

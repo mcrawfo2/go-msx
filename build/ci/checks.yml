@@ -1,3 +1,7 @@
+tools:
+  # go fmt change - force go v1.20 for skel integration tests
+  setup: build/ci/jenkins-tools.sh
+
 checks:
 
   - name: Modules
@@ -43,6 +47,15 @@ checks:
   - name: Skel
     commands:
       - make: skel
+
+  - name: Skel Integration Tests
+    commands:
+      - make: skel-test
+        fail: delay
+    analyzers:
+      - builtin: generate-test-report 'Skel Integration Tests'
+        config:
+          report: skel/tests/test/junit-report.xml
 
 slack:
   channel: go-msx-build

@@ -1,0 +1,396 @@
+asyncapi: 2.4.0
+id: uri:testservice.cpx.plus.cisco.com
+info:
+  title: Test Microservice
+  version: 4.2.0-SNAPSHOT
+  description: "Stream documentation for Test Microservice\n \n> Testing"
+  termsOfService: https://www.cisco.com
+  contact:
+    name: Cisco Systems Inc.
+    url: https://www.cisco.com
+    email: somecontact@cisco.com
+  license:
+    name: Apache License Version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  redis:
+    url: localhost:6379
+    description: CPX Internal Redis
+    protocol: redis
+    security:
+    - cpx: []
+    bindings: {}
+defaultContentType: application/json
+channels:
+  COMPLIANCE_EVENT_TOPIC:
+    description: Commands originating from the Compliance service.  Compliance implementors
+      should subscribe to the topic and perform the specified action on the enclosed
+      entity.  Responses should be published to COMPLIANCE_UPDATE_TOPIC.
+    servers:
+    - redis
+    subscribe:
+      summary: Receive compliance commands.
+      tags:
+      - name: toSouth
+      operationId: onComplianceEvent
+      bindings: {}
+      message:
+        oneOf:
+        - $ref: '#/components/messages/DriftCheckRequest'
+        - $ref: '#/components/messages/RemediateRequest'
+        - $ref: '#/components/messages/ToggleComplianceRequest'
+  COMPLIANCE_UPDATE_TOPIC:
+    description: Results of commands notifying the Compliance service.  Compliance
+      implementors should publish to this topic after attempting to perform the actions
+      received from COMPLIANCE_EVENT_TOPIC.
+    servers:
+    - redis
+    publish:
+      summary: Send compliance action results.
+      tags:
+      - name: fromSouth
+      operationId: sendComplianceUpdate
+      bindings: {}
+      message:
+        oneOf:
+        - $ref: '#/components/messages/ToggleComplianceResponse'
+components:
+  schemas:
+    ApiConfigPayload:
+      title: ConfigPayload
+      required:
+      - name
+      - category
+      - diffValues
+      - pendingDrift
+      properties:
+        category:
+          type: string
+        diffValues:
+          $ref: '#/components/schemas/ApiDiffValues'
+        difference:
+          type:
+          - "null"
+          - string
+        name:
+          type: string
+        parameters:
+          items:
+            $ref: '#/components/schemas/ApiParameter'
+          type:
+          - array
+          - "null"
+        pendingDrift:
+          type: boolean
+      type: object
+    ApiDiffValues:
+      title: DiffValues
+      properties:
+        cli:
+          type:
+          - "null"
+          - string
+        xml:
+          type:
+          - "null"
+          - string
+      type: object
+    ApiDriftCheckRequest:
+      title: DriftCheckRequest
+      examples:
+      - action: checkDrift
+        entityType: device
+        entityId: 7153c5d7-8c64-4f17-b687-1b0af7f3c9a5
+        domain: nso
+        groupId: ba591b0b-ee39-20af-8809-1a4f3437879c
+        timestamp: "0001-01-01T00:00:00Z"
+        messageId: ba591b0b-ee39-20af-8809-1a4f3437879c
+        entityLevelCompliance: full
+        standards:
+        - name: standardConfig-1
+          category: DNS and Logging Configuration Exclusive
+          parameters:
+          - key: sp_domain_name
+            value: cisco.com
+          - key: dnsServer1
+            value: 208.67.222.222
+          - key: dnsServer2
+            value: 8.8.8.8
+          difference: null
+          diffValues:
+            xml: null
+            cli: null
+          pendingDrift: false
+      required:
+      - action
+      - entityType
+      - entityId
+      - domain
+      - timestamp
+      - entityLevelCompliance
+      - standards
+      properties:
+        action:
+          enum:
+          - checkDrift
+          type: string
+        domain:
+          type: string
+        entityId:
+          type: string
+        entityLevelCompliance:
+          enum:
+          - full
+          - partial
+          type: string
+        entityType:
+          type: string
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        messageId:
+          $ref: '#/components/schemas/UUID'
+        standards:
+          items:
+            $ref: '#/components/schemas/ApiConfigPayload'
+          minItems: 1
+          type: array
+        timestamp:
+          $ref: '#/components/schemas/Time'
+      type: object
+    ApiParameter:
+      title: Parameter
+      required:
+      - key
+      - value
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      type: object
+    ApiRemediateRequest:
+      title: RemediateRequest
+      examples:
+      - action: remediate
+        entityType: device
+        entityId: 404717b8-efb3-423d-ae49-4d7387dcd3fb
+        domain: NSO
+        groupId: ba591b0b-ee39-20af-8809-1a4f3437879c
+        timestamp: "0001-01-01T00:00:00Z"
+        messageId: ba591b0b-ee39-20af-8809-1a4f3437879c
+        entityLevelCompliance: full
+        standards:
+        - name: standardConfig-1
+          category: DNS and Logging Configuration Exclusive
+          parameters:
+          - key: sp_domain_name
+            value: cisco.com
+          - key: dnsServer1
+            value: 208.67.222.222
+          - key: dnsServer2
+            value: 8.8.8.8
+          difference: null
+          diffValues:
+            xml: null
+            cli: null
+          pendingDrift: false
+      required:
+      - action
+      - entityType
+      - entityId
+      - domain
+      - timestamp
+      - entityLevelCompliance
+      properties:
+        action:
+          const: remediate
+          type: string
+        domain:
+          type: string
+        entityId:
+          type: string
+        entityLevelCompliance:
+          enum:
+          - full
+          - partial
+          type: string
+        entityType:
+          type: string
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        messageId:
+          $ref: '#/components/schemas/UUID'
+        standards:
+          items:
+            $ref: '#/components/schemas/ApiConfigPayload'
+          minItems: 1
+          type:
+          - array
+          - "null"
+        timestamp:
+          $ref: '#/components/schemas/Time'
+      type: object
+    ApiToggleComplianceRequest:
+      title: ToggleComplianceRequest
+      examples:
+      - action: enableCompliance
+        entityType: DEVICE
+        entityId: 404717b8-efb3-423d-ae49-4d7387dcd3fb
+        domain: NSO
+        groupId: 133b4cbd-ecee-3ffa-0098-1251a0045a73
+        timestamp: "2021-04-19T18:04:35.72272Z"
+      required:
+      - action
+      - entityType
+      - entityId
+      - domain
+      - timestamp
+      properties:
+        action:
+          enum:
+          - enableCompliance
+          - disableCompliance
+          type: string
+        domain:
+          type: string
+        entityId:
+          type: string
+        entityType:
+          type: string
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        timestamp:
+          $ref: '#/components/schemas/Time'
+      type: object
+    ApiToggleComplianceResponse:
+      title: ToggleComplianceResponse
+      examples:
+      - timestamp: "2021-04-19T18:04:35.72272Z"
+        entityType: DEVICE
+        entityId: 7153c5d7-8c64-4f17-b687-1b0af7f3c9a5
+        action: enableCompliance
+        domain: ""
+        groupId: null
+        status: success
+        message: good job
+      required:
+      - timestamp
+      - entityType
+      - entityId
+      - action
+      - domain
+      - status
+      - message
+      properties:
+        action:
+          enum:
+          - enableCompliance
+          - disableCompliance
+          type: string
+        domain:
+          type: string
+        entityId:
+          type: string
+        entityType:
+          type: string
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        message:
+          type: string
+        status:
+          type: string
+        timestamp:
+          $ref: '#/components/schemas/Time'
+      type: object
+    Time:
+      $id: Time
+      title: Time
+      examples:
+      - "1995-12-17T03:24:56.778899Z"
+      pattern: ^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$
+      type: string
+      format: date-time
+    UUID:
+      $id: UUID
+      title: UUID
+      examples:
+      - 123e4567-e89b-12d3-a456-426614174000
+      pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
+      type: string
+      format: uuid
+  messages:
+    DriftCheckRequest:
+      contentType: application/json
+      messageId: DriftCheckRequest
+      headers:
+        required:
+        - eventType
+        properties:
+          eventType:
+            const: DriftCheck
+            type: string
+        type: object
+      payload:
+        $ref: '#/components/schemas/ApiDriftCheckRequest'
+      tags:
+      - name: driftCheck
+      - name: toSouth
+      summary: Request consumer to check drift of entity configuration.
+      title: Drift Check Request
+    RemediateRequest:
+      contentType: application/json
+      messageId: RemediateRequest
+      headers:
+        required:
+        - eventType
+        properties:
+          eventType:
+            const: Remediate
+            type: string
+        type: object
+      payload:
+        $ref: '#/components/schemas/ApiRemediateRequest'
+      tags:
+      - name: remediate
+      - name: toSouth
+      summary: Request consumer to remediate entity configuration.
+      title: Remediate Request
+    ToggleComplianceRequest:
+      contentType: application/json
+      messageId: ToggleComplianceRequest
+      headers:
+        required:
+        - eventType
+        properties:
+          eventType:
+            const: ComplianceUpdate
+            type: string
+        type: object
+      payload:
+        $ref: '#/components/schemas/ApiToggleComplianceRequest'
+      tags:
+      - name: toggleCompliance
+      - name: toSouth
+      summary: Inform about enable/add entity to compliance monitoring.
+      title: Toggle Compliance Request
+    ToggleComplianceResponse:
+      contentType: application/json
+      messageId: ToggleComplianceResponse
+      headers:
+        required:
+        - eventType
+        properties:
+          eventType:
+            const: ComplianceUpdate
+            type: string
+        type: object
+      payload:
+        $ref: '#/components/schemas/ApiToggleComplianceResponse'
+      tags:
+      - name: toggleCompliance
+      - name: fromSouth
+      summary: Inform about enable/add entity to compliance monitoring.
+      title: Toggle Compliance Response
+  securitySchemes:
+    cpx:
+      type: plain

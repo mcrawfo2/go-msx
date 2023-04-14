@@ -175,7 +175,7 @@ type ${async.msgtype}Input struct {
 `,
 		"handler": `func(ctx context.Context, in *${async.msgtype}Input) error {
 	return handler.On${async.upmsgtype}(ctx, in.Payload)
-},`,
+}`,
 	},
 }
 

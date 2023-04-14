@@ -1,5 +1,0 @@
-# Skel add-go-msx-dependency Test Script stub
-
-cd someservice
-exec skel --allow-dirty add-go-msx-dependency
-stdout 'Target succeeded:.*add-go-msx-dependency.*'

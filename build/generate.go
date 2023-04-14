@@ -51,7 +51,7 @@ func InstallGenerateDependencies(_ []string) error {
 		exec.Info("Downloading generator dependencies"),
 		pipe.Script(
 			pipe.ChDir(targetPath),
-			goInstall("github.com/vektra/mockery/v2@v2.14.0"),
+			goInstall("github.com/vektra/mockery/v2@v2.22.1"),
 		),
 		tarInstall(
 			mdBookUrl,

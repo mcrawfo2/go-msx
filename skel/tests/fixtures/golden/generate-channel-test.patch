@@ -1,0 +1,57 @@
+--- before/plain-root.txtar
++++ golden/generate-channel-test.txtar
+@@ -2351,4 +2351,54 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/internal/stream/weasels/channel.go --
++package weasels
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/streamops"
++	"cto-github.cisco.com/NFV-BU/go-msx/schema/asyncapi"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++)
++
++// Context
++
++const contextKeyChannel = contextKeyNamed("Channel")
++
++func ContextChannel() types.ContextKeyAccessor[*streamops.Channel] {
++	return types.NewContextKeyAccessor[*streamops.Channel](contextKeyChannel)
++}
++
++// Constructor
++
++func newChannel(ctx context.Context) (*streamops.Channel, error) {
++	doc := new(asyncapi.ChannelDocumentor).
++		WithChannelItem(new(asyncapi.ChannelItem).
++			WithDescription("Description of the weasels channel."))
++
++	ch, err := streamops.NewChannel(ctx, "weasels")
++	if err != nil {
++		return nil, err
++	}
++
++	ch.WithDocumentor(doc)
++
++	return ch, nil
++}
++
++// Singleton
++
++var channel = types.NewSingleton(
++	newChannel,
++	ContextChannel)
++-- someservice/internal/stream/weasels/pkg.go --
++package weasels
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/log"
++)
++
++type contextKeyNamed string
++
++var logger = log.NewPackageLogger()
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2
