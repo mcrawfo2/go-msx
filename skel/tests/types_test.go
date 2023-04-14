@@ -24,7 +24,7 @@ type TestWorkspace struct {
 		WorkDir   string // parent of where the tests are run
 		BinDir    string // where the skel and test binaries are installed
 	}
-	TestDir    string // single integration tests folder
+	TestDir    string // single integration test folder
 	ProjectDir string // where the project is generated
 }
 
@@ -69,6 +69,14 @@ func (e TestWorkspace) archiveName(test TargetTest) string {
 
 func (e TestWorkspace) After(test TargetTest) string {
 	return path.Join(e.AfterFixtures(), e.archiveName(test))
+}
+
+func (e TestWorkspace) diffName(test TargetTest) string {
+	return test.Name + "-test.patch"
+}
+
+func (e TestWorkspace) AfterDiff(test TargetTest) string {
+	return path.Join(e.AfterFixtures(), e.diffName(test))
 }
 
 func (e TestWorkspace) Path() string {

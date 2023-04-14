@@ -5,7 +5,9 @@
 package tests
 
 import (
+	"bytes"
 	"cto-github.cisco.com/NFV-BU/go-msx/skel/tests/txtartools/clienv"
+	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/pipe.v2"
 	"os"
 	"path/filepath"
@@ -30,6 +32,46 @@ func (g *GenerationExecutor) FileExists(filename string) bool {
 	return true
 }
 
+func (g *GenerationExecutor) Diff(t *testing.T, e TestWorkspace, test TargetTest, before DiffNode, after DiffNode, patchFileName string) (err error) {
+	// Read the before state
+	var beforeLines []string
+	beforeLines, err = before.Lines()
+	if err != nil {
+		t.Fatalf("Failed reading golden before %s: %s", test.Name, err)
+	}
+
+	var actualLines []string
+	actualLines, err = after.Lines()
+	if err != nil {
+		t.Fatalf("Failed parsing after %s: %s", test.Name, err)
+	}
+
+	// Generate a diff from the before state to the after state
+	beforePath, _ := filepath.Rel(e.Fixtures(), before.Filename)
+	afterPath, _ := filepath.Rel(e.Fixtures(), after.Filename)
+	diff := difflib.UnifiedDiff{
+		A:        beforeLines,
+		B:        actualLines,
+		FromFile: beforePath,
+		ToFile:   afterPath,
+		Context:  2,
+	}
+
+	// Save the unified diff
+	diffBuffer := new(bytes.Buffer)
+	err = difflib.WriteUnifiedDiff(diffBuffer, diff)
+
+	if err == nil {
+		err = os.WriteFile(patchFileName, diffBuffer.Bytes(), 0644)
+	}
+
+	if err != nil {
+		t.Fatalf("Failed writing golden test patch %s: %s", test.Name, err)
+	}
+
+	return nil
+}
+
 func (g *GenerationExecutor) Test(t *testing.T, e TestWorkspace, test TargetTest) {
 	name := test.Name
 
@@ -48,6 +90,16 @@ func (g *GenerationExecutor) Test(t *testing.T, e TestWorkspace, test TargetTest
 	}
 	if g.NoOverwrite && g.FileExists(goldenAfter) {
 		t.Skipf("Skipping    ⏭  Nooverwrite set & exists: %s for test %s of command: %s %s", goldenAfter, test.Name, test.CommandName(), test.CommandArgs())
+	}
+
+	var goldenDiff string
+	var goldenAfterBuffer *bytes.Buffer
+	if g.OverrideAfter == "" &&
+		test.SpecialBuild == OrdinaryBuild &&
+		!test.NoRootBefore &&
+		test.BeforeFunction == nil {
+		// Store the golden expectation as a diff against plain-root.txtar
+		goldenDiff = e.AfterDiff(test)
 	}
 
 	relname, _ := filepath.Rel(e.Fixtures(), goldenAfter)
@@ -108,11 +160,21 @@ func (g *GenerationExecutor) Test(t *testing.T, e TestWorkspace, test TargetTest
 		pipes = append(pipes,
 			pipe.Exec("skel", skelArgs...),
 			pipe.SetEnvVar(clienv.EnvIgnore, ignore),
-			pipe.Line(
+		)
+
+		if goldenDiff == "" {
+			pipes = append(pipes, pipe.Line(
 				pipe.Exec("txtarwrap", "."),
 				pipe.WriteFile(goldenAfter, 0644),
-			),
-		)
+			))
+		} else {
+			goldenAfterBuffer = new(bytes.Buffer)
+			pipes = append(pipes, pipe.Line(
+				pipe.ChDir(e.TestDir),
+				pipe.Exec("txtarwrap", "."),
+				pipe.Write(goldenAfterBuffer),
+			))
+		}
 
 		makeIt = pipe.Script(pipes...)
 	}
@@ -121,4 +183,24 @@ func (g *GenerationExecutor) Test(t *testing.T, e TestWorkspace, test TargetTest
 	if err != nil {
 		t.Fatalf("Failed making test %s: %s\n%s\n", test.Name, err, barf)
 	}
+
+	if goldenDiff == "" {
+		return
+	}
+
+	// Generate patch
+	err = g.Diff(t, e, test,
+		DiffNode{
+			Filename: e.Before(),
+		},
+		DiffNode{
+			Filename: goldenAfter,
+			Data:     goldenAfterBuffer.Bytes(),
+		},
+		goldenDiff)
+
+	if err != nil {
+		t.Fatalf("Failed making test %s: %s\n%s\n", test.Name, err, barf)
+	}
+
 }

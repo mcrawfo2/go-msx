@@ -1,0 +1,579 @@
+--- before/plain-root.txtar
++++ golden/generate-domain-system-test.txtar
+@@ -1473,4 +1473,5 @@
+ 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate"
++	_ "cto-github.cisco.com/NFV-BU/someservice/internal/toadhalls"
+ )
+ 
+@@ -2323,4 +2324,9 @@
+ 	t.SkipNow()
+ }
++-- someservice/internal/migrate/V5_0_0/V5_0_0_0__CREATE_TABLE_TOADHALL.sql --
++CREATE TABLE toadhall (
++    toadhall_id uuid PRIMARY KEY,
++    data text
++);
+ -- someservice/internal/migrate/V5_0_0/migrate.go --
+ package V5_0_0
+@@ -2351,4 +2357,523 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/internal/populate/usermanagement/permission/templates/manifest.json --
++{
++  "capabilities": [
++    {
++      "name":"VIEW_TOADHALLS",
++      "displayName":"cisco.common.role.capability.VIEW_TOADHALLS",
++      "description":"Add/Edit/Delete TOADHALLS Service Templates",
++      "category":"cisco.toadhalls.role.capability.category.lowerCamel_Category",
++      "operation":"manage",
++      "objectName":"cisco.common.role.capability.TOADHALLS",
++      "owner":"toadhalls"
++    },
++    {
++      "name":"MANAGE_TOADHALLS",
++      "displayName":"cisco.common.role.capability.MANAGE_TOADHALLS",
++      "description":"Add/Edit/Delete TOADHALLS Service Templates Data",
++      "category":"cisco.toadhalls.role.capability.category.TOADHALLS_Category",
++      "operation":"manage",
++      "objectName":"cisco.common.role.capability.TOADHALLS",
++      "owner":"TOADHALLS"
++    }
++  ],
++  "owner": "toadhalls",
++  "roles": [
++    {
++      "roleName": "ADMIN",
++      "capabilitylist": ["VIEW_TOADHALLS", "MANAGE_TOADHALLS"]
++    },
++    {
++      "roleName": "OPERATOR",
++      "capabilitylist": ["VIEW_TOADHALLS"]
++    }
++  ]
++}
++-- someservice/internal/toadhalls/context.go --
++package toadhalls
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++)
++
++type contextKey int
++
++const (
++	contextKeyToadhallController contextKey = iota
++	contextKeyToadhallService
++	contextKeyToadhallRepository
++)
++
++func toadhallControllerFromContext(ctx context.Context) webservice.RestController {
++	value, _ := ctx.Value(contextKeyToadhallController).(webservice.RestController)
++	return value
++}
++
++func contextWithToadhallController(ctx context.Context, controller webservice.RestController) context.Context {
++	return context.WithValue(ctx, contextKeyToadhallController, controller)
++}
++
++func toadhallServiceFromContext(ctx context.Context) toadhallServiceApi {
++	value, _ := ctx.Value(contextKeyToadhallService).(toadhallServiceApi)
++	return value
++}
++
++func contextWithToadhallService(ctx context.Context, service toadhallServiceApi) context.Context {
++	return context.WithValue(ctx, contextKeyToadhallService, service)
++}
++
++func toadhallRepositoryFromContext(ctx context.Context) toadhallRepositoryApi {
++	value, _ := ctx.Value(contextKeyToadhallRepository).(toadhallRepositoryApi)
++	return value
++}
++
++func contextWithToadhallRepository(ctx context.Context, repository toadhallRepositoryApi) context.Context {
++	return context.WithValue(ctx, contextKeyToadhallRepository, repository)
++}
++-- someservice/internal/toadhalls/controller_toadhall.go --
++package toadhalls
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/app"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/emicklei/go-restful"
++)
++
++const (
++	pathRoot                = "/api"
++	pathPrefixToadhalls     = "/v1/toadhalls"
++	pathSuffixToadhallId    = "/{toadhallId}"
++	pathParamNameToadhallId = "toadhallId"
++)
++
++var (
++	viewPermission   = webservice.Permissions("VIEW_TOADHALLS")
++	managePermission = webservice.Permissions("MANAGE_TOADHALLS")
++	paramToadhallId  = restful.PathParameter(pathParamNameToadhallId, "Toadhall Id")
++)
++
++type toadhallController struct {
++	toadhallService toadhallServiceApi
++}
++
++func (c *toadhallController) Routes(svc *restful.WebService) {
++	svc.ApiVersion("v2")
++	tag := webservice.TagDefinition("Toadhall", "Toadhall Controller")
++	webservice.Routes(svc, tag,
++		c.listToadhalls,
++		c.getToadhall,
++		c.createToadhall,
++		c.updateToadhall,
++		c.deleteToadhall)
++}
++
++func (c *toadhallController) listToadhalls(svc *restful.WebService) *restful.RouteBuilder {
++
++	return svc.GET(pathPrefixToadhalls).
++		Operation("listToadhalls").
++		Doc("List all the Toadhalls").
++		Do(webservice.StandardList).
++		Do(webservice.ResponseRawPayload([]api.ToadhallResponse{})).
++		Do(viewPermission).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++
++				body, err = c.toadhallService.ListToadhalls(
++					req.Request.Context(),
++				)
++
++				if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadhallController) getToadhall(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadhallId types.UUID `req:"path"`
++	}
++
++	return svc.GET(pathPrefixToadhalls + pathSuffixToadhallId).
++		Operation("getToadhall").
++		Doc("Retrieve the specified Toadhall").
++		Do(webservice.StandardRetrieve).
++		Do(webservice.ResponseRawPayload(api.ToadhallResponse{})).
++		Param(paramToadhallId).
++		Do(webservice.PopulateParams(params{})).
++		Do(viewPermission).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				var args = webservice.Params(req).(*params)
++
++				body, err = c.toadhallService.GetToadhall(
++					req.Request.Context(),
++					args.ToadhallId)
++				if err == toadhallErrNotFound {
++					return nil, webservice.NewNotFoundError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadhallController) createToadhall(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		Request api.ToadhallCreateRequest `req:"body,san"`
++	}
++
++	return svc.POST(pathPrefixToadhalls).
++		Operation("createToadhall").
++		Doc("Create a new Toadhall").
++		Do(webservice.StandardCreate).
++		Do(webservice.ResponseRawPayload(api.ToadhallResponse{})).
++		Reads(api.ToadhallCreateRequest{}).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				body, err = c.toadhallService.CreateToadhall(
++					req.Request.Context(),
++					args.Request)
++
++				if err == toadhallErrAlreadyExists {
++					return nil, webservice.NewConflictError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadhallController) updateToadhall(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadhallId types.UUID                `req:"path"`
++		Request    api.ToadhallUpdateRequest `req:"body,san"`
++	}
++
++	return svc.PUT(pathPrefixToadhalls + pathSuffixToadhallId).
++		Operation("updateToadhall").
++		Doc("Update the specified Toadhall").
++		Do(webservice.StandardUpdate).
++		Do(webservice.ResponseRawPayload(api.ToadhallResponse{})).
++		Param(paramToadhallId).
++		Reads(api.ToadhallUpdateRequest{}).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				body, err = c.toadhallService.UpdateToadhall(
++					req.Request.Context(),
++					args.ToadhallId,
++					args.Request)
++
++				if err == toadhallErrNotFound {
++					return nil, webservice.NewNotFoundError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadhallController) deleteToadhall(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadhallId types.UUID `req:"path"`
++	}
++
++	return svc.DELETE(pathPrefixToadhalls + pathSuffixToadhallId).
++		Operation("deleteToadhall").
++		Doc("Delete the specified Toadhall").
++		Do(webservice.StandardDelete).
++		Do(webservice.ResponseRawPayload(types.Empty{})).
++		Param(paramToadhallId).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				err = c.toadhallService.DeleteToadhall(
++					req.Request.Context(),
++					args.ToadhallId)
++				if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func newToadhallController(ctx context.Context) (webservice.RestController, error) {
++	controller := toadhallControllerFromContext(ctx)
++	if controller == nil {
++		toadhallService, err := newToadhallService(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		controller = &toadhallController{
++			toadhallService: toadhallService,
++		}
++	}
++	return controller, nil
++}
++
++func init() {
++	app.OnCommandsEvent(
++		[]string{app.CommandRoot, app.CommandOpenApi},
++		app.EventStart,
++		app.PhaseBefore,
++		func(ctx context.Context) error {
++			controller, err := newToadhallController(ctx)
++			if err != nil {
++				return err
++			}
++
++			return webservice.
++				WebServerFromContext(ctx).
++				RegisterRestController(pathRoot, controller)
++		})
++}
++-- someservice/internal/toadhalls/converter_toadhall.go --
++package toadhalls
++
++import (
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/google/uuid"
++)
++
++type toadhallConverter struct{}
++
++func (c *toadhallConverter) FromCreateRequest(request api.ToadhallCreateRequest) toadhall {
++	return toadhall{
++		ToadhallId: uuid.New(),
++		Data:       request.Data,
++	}
++}
++
++func (c *toadhallConverter) FromUpdateRequest(target toadhall, request api.ToadhallUpdateRequest) toadhall {
++	target.Data = request.Data
++	return target
++}
++
++func (c *toadhallConverter) ToToadhallListResponse(sources []toadhall) (results []api.ToadhallResponse) {
++	results = []api.ToadhallResponse{}
++	for _, source := range sources {
++		results = append(results, c.ToToadhallResponse(source))
++	}
++	return
++}
++
++func (c *toadhallConverter) ToToadhallResponse(source toadhall) api.ToadhallResponse {
++	return api.ToadhallResponse{
++		ToadhallId: db.ToApiUuid(source.ToadhallId),
++		Data:       source.Data,
++	}
++}
++-- someservice/internal/toadhalls/log.go --
++package toadhalls
++
++import "cto-github.cisco.com/NFV-BU/go-msx/log"
++
++var logger = log.NewLogger("someservice.internal.toadhalls")
++-- someservice/internal/toadhalls/model_toadhall.go --
++package toadhalls
++
++type toadhall struct {
++	ToadhallId uuid.UUID `db:"toadhall_id"`
++	Data       string    `db:"data"`
++}
++-- someservice/internal/toadhalls/repository_toadhall.go --
++package toadhalls
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++)
++
++const (
++	columnToadhallId  = "toadhall_id"
++	tableNameToadhall = "toadhall"
++)
++
++type toadhallRepositoryApi interface {
++	FindAll(ctx context.Context) (results []toadhall, err error)
++	FindByKey(ctx context.Context, toadhallId uuid.UUID) (optionalResult *toadhall, err error)
++	Save(ctx context.Context, toadhall toadhall) (err error)
++	Delete(ctx context.Context, toadhallId uuid.UUID) (err error)
++}
++
++type toadhallSqlRepository struct {
++	sqldb.CrudRepositoryApi
++}
++
++func (r *toadhallSqlRepository) FindAll(ctx context.Context) (results []toadhall, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving all Toadhall records")
++	err = r.CrudRepositoryApi.FindAll(ctx, &results)
++	return
++}
++
++func (r *toadhallSqlRepository) FindByKey(ctx context.Context, toadhallId uuid.UUID) (result *toadhall, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving Toadhall by key %q", toadhallId.String())
++	var res toadhall
++	err = r.CrudRepositoryApi.FindOneBy(ctx, map[string]interface{}{
++		columnToadhallId: toadhallId,
++	}, &res)
++	if err == sqldb.ErrNotFound {
++		err = repository.ErrNotFound
++	} else if err == nil {
++		result = &res
++	}
++	return
++}
++
++func (r *toadhallSqlRepository) Save(ctx context.Context, toadhall toadhall) (err error) {
++	logger.WithContext(ctx).Debugf("Storing Toadhall with key %q", toadhall.ToadhallId.String())
++	err = r.CrudRepositoryApi.Save(ctx, toadhall)
++	return err
++}
++
++func (r *toadhallSqlRepository) Delete(ctx context.Context, toadhallId uuid.UUID) (err error) {
++	logger.WithContext(ctx).Debugf("Deleting Toadhall by key %q", toadhallId.String())
++	err = r.CrudRepositoryApi.DeleteBy(ctx, map[string]interface{}{
++		columnToadhallId: toadhallId,
++	})
++	return
++}
++
++func newToadhallRepository(ctx context.Context) (toadhallRepositoryApi, error) {
++	repo := toadhallRepositoryFromContext(ctx)
++	if repo == nil {
++		repo = &toadhallSqlRepository{
++			CrudRepositoryApi: sqldb.
++				CrudRepositoryFactoryFromContext(ctx).
++				NewCrudRepository(tableNameToadhall),
++		}
++	}
++	return repo, nil
++}
++-- someservice/internal/toadhalls/service_toadhall.go --
++package toadhalls
++
++import (
++	"context"
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/pkg/errors"
++)
++
++var (
++	toadhallErrNotFound      = errors.Wrap(repository.ErrNotFound, "Toadhall not found")
++	toadhallErrAlreadyExists = errors.Wrap(repository.ErrAlreadyExists, "Toadhall already exists")
++)
++
++type toadhallServiceApi interface {
++	ListToadhalls(ctx context.Context,
++	) ([]api.ToadhallResponse, error)
++	GetToadhall(ctx context.Context, toadhallId types.UUID) (api.ToadhallResponse, error)
++	CreateToadhall(ctx context.Context, request api.ToadhallCreateRequest) (api.ToadhallResponse, error)
++	UpdateToadhall(ctx context.Context, toadhallId types.UUID, request api.ToadhallUpdateRequest) (api.ToadhallResponse, error)
++	DeleteToadhall(ctx context.Context, toadhallId types.UUID) error
++}
++
++type toadhallService struct {
++	toadhallRepository toadhallRepositoryApi
++	toadhallConverter  toadhallConverter
++}
++
++func (s *toadhallService) ListToadhalls(ctx context.Context,
++) (body []api.ToadhallResponse, err error) {
++	results, err := s.toadhallRepository.FindAll(ctx)
++	if err == nil {
++		body = s.toadhallConverter.ToToadhallListResponse(results)
++	}
++	return
++}
++
++func (s *toadhallService) GetToadhall(ctx context.Context, toadhallId types.UUID) (body api.ToadhallResponse, err error) {
++	optionalResult, err := s.toadhallRepository.FindByKey(ctx, db.ToModelUuid(toadhallId))
++	if err == repository.ErrNotFound {
++		err = toadhallErrNotFound
++	}
++	if err == nil {
++		result := *optionalResult
++		body = s.toadhallConverter.ToToadhallResponse(result)
++	}
++
++	return
++}
++
++func (s *toadhallService) CreateToadhall(ctx context.Context, request api.ToadhallCreateRequest) (body api.ToadhallResponse, err error) {
++	result := s.toadhallConverter.FromCreateRequest(request)
++
++	_, err = s.toadhallRepository.FindByKey(ctx, result.ToadhallId)
++	if err == nil {
++		err = toadhallErrAlreadyExists
++		return
++	}
++
++	err = s.toadhallRepository.Save(ctx, result)
++	if err == nil {
++		body = s.toadhallConverter.ToToadhallResponse(result)
++	}
++	return
++}
++
++func (s *toadhallService) UpdateToadhall(ctx context.Context, toadhallId types.UUID, request api.ToadhallUpdateRequest) (body api.ToadhallResponse, err error) {
++	a, err := s.toadhallRepository.FindByKey(ctx, db.ToModelUuid(toadhallId))
++	if err == repository.ErrNotFound {
++		err = toadhallErrNotFound
++	}
++	if err != nil {
++		return
++	}
++
++	result := s.toadhallConverter.FromUpdateRequest(*a, request)
++
++	err = s.toadhallRepository.Save(ctx, result)
++	if err == nil {
++		body = s.toadhallConverter.ToToadhallResponse(result)
++	}
++	return
++}
++
++func (s *toadhallService) DeleteToadhall(ctx context.Context, toadhallId types.UUID) (err error) {
++
++	return s.toadhallRepository.Delete(ctx, db.ToModelUuid(toadhallId))
++}
++
++func newToadhallService(ctx context.Context) (toadhallServiceApi, error) {
++	service := toadhallServiceFromContext(ctx)
++	if service == nil {
++		toadhallRepository, err := newToadhallRepository(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		service = &toadhallService{
++			toadhallRepository: toadhallRepository,
++			toadhallConverter:  toadhallConverter{},
++		}
++	}
++	return service, nil
++}
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2
+@@ -2510,4 +3035,36 @@
+ 
+ </project>
++-- someservice/pkg/api/toadhall.go --
++package api
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	validation "github.com/go-ozzo/ozzo-validation"
++)
++
++type ToadhallCreateRequest struct {
++	Data string `json:"data" san:"xss"`
++}
++
++func (r *ToadhallCreateRequest) Validate() error {
++	return types.ErrorMap{
++		"data": validation.Validate(&r.Data, validation.Required),
++	}
++}
++
++type ToadhallUpdateRequest struct {
++	Data string `json:"data" san:"xss"`
++}
++
++func (r *ToadhallUpdateRequest) Validate() error {
++	return types.ErrorMap{
++		"data": validation.Validate(&r.Data, validation.Required),
++	}
++}
++
++type ToadhallResponse struct {
++	ToadhallId types.UUID `json:"toadhallId"`
++	Data       string     `json:"data"`
++}
+ -- someservice/skaffold.yaml --
+ apiVersion: skaffold/v3

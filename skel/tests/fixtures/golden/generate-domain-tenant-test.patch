@@ -1,0 +1,660 @@
+--- before/plain-root.txtar
++++ golden/generate-domain-tenant-test.txtar
+@@ -1473,4 +1473,5 @@
+ 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate"
++	_ "cto-github.cisco.com/NFV-BU/someservice/internal/toads"
+ )
+ 
+@@ -2323,4 +2324,11 @@
+ 	t.SkipNow()
+ }
++-- someservice/internal/migrate/V5_0_0/V5_0_0_0__CREATE_TABLE_TOAD.sql --
++CREATE TABLE toad (
++    toad_id uuid PRIMARY KEY,
++    tenant_id uuid,
++    data text
++);
++CREATE INDEX ON toad(tenant_id);
+ -- someservice/internal/migrate/V5_0_0/migrate.go --
+ package V5_0_0
+@@ -2351,4 +2359,599 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/internal/populate/usermanagement/permission/templates/manifest.json --
++{
++  "capabilities": [
++    {
++      "name":"VIEW_TOADS",
++      "displayName":"cisco.common.role.capability.VIEW_TOADS",
++      "description":"Add/Edit/Delete TOADS Service Templates",
++      "category":"cisco.toads.role.capability.category.lowerCamel_Category",
++      "operation":"manage",
++      "objectName":"cisco.common.role.capability.TOADS",
++      "owner":"toads"
++    },
++    {
++      "name":"MANAGE_TOADS",
++      "displayName":"cisco.common.role.capability.MANAGE_TOADS",
++      "description":"Add/Edit/Delete TOADS Service Templates Data",
++      "category":"cisco.toads.role.capability.category.TOADS_Category",
++      "operation":"manage",
++      "objectName":"cisco.common.role.capability.TOADS",
++      "owner":"TOADS"
++    }
++  ],
++  "owner": "toads",
++  "roles": [
++    {
++      "roleName": "ADMIN",
++      "capabilitylist": ["VIEW_TOADS", "MANAGE_TOADS"]
++    },
++    {
++      "roleName": "OPERATOR",
++      "capabilitylist": ["VIEW_TOADS", "MANAGE_TOADS"]
++    },
++    {
++      "roleName": "ENTERPRISE_ADMIN",
++      "capabilitylist": ["VIEW_TOADS", "MANAGE_TOADS"]
++    },
++    {
++      "roleName": "CONSUMER",
++      "capabilitylist": ["VIEW_TOADS", "MANAGE_TOADS"]
++    }
++  ]
++}
++-- someservice/internal/toads/context.go --
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++)
++
++type contextKey int
++
++const (
++	contextKeyToadController contextKey = iota
++	contextKeyToadService
++	contextKeyToadRepository
++)
++
++func toadControllerFromContext(ctx context.Context) webservice.RestController {
++	value, _ := ctx.Value(contextKeyToadController).(webservice.RestController)
++	return value
++}
++
++func contextWithToadController(ctx context.Context, controller webservice.RestController) context.Context {
++	return context.WithValue(ctx, contextKeyToadController, controller)
++}
++
++func toadServiceFromContext(ctx context.Context) toadServiceApi {
++	value, _ := ctx.Value(contextKeyToadService).(toadServiceApi)
++	return value
++}
++
++func contextWithToadService(ctx context.Context, service toadServiceApi) context.Context {
++	return context.WithValue(ctx, contextKeyToadService, service)
++}
++
++func toadRepositoryFromContext(ctx context.Context) toadRepositoryApi {
++	value, _ := ctx.Value(contextKeyToadRepository).(toadRepositoryApi)
++	return value
++}
++
++func contextWithToadRepository(ctx context.Context, repository toadRepositoryApi) context.Context {
++	return context.WithValue(ctx, contextKeyToadRepository, repository)
++}
++-- someservice/internal/toads/controller_toad.go --
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/app"
++	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/emicklei/go-restful"
++)
++
++const (
++	pathRoot               = "/api"
++	pathPrefixToads        = "/v1/toads"
++	pathSuffixToadId       = "/{toadId}"
++	pathParamNameToadId    = "toadId"
++	queryParamNameTenantId = "tenantId"
++)
++
++var (
++	viewPermission   = webservice.Permissions("VIEW_TOADS")
++	managePermission = webservice.Permissions("MANAGE_TOADS")
++	paramToadId      = restful.PathParameter(pathParamNameToadId, "Toad Id")
++)
++
++type toadController struct {
++	toadService toadServiceApi
++}
++
++func (c *toadController) Routes(svc *restful.WebService) {
++	svc.ApiVersion("v2")
++	tag := webservice.TagDefinition("Toad", "Toad Controller")
++	webservice.Routes(svc, tag,
++		c.listToads,
++		c.getToad,
++		c.createToad,
++		c.updateToad,
++		c.deleteToad)
++}
++
++func (c *toadController) listToads(svc *restful.WebService) *restful.RouteBuilder {
++	var paramTenantId = restful.QueryParameter(queryParamNameTenantId, "Tenant Id").Required(true)
++
++	type params struct {
++		TenantId types.UUID `req:"query"`
++	}
++
++	return svc.GET(pathPrefixToads).
++		Operation("listToads").
++		Doc("List all the Toads").
++		Do(webservice.StandardList).
++		Do(webservice.ResponseRawPayload([]api.ToadResponse{})).
++		Param(paramTenantId).
++		Do(webservice.PopulateParams(params{})).
++		Do(viewPermission).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				var args = webservice.Params(req).(*params)
++
++				body, err = c.toadService.ListToads(
++					req.Request.Context(),
++					args.TenantId,
++				)
++
++				if err == rbac.ErrUserDoesNotHaveTenantAccess {
++					return nil, webservice.NewForbiddenError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadController) getToad(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadId types.UUID `req:"path"`
++	}
++
++	return svc.GET(pathPrefixToads + pathSuffixToadId).
++		Operation("getToad").
++		Doc("Retrieve the specified Toad").
++		Do(webservice.StandardRetrieve).
++		Do(webservice.ResponseRawPayload(api.ToadResponse{})).
++		Param(paramToadId).
++		Do(webservice.PopulateParams(params{})).
++		Do(viewPermission).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				var args = webservice.Params(req).(*params)
++
++				body, err = c.toadService.GetToad(
++					req.Request.Context(),
++					args.ToadId)
++				if err == toadErrNotFound {
++					return nil, webservice.NewNotFoundError(err)
++				} else if err == rbac.ErrUserDoesNotHaveTenantAccess {
++					return nil, webservice.NewForbiddenError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadController) createToad(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		Request api.ToadCreateRequest `req:"body,san"`
++	}
++
++	return svc.POST(pathPrefixToads).
++		Operation("createToad").
++		Doc("Create a new Toad").
++		Do(webservice.StandardCreate).
++		Do(webservice.ResponseRawPayload(api.ToadResponse{})).
++		Reads(api.ToadCreateRequest{}).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				body, err = c.toadService.CreateToad(
++					req.Request.Context(),
++					args.Request)
++
++				if err == toadErrAlreadyExists {
++					return nil, webservice.NewConflictError(err)
++				} else if err == rbac.ErrUserDoesNotHaveTenantAccess {
++					return nil, webservice.NewForbiddenError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadController) updateToad(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadId  types.UUID            `req:"path"`
++		Request api.ToadUpdateRequest `req:"body,san"`
++	}
++
++	return svc.PUT(pathPrefixToads + pathSuffixToadId).
++		Operation("updateToad").
++		Doc("Update the specified Toad").
++		Do(webservice.StandardUpdate).
++		Do(webservice.ResponseRawPayload(api.ToadResponse{})).
++		Param(paramToadId).
++		Reads(api.ToadUpdateRequest{}).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				body, err = c.toadService.UpdateToad(
++					req.Request.Context(),
++					args.ToadId,
++					args.Request)
++
++				if err == toadErrNotFound {
++					return nil, webservice.NewNotFoundError(err)
++				} else if err == rbac.ErrUserDoesNotHaveTenantAccess {
++					return nil, webservice.NewForbiddenError(err)
++				} else if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func (c *toadController) deleteToad(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		ToadId types.UUID `req:"path"`
++	}
++
++	return svc.DELETE(pathPrefixToads + pathSuffixToadId).
++		Operation("deleteToad").
++		Doc("Delete the specified Toad").
++		Do(webservice.StandardDelete).
++		Do(webservice.ResponseRawPayload(types.Empty{})).
++		Param(paramToadId).
++		Do(managePermission).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.RawController(
++			func(req *restful.Request) (body interface{}, err error) {
++				args := webservice.Params(req).(*params)
++
++				err = c.toadService.DeleteToad(
++					req.Request.Context(),
++					args.ToadId)
++				if err == rbac.ErrUserDoesNotHaveTenantAccess {
++					return nil, webservice.NewForbiddenError(err)
++				}
++				if err != nil {
++					return nil, err
++				}
++
++				return
++			}))
++}
++
++func newToadController(ctx context.Context) (webservice.RestController, error) {
++	controller := toadControllerFromContext(ctx)
++	if controller == nil {
++		toadService, err := newToadService(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		controller = &toadController{
++			toadService: toadService,
++		}
++	}
++	return controller, nil
++}
++
++func init() {
++	app.OnCommandsEvent(
++		[]string{app.CommandRoot, app.CommandOpenApi},
++		app.EventStart,
++		app.PhaseBefore,
++		func(ctx context.Context) error {
++			controller, err := newToadController(ctx)
++			if err != nil {
++				return err
++			}
++
++			return webservice.
++				WebServerFromContext(ctx).
++				RegisterRestController(pathRoot, controller)
++		})
++}
++-- someservice/internal/toads/converter_toad.go --
++package toads
++
++import (
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/google/uuid"
++)
++
++type toadConverter struct{}
++
++func (c *toadConverter) FromCreateRequest(request api.ToadCreateRequest) toad {
++	return toad{
++		ToadId:   uuid.New(),
++		TenantId: db.ToModelUuid(request.TenantId),
++		Data:     request.Data,
++	}
++}
++
++func (c *toadConverter) FromUpdateRequest(target toad, request api.ToadUpdateRequest) toad {
++	target.Data = request.Data
++	return target
++}
++
++func (c *toadConverter) ToToadListResponse(sources []toad) (results []api.ToadResponse) {
++	results = []api.ToadResponse{}
++	for _, source := range sources {
++		results = append(results, c.ToToadResponse(source))
++	}
++	return
++}
++
++func (c *toadConverter) ToToadResponse(source toad) api.ToadResponse {
++	return api.ToadResponse{
++		ToadId:   db.ToApiUuid(source.ToadId),
++		TenantId: db.ToApiUuid(source.TenantId),
++		Data:     source.Data,
++	}
++}
++-- someservice/internal/toads/log.go --
++package toads
++
++import "cto-github.cisco.com/NFV-BU/go-msx/log"
++
++var logger = log.NewLogger("someservice.internal.toads")
++-- someservice/internal/toads/model_toad.go --
++package toads
++
++import "github.com/google/uuid"
++
++type toad struct {
++	ToadId   uuid.UUID `db:"toad_id"`
++	TenantId uuid.UUID `db:"tenant_id"`
++	Data     string    `db:"data"`
++}
++-- someservice/internal/toads/repository_toad.go --
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++
++	"github.com/google/uuid"
++)
++
++const (
++	columnToadId  = "toad_id"
++	tableNameToad = "toad"
++)
++
++type toadRepositoryApi interface {
++	FindAll(ctx context.Context) (results []toad, err error)
++	FindAllByIndexTenantId(ctx context.Context, toadId uuid.UUID) (results []toad, err error)
++	FindByKey(ctx context.Context, toadId uuid.UUID) (optionalResult *toad, err error)
++	Save(ctx context.Context, toad toad) (err error)
++	Delete(ctx context.Context, toadId uuid.UUID) (err error)
++}
++
++type toadSqlRepository struct {
++	sqldb.CrudRepositoryApi
++}
++
++func (r *toadSqlRepository) FindAll(ctx context.Context) (results []toad, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving all Toad records")
++	err = r.CrudRepositoryApi.FindAll(ctx, &results)
++	return
++}
++
++func (r *toadSqlRepository) FindAllByIndexTenantId(ctx context.Context, tenantId uuid.UUID) (results []toad, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving all Toad records with tenantId %q", tenantId.String())
++	err = r.CrudRepositoryApi.FindAllBy(ctx, map[string]interface{}{
++		"tenant_id": tenantId,
++	}, &results)
++	return
++}
++
++func (r *toadSqlRepository) FindByKey(ctx context.Context, toadId uuid.UUID) (result *toad, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving Toad by key %q", toadId.String())
++	var res toad
++	err = r.CrudRepositoryApi.FindOneBy(ctx, map[string]interface{}{
++		columnToadId: toadId,
++	}, &res)
++	if err == sqldb.ErrNotFound {
++		err = repository.ErrNotFound
++	} else if err == nil {
++		result = &res
++	}
++	return
++}
++
++func (r *toadSqlRepository) Save(ctx context.Context, toad toad) (err error) {
++	logger.WithContext(ctx).Debugf("Storing Toad with key %q", toad.ToadId.String())
++	err = r.CrudRepositoryApi.Save(ctx, toad)
++	return err
++}
++
++func (r *toadSqlRepository) Delete(ctx context.Context, toadId uuid.UUID) (err error) {
++	logger.WithContext(ctx).Debugf("Deleting Toad by key %q", toadId.String())
++	err = r.CrudRepositoryApi.DeleteBy(ctx, map[string]interface{}{
++		columnToadId: toadId,
++	})
++	return
++}
++
++func newToadRepository(ctx context.Context) (toadRepositoryApi, error) {
++	repo := toadRepositoryFromContext(ctx)
++	if repo == nil {
++		repo = &toadSqlRepository{
++			CrudRepositoryApi: sqldb.
++				CrudRepositoryFactoryFromContext(ctx).
++				NewCrudRepository(tableNameToad),
++		}
++	}
++	return repo, nil
++}
++-- someservice/internal/toads/service_toad.go --
++package toads
++
++import (
++	"context"
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++
++	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/pkg/errors"
++)
++
++var (
++	toadErrNotFound      = errors.Wrap(repository.ErrNotFound, "Toad not found")
++	toadErrAlreadyExists = errors.Wrap(repository.ErrAlreadyExists, "Toad already exists")
++)
++
++type toadServiceApi interface {
++	ListToads(ctx context.Context,
++		tenantId types.UUID,
++	) ([]api.ToadResponse, error)
++	GetToad(ctx context.Context, toadId types.UUID) (api.ToadResponse, error)
++	CreateToad(ctx context.Context, request api.ToadCreateRequest) (api.ToadResponse, error)
++	UpdateToad(ctx context.Context, toadId types.UUID, request api.ToadUpdateRequest) (api.ToadResponse, error)
++	DeleteToad(ctx context.Context, toadId types.UUID) error
++}
++
++type toadService struct {
++	toadRepository toadRepositoryApi
++	toadConverter  toadConverter
++}
++
++func (s *toadService) ListToads(ctx context.Context,
++	tenantId types.UUID,
++) (body []api.ToadResponse, err error) {
++	if err = rbac.HasTenant(ctx, tenantId); err != nil {
++		return nil, err
++	}
++	results, err := s.toadRepository.FindAllByIndexTenantId(ctx, db.ToModelUuid(tenantId))
++	if err == nil {
++		body = s.toadConverter.ToToadListResponse(results)
++	}
++	return
++}
++
++func (s *toadService) GetToad(ctx context.Context, toadId types.UUID) (body api.ToadResponse, err error) {
++	optionalResult, err := s.toadRepository.FindByKey(ctx, db.ToModelUuid(toadId))
++	if err == repository.ErrNotFound {
++		err = toadErrNotFound
++	}
++	if err == nil {
++		result := *optionalResult
++		if err = rbac.HasTenant(ctx, db.ToApiUuid(result.TenantId)); err != nil {
++			return
++		}
++		body = s.toadConverter.ToToadResponse(result)
++	}
++
++	return
++}
++
++func (s *toadService) CreateToad(ctx context.Context, request api.ToadCreateRequest) (body api.ToadResponse, err error) {
++	result := s.toadConverter.FromCreateRequest(request)
++
++	if err = rbac.HasTenant(ctx, db.ToApiUuid(result.TenantId)); err != nil {
++		return
++	}
++
++	_, err = s.toadRepository.FindByKey(ctx, result.ToadId)
++	if err == nil {
++		err = toadErrAlreadyExists
++		return
++	}
++
++	err = s.toadRepository.Save(ctx, result)
++	if err == nil {
++		body = s.toadConverter.ToToadResponse(result)
++	}
++	return
++}
++
++func (s *toadService) UpdateToad(ctx context.Context, toadId types.UUID, request api.ToadUpdateRequest) (body api.ToadResponse, err error) {
++	a, err := s.toadRepository.FindByKey(ctx, db.ToModelUuid(toadId))
++	if err == repository.ErrNotFound {
++		err = toadErrNotFound
++	}
++	if err != nil {
++		return
++	}
++
++	if err = rbac.HasTenant(ctx, db.ToApiUuid(a.TenantId)); err != nil {
++		return
++	}
++
++	result := s.toadConverter.FromUpdateRequest(*a, request)
++
++	err = s.toadRepository.Save(ctx, result)
++	if err == nil {
++		body = s.toadConverter.ToToadResponse(result)
++	}
++	return
++}
++
++func (s *toadService) DeleteToad(ctx context.Context, toadId types.UUID) (err error) {
++	a, err := s.toadRepository.FindByKey(ctx, db.ToModelUuid(toadId))
++	if err == repository.ErrNotFound {
++		return nil
++	}
++	if err != nil {
++		return
++	}
++
++	if err = rbac.HasTenant(ctx, db.ToApiUuid(a.TenantId)); err != nil {
++		return
++	}
++
++	return s.toadRepository.Delete(ctx, db.ToModelUuid(toadId))
++}
++
++func newToadService(ctx context.Context) (toadServiceApi, error) {
++	service := toadServiceFromContext(ctx)
++	if service == nil {
++		toadRepository, err := newToadRepository(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		service = &toadService{
++			toadRepository: toadRepository,
++			toadConverter:  toadConverter{},
++		}
++	}
++	return service, nil
++}
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2
+@@ -2510,4 +3113,39 @@
+ 
+ </project>
++-- someservice/pkg/api/toad.go --
++package api
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	validation "github.com/go-ozzo/ozzo-validation"
++)
++
++type ToadCreateRequest struct {
++	TenantId types.UUID `json:"tenantId"`
++	Data     string     `json:"data" san:"xss"`
++}
++
++func (r *ToadCreateRequest) Validate() error {
++	return types.ErrorMap{
++		"tenantId": validation.Validate(&r.TenantId, validation.Required),
++		"data":     validation.Validate(&r.Data, validation.Required),
++	}
++}
++
++type ToadUpdateRequest struct {
++	Data string `json:"data" san:"xss"`
++}
++
++func (r *ToadUpdateRequest) Validate() error {
++	return types.ErrorMap{
++		"data": validation.Validate(&r.Data, validation.Required),
++	}
++}
++
++type ToadResponse struct {
++	ToadId   types.UUID `json:"toadId"`
++	TenantId types.UUID `json:"tenantId"`
++	Data     string     `json:"data"`
++}
+ -- someservice/skaffold.yaml --
+ apiVersion: skaffold/v3

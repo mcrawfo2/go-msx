@@ -1,0 +1,26 @@
+--- before/plain-root.txtar
++++ golden/generate-certificate-test.txtar
+@@ -2351,4 +2351,23 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/local/server.crt --
++-----BEGIN CERTIFICATE-----
++MIIBszCCAVqgAwIBAgIBATAKBggqhkjOPQQDAjA8MRYwFAYDVQQKEw1DaXNjbyBT
++eXN0ZW1zMQwwCgYDVQQLEwNNU1gxFDASBgNVBAMTC3NvbWVzZXJ2aWNlMB4XDTIz
++MDQxNDE2NDIxNFoXDTIzMTAxMTE2NDIxNFowPDEWMBQGA1UEChMNQ2lzY28gU3lz
++dGVtczEMMAoGA1UECxMDTVNYMRQwEgYDVQQDEwtzb21lc2VydmljZTBZMBMGByqG
++SM49AgEGCCqGSM49AwEHA0IABABy7ONZgsulV/Cce3E3mSKl1SGOm377Uey1Bzro
++wRQhqy/hxzvySTGa9BOVOp9ozVyzybeqjoHfUZxBW1Gc4R+jTTBLMA4GA1UdDwEB
++/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMBYGA1Ud
++EQQPMA2CC3NvbWVzZXJ2aWNlMAoGCCqGSM49BAMCA0cAMEQCIHN61iQTkMh9lf3w
++7w3DQvlzn/2Lpvmz/J5++uuepdR0AiAA73cjyAbiAS4cd5SJLkpxu3aHkKcVdAV3
+++ZwfYpqBnA==
++-----END CERTIFICATE-----
++-- someservice/local/server.key --
++-----BEGIN EC PRIVATE KEY-----
++MHcCAQEEIEJv0vK9SDnbGA91FyTNGLRON1W45yNvxl+dQzABV3RQoAoGCCqGSM49
++AwEHoUQDQgAEAHLs41mCy6VX8Jx7cTeZIqXVIY6bfvtR7LUHOujBFCGrL+HHO/JJ
++MZr0E5U6n2jNXLPJt6qOgd9RnEFbUZzhHw==
++-----END EC PRIVATE KEY-----
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2

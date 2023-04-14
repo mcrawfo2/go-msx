@@ -1,0 +1,2645 @@
+--- before/plain-root.txtar
++++ golden/generate-domain-test.txtar
+@@ -1473,4 +1473,5 @@
+ 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate"
++	_ "cto-github.cisco.com/NFV-BU/someservice/internal/toads"
+ )
+ 
+@@ -2323,4 +2324,14 @@
+ 	t.SkipNow()
+ }
++-- someservice/internal/migrate/V5_0_0/V5_0_0_0__CREATE_TABLE_TOAD.sql --
++-- Migration for toad
++
++-- Table
++
++CREATE TABLE toad (
++	toad_id uuid PRIMARY KEY,
++	data text
++);
++
+ -- someservice/internal/migrate/V5_0_0/migrate.go --
+ package V5_0_0
+@@ -2351,4 +2362,2621 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/internal/toads/controller_toad_v8.go --
++// v8 API REST Controller for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/app"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
++	"cto-github.cisco.com/NFV-BU/go-msx/schema/openapi"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"github.com/swaggest/openapi-go/openapi3"
++)
++
++// Constants
++
++const (
++	pathSuffixToadId      = "{toadId}"
++	permissionViewToads   = "VIEW_TOADS"
++	permissionManageToads = "MANAGE_TOADS"
++)
++
++// Controller
++
++// toadController implements the Toad API.
++type toadController struct {
++	toadService ToadServiceApi
++}
++
++// Endpoint Construction
++
++// Endpoints provides this controller's endpoints to the EndpointRegisterer.
++func (c *toadController) Endpoints() (restops.Endpoints, error) {
++	builders := restops.EndpointBuilders{
++		c.createToad(),
++		c.deleteToad(),
++		c.getToad(),
++		c.listToads(),
++		c.updateToad(),
++	}
++
++	return builders.Endpoints()
++}
++
++// Endpoint Transformation
++
++// EndpointTransformers provides a set of transformations to be applied to each Endpoint
++// created by this controller.
++func (c *toadController) EndpointTransformers() restops.EndpointTransformers {
++	const tagName = "Toad"
++	const pathPrefix = "/v8/toads"
++
++	openapi.AddTag(tagName, "Toads")
++
++	return restops.EndpointTransformers{
++		restops.AddEndpointPathPrefix(pathPrefix),
++		restops.AddEndpointTag(tagName),
++	}
++}
++
++// Endpoints
++
++// List
++
++// toadFilterQueryInputs is used to declare the query string filters
++// for the listToads endpoint.
++type toadFilterQueryInputs struct {
++}
++
++// listToads creates an endpoint providing a filtered, sorted, and paginated
++// sequence of Toad instances.
++func (c *toadController) listToads() restops.EndpointBuilder {
++	type inputs struct {
++		v8.PagingSortingInputs
++		toadFilterQueryInputs
++	}
++
++	type outputs struct {
++		v8.PagingOutputs
++		Content []ToadResponse `resp:"body"`
++	}
++
++	return v8.
++		NewListEndpointBuilder().
++		WithId("v8.listToads").
++		WithDoc(new(openapi3.Operation).
++			WithSummary("List all Toads")).
++		WithPermissions(permissionViewToads).
++		WithHandler(
++			func(ctx context.Context, inp *inputs) (out outputs, err error) {
++				out.PagingOutputs.Paging, out.Content, err = c.toadService.ListToads(
++					ctx, inp.PagingSortingInputs, inp.toadFilterQueryInputs)
++				return
++			})
++}
++
++// Retrieve
++
++// getToad creates an endpoint providing a single Toad instance
++// having the specified key.
++func (c *toadController) getToad() restops.EndpointBuilder {
++	type inputs struct {
++		ToadId types.UUID `req:"path=toadId"`
++	}
++
++	type outputs struct {
++		Body ToadResponse `resp:"body"`
++	}
++
++	return v8.
++		NewRetrieveEndpointBuilder(pathSuffixToadId).
++		WithId("v8.getToad").
++		WithDoc(new(openapi3.Operation).
++			WithSummary("Retrieve the specified Toad")).
++		WithPermissions(permissionViewToads).
++		WithHandler(
++			func(ctx context.Context, inp *inputs) (out outputs, err error) {
++				out.Body, err = c.toadService.GetToad(ctx, inp.ToadId)
++				return
++			})
++}
++
++// Create
++
++// createToad creates an endpoint instantiating a new Toad instance
++// using the specified values.
++func (c *toadController) createToad() restops.EndpointBuilder {
++	type inputs struct {
++		Body ToadCreateRequest `req:"body"`
++	}
++
++	type outputs struct {
++		Body ToadResponse `resp:"body"`
++	}
++
++	return v8.
++		NewCreateEndpointBuilder().
++		WithId("v8.createToad").
++		WithDoc(new(openapi3.Operation).
++			WithSummary("Create a new Toad")).
++		WithPermissions(permissionManageToads).
++		WithHandler(
++			func(ctx context.Context, inp *inputs) (out outputs, err error) {
++				out.Body, err = c.toadService.CreateToad(ctx, inp.Body)
++				return
++			})
++}
++
++// Update
++
++// updateToad creates an endpoint updating an existing Toad instance
++// using the specified values.
++func (c *toadController) updateToad() restops.EndpointBuilder {
++	type inputs struct {
++		Body   ToadUpdateRequest `req:"body"`
++		ToadId types.UUID        `req:"path=toadId"`
++	}
++
++	type outputs struct {
++		Body ToadResponse `resp:"body"`
++	}
++
++	return v8.
++		NewUpdateEndpointBuilder(pathSuffixToadId).
++		WithId("v8.updateToad").
++		WithDoc(new(openapi3.Operation).
++			WithSummary("Update the specified Toad")).
++		WithPermissions(permissionManageToads).
++		WithHandler(
++			func(ctx context.Context, inp *inputs) (out outputs, err error) {
++				out.Body, err = c.toadService.UpdateToad(ctx, inp.ToadId, inp.Body)
++				return
++			})
++}
++
++// Delete
++
++// deleteToad creates an endpoint deleting an existing Toad instance
++// matching the specified key.
++func (c *toadController) deleteToad() restops.EndpointBuilder {
++	type inputs struct {
++		ToadId types.UUID `req:"path=toadId"`
++	}
++
++	return v8.
++		NewDeleteEndpointBuilder(pathSuffixToadId).
++		WithId("v8.deleteToad").
++		WithDoc(new(openapi3.Operation).
++			WithSummary("Delete the specified Toad")).
++		WithPermissions(permissionManageToads).
++		WithHandler(
++			func(ctx context.Context, inp *inputs) (err error) {
++				err = c.toadService.DeleteToad(ctx, inp.ToadId)
++				return
++			})
++}
++
++// Context
++
++const contextKeyToadController = contextKeyNamed("ToadController")
++
++// contextToadController returns a ContextKeyAccessor enabling dependency overrides
++// for toadController.
++func contextToadController() types.ContextKeyAccessor[restops.EndpointsProducer] {
++	return types.NewContextKeyAccessor[restops.EndpointsProducer](contextKeyToadController)
++}
++
++// Constructor
++
++// newToadController is an abstract factory, returning by default a production implementation
++// of the restops.EndpointsProducer.
++func newToadController(ctx context.Context) (restops.EndpointsProducer, error) {
++	controller := contextToadController().Get(ctx)
++	if controller == nil {
++		toadService, err := newToadService(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		controller = &toadController{
++			toadService: toadService,
++		}
++	}
++	return controller, nil
++}
++
++// Lifecycle
++
++// init adds an event observer to register the endpoints from ToadController during startup.
++func init() {
++	app.OnCommandsEvent(
++		[]string{app.CommandRoot, app.CommandOpenApi},
++		app.EventStart,
++		app.PhaseBefore,
++		func(ctx context.Context) error {
++			controller, err := newToadController(ctx)
++			if err != nil {
++				return err
++			}
++
++			return restops.
++				ContextEndpointRegisterer(ctx).
++				RegisterEndpoints(controller)
++		})
++}
++-- someservice/internal/toads/controller_toad_v8_test.go --
++// v8 API REST Controller Unit Tests for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/controllertest"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/securitytest"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/webservicetest"
++	"github.com/pkg/errors"
++	"github.com/stretchr/testify/mock"
++	"net/http"
++	"testing"
++)
++
++// Fixture
++
++// Structure
++
++// toadControllerTestFixture contains test dependencies for Controller tests.
++type toadControllerTestFixture struct {
++	// SUT
++	Controller *toadController
++
++	// Mocks
++	ToadService *MockToadServiceApi
++
++	// Canned API Values
++	ApiData toadTestApiData
++}
++
++// Constructor
++
++// newToadControllerTestFixture creates a new fixture for Controller tests
++func newToadControllerTestFixture() toadControllerTestFixture {
++	return toadControllerTestFixture{
++		ApiData: newToadTestApiData(),
++	}
++}
++
++// TestCase
++
++// Constructor
++
++func newToadControllerTest() *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture] {
++	return testhelpers.
++		NewFixtureCase(new(controllertest.ControllerTest), newToadControllerTestFixture()).
++		WithSetup(func(c *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			c.Fixture.ToadService = NewMockToadServiceApi(c.T)
++		}).
++		WithSetup(func(c *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Set token provider, controller
++			c.Testable.
++				WithTokenDetailsProvider(securitytest.NewMockTokenDetailsProvider()).
++				WithEndpointProducerSourceFactory(func(ctx context.Context) (restops.EndpointsProducer, error) {
++					// Save the controller
++					controller, err := newToadController(ctx)
++					if err == nil {
++						c.Fixture.Controller = controller.(*toadController)
++					}
++					return controller, err
++				}).
++				WithContextInjector(func(ctx context.Context) context.Context {
++					return contextToadService().Set(ctx, c.Fixture.ToadService)
++				})
++		}).
++		WithNamedSetup("permissions", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Allow view and manage permissions by default
++			p.Testable.Context.TokenDetails.Permissions = []string{
++				permissionViewToads,
++				permissionManageToads,
++			}
++		})
++}
++
++// Tests
++
++// List
++
++func Test_toadController_listToads(t *testing.T) {
++	test := newToadControllerTest().
++		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Always point to the list endpoint
++			p.Testable.
++				WithRequestMethod(http.MethodGet).
++				WithRequestPath("/api/v8/toads", nil)
++		}).
++		WithNamedSetup("query", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithRequestQueryParameter("page", "0").
++				WithRequestQueryParameter("pageSize", "10")
++		}).
++		WithNamedSetup("service.ListToads", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Fixture.ToadService.EXPECT().
++				ListToads(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.AnythingOfType("v8.PagingSortingInputs"),
++					toadFilterQueryInputs{}).
++				Return(p.Fixture.ApiData.PagingResponse, p.Fixture.ApiData.ToadResponses, nil)
++		}).
++		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK)).
++				WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
++					"contents.#",
++					float64(len(p.Fixture.ApiData.ToadResponses))))
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "MissingQuery",
++			test: test.Clone().
++				WithoutNamedSetup("query").
++				WithoutNamedSetup("service.ListToads").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusBadRequest)).
++						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
++							"details.Page.\\.failures.#",
++							float64(1))).
++						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
++							"details.Page.\\.failures.0",
++							"expected integer, but got null")).
++						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
++							"details.PageSize.\\.failures.#",
++							float64(1))).
++						WithResponsePredicate(webservicetest.ResponseHasBodyJsonValue(
++							"details.PageSize.\\.failures.0",
++							"expected integer, but got null"))
++				}),
++		},
++		{
++			name: "MissingPermission",
++			test: test.Clone().
++				WithoutNamedSetup("permissions").
++				WithoutNamedSetup("service.ListToads").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Retrieve
++
++func Test_toadController_getToad(t *testing.T) {
++	test := newToadControllerTest().
++		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Always point to the retrieve endpoint
++			p.Testable.
++				WithRequestMethod(http.MethodGet).
++				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
++					"toadId": p.Fixture.ApiData.ToadId.String(),
++				})
++		}).
++		WithNamedSetup("service.GetToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Fixture.ToadService.EXPECT().
++				GetToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
++				Return(p.Fixture.ApiData.ToadResponse, nil)
++		}).
++		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK))
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFound",
++			test: test.Clone().
++				WithNamedSetup("service.GetToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Fixture.ToadService.EXPECT().
++						GetToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
++						Return(ToadResponse{}, errors.Wrapf(repository.ErrNotFound, "Toad not found"))
++				}).
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
++				}),
++		},
++		{
++			name: "MissingPermission",
++			test: test.Clone().
++				WithoutNamedSetup("permissions").
++				WithoutNamedSetup("service.GetToad").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Create
++
++func Test_toadController_createToad(t *testing.T) {
++	test := newToadControllerTest().
++		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Always point to the create endpoint
++			p.Testable.
++				WithRequestMethod(http.MethodPost).
++				WithRequestPath("/api/v8/toads", nil).
++				WithRequestBodyJson(p.Fixture.ApiData.ToadCreateRequest).
++				WithRequestHeader(restops.HeaderContentType, restops.ContentTypeJson)
++		}).
++		WithNamedSetup("service.CreateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Fixture.ToadService.EXPECT().
++				CreateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadCreateRequest).
++				Return(p.Fixture.ApiData.ToadResponse, nil)
++		}).
++		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusCreated))
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "AlreadyExists",
++			test: test.Clone().
++				WithNamedSetup("service.CreateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Fixture.ToadService.EXPECT().
++						CreateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadCreateRequest).
++						Return(ToadResponse{}, errors.Wrapf(repository.ErrAlreadyExists, "Toad already exists"))
++				}).
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusConflict))
++				}),
++		},
++		{
++			name: "MissingPermission",
++			test: test.Clone().
++				WithoutNamedSetup("permissions").
++				WithoutNamedSetup("service.CreateToad").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Update
++
++func Test_toadController_updateToad(t *testing.T) {
++	test := newToadControllerTest().
++		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Always point to the update endpoint
++			p.Testable.
++				WithRequestMethod(http.MethodPut).
++				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
++					"toadId": p.Fixture.ApiData.ToadId.String(),
++				}).
++				WithRequestBodyJson(p.Fixture.ApiData.ToadUpdateRequest).
++				WithRequestHeader(restops.HeaderContentType, restops.ContentTypeJson)
++		}).
++		WithNamedSetup("service.UpdateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Fixture.ToadService.EXPECT().
++				UpdateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId, p.Fixture.ApiData.ToadUpdateRequest).
++				Return(p.Fixture.ApiData.ToadResponse, nil)
++		}).
++		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusOK))
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFound",
++			test: test.Clone().
++				WithNamedSetup("service.UpdateToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Fixture.ToadService.EXPECT().
++						UpdateToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId, p.Fixture.ApiData.ToadUpdateRequest).
++						Return(ToadResponse{}, errors.Wrapf(repository.ErrNotFound, "Toad not found"))
++				}).
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
++				}),
++		},
++		{
++			name: "MissingPermission",
++			test: test.Clone().
++				WithoutNamedSetup("permissions").
++				WithoutNamedSetup("service.UpdateToad").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Delete
++
++func Test_toadController_deleteToad(t *testing.T) {
++	test := newToadControllerTest().
++		WithSetup(func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			// Always point to the update endpoint
++			p.Testable.
++				WithRequestMethod(http.MethodDelete).
++				WithRequestPath("/api/v8/toads/{toadId}", map[string]string{
++					"toadId": p.Fixture.ApiData.ToadId.String(),
++				})
++		}).
++		WithNamedSetup("service.DeleteToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Fixture.ToadService.EXPECT().
++				DeleteToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
++				Return(nil)
++		}).
++		WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++			p.Testable.
++				WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNoContent))
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFound",
++			test: test.Clone().
++				WithNamedSetup("service.DeleteToad", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Fixture.ToadService.EXPECT().
++						DeleteToad(mock.MatchedBy(testhelpers.AnyContext), p.Fixture.ApiData.ToadId).
++						Return(errors.Wrapf(repository.ErrNotFound, "Toad not found"))
++				}).
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusNotFound))
++				}),
++		},
++		{
++			name: "MissingPermission",
++			test: test.Clone().
++				WithoutNamedSetup("permissions").
++				WithoutNamedSetup("service.DeleteToad").
++				WithNamedSetup("response", func(p *testhelpers.FixtureCase[*controllertest.ControllerTest, toadControllerTestFixture]) {
++					p.Testable.
++						WithResponsePredicate(webservicetest.ResponseHasStatus(http.StatusForbidden))
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++-- someservice/internal/toads/converter_toad_v8.go --
++// v8 API Converter for toad
++
++package toads
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/paging"
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"github.com/google/uuid"
++)
++
++// Service
++
++// toadConverter translates between API requests/responses and models.
++type toadConverter struct{}
++
++// Converters
++
++// List Query Filter
++
++// FromFilterQueryInputs maps query fields to a database filter
++func (c toadConverter) FromFilterQueryInputs(freq toadFilterQueryInputs) toadFilters {
++	return toadFilters{}
++}
++
++// Create
++
++// FromToadCreateRequest creates a new Toad model from the values in the ToadCreateRequest payload
++func (c toadConverter) FromToadCreateRequest(request ToadCreateRequest) Toad {
++	return Toad{
++		ToadId: uuid.New(),
++		Data:   request.Data,
++	}
++}
++
++// Update
++
++// FromToadUpdateRequest updates an existing Toad model from the values in the ToadUpdateRequest payload
++func (c toadConverter) FromToadUpdateRequest(toad Toad, request ToadUpdateRequest) Toad {
++	return Toad{
++		ToadId: toad.ToadId,
++		Data:   request.Data,
++	}
++}
++
++// List Response
++
++// ToToadListResponse maps a series of Toad models onto a series of ToadResponse payloads
++func (c toadConverter) ToToadListResponse(toads []Toad) (responses []ToadResponse) {
++	for _, toad := range toads {
++		responses = append(responses, c.ToToadResponse(toad))
++	}
++	return
++}
++
++// Response
++
++// ToToadResponse maps a single Toad model onto a ToadResponse payload
++func (c toadConverter) ToToadResponse(toad Toad) ToadResponse {
++	return ToadResponse{
++		Data:   toad.Data,
++		ToadId: db.ToApiUuid(toad.ToadId),
++	}
++}
++
++// Sort
++
++var toadSortByOptions = paging.SortByOptions{
++	DefaultProperty: "toadId",
++	Mapping: types.StringPairSlice{
++		{
++			Left:  "toadId",
++			Right: "toad_id",
++		},
++	},
++}
++-- someservice/internal/toads/data_toad_test.go --
++// Unit Test Data for toad
++
++package toads
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
++	"cto-github.cisco.com/NFV-BU/go-msx/paging"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"github.com/google/uuid"
++	"strings"
++)
++
++// UniqueId
++
++var toadTestToadId = types.MustNewUUID()
++
++// Model
++
++// Structure
++
++type toadTestModelData struct {
++	Toads          []Toad
++	ToadFilters    toadFilters
++	PagingRequest  paging.Request
++	PagingResponse paging.Response
++	ToadId         uuid.UUID
++	Toad           Toad
++}
++
++// Constructor
++
++func newToadTestModelData() toadTestModelData {
++	toadId := prepared.ToModelUuid(toadTestToadId)
++	data := "data"
++
++	result := toadTestModelData{}
++
++	result.Toads = []Toad{{
++		Data:   data,
++		ToadId: toadId,
++	}, {
++		Data:   data,
++		ToadId: toadId,
++	}}
++	result.ToadFilters = toadFilters{}
++	result.PagingRequest = paging.Request{
++		Size: 10,
++		Sort: []paging.SortOrder{{
++			Direction: paging.SortDirectionAsc,
++			Property:  "toad_id",
++		}},
++	}
++	result.PagingResponse = paging.Response{
++		Size: uint(10),
++		Sort: []paging.SortOrder{{
++			Direction: paging.SortDirectionAsc,
++			Property:  "toad_id",
++		}},
++		TotalItems: types.PtrTo[uint](2),
++	}
++	result.ToadId = toadId
++	result.Toad = Toad{
++		Data:   data,
++		ToadId: toadId,
++	}
++
++	return result
++}
++
++// API
++
++// Structure
++
++type toadTestApiData struct {
++	ToadResponses     []ToadResponse
++	PagingRequest     v8.PagingSortingInputs
++	PagingResponse    v8.PagingResponse
++	ToadId            types.UUID
++	ToadResponse      ToadResponse
++	ToadCreateRequest ToadCreateRequest
++	ToadUpdateRequest ToadUpdateRequest
++}
++
++// Constructor
++
++func newToadTestApiData() toadTestApiData {
++	toadId := toadTestToadId
++	data := "data"
++
++	result := toadTestApiData{}
++
++	result.ToadResponses = []ToadResponse{{
++		Data:   data,
++		ToadId: toadId,
++	}, {
++		Data:   data,
++		ToadId: toadId,
++	}}
++	result.PagingRequest = v8.PagingSortingInputs{
++		PagingInputs: v8.PagingInputs{PageSize: 10},
++		SortingInputs: v8.SortingInputs{
++			SortBy:    "toadId",
++			SortOrder: "asc",
++		},
++	}
++	result.PagingResponse = v8.PagingResponse{
++		PageSize:   10,
++		SortBy:     "toadId",
++		SortOrder:  strings.ToLower(v8.SortDirectionAsc),
++		TotalItems: types.PtrTo[int](2),
++	}
++	result.ToadId = toadId
++	result.ToadResponse = ToadResponse{
++		Data:   data,
++		ToadId: toadId,
++	}
++	result.ToadCreateRequest = ToadCreateRequest{Data: data}
++	result.ToadUpdateRequest = ToadUpdateRequest{Data: data}
++
++	return result
++}
++-- someservice/internal/toads/mock_toad_repository_api_test.go --
++// Code generated by mockery v2.21.1. DO NOT EDIT.
++
++package toads
++
++import (
++	context "context"
++
++	paging "cto-github.cisco.com/NFV-BU/go-msx/paging"
++	mock "github.com/stretchr/testify/mock"
++
++	uuid "github.com/google/uuid"
++)
++
++// MockToadRepositoryApi is an autogenerated mock type for the ToadRepositoryApi type
++type MockToadRepositoryApi struct {
++	mock.Mock
++}
++
++type MockToadRepositoryApi_Expecter struct {
++	mock *mock.Mock
++}
++
++func (_m *MockToadRepositoryApi) EXPECT() *MockToadRepositoryApi_Expecter {
++	return &MockToadRepositoryApi_Expecter{mock: &_m.Mock}
++}
++
++// Delete provides a mock function with given fields: ctx, toadId
++func (_m *MockToadRepositoryApi) Delete(ctx context.Context, toadId uuid.UUID) error {
++	ret := _m.Called(ctx, toadId)
++
++	var r0 error
++	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
++		r0 = rf(ctx, toadId)
++	} else {
++		r0 = ret.Error(0)
++	}
++
++	return r0
++}
++
++// MockToadRepositoryApi_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
++type MockToadRepositoryApi_Delete_Call struct {
++	*mock.Call
++}
++
++// Delete is a helper method to define mock.On call
++//   - ctx context.Context
++//   - toadId uuid.UUID
++func (_e *MockToadRepositoryApi_Expecter) Delete(ctx interface{}, toadId interface{}) *MockToadRepositoryApi_Delete_Call {
++	return &MockToadRepositoryApi_Delete_Call{Call: _e.mock.On("Delete", ctx, toadId)}
++}
++
++func (_c *MockToadRepositoryApi_Delete_Call) Run(run func(ctx context.Context, toadId uuid.UUID)) *MockToadRepositoryApi_Delete_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(uuid.UUID))
++	})
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_Delete_Call) Return(_a0 error) *MockToadRepositoryApi_Delete_Call {
++	_c.Call.Return(_a0)
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockToadRepositoryApi_Delete_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// FindAllPagedFiltered provides a mock function with given fields: ctx, pin, fin
++func (_m *MockToadRepositoryApi) FindAllPagedFiltered(ctx context.Context, pin paging.Request, fin toadFilters) (paging.Response, []Toad, error) {
++	ret := _m.Called(ctx, pin, fin)
++
++	var r0 paging.Response
++	var r1 []Toad
++	var r2 error
++	if rf, ok := ret.Get(0).(func(context.Context, paging.Request, toadFilters) (paging.Response, []Toad, error)); ok {
++		return rf(ctx, pin, fin)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, paging.Request, toadFilters) paging.Response); ok {
++		r0 = rf(ctx, pin, fin)
++	} else {
++		r0 = ret.Get(0).(paging.Response)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, paging.Request, toadFilters) []Toad); ok {
++		r1 = rf(ctx, pin, fin)
++	} else {
++		if ret.Get(1) != nil {
++			r1 = ret.Get(1).([]Toad)
++		}
++	}
++
++	if rf, ok := ret.Get(2).(func(context.Context, paging.Request, toadFilters) error); ok {
++		r2 = rf(ctx, pin, fin)
++	} else {
++		r2 = ret.Error(2)
++	}
++
++	return r0, r1, r2
++}
++
++// MockToadRepositoryApi_FindAllPagedFiltered_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAllPagedFiltered'
++type MockToadRepositoryApi_FindAllPagedFiltered_Call struct {
++	*mock.Call
++}
++
++// FindAllPagedFiltered is a helper method to define mock.On call
++//   - ctx context.Context
++//   - pin paging.Request
++//   - fin toadFilters
++func (_e *MockToadRepositoryApi_Expecter) FindAllPagedFiltered(ctx interface{}, pin interface{}, fin interface{}) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
++	return &MockToadRepositoryApi_FindAllPagedFiltered_Call{Call: _e.mock.On("FindAllPagedFiltered", ctx, pin, fin)}
++}
++
++func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) Run(run func(ctx context.Context, pin paging.Request, fin toadFilters)) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(paging.Request), args[2].(toadFilters))
++	})
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) Return(_a0 paging.Response, _a1 []Toad, _a2 error) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
++	_c.Call.Return(_a0, _a1, _a2)
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_FindAllPagedFiltered_Call) RunAndReturn(run func(context.Context, paging.Request, toadFilters) (paging.Response, []Toad, error)) *MockToadRepositoryApi_FindAllPagedFiltered_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// FindByKey provides a mock function with given fields: ctx, toadId
++func (_m *MockToadRepositoryApi) FindByKey(ctx context.Context, toadId uuid.UUID) (Toad, error) {
++	ret := _m.Called(ctx, toadId)
++
++	var r0 Toad
++	var r1 error
++	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (Toad, error)); ok {
++		return rf(ctx, toadId)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) Toad); ok {
++		r0 = rf(ctx, toadId)
++	} else {
++		r0 = ret.Get(0).(Toad)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
++		r1 = rf(ctx, toadId)
++	} else {
++		r1 = ret.Error(1)
++	}
++
++	return r0, r1
++}
++
++// MockToadRepositoryApi_FindByKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByKey'
++type MockToadRepositoryApi_FindByKey_Call struct {
++	*mock.Call
++}
++
++// FindByKey is a helper method to define mock.On call
++//   - ctx context.Context
++//   - toadId uuid.UUID
++func (_e *MockToadRepositoryApi_Expecter) FindByKey(ctx interface{}, toadId interface{}) *MockToadRepositoryApi_FindByKey_Call {
++	return &MockToadRepositoryApi_FindByKey_Call{Call: _e.mock.On("FindByKey", ctx, toadId)}
++}
++
++func (_c *MockToadRepositoryApi_FindByKey_Call) Run(run func(ctx context.Context, toadId uuid.UUID)) *MockToadRepositoryApi_FindByKey_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(uuid.UUID))
++	})
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_FindByKey_Call) Return(_a0 Toad, _a1 error) *MockToadRepositoryApi_FindByKey_Call {
++	_c.Call.Return(_a0, _a1)
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_FindByKey_Call) RunAndReturn(run func(context.Context, uuid.UUID) (Toad, error)) *MockToadRepositoryApi_FindByKey_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// Save provides a mock function with given fields: ctx, toad
++func (_m *MockToadRepositoryApi) Save(ctx context.Context, toad Toad) error {
++	ret := _m.Called(ctx, toad)
++
++	var r0 error
++	if rf, ok := ret.Get(0).(func(context.Context, Toad) error); ok {
++		r0 = rf(ctx, toad)
++	} else {
++		r0 = ret.Error(0)
++	}
++
++	return r0
++}
++
++// MockToadRepositoryApi_Save_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Save'
++type MockToadRepositoryApi_Save_Call struct {
++	*mock.Call
++}
++
++// Save is a helper method to define mock.On call
++//   - ctx context.Context
++//   - toad Toad
++func (_e *MockToadRepositoryApi_Expecter) Save(ctx interface{}, toad interface{}) *MockToadRepositoryApi_Save_Call {
++	return &MockToadRepositoryApi_Save_Call{Call: _e.mock.On("Save", ctx, toad)}
++}
++
++func (_c *MockToadRepositoryApi_Save_Call) Run(run func(ctx context.Context, toad Toad)) *MockToadRepositoryApi_Save_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(Toad))
++	})
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_Save_Call) Return(_a0 error) *MockToadRepositoryApi_Save_Call {
++	_c.Call.Return(_a0)
++	return _c
++}
++
++func (_c *MockToadRepositoryApi_Save_Call) RunAndReturn(run func(context.Context, Toad) error) *MockToadRepositoryApi_Save_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++type mockConstructorTestingTNewMockToadRepositoryApi interface {
++	mock.TestingT
++	Cleanup(func())
++}
++
++// NewMockToadRepositoryApi creates a new instance of MockToadRepositoryApi. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
++func NewMockToadRepositoryApi(t mockConstructorTestingTNewMockToadRepositoryApi) *MockToadRepositoryApi {
++	mock := &MockToadRepositoryApi{}
++	mock.Mock.Test(t)
++
++	t.Cleanup(func() { mock.AssertExpectations(t) })
++
++	return mock
++}
++-- someservice/internal/toads/mock_toad_service_api_test.go --
++// Code generated by mockery v2.21.1. DO NOT EDIT.
++
++package toads
++
++import (
++	context "context"
++
++	types "cto-github.cisco.com/NFV-BU/go-msx/types"
++	mock "github.com/stretchr/testify/mock"
++
++	v8 "cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
++)
++
++// MockToadServiceApi is an autogenerated mock type for the ToadServiceApi type
++type MockToadServiceApi struct {
++	mock.Mock
++}
++
++type MockToadServiceApi_Expecter struct {
++	mock *mock.Mock
++}
++
++func (_m *MockToadServiceApi) EXPECT() *MockToadServiceApi_Expecter {
++	return &MockToadServiceApi_Expecter{mock: &_m.Mock}
++}
++
++// CreateToad provides a mock function with given fields: ctx, request
++func (_m *MockToadServiceApi) CreateToad(ctx context.Context, request ToadCreateRequest) (ToadResponse, error) {
++	ret := _m.Called(ctx, request)
++
++	var r0 ToadResponse
++	var r1 error
++	if rf, ok := ret.Get(0).(func(context.Context, ToadCreateRequest) (ToadResponse, error)); ok {
++		return rf(ctx, request)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, ToadCreateRequest) ToadResponse); ok {
++		r0 = rf(ctx, request)
++	} else {
++		r0 = ret.Get(0).(ToadResponse)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, ToadCreateRequest) error); ok {
++		r1 = rf(ctx, request)
++	} else {
++		r1 = ret.Error(1)
++	}
++
++	return r0, r1
++}
++
++// MockToadServiceApi_CreateToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateToad'
++type MockToadServiceApi_CreateToad_Call struct {
++	*mock.Call
++}
++
++// CreateToad is a helper method to define mock.On call
++//   - ctx context.Context
++//   - request ToadCreateRequest
++func (_e *MockToadServiceApi_Expecter) CreateToad(ctx interface{}, request interface{}) *MockToadServiceApi_CreateToad_Call {
++	return &MockToadServiceApi_CreateToad_Call{Call: _e.mock.On("CreateToad", ctx, request)}
++}
++
++func (_c *MockToadServiceApi_CreateToad_Call) Run(run func(ctx context.Context, request ToadCreateRequest)) *MockToadServiceApi_CreateToad_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(ToadCreateRequest))
++	})
++	return _c
++}
++
++func (_c *MockToadServiceApi_CreateToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_CreateToad_Call {
++	_c.Call.Return(_a0, _a1)
++	return _c
++}
++
++func (_c *MockToadServiceApi_CreateToad_Call) RunAndReturn(run func(context.Context, ToadCreateRequest) (ToadResponse, error)) *MockToadServiceApi_CreateToad_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// DeleteToad provides a mock function with given fields: ctx, id
++func (_m *MockToadServiceApi) DeleteToad(ctx context.Context, id types.UUID) error {
++	ret := _m.Called(ctx, id)
++
++	var r0 error
++	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) error); ok {
++		r0 = rf(ctx, id)
++	} else {
++		r0 = ret.Error(0)
++	}
++
++	return r0
++}
++
++// MockToadServiceApi_DeleteToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteToad'
++type MockToadServiceApi_DeleteToad_Call struct {
++	*mock.Call
++}
++
++// DeleteToad is a helper method to define mock.On call
++//   - ctx context.Context
++//   - id types.UUID
++func (_e *MockToadServiceApi_Expecter) DeleteToad(ctx interface{}, id interface{}) *MockToadServiceApi_DeleteToad_Call {
++	return &MockToadServiceApi_DeleteToad_Call{Call: _e.mock.On("DeleteToad", ctx, id)}
++}
++
++func (_c *MockToadServiceApi_DeleteToad_Call) Run(run func(ctx context.Context, id types.UUID)) *MockToadServiceApi_DeleteToad_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(types.UUID))
++	})
++	return _c
++}
++
++func (_c *MockToadServiceApi_DeleteToad_Call) Return(_a0 error) *MockToadServiceApi_DeleteToad_Call {
++	_c.Call.Return(_a0)
++	return _c
++}
++
++func (_c *MockToadServiceApi_DeleteToad_Call) RunAndReturn(run func(context.Context, types.UUID) error) *MockToadServiceApi_DeleteToad_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// GetToad provides a mock function with given fields: ctx, id
++func (_m *MockToadServiceApi) GetToad(ctx context.Context, id types.UUID) (ToadResponse, error) {
++	ret := _m.Called(ctx, id)
++
++	var r0 ToadResponse
++	var r1 error
++	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) (ToadResponse, error)); ok {
++		return rf(ctx, id)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, types.UUID) ToadResponse); ok {
++		r0 = rf(ctx, id)
++	} else {
++		r0 = ret.Get(0).(ToadResponse)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, types.UUID) error); ok {
++		r1 = rf(ctx, id)
++	} else {
++		r1 = ret.Error(1)
++	}
++
++	return r0, r1
++}
++
++// MockToadServiceApi_GetToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetToad'
++type MockToadServiceApi_GetToad_Call struct {
++	*mock.Call
++}
++
++// GetToad is a helper method to define mock.On call
++//   - ctx context.Context
++//   - id types.UUID
++func (_e *MockToadServiceApi_Expecter) GetToad(ctx interface{}, id interface{}) *MockToadServiceApi_GetToad_Call {
++	return &MockToadServiceApi_GetToad_Call{Call: _e.mock.On("GetToad", ctx, id)}
++}
++
++func (_c *MockToadServiceApi_GetToad_Call) Run(run func(ctx context.Context, id types.UUID)) *MockToadServiceApi_GetToad_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(types.UUID))
++	})
++	return _c
++}
++
++func (_c *MockToadServiceApi_GetToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_GetToad_Call {
++	_c.Call.Return(_a0, _a1)
++	return _c
++}
++
++func (_c *MockToadServiceApi_GetToad_Call) RunAndReturn(run func(context.Context, types.UUID) (ToadResponse, error)) *MockToadServiceApi_GetToad_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// ListToads provides a mock function with given fields: ctx, pageReq, freq
++func (_m *MockToadServiceApi) ListToads(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error) {
++	ret := _m.Called(ctx, pageReq, freq)
++
++	var r0 v8.PagingResponse
++	var r1 []ToadResponse
++	var r2 error
++	if rf, ok := ret.Get(0).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error)); ok {
++		return rf(ctx, pageReq, freq)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) v8.PagingResponse); ok {
++		r0 = rf(ctx, pageReq, freq)
++	} else {
++		r0 = ret.Get(0).(v8.PagingResponse)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) []ToadResponse); ok {
++		r1 = rf(ctx, pageReq, freq)
++	} else {
++		if ret.Get(1) != nil {
++			r1 = ret.Get(1).([]ToadResponse)
++		}
++	}
++
++	if rf, ok := ret.Get(2).(func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) error); ok {
++		r2 = rf(ctx, pageReq, freq)
++	} else {
++		r2 = ret.Error(2)
++	}
++
++	return r0, r1, r2
++}
++
++// MockToadServiceApi_ListToads_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListToads'
++type MockToadServiceApi_ListToads_Call struct {
++	*mock.Call
++}
++
++// ListToads is a helper method to define mock.On call
++//   - ctx context.Context
++//   - pageReq v8.PagingSortingInputs
++//   - freq toadFilterQueryInputs
++func (_e *MockToadServiceApi_Expecter) ListToads(ctx interface{}, pageReq interface{}, freq interface{}) *MockToadServiceApi_ListToads_Call {
++	return &MockToadServiceApi_ListToads_Call{Call: _e.mock.On("ListToads", ctx, pageReq, freq)}
++}
++
++func (_c *MockToadServiceApi_ListToads_Call) Run(run func(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs)) *MockToadServiceApi_ListToads_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(v8.PagingSortingInputs), args[2].(toadFilterQueryInputs))
++	})
++	return _c
++}
++
++func (_c *MockToadServiceApi_ListToads_Call) Return(pageResp v8.PagingResponse, payload []ToadResponse, err error) *MockToadServiceApi_ListToads_Call {
++	_c.Call.Return(pageResp, payload, err)
++	return _c
++}
++
++func (_c *MockToadServiceApi_ListToads_Call) RunAndReturn(run func(context.Context, v8.PagingSortingInputs, toadFilterQueryInputs) (v8.PagingResponse, []ToadResponse, error)) *MockToadServiceApi_ListToads_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++// UpdateToad provides a mock function with given fields: ctx, id, request
++func (_m *MockToadServiceApi) UpdateToad(ctx context.Context, id types.UUID, request ToadUpdateRequest) (ToadResponse, error) {
++	ret := _m.Called(ctx, id, request)
++
++	var r0 ToadResponse
++	var r1 error
++	if rf, ok := ret.Get(0).(func(context.Context, types.UUID, ToadUpdateRequest) (ToadResponse, error)); ok {
++		return rf(ctx, id, request)
++	}
++	if rf, ok := ret.Get(0).(func(context.Context, types.UUID, ToadUpdateRequest) ToadResponse); ok {
++		r0 = rf(ctx, id, request)
++	} else {
++		r0 = ret.Get(0).(ToadResponse)
++	}
++
++	if rf, ok := ret.Get(1).(func(context.Context, types.UUID, ToadUpdateRequest) error); ok {
++		r1 = rf(ctx, id, request)
++	} else {
++		r1 = ret.Error(1)
++	}
++
++	return r0, r1
++}
++
++// MockToadServiceApi_UpdateToad_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateToad'
++type MockToadServiceApi_UpdateToad_Call struct {
++	*mock.Call
++}
++
++// UpdateToad is a helper method to define mock.On call
++//   - ctx context.Context
++//   - id types.UUID
++//   - request ToadUpdateRequest
++func (_e *MockToadServiceApi_Expecter) UpdateToad(ctx interface{}, id interface{}, request interface{}) *MockToadServiceApi_UpdateToad_Call {
++	return &MockToadServiceApi_UpdateToad_Call{Call: _e.mock.On("UpdateToad", ctx, id, request)}
++}
++
++func (_c *MockToadServiceApi_UpdateToad_Call) Run(run func(ctx context.Context, id types.UUID, request ToadUpdateRequest)) *MockToadServiceApi_UpdateToad_Call {
++	_c.Call.Run(func(args mock.Arguments) {
++		run(args[0].(context.Context), args[1].(types.UUID), args[2].(ToadUpdateRequest))
++	})
++	return _c
++}
++
++func (_c *MockToadServiceApi_UpdateToad_Call) Return(_a0 ToadResponse, _a1 error) *MockToadServiceApi_UpdateToad_Call {
++	_c.Call.Return(_a0, _a1)
++	return _c
++}
++
++func (_c *MockToadServiceApi_UpdateToad_Call) RunAndReturn(run func(context.Context, types.UUID, ToadUpdateRequest) (ToadResponse, error)) *MockToadServiceApi_UpdateToad_Call {
++	_c.Call.Return(run)
++	return _c
++}
++
++type mockConstructorTestingTNewMockToadServiceApi interface {
++	mock.TestingT
++	Cleanup(func())
++}
++
++// NewMockToadServiceApi creates a new instance of MockToadServiceApi. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
++func NewMockToadServiceApi(t mockConstructorTestingTNewMockToadServiceApi) *MockToadServiceApi {
++	mock := &MockToadServiceApi{}
++	mock.Mock.Test(t)
++
++	t.Cleanup(func() { mock.AssertExpectations(t) })
++
++	return mock
++}
++-- someservice/internal/toads/model_toad.go --
++// Model for toad
++
++package toads
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	"github.com/google/uuid"
++)
++
++// Filter
++
++type toadFilters struct{}
++
++func (f toadFilters) Where() sqldb.WhereOption {
++	return nil
++}
++
++// Instance
++
++type Toad struct {
++	ToadId uuid.UUID `db:"toad_id"`
++	Data   string    `db:"data"`
++}
++-- someservice/internal/toads/model_toad_test.go --
++// Model Unit Test for toad
++
++package toads
++
++import (
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	"github.com/stretchr/testify/assert"
++	"testing"
++)
++
++// Filter
++
++// Where
++
++func Test_toadFilters_Where(t *testing.T) {
++	tests := []struct {
++		name string
++		want sqldb.WhereOption
++	}{
++		{
++			name: "Success",
++			want: nil,
++		},
++	}
++	for _, tt := range tests {
++		t.Run(tt.name, func(t *testing.T) {
++			f := toadFilters{}
++			assert.Equalf(t, tt.want, f.Where(), "Where()")
++		})
++	}
++}
++-- someservice/internal/toads/payloads_toad.go --
++// Payloads for toad
++
++package toads
++
++import "cto-github.cisco.com/NFV-BU/go-msx/types"
++
++// Payloads
++
++type ToadCreateRequest struct {
++	Data string `json:"data" minLength:"1"`
++	// _ corresponds to the JSON schema of the parent structure
++	_ struct{} `json:"-" title:"ToadCreateRequest"`
++}
++
++type ToadResponse struct {
++	Data   string     `json:"data"`
++	ToadId types.UUID `json:"toadId"`
++	// _ corresponds to the JSON schema of the parent structure
++	_ struct{} `json:"-" title:"ToadResponse"`
++}
++
++type ToadUpdateRequest struct {
++	Data string `json:"data"`
++	// _ corresponds to the JSON schema of the parent structure
++	_ struct{} `json:"-" title:"ToadUpdateRequest"`
++}
++-- someservice/internal/toads/pkg.go --
++// Globals for toad
++
++package toads
++
++import "cto-github.cisco.com/NFV-BU/go-msx/log"
++
++// Logger
++
++var logger = log.NewPackageLogger()
++
++// Context
++
++type contextKeyNamed string
++-- someservice/internal/toads/repository_toad.go --
++// Repository for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/paging"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"github.com/google/uuid"
++)
++
++// Constants
++
++const (
++	tableNameToad = "toad"
++	columnToadId  = "toad_id"
++)
++
++// API
++
++//go:generate mockery --name=ToadRepositoryApi --testonly --case=snake --inpackage --with-expecter
++
++// ToadRepositoryApi declares the interface for the ToadRepository.  This can be used
++// to interchange implementations, such as during testing.
++type ToadRepositoryApi interface {
++	FindAllPagedFiltered(ctx context.Context, pin paging.Request, fin toadFilters) (paging.Response, []Toad, error)
++	FindByKey(ctx context.Context, toadId uuid.UUID) (Toad, error)
++	Save(ctx context.Context, toad Toad) error
++	Delete(ctx context.Context, toadId uuid.UUID) error
++}
++
++// Repository
++
++// toadTypedRepository is the production implementation of the ToadRepositoryApi.
++type toadTypedRepository struct {
++	typedRepository sqldb.TypedRepositoryApi[Toad]
++}
++
++// Actions
++
++// List
++
++// FindAllPagedFiltered returns a series of matching Toad records using the specified
++// filtering and pagination criteria
++func (r *toadTypedRepository) FindAllPagedFiltered(ctx context.Context, pin paging.Request, fin toadFilters) (pout paging.Response, results []Toad, err error) {
++	logger.WithContext(ctx).WithField("paging", pin).WithField("filter", fin).Debugf("Retrieving paginated and filtered Toad records")
++	pout, err = r.typedRepository.FindAll(ctx, &results, sqldb.Where(fin.Where()), sqldb.Paging(pin))
++	return
++}
++
++// Retrieve
++
++// FindByKey retrieves a single Toad record by the specified toadId
++func (r *toadTypedRepository) FindByKey(ctx context.Context, toadId uuid.UUID) (result Toad, err error) {
++	logger.WithContext(ctx).Debugf("Retrieving Toad by key %q", toadId.String())
++	err = r.typedRepository.FindOne(ctx, &result, sqldb.And(map[string]any{
++		columnToadId: toadId,
++	}))
++	if err == sqldb.ErrNotFound {
++		err = repository.ErrNotFound
++	}
++	return
++}
++
++// Save
++
++// Save inserts or updates an existing record based on the supplied Toad toadId
++func (r *toadTypedRepository) Save(ctx context.Context, toad Toad) (err error) {
++	logger.WithContext(ctx).Debugf("Storing Toad with key %q", toad.ToadId)
++	return r.typedRepository.Upsert(ctx, toad)
++}
++
++// Delete
++
++// Delete removes the Toad record with the specified id
++func (r *toadTypedRepository) Delete(ctx context.Context, toadId uuid.UUID) (err error) {
++	logger.WithContext(ctx).Debugf("Deleting Toad by key %q", toadId.String())
++	err = r.typedRepository.DeleteOne(ctx, map[string]any{
++		columnToadId: toadId,
++	})
++	if err == sqldb.ErrNotFound {
++		err = repository.ErrNotFound
++	}
++	return
++}
++
++// Context
++
++const contextKeyToadRepository = contextKeyNamed("ToadRepository")
++
++// contextPetRepository returns a ContextKeyAccessor enabling dependency overrides
++// for ToadRepositoryApi.
++func contextToadRepository() types.ContextKeyAccessor[ToadRepositoryApi] {
++	return types.NewContextKeyAccessor[ToadRepositoryApi](contextKeyToadRepository)
++}
++
++// Constructor
++
++// newToadRepository is an abstract factory, returning by default a production implementation
++// of the ToadRepositoryApi.
++func newToadRepository(ctx context.Context) (ToadRepositoryApi, error) {
++	repo := contextToadRepository().Get(ctx)
++	if repo == nil {
++		typedRepository, err := sqldb.NewTypedRepository[Toad](ctx, tableNameToad)
++		if err != nil {
++			return nil, err
++		}
++
++		repo = &toadTypedRepository{
++			typedRepository: typedRepository,
++		}
++	}
++	return repo, nil
++}
++-- someservice/internal/toads/repository_toad_test.go --
++// Repository Unit Tests for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/paging"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/sqldbtest"
++	"github.com/doug-martin/goqu/v9"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/mock"
++	"testing"
++)
++
++// Fixture
++
++// Structure
++
++type toadRepositoryTestFixture struct {
++	// SUT
++	ToadRepository ToadRepositoryApi
++
++	// Mocks
++	TypedRepository *sqldb.MockTypedRepositoryApi[Toad]
++
++	// Data
++	ModelData toadTestModelData
++}
++
++// Setup
++
++func (p toadRepositoryTestFixture) Setup(t *testing.T, ctx context.Context) toadRepositoryTestFixture {
++	svc, err := newToadRepository(ctx)
++	assert.NoError(t, err)
++	assert.NotNil(t, svc)
++
++	p.ToadRepository = svc
++	return p
++}
++
++// Constructor
++
++func newToadRepositoryTestFixture() toadRepositoryTestFixture {
++	return toadRepositoryTestFixture{
++		ModelData: newToadTestModelData(),
++	}
++}
++
++// TestCase
++
++// Constructor
++
++func newToadRepositoryTest() *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture] {
++	return testhelpers.
++		NewServiceFixtureCase(new(sqldbtest.RepositoryTest), newToadRepositoryTestFixture()).
++		WithSetup(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			// Create the mock toad repository
++			s.Fixture.TypedRepository = sqldb.NewMockTypedRepositoryApi[Toad](s.T)
++			// Inject it for use by the SUT
++			s.Testable.WithContextInjector(func(ctx context.Context) context.Context {
++				return sqldb.ContextTypedRepository[Toad](tableNameToad).Set(ctx, s.Fixture.TypedRepository)
++			})
++
++			// All repository methods may return an error
++			s.Testable.HasErr = true
++		})
++}
++
++// Tests
++
++// List
++
++func Test_toadTypedRepository_FindAllPagedFiltered(t *testing.T) {
++	test := newToadRepositoryTest().
++		WithNamedSetup("typedRepository.FindAll", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Fixture.TypedRepository.EXPECT().
++				FindAll(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.AnythingOfType("*[]toads.Toad"),
++					mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption]),
++					mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption])).
++				Run(func(ctx context.Context, dest *[]Toad, options ...func(*goqu.SelectDataset, paging.Request) (*goqu.SelectDataset, paging.Request)) {
++					// Set our output parameter
++					*dest = s.Fixture.ModelData.Toads
++				}).
++				Return(
++					s.Fixture.ModelData.PagingResponse,
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ModelData.PagingResponse,
++				s.Fixture.ModelData.Toads,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			pIn := s.Fixture.ModelData.PagingRequest
++			pOut, results, err := s.Fixture.ToadRepository.FindAllPagedFiltered(ctx, pIn, toadFilters{})
++
++			s.Testable.Got = []any{
++				pOut, results, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "RepositoryError",
++			test: test.Clone().
++				WithNamedSetup("typedRepository.FindAll", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Fixture.TypedRepository.EXPECT().
++						FindAll(
++							mock.MatchedBy(testhelpers.AnyContext),
++							mock.AnythingOfType("*[]toads.Toad"),
++							mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption]),
++							mock.MatchedBy(testhelpers.Implements[sqldb.FindAllOption])).
++						Return(
++							paging.Response{},
++							sqldb.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Testable.Want = []any{
++						paging.Response{},
++						[]Toad(nil),
++						sqldb.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Retrieve
++
++func Test_toadTypedRepository_FindByKey(t *testing.T) {
++	test := newToadRepositoryTest().
++		WithNamedSetup("typedRepository.FindOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Fixture.TypedRepository.EXPECT().
++				FindOne(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.AnythingOfType("*toads.Toad"),
++					mock.MatchedBy(testhelpers.Implements[sqldb.WhereOption])).
++				Run(func(ctx context.Context, dest *Toad, where sqldb.WhereOption) {
++					// Set our output parameter
++					*dest = s.Fixture.ModelData.Toad
++				}).
++				Return(nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ModelData.Toad,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			result, err := s.Fixture.ToadRepository.FindByKey(ctx, s.Fixture.ModelData.ToadId)
++
++			s.Testable.Got = []any{
++				result, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFoundError",
++			test: test.Clone().
++				WithNamedSetup("typedRepository.FindOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Fixture.TypedRepository.EXPECT().
++						FindOne(
++							mock.MatchedBy(testhelpers.AnyContext),
++							mock.AnythingOfType("*toads.Toad"),
++							mock.MatchedBy(testhelpers.Implements[sqldb.WhereOption])).
++						Return(sqldb.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Testable.Want = []any{
++						Toad{},
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++
++}
++
++// Save
++
++func Test_toadTypedRepository_Save(t *testing.T) {
++	test := newToadRepositoryTest().
++		WithNamedSetup("typedRepository.Upsert", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Fixture.TypedRepository.EXPECT().
++				Upsert(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.AnythingOfType("toads.Toad")).
++				Return(nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Testable.Want = []any{
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			err := s.Fixture.ToadRepository.Save(ctx, s.Fixture.ModelData.Toad)
++
++			s.Testable.Got = []any{
++				err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFoundError",
++			test: test.Clone().
++				WithNamedSetup("typedRepository.Upsert", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Fixture.TypedRepository.EXPECT().
++						Upsert(
++							mock.MatchedBy(testhelpers.AnyContext),
++							mock.AnythingOfType("toads.Toad")).
++						Return(sqldb.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Testable.Want = []any{
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Delete
++
++func Test_toadTypedRepository_Delete(t *testing.T) {
++	test := newToadRepositoryTest().
++		WithNamedSetup("typedRepository.DeleteOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Fixture.TypedRepository.EXPECT().
++				DeleteOne(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.MatchedBy(testhelpers.Implements[sqldb.KeysOption])).
++				Return(nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++			s.Testable.Want = []any{
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture], ctx context.Context) {
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			err := s.Fixture.ToadRepository.Delete(ctx, s.Fixture.ModelData.ToadId)
++
++			s.Testable.Got = []any{
++				err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "NotFoundError",
++			test: test.Clone().
++				WithNamedSetup("typedRepository.DeleteOne", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Fixture.TypedRepository.EXPECT().
++						DeleteOne(
++							mock.MatchedBy(testhelpers.AnyContext),
++							mock.MatchedBy(testhelpers.Implements[sqldb.KeysOption])).
++						Return(sqldb.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*sqldbtest.RepositoryTest, toadRepositoryTestFixture]) {
++					s.Testable.Want = []any{
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++-- someservice/internal/toads/service_toad_v8.go --
++// v8 API Service for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	db "cto-github.cisco.com/NFV-BU/go-msx/sqldb/prepared"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++)
++
++// API
++
++//go:generate mockery --name=ToadServiceApi --testonly --case=snake --inpackage --with-expecter
++
++// ToadServiceApi declares the interface for the ToadService.  This can be used
++// to interchange implementations, such as during testing.
++type ToadServiceApi interface {
++	ListToads(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs) (pageResp v8.PagingResponse, payload []ToadResponse, err error)
++	GetToad(ctx context.Context, id types.UUID) (ToadResponse, error)
++	CreateToad(ctx context.Context, request ToadCreateRequest) (ToadResponse, error)
++	UpdateToad(ctx context.Context, id types.UUID, request ToadUpdateRequest) (ToadResponse, error)
++	DeleteToad(ctx context.Context, id types.UUID) error
++}
++
++// Service
++
++// toadService is the production implementation of the ToadServiceApi.
++type toadService struct {
++	toadRepository     ToadRepositoryApi
++	toadConverter      toadConverter
++	pagingConverter    v8.PagingConverter
++	transactionManager sqldb.TransactionManager
++}
++
++// Actions
++
++// List
++
++// ListToads returns a paginated series of Toad instances matching the supplied criteria.
++func (s *toadService) ListToads(ctx context.Context, pageReq v8.PagingSortingInputs, freq toadFilterQueryInputs) (pageResp v8.PagingResponse, payload []ToadResponse, err error) {
++	pin, err := s.pagingConverter.FromPagingSortingInputs(pageReq)
++	if err != nil {
++		return
++	}
++	fin := s.toadConverter.FromFilterQueryInputs(freq)
++
++	pout, results, err := s.toadRepository.FindAllPagedFiltered(ctx, pin, fin)
++	if err != nil {
++		return
++	}
++
++	if pageResp, err = s.pagingConverter.ToPagingResponse(pout); err != nil {
++		return
++	}
++	payload = s.toadConverter.ToToadListResponse(results)
++	return
++}
++
++// Retrieve
++
++// GetToad returns a single Toad instance matching the specified key.
++func (s *toadService) GetToad(ctx context.Context, id types.UUID) (ToadResponse, error) {
++	toad, err := s.toadRepository.FindByKey(ctx, db.ToModelUuid(id))
++	if err == nil {
++		return s.toadConverter.ToToadResponse(toad), nil
++	}
++	return ToadResponse{}, err
++}
++
++// Create
++
++// CreateToad instantiates and saves a new Toad instance using the specified values.
++func (s *toadService) CreateToad(ctx context.Context, request ToadCreateRequest) (response ToadResponse, err error) {
++	toad := s.toadConverter.FromToadCreateRequest(request)
++
++	err = s.transactionManager.WithTransaction(ctx, func(ctx context.Context) (err error) {
++		return s.toadRepository.Save(ctx, toad)
++	})
++
++	if err == nil {
++		response = s.toadConverter.ToToadResponse(toad)
++	}
++
++	return
++}
++
++// Update
++
++// UpdateToad modifies and saves an existing Toad instance using the specified values.
++func (s *toadService) UpdateToad(ctx context.Context, id types.UUID, request ToadUpdateRequest) (response ToadResponse, err error) {
++	var toad Toad
++
++	err = s.transactionManager.WithTransaction(ctx, func(ctx context.Context) (err error) {
++		toad, err = s.toadRepository.FindByKey(ctx, db.ToModelUuid(id))
++		if err != nil {
++			return
++		}
++
++		toad = s.toadConverter.FromToadUpdateRequest(toad, request)
++		return s.toadRepository.Save(ctx, toad)
++	})
++
++	if err == nil {
++		response = s.toadConverter.ToToadResponse(toad)
++	}
++
++	return
++}
++
++// Delete
++
++// DeleteToad destroys an existing Toad instance with the specified key.
++func (s *toadService) DeleteToad(ctx context.Context, id types.UUID) error {
++	return s.transactionManager.WithTransaction(ctx, func(ctx context.Context) error {
++		return s.toadRepository.Delete(ctx, db.ToModelUuid(id))
++	})
++}
++
++// Context
++
++const contextKeyToadService = contextKeyNamed("ToadService")
++
++// contextToadService returns a ContextKeyAccessor enabling dependency overrides
++// for ToadServiceApi.
++func contextToadService() types.ContextKeyAccessor[ToadServiceApi] {
++	return types.NewContextKeyAccessor[ToadServiceApi](contextKeyToadService)
++}
++
++// Constructor
++
++// newToadService is an abstract factory, returning by default a production implementation
++// of the ToadServiceApi.
++func newToadService(ctx context.Context) (svc ToadServiceApi, err error) {
++	svc = contextToadService().Get(ctx)
++	if svc == nil {
++		repo, err := newToadRepository(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		transactionManager, err := sqldb.NewTransactionManager(ctx)
++		if err != nil {
++			return nil, err
++		}
++
++		svc = &toadService{
++			toadRepository:     repo,
++			transactionManager: transactionManager,
++			pagingConverter: v8.PagingConverter{
++				SortByOptions: toadSortByOptions,
++			},
++		}
++	}
++
++	return
++}
++-- someservice/internal/toads/service_toad_v8_test.go --
++// v8 API Service Unit Tests for toad
++
++package toads
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/ops/restops/v8"
++	"cto-github.cisco.com/NFV-BU/go-msx/paging"
++	"cto-github.cisco.com/NFV-BU/go-msx/repository"
++	"cto-github.cisco.com/NFV-BU/go-msx/sqldb"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers"
++	"cto-github.cisco.com/NFV-BU/go-msx/testhelpers/servicetest"
++	"cto-github.cisco.com/NFV-BU/go-msx/types"
++	"github.com/pkg/errors"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/mock"
++	"testing"
++)
++
++// Fixture
++
++// Structure
++
++type toadServiceTestFixture struct {
++	// SUT
++	ToadService ToadServiceApi
++
++	// Mocks
++	ToadRepository *MockToadRepositoryApi
++
++	// Canned Values
++	ApiData   toadTestApiData
++	ModelData toadTestModelData
++}
++
++// Setup
++
++func (p toadServiceTestFixture) Setup(t *testing.T, ctx context.Context) toadServiceTestFixture {
++	svc, err := newToadService(ctx)
++	assert.NoError(t, err)
++	assert.NotNil(t, svc)
++
++	p.ToadService = svc
++	return p
++}
++
++// Constructor
++
++func newToadServiceTestFixture() toadServiceTestFixture {
++	return toadServiceTestFixture{
++		ApiData:   newToadTestApiData(),
++		ModelData: newToadTestModelData(),
++	}
++}
++
++// TestCase
++
++// Constructor
++
++func newToadServiceTest() *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture] {
++	return testhelpers.
++		NewServiceFixtureCase(new(servicetest.ServiceTest), newToadServiceTestFixture()).
++		WithSetup(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			// Create the mock toad repository
++			s.Fixture.ToadRepository = NewMockToadRepositoryApi(s.T)
++			// Inject it for use by the SUT
++			s.Testable.WithContextInjector(func(ctx context.Context) context.Context {
++				return contextToadRepository().Set(ctx, s.Fixture.ToadRepository)
++			})
++
++			// Inject the mock transaction manager
++			s.Testable.WithContextInjector(sqldb.InjectMockTransactionManager)
++
++			// All service methods may return an error
++			s.Testable.HasErr = true
++		})
++}
++
++// Tests
++
++// List
++
++func Test_toadService_ListToads(t *testing.T) {
++	test := newToadServiceTest().
++		WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				FindAllPagedFiltered(
++					mock.MatchedBy(testhelpers.AnyContext),
++					s.Fixture.ModelData.PagingRequest,
++					s.Fixture.ModelData.ToadFilters).
++				Return(
++					s.Fixture.ModelData.PagingResponse,
++					s.Fixture.ModelData.Toads,
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ApiData.PagingResponse,
++				s.Fixture.ApiData.ToadResponses,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++			// Instantiate the SUT
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			pReq := s.Fixture.ApiData.PagingRequest
++			fReq := toadFilterQueryInputs{}
++
++			pResp, results, err := s.Fixture.ToadService.ListToads(ctx, pReq, fReq)
++
++			s.Testable.Got = []any{
++				pResp, results, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "SortingRequestError",
++			test: test.Clone().
++				WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++					// Instantiate the SUT
++					s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++					// Give a faulty sort order
++					pReq := v8.PagingSortingInputs{
++						PagingInputs: v8.PagingInputs{
++							PageSize: 10,
++						},
++						SortingInputs: v8.SortingInputs{
++							SortBy:    "ERROR",
++							SortOrder: "asc",
++						},
++					}
++
++					fReq := toadFilterQueryInputs{}
++
++					pResp, results, err := s.Fixture.ToadService.ListToads(ctx, pReq, fReq)
++
++					s.Testable.Got = []any{
++						pResp, results, err,
++					}
++				}).
++				WithoutNamedSetup("repository.FindAllPagedFiltered").
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						v8.PagingResponse{},
++						[]ToadResponse(nil),
++						errors.WithStack(errors.New("ERROR: Unknown sort by")),
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++		{
++			name: "RepositoryError",
++			test: test.Clone().
++				WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						FindAllPagedFiltered(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.PagingRequest,
++							s.Fixture.ModelData.ToadFilters).
++						Return(
++							paging.Response{},
++							nil,
++							repository.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						v8.PagingResponse{},
++						[]ToadResponse(nil),
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++		{
++			name: "SortingResponseError",
++			test: test.Clone().
++				WithNamedSetup("repository.FindAllPagedFiltered", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						FindAllPagedFiltered(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.PagingRequest,
++							s.Fixture.ModelData.ToadFilters).
++						Return(
++							paging.Response{
++								Size:       10,
++								TotalItems: types.PtrTo[uint](2),
++								Sort: []paging.SortOrder{{
++									Property:  "ERROR",
++									Direction: "ASC",
++								}},
++							},
++							s.Fixture.ModelData.Toads,
++							nil)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++
++						v8.PagingResponse{
++							PageSize:   10,
++							TotalItems: types.PtrTo[int](2),
++						},
++						[]ToadResponse(nil),
++						errors.WithStack(errors.New("ERROR: Unknown sort by")),
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Retrieve
++
++func Test_toadService_GetToad(t *testing.T) {
++	test := newToadServiceTest().
++		WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				FindByKey(
++					mock.MatchedBy(testhelpers.AnyContext),
++					s.Fixture.ModelData.ToadId).
++				Return(
++					s.Fixture.ModelData.Toad,
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ApiData.ToadResponse,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++			// Instantiate the SUT
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			result, err := s.Fixture.ToadService.GetToad(ctx, s.Fixture.ApiData.ToadId)
++
++			s.Testable.Got = []any{
++				result, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "RepositoryError",
++			test: test.Clone().
++				WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						FindByKey(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.ToadId).
++						Return(
++							Toad{},
++							repository.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						ToadResponse{},
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Create
++
++func Test_toadService_CreateToad(t *testing.T) {
++	test := newToadServiceTest().
++		WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				Save(
++					mock.MatchedBy(testhelpers.AnyContext),
++					mock.AnythingOfType("Toad")).
++				Return(
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ApiData.ToadResponse,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++			// Instantiate the SUT
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			result, err := s.Fixture.ToadService.CreateToad(ctx, s.Fixture.ApiData.ToadCreateRequest)
++			if err == nil {
++				// fix for test result diff (toadid auto-generated by converter)
++				result.ToadId = s.Fixture.ApiData.ToadId
++			}
++
++			s.Testable.Got = []any{
++				result, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "RepositoryError",
++			test: test.Clone().
++				WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						Save(
++							mock.MatchedBy(testhelpers.AnyContext),
++							mock.AnythingOfType("Toad")).
++						Return(
++							repository.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						ToadResponse{},
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++// Update
++
++func Test_toadService_UpdateToad(t *testing.T) {
++	test := newToadServiceTest().
++		WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				FindByKey(
++					mock.MatchedBy(testhelpers.AnyContext),
++					s.Fixture.ModelData.ToadId).
++				Return(
++					s.Fixture.ModelData.Toad,
++					nil)
++		}).
++		WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				Save(
++					mock.MatchedBy(testhelpers.AnyContext),
++					s.Fixture.ModelData.Toad).
++				Return(
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Testable.Want = []any{
++				s.Fixture.ApiData.ToadResponse,
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++			// Instantiate the SUT
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			result, err := s.Fixture.ToadService.UpdateToad(ctx, s.Fixture.ApiData.ToadId, s.Fixture.ApiData.ToadUpdateRequest)
++
++			s.Testable.Got = []any{
++				result, err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "RepositoryFindError",
++			test: test.Clone().
++				WithNamedSetup("repository.FindByKey", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						FindByKey(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.ToadId).
++						Return(
++							Toad{},
++							repository.ErrNotFound)
++				}).
++				WithoutNamedSetup("repository.Save").
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						ToadResponse{},
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++		{
++			name: "RepositorySaveError",
++			test: test.Clone().
++				WithNamedSetup("repository.Save", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						Save(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.Toad).
++						Return(
++							repository.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						ToadResponse{},
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
++
++func Test_toadService_DeleteToad(t *testing.T) {
++	test := newToadServiceTest().
++		WithNamedSetup("repository.Delete", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Fixture.ToadRepository.EXPECT().
++				Delete(
++					mock.MatchedBy(testhelpers.AnyContext),
++					s.Fixture.ModelData.ToadId).
++				Return(
++					nil)
++		}).
++		WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++			s.Testable.Want = []any{
++				nil,
++			}
++			s.Testable.WantErr = false
++		}).
++		WithFunc(func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture], ctx context.Context) {
++			// Instantiate the SUT
++			s.Fixture = s.Fixture.Setup(s.T, ctx)
++
++			err := s.Fixture.ToadService.DeleteToad(ctx, s.Fixture.ApiData.ToadId)
++
++			s.Testable.Got = []any{
++				err,
++			}
++		})
++
++	tests := []struct {
++		name string
++		test testhelpers.Testable
++	}{
++		{
++			name: "Success",
++			test: test.Clone(),
++		},
++		{
++			name: "RepositoryError",
++			test: test.Clone().
++				WithNamedSetup("repository.Delete", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Fixture.ToadRepository.EXPECT().
++						Delete(
++							mock.MatchedBy(testhelpers.AnyContext),
++							s.Fixture.ModelData.ToadId).
++						Return(
++							repository.ErrNotFound)
++				}).
++				WithNamedSetup("want", func(s *testhelpers.ServiceFixtureCase[*servicetest.ServiceTest, toadServiceTestFixture]) {
++					s.Testable.Want = []any{
++						repository.ErrNotFound,
++					}
++					s.Testable.WantErr = true
++				}),
++		},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.name, tt.test.Test)
++	}
++}
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2

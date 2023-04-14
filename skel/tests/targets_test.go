@@ -33,7 +33,7 @@ func (s *SkelTestSuite) SetupSuite(t *testing.T) {
 	require.NoError(t, err)
 
 	// create the suite folder
-	s.Execution.Global.WorkDir, err = os.MkdirTemp("", "skel-integration-test-")
+	s.Execution.Global.WorkDir, err = os.MkdirTemp(skel.TempDir(), "skel-integration-test-")
 	require.NoError(t, err)
 	t.Logf("Creating test suite folder %s", s.Execution.Global.WorkDir)
 
@@ -63,8 +63,7 @@ func (s *SkelTestSuite) TearDownSuite(t *testing.T) {
 		return
 	}
 
-	err := os.RemoveAll(s.Execution.WorkDir)
-	var err error
+	err := os.RemoveAll(s.Execution.Global.WorkDir)
 	if err != nil {
 		t.Errorf("Failed to remove work directory %q", s.Execution.Global.WorkDir)
 	}
@@ -175,7 +174,7 @@ func TestSkelTargets(t *testing.T) {
 			Name: "generate-certificate",
 			Test: TargetTest{
 				Args:     []string{"generate-certificate"},
-				CmpGlobs: "notsame:local/server.{crt,key} " + clienv.DefaultCmpGlob,
+				CmpGlobs: "notsame:someservice/local/server.{crt,key} " + clienv.DefaultCmpGlob,
 			},
 		},
 		{
@@ -223,7 +222,7 @@ func TestSkelTargets(t *testing.T) {
 			Name: "generate-domain",
 			Test: TargetTest{
 				Args:     []string{"generate-domain", "toad"},
-				CmpGlobs: "exists:internal/toads/payloads_toad.go same:**",
+				CmpGlobs: "exists:someservice/internal/toads/payloads_toad.go same:**",
 			},
 		},
 		{
@@ -315,14 +314,13 @@ func TestSkelTargets(t *testing.T) {
 			Name: "generate-skel-json",
 			Test: TargetTest{
 				Args: []string{"generate-skel-json"},
-				CmpGlobs: clienv.DefaultCmpGlob +
-					` ignorelines:.skel.json:.*"targetParent".*"`,
 			},
 		},
 		{
 			Name: "generate-spui",
 			Test: TargetTest{
-				Args: []string{"generate-spui"},
+				Args:     []string{"generate-spui"},
+				CmpGlobs: "exists:someservice-ui/** same:someservice/**",
 			},
 		},
 		{

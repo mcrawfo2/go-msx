@@ -1,0 +1,433 @@
+--- before/plain-root.txtar
++++ golden/generate-service-pack-test.txtar
+@@ -1473,4 +1473,5 @@
+ 	"cto-github.cisco.com/NFV-BU/go-msx/app"
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate"
++	_ "cto-github.cisco.com/NFV-BU/someservice/internal/subscription"
+ )
+ 
+@@ -2351,4 +2352,358 @@
+ 	_ "cto-github.cisco.com/NFV-BU/someservice/internal/migrate/V5_0_0"
+ )
++-- someservice/internal/subscription/context.go --
++package subscription
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/log"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++)
++
++var logger = log.NewLogger("someservice.subscription")
++
++type contextKey int
++
++const (
++	contextKeyController contextKey = iota
++	contextKeyService
++	contextKeyRepository
++)
++
++func controllerFromContext(ctx context.Context) webservice.RestController {
++	value, _ := ctx.Value(contextKeyController).(webservice.RestController)
++	return value
++}
++
++func contextWithController(ctx context.Context, controller webservice.RestController) context.Context {
++	return context.WithValue(ctx, contextKeyController, controller)
++}
++
++func serviceFromContext(ctx context.Context) subscriptionServiceApi {
++	value, _ := ctx.Value(contextKeyService).(subscriptionServiceApi)
++	return value
++}
++
++func contextWithService(ctx context.Context, service subscriptionServiceApi) context.Context {
++	return context.WithValue(ctx, contextKeyService, service)
++}
++-- someservice/internal/subscription/controller.go --
++package subscription
++
++import (
++	"context"
++	"cto-github.cisco.com/NFV-BU/go-msx/app"
++	"cto-github.cisco.com/NFV-BU/go-msx/rbac"
++	"cto-github.cisco.com/NFV-BU/go-msx/webservice"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"errors"
++	"github.com/emicklei/go-restful"
++)
++
++const (
++	pathRoot                = "api/v1/subscriptions"
++	paramNameSubscriptionId = "subscriptionId"
++)
++
++var (
++	managePermission         = webservice.Permissions(rbac.PermissionManageServices)
++	pathParamSubscriptionId  = restful.PathParameter(paramNameSubscriptionId, "Subscription Id")
++	pathSuffixSubscriptionId = "/{subscriptionId}"
++)
++
++type subscriptionController struct {
++	subscriptionService   subscriptionServiceApi
++	subscriptionConverter subscriptionConverter
++}
++
++func (c *subscriptionController) Routes(svc *restful.WebService) {
++	svc.ApiVersion("v2")
++	tag := webservice.TagDefinition("Subscriptions", "Subscription Controller")
++	webservice.Routes(svc,
++		tag,
++		c.createSubscription,
++		c.deleteSubscription,
++	)
++}
++
++func (c *subscriptionController) createSubscription(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		Request api.SubscriptionCreateRequest `req:"body"`
++	}
++
++	return svc.POST("").Operation("createSubscription").
++		Doc("API to create subscription").
++		Notes("API to create subscription").
++		Do(webservice.StandardCreate).
++		Do(webservice.ResponsePayload(api.SubscriptionCreateResponse{})).
++		Do(managePermission).
++		Reads(api.SubscriptionCreateRequest{}).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.Controller(
++			func(req *restful.Request) (body interface{}, err error) {
++
++				converted, ok := webservice.Params(req).(*params)
++
++				if !ok {
++					return api.SubscriptionCreateResponse{}, errors.New("failed to parse body")
++				}
++
++				subscription, err := c.subscriptionService.CreateSubscription(req.Request.Context(), converted.Request)
++				return c.subscriptionConverter.ToCreateResponse(subscription), err
++			}))
++}
++
++func (c *subscriptionController) deleteSubscription(svc *restful.WebService) *restful.RouteBuilder {
++	type params struct {
++		SubscriptionId string `req:"path"`
++	}
++
++	return svc.DELETE(pathSuffixSubscriptionId).Operation("deleteSubscription").
++		Doc("API to start deletion of subscription").
++		Notes("API to start deletion of subscription").
++		Do(webservice.StandardDelete).
++		Do(managePermission).
++		Param(pathParamSubscriptionId).
++		Do(webservice.PopulateParams(params{})).
++		To(webservice.Controller(
++			func(req *restful.Request) (body interface{}, err error) {
++
++				converted, ok := webservice.Params(req).(*params)
++				if !ok {
++					return nil, errors.New("failed to parse param")
++				}
++
++				delErr := c.subscriptionService.DeleteSubscription(req.Request.Context(), converted.SubscriptionId)
++				return nil, delErr
++			}))
++}
++
++func newSubscriptionController(ctx context.Context) webservice.RestController {
++	service := controllerFromContext(ctx)
++	if service == nil {
++		service = &subscriptionController{
++			subscriptionService:   newSubscriptionService(ctx),
++			subscriptionConverter: subscriptionConverter{},
++		}
++	}
++	return service
++}
++
++func init() {
++	app.OnEvent(app.EventCommand, app.CommandRoot, func(ctx context.Context) error {
++		app.OnEvent(app.EventStart, app.PhaseBefore, func(ctx context.Context) error {
++			if svc, err := webservice.WebServerFromContext(ctx).NewService(pathRoot); err != nil {
++				return err
++			} else {
++				newSubscriptionController(ctx).Routes(svc)
++			}
++			return nil
++		})
++		return nil
++	})
++}
++-- someservice/internal/subscription/converter.go --
++package subscription
++
++import "cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++
++type subscriptionConverter struct{}
++
++func (c *subscriptionConverter) ToCreateResponse(subscription subscription) api.SubscriptionCreateResponse {
++	return api.SubscriptionCreateResponse{
++		SubscriptonId:     subscription.SubscriptionId,
++		ServiceInstanceId: subscription.ServiceInstanceId,
++	}
++}
++-- someservice/internal/subscription/model.go --
++package subscription
++
++type subscription struct {
++	SubscriptionId    string
++	ServiceInstanceId string
++}
++-- someservice/internal/subscription/service.go --
++package subscription
++
++import (
++	"context"
++	consume "cto-github.cisco.com/NFV-BU/catalogservice/pkg/api"
++	"cto-github.cisco.com/NFV-BU/go-msx/integration/manage"
++	"cto-github.cisco.com/NFV-BU/someservice/pkg/api"
++	"github.com/pkg/errors"
++)
++
++const (
++	ServiceLifecycleStateOrdering     = "ORDERING"
++	ServiceLifecycleStateProvisioning = "PROVISIONING"
++	ServiceLifecycleStateProvisioned  = "PROVISIONED"
++	ServiceLifecycleStateDeleting     = "DELETING"
++	ServiceLifecycleStateOrderFailed  = "ORDER_FAILED"
++)
++
++var (
++	errPayloadConversion = errors.New("error converting payload")
++)
++
++type subscriptionServiceApi interface {
++	CreateSubscription(ctx context.Context, req api.SubscriptionCreateRequest) (subscription, error)
++	DeleteSubscription(ctx context.Context, serviceInstanceId string) error
++}
++
++type subscriptionService struct {
++	subscriptionConverter subscriptionConverter
++}
++
++func (s *subscriptionService) CreateSubscription(ctx context.Context, req api.SubscriptionCreateRequest) (subscription, error) {
++	consumeApi := consume.NewIntegration(ctx)
++
++	offerResponse, err := consumeApi.GetOffer(req.OfferId)
++	if err != nil {
++		return subscription{}, err
++	}
++
++	offerPayload, ok := offerResponse.Payload.(*consume.ServiceOffering)
++	if !ok {
++		return subscription{}, errPayloadConversion
++	}
++
++	manageApi, err := manage.NewIntegration(ctx)
++	if err != nil {
++		return subscription{}, err
++	}
++
++	response, err := manageApi.CreateSubscription(
++		req.TenantId,
++		"",
++		nil,
++		map[string]string{},
++		map[string]string{
++			"id": req.OfferId,
++		},
++		map[string]string{},
++		map[string]string{})
++	if err != nil {
++		return subscription{}, err
++	}
++
++	subscriptionPayload, ok := response.Payload.(*manage.CreateSubscriptionResponse)
++
++	if !ok {
++		return subscription{}, errPayloadConversion
++	}
++
++	response, err = manageApi.CreateServiceInstance(
++		subscriptionPayload.SubscriptionID,
++		"",
++		map[string]string{}, map[string]string{
++			"type":      "",
++			"offerName": offerPayload.Name,
++			"id":        req.ServiceId,
++		},
++		map[string]string{
++			"lifeCycleStatus": "Ordering",
++			"txStatus":        "ORDERING",
++		})
++	if err != nil {
++		return subscription{}, errors.Wrap(err, "Failed to submit create subscription request")
++	}
++
++	serviceInstanceResponse, ok := response.Payload.(*manage.ServiceInstanceResponse)
++	if !ok {
++		return subscription{}, errPayloadConversion
++	}
++
++	// Set service to provisioned
++	err = s.UpdateServiceInstanceStatus(ctx, serviceInstanceResponse.ServiceInstanceID, ServiceLifecycleStateProvisioned)
++	if err != nil {
++		return subscription{}, errPayloadConversion
++	}
++
++	return subscription{
++		SubscriptionId:    subscriptionPayload.SubscriptionID,
++		ServiceInstanceId: serviceInstanceResponse.ServiceInstanceID,
++	}, err
++}
++
++func (s *subscriptionService) DeleteSubscription(ctx context.Context, serviceInstanceId string) error {
++	manageApi, err := manage.NewIntegration(ctx)
++
++	if err != nil {
++		return err
++	}
++
++	serviceInstanceResp, err := manageApi.GetServiceInstance(serviceInstanceId)
++
++	if err != nil {
++		return err
++	}
++
++	serviceInstance, _ := serviceInstanceResp.Payload.(*manage.ServiceInstanceResponse)
++
++	_, err = manageApi.DeleteSubscription(serviceInstance.ServiceInstanceID)
++
++	return nil
++}
++
++func (s *subscriptionService) UpdateServiceInstanceStatus(ctx context.Context, serviceInstanceId string, status string) error {
++	manageApi, err := manage.NewIntegration(ctx)
++	if err != nil {
++		return err
++	}
++
++	lifeCycleStatus, err := getLifeCycleStatusFromTxStatus(status)
++	if err != nil {
++		return err
++	}
++
++	// mark service instance as deleting
++	_, err = manageApi.UpdateServiceInstance(serviceInstanceId, nil, nil, map[string]string{
++		"lifeCycleStatus": lifeCycleStatus,
++		"txStatus":        status,
++	})
++
++	return err
++}
++
++func (s *subscriptionService) ServiceInstanceExists(ctx context.Context, serviceInstanceId string) (bool, error) {
++	manageApi, err := manage.NewIntegration(ctx)
++
++	if err != nil {
++		return false, err
++	}
++
++	if _, err := manageApi.GetServiceInstance(serviceInstanceId); err != nil {
++		return false, err
++	}
++
++	return true, nil
++}
++
++func newSubscriptionService(ctx context.Context) subscriptionServiceApi {
++	service := serviceFromContext(ctx)
++	if service == nil {
++		service = &subscriptionService{
++			subscriptionConverter: subscriptionConverter{},
++		}
++	}
++	return service
++}
++
++func getLifeCycleStatusFromTxStatus(txStatus string) (string, error) {
++	switch txStatus {
++	case ServiceLifecycleStateDeleting:
++		return "Deleting", nil
++	case ServiceLifecycleStateOrdering:
++		return "Ordering", nil
++	case ServiceLifecycleStateProvisioned:
++		return "Provisioned", nil
++	case ServiceLifecycleStateProvisioning:
++		return "Provisioning", nil
++	case ServiceLifecycleStateOrderFailed:
++		return "Order Failed", nil
++	}
++
++	return "", errors.Errorf("Unknown status %q", txStatus)
++}
+ -- someservice/local/someservice.remote.yml --
+ remote.service.address: 192.168.1.2
+@@ -2510,4 +2865,65 @@
+ 
+ </project>
++-- someservice/pkg/api/subscription.go --
++package api
++
++type SubscriptionCreateRequest struct {
++	OfferId   string `json:"offerId"`
++	TenantId  string `json:"tenantId"`
++	ServiceId string `json:"serviceId"`
++}
++
++type SubscriptionCreateResponse struct {
++	SubscriptonId     string `json:"subscriptionId"`
++	ServiceInstanceId string `json:"serviceInstanceId"`
++}
++-- someservice/platform-common/servicelifecycle/manifest.json --
++{
++  "services": [
++    {
++      "name": "someservice-5.0.0-SNAPSHOT",
++      "files": [
++        "manifest.yml"
++      ],
++      "images": {
++        "dockerhub.cisco.com/vms-platform-dev-docker/someservice:5.0.0-SNAPSHOT": "someservice-5.0.0-SNAPSHOT.tar.gz"
++      }
++    }
++  ]
++}
++-- someservice/platform-common/servicelifecycle/manifest.yml --
++---
++Name: "someservice"
++Type: Internal
++Containers:
++  - Name: "someservice"
++    Version: "5.0.0-SNAPSHOT"
++    Artifact: "someservice-5.0.0-SNAPSHOT.tar.gz"
++    Port: 9999
++    ContextPath: "/some"
++    Check:
++      Http:
++        Scheme: "http"
++        Host: "127.0.0.1"
++        Path: "/some/admin/health"
++      IntervalSec: 30
++      TimeoutSec: 10
++    Limits:
++      Memory: "128Mi"
++      CPU: "1"
++    Command:
++      - "/usr/bin/someservice"
++      - "--profile"
++      - "production"
++    Endpoints:
++      - "/swagger"
++ConfigFiles: []
++Infrastructure:
++  Database:
++    Type: Cockroach # or Cockroach
++    Name: "someservice"
++  Bus:
++    Type: Kafka
++    Topics: []
+ -- someservice/skaffold.yaml --
+ apiVersion: skaffold/v3
